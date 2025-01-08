@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { useInventoryList } from "../hooks/useInventory";
+// import { useQuery } from "@tanstack/react-query";
+import { useInventoryList } from "../../hooks/useInventory";
 
 export default function InventoryList() {
   const { isLoading, error, data: inventories } = useInventoryList();

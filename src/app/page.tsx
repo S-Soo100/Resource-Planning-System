@@ -1,15 +1,18 @@
 "use client";
 import React, { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log("Email:", email);
     console.log("Password:", password);
+    router.push("/inventory");
   };
 
   return (
@@ -87,7 +90,7 @@ export default function LoginPage() {
               비밀번호를 잊으셨나요?
             </a>
           </div>
-          <div className="text-center text-sm text-gray-600">
+          {/* <div className="text-center text-sm text-gray-600">
             계정이 없으신가요?{" "}
             <a
               href="#"
@@ -95,7 +98,7 @@ export default function LoginPage() {
             >
               회원가입
             </a>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

@@ -2,20 +2,33 @@
 import React, { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import login from "@/api/login";
+import { LoginAuth } from "@/types/loginAuth";
+import Cookies from "js-cookie";
+import { FaEye, FaRegEyeSlash } from "react-icons/fa";
 
-export default function LoginPage() {
+export default function LoginComponent() {
   const [auth, setAuth] = useState<LoginAuth>({ email: "", password: "" });
   const router = useRouter();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // console.log("Email:", auth.email);
-    // console.log("password:", auth.password);
-    router.push("/inventory");
+    if (auth.email === "user" && auth.password === "password") {
+      login({ email: auth.email, password: auth.password });
+      Cookies.set("token", "fake-token-1234876129378461928", { expires: 14 }); // 토큰 쿠키 설정
+      router.push("/menu"); // 로그인 성공 시 메뉴 페이지로 이동
+    } else {
+      alert("Invalid credentials");
+    }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 min-w-96">
       <div className="w-full max-w-md mx-4 bg-white rounded-xl shadow-lg p-8">
         <div className="text-center">
           <div className="flex justify-center mb-6">
@@ -59,18 +72,31 @@ export default function LoginPage() {
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+
               <input
                 id="password"
-                type="password"
+                type={isPasswordVisible ? "text" : "password"} // 상태에 따라 동적 설정
                 value={auth.password}
                 onChange={(e) =>
                   setAuth({ email: auth.email, password: e.target.value })
                 }
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg 
-                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                        placeholder:text-gray-400"
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+            placeholder:text-gray-400"
                 placeholder="••••••••"
               />
+              <span className="absolute inset-y-0 right-0 flex items-center pr-2">
+                <button type="button" onClick={togglePasswordVisibility}>
+                  {/* 눈 아이콘을 나타내는 아이콘 컴포넌트 또는 이미지 */}
+                  <div className="text-black">
+                    {isPasswordVisible ? (
+                      <FaEye onClick={togglePasswordVisibility} />
+                    ) : (
+                      <FaRegEyeSlash onClick={togglePasswordVisibility} />
+                    )}
+                  </div>
+                </button>
+              </span>
             </div>
           </div>
 

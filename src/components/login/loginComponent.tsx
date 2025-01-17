@@ -18,13 +18,13 @@ export default function LoginComponent() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (auth.email === "user" && auth.password === "password") {
-      login({ email: auth.email, password: auth.password });
-      Cookies.set("token", "fake-token-1234876129378461928", { expires: 14 }); // 토큰 쿠키 설정
-      router.push("/menu"); // 로그인 성공 시 메뉴 페이지로 이동
-    } else {
-      alert("Invalid credentials");
-    }
+    // if (auth.email === "user" && auth.password === "password") {
+    login({ email: auth.email, password: auth.password });
+    Cookies.set("token", "fake-token-1234876129378461928", { expires: 14 }); // 토큰 쿠키 설정
+    router.push("/menu"); // 로그인 성공 시 메뉴 페이지로 이동
+    // } else {
+    //   alert("Invalid credentials");
+    // }
   };
 
   return (

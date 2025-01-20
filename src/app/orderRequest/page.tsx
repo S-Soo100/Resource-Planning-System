@@ -1,4 +1,5 @@
 "use client";
+import SearchAddressModal from "@/components/orderRequest/SearchAddressModal";
 import { useState } from "react";
 // import Link from "next/link";
 
@@ -115,6 +116,7 @@ export default function OrderRequestPage() {
           className="p-2 border rounded"
           placeholder="주소를 입력하세요"
         />
+        <SearchAddressModal></SearchAddressModal>
 
         <button
           type="submit"

@@ -1,10 +1,10 @@
-import LoginComponent from "@/components/login/loginComponent";
+import LoginBox from "@/components/login/LoginBox";
 import React from "react";
 
 export default function SignInPage() {
   return (
     <>
-      <LoginComponent />
+      <LoginBox />
     </>
   );
 }

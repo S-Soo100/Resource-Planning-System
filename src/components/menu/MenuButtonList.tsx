@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import { MdOutlineInventory } from "react-icons/md";
 import { PiNewspaperClippingFill } from "react-icons/pi";
-const MenuComponent = () => {
+const MenuButtonList = () => {
   const router = useRouter();
 
   const menuItems = [
@@ -73,4 +73,4 @@ const MenuComponent = () => {
   );
 };
 
-export default MenuComponent;
+export default MenuButtonList;

@@ -6,7 +6,7 @@ import { IoLogOutOutline } from "react-icons/io5";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 
-export default function AppBar() {
+const AppBarComponent = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -97,4 +97,6 @@ export default function AppBar() {
       {renderRightContent()}
     </div>
   );
-}
+};
+
+export default AppBarComponent;

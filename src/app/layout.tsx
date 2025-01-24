@@ -1,6 +1,6 @@
 import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
-import AppBar from "@/components/appbar/appbar";
+import AppBarComponent from "../components/appbar/Appbar";
 
 const notoSansKr = Noto_Sans_KR({
   // preload: true, 기본값
@@ -19,7 +19,7 @@ export default function RootLayout({
         className={`${notoSansKr.className} font-sans antialiased max-w-3xl min-w-96 mx-auto shadow-lg`}
       >
         <header>
-          <AppBar />
+          <AppBarComponent />
         </header>
         <div className="container mx-auto">{children}</div>
       </body>

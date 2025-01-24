@@ -15,7 +15,7 @@ interface DataType {
   address: string;
 }
 
-const TableComponent: React.FC = () => {
+const InventoryTable: React.FC = () => {
   const router = useRouter();
 
   const columns: TableColumnsType<DataType> = [
@@ -171,4 +171,4 @@ const TableComponent: React.FC = () => {
   );
 };
 
-export default TableComponent;
+export default InventoryTable;

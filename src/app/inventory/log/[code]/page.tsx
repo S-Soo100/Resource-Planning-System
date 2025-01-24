@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import styles from "./Log.module.css";
 import { useParams } from "next/navigation";
 
 interface LogItem {
@@ -41,26 +40,28 @@ export default function Log({ code }: { code: string }) {
   }, [code]);
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>물품 {params.code} 입/출고 로그</h1>
-      <table className={styles.table}>
+    <div className="max-w-4xl mx-auto p-8">
+      <h1 className="text-2xl text-center mb-4 font-bold">
+        물품 {params.code} 입/출고 로그
+      </h1>
+      <table className="w-full border-collapse border border-gray-300">
         <thead>
           <tr>
-            <th className={styles.th}>날짜</th>
-            <th className={styles.th}>입고</th>
-            <th className={styles.th}>출고</th>
-            <th className={styles.th}>수량</th>
-            <th className={styles.th}>비고</th>
+            <th className="border border-gray-300 p-2 bg-gray-100">날짜</th>
+            <th className="border border-gray-300 p-2 bg-gray-100">입고</th>
+            <th className="border border-gray-300 p-2 bg-gray-100">출고</th>
+            <th className="border border-gray-300 p-2 bg-gray-100">수량</th>
+            <th className="border border-gray-300 p-2 bg-gray-100">비고</th>
           </tr>
         </thead>
         <tbody>
           {logData.map((log, index) => (
             <tr key={index}>
-              <td className={styles.td}>{log.date}</td>
-              <td className={styles.td}>{log.incomming}</td>
-              <td className={styles.td}>{log.outcomming}</td>
-              <td className={styles.td}>{log.quantity}</td>
-              <td className={styles.td}>{log.remark}</td>
+              <td className="border border-gray-300 p-2">{log.date}</td>
+              <td className="border border-gray-300 p-2">{log.incomming}</td>
+              <td className="border border-gray-300 p-2">{log.outcomming}</td>
+              <td className="border border-gray-300 p-2">{log.quantity}</td>
+              <td className="border border-gray-300 p-2">{log.remark}</td>
             </tr>
           ))}
         </tbody>

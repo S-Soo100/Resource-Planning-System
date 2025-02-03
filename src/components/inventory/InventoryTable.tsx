@@ -1,144 +1,63 @@
 "use client";
-import React from "react";
-import { useRouter } from "next/navigation";
+import { Iitem } from "@/types/item";
 import { Table } from "antd";
-import type { TableColumnsType, TableProps } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
-import { FloatButton } from "antd";
-import { Iitem, inventoryDummyData } from "@/types/item";
-import { getWarehouseName } from "@/api/(inventory)/getWarehouseName";
+import { ColumnsType } from "antd/es/table";
+import React, { Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { useItems } from "@/hooks/useItems";
 
-const InventoryTable: React.FC = () => {
+export default function InventoryTable() {
   const router = useRouter();
+  const { data: items, isLoading, isError } = useItems();
 
-  const columns: TableColumnsType<Iitem> = [
+  const IitemTableColumns: ColumnsType<Iitem> = [
     {
-      title: "no",
+      title: "No",
       dataIndex: "itemId",
-      // sorter: (a, b) => a.itemId - b.itemId,
-      width: "5%",
-      render: (text) => <div>{text}</div>,
-    },
-    {
-      title: "물품 코드",
-      dataIndex: "itemCode",
-      filters: [
-        {
-          text: "RX",
-          value: "RX",
-        },
-        {
-          text: "MS",
-          value: "MS",
-        },
-      ],
-      filterMode: "tree",
-      filterSearch: true,
-      onFilter: (value, record) => record.itemCode.includes(value as string),
-      width: "20%",
-      render: (text) => (
-        <a
-          onClick={() => router.push(`/inventory/log/${text}`)}
-          // style={{ cursor: "pointer", color: "#1890ff" }}
-        >
-          {text}
-        </a>
+      sorter: {
+        compare: (a, b) => a.itemId - b.itemId,
+        multiple: 1,
+      },
+      width: "7%",
+      render: (val: number) => (
+        <button className="drop-shadow-lg">{val}</button>
       ),
     },
     {
-      title: "품목",
+      title: "Product",
       dataIndex: "itemName",
-      filters: [
-        {
-          text: "휠리엑스",
-          value: "휠리엑스",
-        },
-        {
-          text: "휠리 허브",
-          value: "휠리 허브",
-          children: [
-            {
-              text: "무선",
-              value: "무선",
-            },
-            {
-              text: "유선",
-              value: "유선",
-            },
-          ],
-        },
-        {
-          text: "Gundam",
-          value: "Gundam",
-          children: [
-            {
-              text: "Unicorn",
-              value: "Unicorn",
-            },
-            {
-              text: "First",
-              value: "First",
-            },
-          ],
-        },
-      ],
-      filterMode: "tree",
-      filterSearch: true,
-      onFilter: (value, record) => record.itemName.includes(value as string),
-      width: "20%",
-    },
-    {
-      title: "재고",
-      dataIndex: "itemQuantity",
-      sorter: (a, b) => a.itemQuantity - b.itemQuantity,
-      width: "10%",
-    },
-    {
-      title: "창고",
-      dataIndex: "warehouseId",
       width: "15%",
-      render: (text) => (
+      render: (value: string, record) => (
         <a
-          onClick={() => router.push(`/inventory/warehouse/${text}`)}
-          // style={{ cursor: "pointer", color: "#1890ff" }}
+          className="text-blue-500 hover:font-extrabold"
+          onClick={() => {
+            router.push(`/item/log/${record.itemCode}`);
+          }}
         >
-          {text}
+          {value}
         </a>
       ),
+    },
+    {
+      title: "Qty",
+      dataIndex: "itemQuantity",
+      width: "5%",
+    },
+    {
+      title: "Warehouse",
+      dataIndex: "warehouseId",
+      width: "5%",
     },
   ];
 
-  const onChange: TableProps<Iitem>["onChange"] = (
-    pagination,
-    filters,
-    sorter,
-    extra
-  ) => {
-    console.log("params", pagination, filters, sorter, extra);
-  };
+  if (isLoading) return <div>Loading Data...</div>;
+  if (isError) return <div>Error loading inventory data.</div>;
 
   return (
-    <>
-      <Table<Iitem>
-        columns={columns}
-        dataSource={inventoryDummyData}
-        onChange={onChange}
-      />
-
-      <FloatButton
-        icon={<QuestionCircleOutlined />}
-        type="primary"
-        style={{ insetInlineEnd: 24 }}
-        onClick={() => alert("재고 수정")}
-      />
-      <FloatButton
-        icon={<QuestionCircleOutlined />}
-        type="default"
-        style={{ insetInlineEnd: 94 }}
-        onClick={() => alert("출고 처리")}
-      />
-    </>
+    <Suspense fallback={<div>Loading Data...</div>}>
+      <section className="m-2 rounded-lg shadow-lg">
+        <Table columns={IitemTableColumns} dataSource={items} rowKey="itemId" />
+      </section>
+    </Suspense>
   );
-};
-
-export default InventoryTable;
+}

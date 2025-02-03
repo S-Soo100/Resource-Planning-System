@@ -48,7 +48,9 @@ const AppBarComponent = () => {
       );
     } else if (pathname !== "/signin") {
       return (
-        <div className="relative">
+        <div className="relative z-50">
+          {" "}
+          {/* z-index 추가 */}
           <div
             className="bg-gray-200 rounded-full p-2 cursor-pointer"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -56,7 +58,9 @@ const AppBarComponent = () => {
             <User className="h-6 w-6 text-blue-600" />
           </div>
           {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md">
+            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-50">
+              {" "}
+              {/* z-50 추가 */}
               <ul className="py-2">
                 <li
                   className="text-black px-4 py-2 hover:bg-gray-100 cursor-pointer"
@@ -92,7 +96,9 @@ const AppBarComponent = () => {
   };
 
   return (
-    <div className="flex items-center justify-between bg-gray-800 text-white p-4">
+    <div className="flex items-center justify-between bg-gray-800 text-white p-4 z-50 relative shadow-md">
+      {" "}
+      {/* z-50 추가 */}
       {renderLeftContent()}
       {renderRightContent()}
     </div>

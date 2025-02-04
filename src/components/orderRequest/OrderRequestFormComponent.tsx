@@ -18,7 +18,7 @@ type FormData = {
 type OrderRequestFormProps = {
   onSubmit: (formData: FormData) => void;
 };
-const OrderRequestForm = ({ onSubmit }: OrderRequestFormProps) => {
+const OrderRequestFormComponent = ({ onSubmit }: OrderRequestFormProps) => {
   const [requestDate, setRequestDate] = useState("");
   const [setDate, setSetDate] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -262,4 +262,4 @@ const OrderRequestForm = ({ onSubmit }: OrderRequestFormProps) => {
   );
 };
 
-export default OrderRequestForm;
+export default OrderRequestFormComponent;

@@ -1,9 +1,9 @@
-import ItemListPage from "@/components/item/ItemListPage";
+import ItemListComponent from "@/components/item/ItemListPage";
 
 export default function ItemPage() {
   return (
     <>
-      <ItemListPage />
+      <ItemListComponent />
     </>
   );
 }

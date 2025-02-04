@@ -1,9 +1,9 @@
-import ItemRecordList from "@/components/itemRecord/ItemRecordList";
+import ItemRecordListComponent from "@/components/itemRecord/ItemRecordList";
 
 export default function ItemRecordPage() {
   return (
     <div>
-      <ItemRecordList />
+      <ItemRecordListComponent />
     </div>
   );
 }

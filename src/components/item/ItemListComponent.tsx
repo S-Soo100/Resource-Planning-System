@@ -5,7 +5,7 @@ import { useItems } from "@/hooks/useItems";
 import { useUpdateItem } from "@/hooks/useUpdateItem";
 import { useState } from "react";
 
-export default function ItemListPage() {
+export default function ItemListComponent() {
   const { data: items, isLoading, isError } = useItems();
   const updateItemMutation = useUpdateItem();
   const [isModalOpen, setIsModalOpen] = useState(false);

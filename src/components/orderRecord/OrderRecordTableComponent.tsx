@@ -4,7 +4,7 @@ import { IOrderRecord } from "@/types/orderRecord";
 import { useState, useEffect } from "react";
 import TableCell from "./(tableBody)/TableCell";
 
-const OrderRecordTable = () => {
+const OrderRecordTableComponent = () => {
   const [records, setRecords] = useState<IOrderRecord[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
@@ -90,4 +90,4 @@ const OrderRecordTable = () => {
     </div>
   );
 };
-export default OrderRecordTable;
+export default OrderRecordTableComponent;

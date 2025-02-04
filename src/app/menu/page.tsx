@@ -1,10 +1,10 @@
-import MenuButtonList from "@/components/menu/MenuButtonList";
+import MenuButtonListComponent from "@/components/menu/MenuButtonListComponent";
 import React from "react";
 
 export default function page() {
   return (
     <>
-      <MenuButtonList />
+      <MenuButtonListComponent />
     </>
   );
 }

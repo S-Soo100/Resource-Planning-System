@@ -7,7 +7,7 @@ import { LoginAuth } from "@/types/loginAuth";
 import Cookies from "js-cookie";
 import { FaEye, FaRegEyeSlash } from "react-icons/fa";
 
-export default function LoginBox() {
+export default function LoginBoxComponent() {
   const [auth, setAuth] = useState<LoginAuth>({ email: "", password: "" });
   const router = useRouter();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);

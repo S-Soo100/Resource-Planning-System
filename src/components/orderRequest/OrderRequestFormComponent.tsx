@@ -1,7 +1,7 @@
 // components/orderRequest/OrderRequestForm.tsx
 "use client";
 import { FormEvent, useEffect, useRef, useState } from "react";
-import SearchAddressModal from "./SearchAddressModal";
+import SearchAddressModal from "./(addressSearch)/SearchAddressModal";
 import { Address } from "react-daum-postcode";
 import { Paperclip } from "lucide-react";
 

@@ -1,9 +1,9 @@
-import InventoryPage from "@/components/inventory/InventoryPage";
+import ItemListPage from "@/components/item/InventoryPage";
 
 export default function ItemPage() {
   return (
     <>
-      <InventoryPage />
+      <ItemListPage />
     </>
   );
 }

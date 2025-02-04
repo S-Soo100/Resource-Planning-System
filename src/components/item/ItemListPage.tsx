@@ -1,11 +1,11 @@
 "use client";
 
-import InventoryTable from "@/components/inventory/InventoryTable";
+import ItemTableComponent from "@/components/item/InventoryTable";
 import { useItems } from "@/hooks/useItems";
 import { useUpdateItem } from "@/hooks/useUpdateItem";
 import { useState } from "react";
 
-export default function InventoryPage() {
+export default function ItemListPage() {
   const { data: items, isLoading, isError } = useItems();
   const updateItemMutation = useUpdateItem();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -65,7 +65,7 @@ export default function InventoryPage() {
 
   return (
     <>
-      <InventoryTable />
+      <ItemTableComponent />
 
       {/* Floating Action Button */}
       <button

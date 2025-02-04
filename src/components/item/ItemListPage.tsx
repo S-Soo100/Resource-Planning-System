@@ -1,6 +1,6 @@
 "use client";
 
-import ItemTableComponent from "@/components/item/InventoryTable";
+import ItemTableComponent from "@/components/item/ItemTabelComponent";
 import { useItems } from "@/hooks/useItems";
 import { useUpdateItem } from "@/hooks/useUpdateItem";
 import { useState } from "react";

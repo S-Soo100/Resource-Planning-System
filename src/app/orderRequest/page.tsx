@@ -9,5 +9,9 @@ export default function OrderRequestPage() {
   //   await sendOrderRequest(formData); // 임시 함수 호출
   // };
 
-  return <OrderRequestFormComponent onSubmit={handleOrderRequest} />;
+  return (
+    <section className="m-2 p-1">
+      <OrderRequestFormComponent onSubmit={handleOrderRequest} />
+    </section>
+  );
 }

@@ -1,6 +1,6 @@
 // app/page.tsx
 "use client";
-import OrderRequestForm from "../../components/orderRequest/OrderRequestForm";
+import OrderRequestFormComponent from "../../components/orderRequest/OrderRequestFormComponent";
 // import { sendOrderRequest } from "@/utils/orderRequest"; // 임시
 
 export default function OrderRequestPage() {
@@ -9,5 +9,5 @@ export default function OrderRequestPage() {
   //   await sendOrderRequest(formData); // 임시 함수 호출
   // };
 
-  return <OrderRequestForm onSubmit={handleOrderRequest} />;
+  return <OrderRequestFormComponent onSubmit={handleOrderRequest} />;
 }

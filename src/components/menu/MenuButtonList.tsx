@@ -20,6 +20,12 @@ const MenuButtonList = () => {
       onClick: () => router.push("/item"),
     },
     {
+      title: "재고 입출고 기록 조회",
+      subtitle: "마스터 계정",
+      icon: <FaClipboardList className="text-2xl" />,
+      onClick: () => router.push("/itemRecord"),
+    },
+    {
       title: "발주 요청",
       subtitle: "직원 계정, 타업체 계정",
       icon: <FaTruckLoading className="text-2xl" />,
@@ -30,12 +36,6 @@ const MenuButtonList = () => {
       subtitle: "마스터 계정, 직원 계정, 타업체 계정",
       icon: <PiNewspaperClippingFill className="text-2xl" />,
       onClick: () => router.push("/orderRecord"),
-    },
-    {
-      title: "입출고 기록 조회",
-      subtitle: "마스터 계정",
-      icon: <FaClipboardList className="text-2xl" />,
-      onClick: () => router.push("/records"),
     },
     {
       title: "품목 조회/수정",

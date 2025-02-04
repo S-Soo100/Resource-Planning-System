@@ -6,7 +6,7 @@ import React, { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useItems } from "@/hooks/useItems";
 
-export default function InventoryTable() {
+export default function ItemTableComponent() {
   const router = useRouter();
   const { data: items, isLoading, isError } = useItems();
 

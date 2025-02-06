@@ -1,9 +1,10 @@
-import ItemRecordListComponent from "@/components/itemRecord/ItemRecordListComponent";
+import IoHistoryTable from "@/components/ioHistory/IoHistoryTable";
+// import ItemRecordListComponent from "@/components/ioHistory/ItemRecordListComponent";
 
 export default function ItemRecordPage() {
   return (
     <div>
-      <ItemRecordListComponent />
+      <IoHistoryTable />
     </div>
   );
 }

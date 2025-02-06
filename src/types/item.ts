@@ -7,7 +7,7 @@ export interface Iitem {
   warehouseId: number; // 창고 id (FK)
 }
 
-export const inventoryDummyData: Iitem[] = [
+export const dummyItemResponse: Iitem[] = [
   {
     itemId: 0,
     itemCode: "RX-0",

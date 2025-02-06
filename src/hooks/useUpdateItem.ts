@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Iitem } from "@/types/item";
-import { updateItem, UpdateItemPayload } from "@/api/(inventory)/updateItems";
+import { updateItem, UpdateItemPayload } from "@/api/(item)/updateItems";
 
 // 재고 수정 훅
 export const useUpdateItem = () => {
+  console.log("useUpdateItem");
   const queryClient = useQueryClient();
 
   return useMutation<Iitem, Error, UpdateItemPayload>({

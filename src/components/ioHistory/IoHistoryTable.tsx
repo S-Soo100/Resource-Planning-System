@@ -94,13 +94,13 @@ export default function IoHistoryTable() {
           type={filter === "inbound" ? "primary" : "default"}
           onClick={() => setFilter("inbound")}
         >
-          입고 건만 보기
+          입고 건만
         </Button>
         <Button
           type={filter === "outbound" ? "primary" : "default"}
           onClick={() => setFilter("outbound")}
         >
-          출고 건만 보기
+          출고 건만
         </Button>
       </Space>
 

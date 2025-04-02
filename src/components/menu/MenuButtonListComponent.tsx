@@ -20,10 +20,16 @@ const MenuButtonListComponent = () => {
       onClick: () => router.push("/item"),
     },
     {
+      title: "품목 조회/수정",
+      subtitle: "모든 계정",
+      icon: <FaBox className="text-2xl" />,
+      onClick: () => router.push("/records"),
+    },
+    {
       title: "재고 입출고 기록 조회",
       subtitle: "마스터 계정",
       icon: <FaClipboardList className="text-2xl" />,
-      onClick: () => router.push("/itemRecord"),
+      onClick: () => router.push("/ioHistory"),
     },
     {
       title: "발주 요청",
@@ -36,12 +42,6 @@ const MenuButtonListComponent = () => {
       subtitle: "마스터 계정, 직원 계정, 타업체 계정",
       icon: <PiNewspaperClippingFill className="text-2xl" />,
       onClick: () => router.push("/orderRecord"),
-    },
-    {
-      title: "품목 조회/수정",
-      subtitle: "모든 계정",
-      icon: <FaBox className="text-2xl" />,
-      onClick: () => router.push("/records"),
     },
   ];
 

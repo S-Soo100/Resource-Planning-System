@@ -82,6 +82,9 @@ export default function IoHistoryTable() {
 
   return (
     <div className="p-4">
+      <h1 className="m-2 bg-red-400">
+        입출고기록당 입출고품목 추가해야 합니다
+      </h1>
       <h2 className="text-lg font-semibold mb-4">입출고 기록</h2>
       <Space className="mb-4">
         <Button

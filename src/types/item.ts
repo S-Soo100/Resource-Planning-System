@@ -1,3 +1,5 @@
+import { ApiResponse } from "./common";
+
 // item(품목)
 export interface Iitem {
   itemId: number; // 품목 id
@@ -44,3 +46,61 @@ export const dummyItemResponse: Iitem[] = [
     warehouseId: 0,
   },
 ];
+
+export interface Item {
+  id: string;
+  name: string;
+  description: string;
+  sku: string;
+  warehouseId: string;
+  quantity: number;
+  minimumQuantity: number;
+  category: string;
+  unit: string;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateItemRequest {
+  name: string;
+  description: string;
+  sku: string;
+  warehouseId: string;
+  quantity: number;
+  minimumQuantity: number;
+  category: string;
+  unit: string;
+  price: number;
+}
+
+export interface UpdateItemRequest {
+  name?: string;
+  description?: string;
+  sku?: string;
+  warehouseId?: string;
+  minimumQuantity?: number;
+  category?: string;
+  unit?: string;
+  price?: number;
+}
+
+export interface UpdateItemQuantityRequest {
+  quantity: number;
+  reason: string;
+}
+
+export interface ItemResponse extends ApiResponse {
+  data?: Item;
+}
+
+export interface ItemsResponse extends ApiResponse {
+  data?: Item[];
+}
+
+export interface ItemsByWarehouseResponse extends ApiResponse {
+  data?: {
+    warehouseId: string;
+    items: Item[];
+  };
+}

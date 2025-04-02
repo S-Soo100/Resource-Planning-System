@@ -14,7 +14,7 @@ export interface OrderItem {
   unitPrice: number;
 }
 
-export interface Order {
+export interface IOrder {
   id: string;
   userId: string;
   supplierId: string;
@@ -43,9 +43,9 @@ export interface UpdateOrderStatusRequest {
 }
 
 export interface OrderResponse extends ApiResponse {
-  data?: Order;
+  data?: IOrder;
 }
 
 export interface OrdersResponse extends ApiResponse {
-  data?: Order[];
+  data?: IOrder[];
 }

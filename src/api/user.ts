@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { api, ApiResponse } from "./api";
-import { User } from "@/types/user";
+import { IUser } from "@/types/user";
 
 export interface CreateUserRequest {
   email: string;
@@ -21,9 +22,9 @@ export interface WarehouseAccessRequest {
 
 export const userApi = {
   // 사용자 생성
-  createUser: async (data: CreateUserRequest): Promise<ApiResponse<User>> => {
+  createUser: async (data: CreateUserRequest): Promise<ApiResponse<IUser>> => {
     try {
-      const response = await api.post<User>("/user", data);
+      const response = await api.post<IUser>("/user", data);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: "사용자 생성에 실패했습니다." };
@@ -31,9 +32,9 @@ export const userApi = {
   },
 
   // 모든 사용자 조회
-  getAllUsers: async (): Promise<ApiResponse<User[]>> => {
+  getAllUsers: async (): Promise<ApiResponse<IUser[]>> => {
     try {
-      const response = await api.get<User[]>("/user");
+      const response = await api.get<IUser[]>("/user");
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: "사용자 목록 조회에 실패했습니다." };
@@ -41,9 +42,9 @@ export const userApi = {
   },
 
   // 단일 사용자 조회
-  getUser: async (id: string): Promise<ApiResponse<User>> => {
+  getUser: async (id: string): Promise<ApiResponse<IUser>> => {
     try {
-      const response = await api.get<User>(`/user/${id}`);
+      const response = await api.get<IUser>(`/user/${id}`);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: "사용자 조회에 실패했습니다." };
@@ -54,9 +55,9 @@ export const userApi = {
   updateUser: async (
     id: string,
     data: UpdateUserRequest
-  ): Promise<ApiResponse<User>> => {
+  ): Promise<ApiResponse<IUser>> => {
     try {
-      const response = await api.patch<User>(`/user/${id}`, data);
+      const response = await api.patch<IUser>(`/user/${id}`, data);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: "사용자 정보 수정에 실패했습니다." };
@@ -64,9 +65,9 @@ export const userApi = {
   },
 
   // 사용자 삭제
-  deleteUser: async (id: string): Promise<ApiResponse<User>> => {
+  deleteUser: async (id: string): Promise<ApiResponse<IUser>> => {
     try {
-      const response = await api.delete<User>(`/user/${id}`);
+      const response = await api.delete<IUser>(`/user/${id}`);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: "사용자 삭제에 실패했습니다." };
@@ -77,9 +78,9 @@ export const userApi = {
   setWarehouseAccess: async (
     id: string,
     data: WarehouseAccessRequest
-  ): Promise<ApiResponse<User>> => {
+  ): Promise<ApiResponse<IUser>> => {
     try {
-      const response = await api.patch<User>(
+      const response = await api.patch<IUser>(
         `/user/${id}/warehouse-access`,
         data
       );

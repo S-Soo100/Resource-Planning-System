@@ -25,10 +25,10 @@ export default function TestLoginPage() {
           console.log("Bearer 토큰:", `Bearer ${token}`);
         }
       } else {
-        console.error("로그인 실패:", response.error);
+        console.log("로그인 실패:", response.error);
       }
     } catch (error) {
-      console.error("로그인 중 오류 발생:", error);
+      console.log("로그인 중 오류 발생:", error);
     }
   };
 

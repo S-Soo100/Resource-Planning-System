@@ -26,7 +26,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error("API 요청 에러:", error);
+    console.log("API 요청 에러:", error);
     return Promise.reject(error);
   }
 );
@@ -41,7 +41,7 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error("API 응답 에러:", {
+    console.log("API 응답 에러:", {
       status: error.response?.status,
       data: error.response?.data,
       message: error.message,

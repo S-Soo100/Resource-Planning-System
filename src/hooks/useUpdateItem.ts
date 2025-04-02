@@ -18,7 +18,7 @@ export const useUpdateItem = () => {
       });
     },
     onError: (error) => {
-      console.error("재고 수정 실패:", error.message);
+      console.log("재고 수정 실패:", error.message);
     },
   });
 };

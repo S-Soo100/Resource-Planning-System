@@ -34,7 +34,7 @@ export default async function handler(
       await transporter.sendMail(mailOptions);
       res.status(200).json({ message: "이메일 전송 성공" });
     } catch (error) {
-      console.error("이메일 전송 오류:", error);
+      console.log("이메일 전송 오류:", error);
       res.status(500).json({ message: "이메일 전송 실패" });
     }
   } else {

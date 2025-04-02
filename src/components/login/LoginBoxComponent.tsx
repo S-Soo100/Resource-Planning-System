@@ -2,14 +2,13 @@
 import React, { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import login from "@/api/login";
 import { LoginAuth } from "@/types/loginAuth";
 import Cookies from "js-cookie";
 import { FaEye, FaRegEyeSlash } from "react-icons/fa";
 
 export default function LoginBoxComponent() {
   const [auth, setAuth] = useState<LoginAuth>({ email: "", password: "" });
-  const router = useRouter();
+  // const router = useRouter();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const togglePasswordVisibility = () => {
@@ -18,13 +17,6 @@ export default function LoginBoxComponent() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // if (auth.email === "user" && auth.password === "password") {
-    login({ email: auth.email, password: auth.password });
-    Cookies.set("token", "fake-token-1234876129378461928", { expires: 14 }); // 토큰 쿠키 설정
-    router.push("/menu"); // 로그인 성공 시 메뉴 페이지로 이동
-    // } else {
-    //   alert("Invalid credentials");
-    // }
   };
 
   return (

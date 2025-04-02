@@ -1,8 +1,8 @@
 "use client";
 import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
-import AppBarComponent from "../components/appbar/Appbar";
 import Providers from "./providers";
+import AppBarComponent from "@/components/appbar/Appbar";
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ["latin"],

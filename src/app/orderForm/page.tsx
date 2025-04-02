@@ -81,7 +81,7 @@ const OrderRequestForm = () => {
         alert("이메일 전송 실패.");
       }
     } catch (error) {
-      console.error("오류 발생:", error);
+      console.log("오류 발생:", error);
       alert("오류가 발생했습니다.");
     }
   };

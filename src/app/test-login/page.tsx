@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { loginApi } from "@/api/login";
+import { loginApi } from "@/api/login-api";
 
 export default function TestLoginPage() {
   const [email, setEmail] = useState("");

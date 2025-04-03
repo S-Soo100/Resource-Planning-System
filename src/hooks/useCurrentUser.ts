@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { userApi } from "@/api/user";
+import { userApi } from "@/api/user-api";
 import { authStore } from "@/store/authStore";
 import { IUser } from "@/types/user";
 import { ApiResponse } from "@/api/api";

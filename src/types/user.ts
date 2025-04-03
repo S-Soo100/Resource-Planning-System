@@ -1,7 +1,8 @@
 import { IOrder } from "./order";
-import { ITeam } from "./team";
+import { IUserTeam } from "./team";
 
 export interface IUser {
+  data: IUser | undefined;
   id: number;
   email: string;
   name: string;
@@ -10,7 +11,7 @@ export interface IUser {
   isAdmin: boolean;
   createdAt: string;
   updatedAt: string;
-  teams: ITeam[];
+  teams: IUserTeam[];
   Orders: IOrder[];
 }
 

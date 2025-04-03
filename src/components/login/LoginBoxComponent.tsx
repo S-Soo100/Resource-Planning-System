@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { LoginAuth } from "@/types/loginAuth";
 // import Cookies from "js-cookie";
 import { FaEye, FaRegEyeSlash } from "react-icons/fa";
-import { loginApi } from "@/api/login";
+import { loginApi } from "@/api/login-api";
 import { authStore } from "@/store/authStore";
 
 export default function LoginBoxComponent() {

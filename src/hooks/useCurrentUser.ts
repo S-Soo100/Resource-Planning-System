@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { userApi } from "@/api/user-api";
-import { authStore } from "@/store/authStore";
 import { IUser } from "@/types/user";
 import { ApiResponse } from "@/api/api";
+import { getAuthCookie } from "@/api/cookie-api";
 
 interface UseCurrentUserReturn {
   user: IUser | undefined;
@@ -11,16 +11,17 @@ interface UseCurrentUserReturn {
 }
 
 export const useCurrentUser = (): UseCurrentUserReturn => {
-  const { user } = authStore();
+  const auth = getAuthCookie();
+  console.log("auth = " + auth);
 
   const {
     data: userData,
     isLoading,
     error,
   } = useQuery<ApiResponse<IUser>, Error>({
-    queryKey: ["user", user?.id],
-    queryFn: () => userApi.getUser(user!.id.toString()),
-    enabled: !!user?.id,
+    queryKey: ["user", auth?.id],
+    queryFn: () => userApi.getUser(auth!.id.toString()),
+    enabled: !!auth?.id,
   });
 
   return {

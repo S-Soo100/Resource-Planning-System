@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { loginApi } from "@/api/login-api";
+import { authApi } from "@/api/auth-api";
 
 export default function TestLoginPage() {
   const [email, setEmail] = useState("");
@@ -10,7 +10,7 @@ export default function TestLoginPage() {
   const handleTestLogin = async () => {
     try {
       console.log("로그인 시도...");
-      const response = await loginApi.login({
+      const response = await authApi.login({
         email,
         password,
       });

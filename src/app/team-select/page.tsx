@@ -1,15 +1,19 @@
 "use client";
-import React from "react";
-import { authStore } from "@/store/authStore";
+import React, { Suspense, useEffect, useState } from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-// import { UserInfoDisplay } from "@/components/team-select/UserInfoDisplay";
 import { TeamList } from "@/components/team-select/TeamList";
-// import { ServerStateDisplay } from "@/components/team-select/ServerStateDisplay";
-import { UserInfoDisplay } from "@/components/team-select/UserInfoDisplay";
 
 export default function TeamSelectPage() {
-  const { user: authUser } = authStore();
   const { user: serverUser, isLoading, error } = useCurrentUser();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   if (isLoading) {
     return <div className="p-4">로딩 중...</div>;
@@ -23,16 +27,13 @@ export default function TeamSelectPage() {
     );
   }
 
-  if (!authUser) {
-    return <div className="p-4">로그인이 필요합니다.</div>;
-  }
-
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-6">팀 선택</h1>
-      <UserInfoDisplay user={authUser} />
-      <TeamList teams={serverUser?.teams || []} />
-      {/* {serverUser && <ServerStateDisplay serverUser={serverUser} />} */}
-    </div>
+    <Suspense>
+      <div className="p-4">
+        <h1 className="text-2xl font-bold mb-6">팀 선택</h1>
+        <TeamList teams={serverUser?.teams || []} />
+        {/* {serverUser && <ServerStateDisplay serverUser={serverUser} />} */}
+      </div>
+    </Suspense>
   );
 }

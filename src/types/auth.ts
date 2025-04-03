@@ -1,3 +1,7 @@
-import { IUser } from "./user";
-
-export type Auth = IUser;
+export type IAuth = {
+  user: {
+    id: number;
+    email: string;
+    name: string;
+  };
+};

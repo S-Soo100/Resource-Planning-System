@@ -11,7 +11,6 @@ const AppBarComponent = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { logout: authLogout } = authStore();
 
   const logout = () => {
     // 로컬 스토리지의 토큰 제거
@@ -19,7 +18,7 @@ const AppBarComponent = () => {
     // 쿠키의 토큰 제거
     Cookies.remove("token");
     // authStore의 상태 초기화
-    authLogout();
+    authStore.getState().logout();
     // 로그인 페이지로 리다이렉트
     router.push("/signin");
   };

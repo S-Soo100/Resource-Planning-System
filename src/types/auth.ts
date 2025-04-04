@@ -1,7 +1,5 @@
 export type IAuth = {
-  user: {
-    id: number;
-    email: string;
-    name: string;
-  };
+  id: number;
+  email: string;
+  name: string;
 };

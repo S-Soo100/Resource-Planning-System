@@ -2,12 +2,12 @@
 
 import ItemTableComponent from "@/components/item/(itemTable)/ItemTabelComponent";
 import { useItems } from "@/hooks/useItems";
-import { useUpdateItem } from "@/hooks/useUpdateItem";
+// import { useUpdateItem } from "@/hooks/useUpdateItem";
 import { useState } from "react";
 
 export default function ItemListComponent() {
   const { data: items, isLoading, isError } = useItems();
-  const updateItemMutation = useUpdateItem();
+  // const updateItemMutation = useUpdateItem();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [adjustments, setAdjustments] = useState<{ [key: number]: number }>({});
 
@@ -48,16 +48,16 @@ export default function ItemListComponent() {
     }
 
     // 여러 개의 업데이트 요청을 병렬 실행
-    Promise.all(
-      updates.map((update) => updateItemMutation.mutateAsync(update!))
-    )
-      .then(() => {
-        alert("재고 업데이트 완료!");
-        handleCloseModal();
-      })
-      .catch(() => {
-        alert("업데이트 중 오류가 발생했습니다.");
-      });
+    // Promise.all(
+    //   updates.map((update) => updateItemMutation.mutateAsync(update!))
+    // )
+    //   .then(() => {
+    //     alert("재고 업데이트 완료!");
+    //     handleCloseModal();
+    //   })
+    //   .catch(() => {
+    //     alert("업데이트 중 오류가 발생했습니다.");
+    //   });
   };
 
   if (isLoading) return <div>Loading Data...</div>;

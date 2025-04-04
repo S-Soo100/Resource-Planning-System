@@ -24,3 +24,10 @@ export const setAuthCookie = (value: IAuth, options?: any) => {
 export const getAuthCookie = () => {
   return cookies.get("authCookie");
 };
+
+export const setCurrentTeam = (value: number, options?: any) => {
+  return cookies.set("currentTeam", value, { ...options });
+};
+export const getCurrentTeam = (): number => {
+  return cookies.get("currentTeam");
+};

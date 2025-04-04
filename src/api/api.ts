@@ -1,5 +1,6 @@
 // lib/api.ts
 import axios from "axios";
+import { getToken } from "./cookie-api";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
 console.log("API Base URL:", baseURL);
@@ -19,7 +20,7 @@ api.interceptors.request.use(
       method: config.method,
       headers: config.headers,
     });
-    const token = localStorage.getItem("token");
+    const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

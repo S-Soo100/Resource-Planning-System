@@ -2,7 +2,6 @@ import { IOrder } from "./order";
 import { IUserTeam } from "./team";
 
 export interface IUser {
-  data: IUser | undefined;
   id: number;
   email: string;
   name: string;

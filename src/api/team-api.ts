@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { api, ApiResponse } from "./api";
 import { Team, CreateTeamRequest, UpdateTeamRequest } from "@/types/team";
 

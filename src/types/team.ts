@@ -1,10 +1,5 @@
-// team(팀)
-export interface IUserTeam {
-  id: number; // 팀 id
-  teamName: string; // 팀 이름
-  createdAt: string;
-  updatedAt: string;
-}
+import { IMappingUser } from "./mappingUser";
+import { IWarehouse } from "./warehouse";
 
 export interface Team {
   id: string;
@@ -12,14 +7,8 @@ export interface Team {
   description?: string;
   createdAt: string;
   updatedAt: string;
-  members: TeamMember[];
-}
-
-export interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
+  TeamUserMap: IMappingUser[];
+  Warehouses: IWarehouse[];
 }
 
 export interface CreateTeamRequest {

@@ -1,19 +1,18 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { IUser } from "@/types/user";
-import { ApiResponse } from "@/api/api";
 
 interface TeamListDisplayProps {
-  user: ApiResponse<IUser>;
+  user: IUser;
 }
 
 export const TeamList: React.FC<TeamListDisplayProps> = ({ user }) => {
   const router = useRouter();
 
   console.log("TeamList received user:", user);
-  console.log("TeamList teams:", user.data?.teams);
+  console.log("TeamList teams:", user?.teams);
 
-  if (!user.data || !user.data.teams) {
+  if (!user || !user.teams) {
     return (
       <div className="p-4 bg-yellow-50 rounded-lg">
         <p className="text-yellow-800">
@@ -23,7 +22,7 @@ export const TeamList: React.FC<TeamListDisplayProps> = ({ user }) => {
     );
   }
 
-  if (user.data.teams.length === 0) {
+  if (user.teams.length === 0) {
     return (
       <div className="p-4 bg-yellow-50 rounded-lg">
         <p className="text-yellow-800">
@@ -37,7 +36,7 @@ export const TeamList: React.FC<TeamListDisplayProps> = ({ user }) => {
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4">소속 팀 목록</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {user.data.teams.map((team, index) => (
+        {user.teams.map((team, index) => (
           <button
             key={index}
             className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 text-left"

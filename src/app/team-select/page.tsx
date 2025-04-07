@@ -6,13 +6,16 @@ import { UserInfoDisplay } from "@/components/team-select/UserInfoDisplay";
 import { ServerStateDisplay } from "@/components/team-select/ServerStateDisplay";
 import { authStore } from "@/store/authStore";
 import { authService } from "@/services/authService";
+import { useRouter } from "next/navigation";
 
 export default function TeamSelectPage() {
+  const router = useRouter();
   const zustandAuth = authStore((state) => state.user);
   const selectedTeam = authStore((state) => state.selectedTeam);
   const { user: serverUser, isLoading: userLoading, error } = useCurrentUser();
   const [mounted, setMounted] = useState(false);
   const [isTeamSelecting, setIsTeamSelecting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -21,6 +24,15 @@ export default function TeamSelectPage() {
   useEffect(() => {
     console.log("현재 선택된 팀 상태:", selectedTeam);
   }, [selectedTeam]);
+
+  useEffect(() => {
+    if (selectedTeam && !isRedirecting) {
+      setIsRedirecting(true);
+      setTimeout(() => {
+        router.push("/menu");
+      }, 2000);
+    }
+  }, [selectedTeam, router, isRedirecting]);
 
   const handleTeamSelect = async (teamId: number) => {
     const res = await authService.selectTeam(teamId);
@@ -33,12 +45,16 @@ export default function TeamSelectPage() {
     return null;
   }
 
-  if (userLoading || isTeamSelecting) {
+  if (userLoading || isTeamSelecting || isRedirecting) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
+          <p className="mt-4 text-gray-600">
+            {isRedirecting
+              ? "선택된 팀이 있습니다. 메뉴로 이동합니다"
+              : "로딩 중..."}
+          </p>
         </div>
       </div>
     );
@@ -65,16 +81,11 @@ export default function TeamSelectPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-700 font-medium">
-                  {selectedTeam.name}
+                  {selectedTeam.teamName}
                 </p>
                 <p className="text-sm text-green-600">
                   팀 ID: {selectedTeam.id}
                 </p>
-                {selectedTeam.description && (
-                  <p className="text-sm text-green-600 mt-1">
-                    {selectedTeam.description}
-                  </p>
-                )}
               </div>
               <div className="text-sm text-green-600">
                 {new Date(selectedTeam.createdAt).toLocaleDateString()} 생성

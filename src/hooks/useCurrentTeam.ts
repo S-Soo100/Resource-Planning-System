@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { teamApi } from "@/api/team-api";
 import { Team } from "@/types/team";
 import { ApiResponse } from "@/api/api";
-import { getCurrentTeam } from "@/api/cookie-api";
+import { authStore } from "@/store/authStore";
+// import { getCurrentTeam } from "@/api/cookie-api";
 
 interface UseCurrentTeamReturn {
   team: Team | undefined;
@@ -11,9 +12,7 @@ interface UseCurrentTeamReturn {
 }
 
 export const useCurrentTeam = (): UseCurrentTeamReturn => {
-  // const { user } = useCurrentUser();
-  const currentTeamId = getCurrentTeam();
-
+  const currentTeamId = authStore((state) => state.selectedTeam?.id);
   const {
     data: teamData,
     isLoading,

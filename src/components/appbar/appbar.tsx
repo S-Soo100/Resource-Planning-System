@@ -11,6 +11,8 @@ const AppBarComponent = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const user = authStore((state) => state.user);
+  const selectedTeam = authStore((state) => state.selectedTeam);
 
   const logout = () => {
     // 로컬 스토리지의 토큰 제거
@@ -26,11 +28,21 @@ const AppBarComponent = () => {
   const renderLeftContent = () => {
     if (pathname === "/" || pathname === "/menu") {
       return (
-        <div className="flex items-center space-x-2">
-          <div className="bg-gray-200 rounded-full p-2">
-            <User className="h-6 w-6 text-blue-600" />
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className="bg-gray-200 rounded-full p-2">
+              <User className="h-6 w-6 text-blue-600" />
+            </div>
+            <span className="font-medium">{user?.name || "사용자"}</span>
           </div>
-          <span className="font-medium">자동차왕 헨리 초이</span>
+          {selectedTeam && (
+            <div className="flex items-center space-x-2">
+              <span className="text-gray-300">|</span>
+              <span className="text-gray-300">팀:</span>
+              <span className="font-medium">{selectedTeam.id}</span>
+              <span className="font-medium">{selectedTeam.teamName}</span>
+            </div>
+          )}
         </div>
       );
     } else if (pathname !== "/signin") {

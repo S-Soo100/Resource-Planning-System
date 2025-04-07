@@ -9,7 +9,15 @@ import { FaEye, FaRegEyeSlash } from "react-icons/fa";
 import { authService } from "@/services/authService";
 
 export default function LoginBoxComponent() {
-  const [auth, setAuth] = useState<LoginAuth>({ email: "", password: "" });
+  const [auth, setAuth] = useState<LoginAuth>(() => {
+    if (process.env.NODE_ENV === "development") {
+      return {
+        email: process.env.NEXT_PUBLIC_TEST_ACCOUNT_EMAIL || "",
+        password: process.env.NEXT_PUBLIC_TEST_ACCOUNT_PASSWORD || "",
+      };
+    }
+    return { email: "", password: "" };
+  });
   const router = useRouter();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const togglePasswordVisibility = () => {

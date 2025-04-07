@@ -1,6 +1,13 @@
 import { IMappingUser } from "./mappingUser";
 import { IWarehouse } from "./warehouse";
 
+export interface IUserTeam {
+  id: number;
+  teamName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Team {
   id: string;
   name: string;

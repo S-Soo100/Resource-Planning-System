@@ -6,8 +6,11 @@ export const teamApi = {
   // 팀 생성
   createTeam: async (data: CreateTeamRequest): Promise<ApiResponse<Team>> => {
     try {
-      const response = await api.post<Team>("/team", data);
-      return { success: true, data: response.data };
+      const response = await api.post<{ success: boolean; data: Team }>(
+        "/team",
+        data
+      );
+      return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "팀 생성에 실패했습니다." };
     }
@@ -16,8 +19,10 @@ export const teamApi = {
   // 모든 팀 조회
   getAllTeams: async (): Promise<ApiResponse<Team[]>> => {
     try {
-      const response = await api.get<Team[]>("/team");
-      return { success: true, data: response.data };
+      const response = await api.get<{ success: boolean; data: Team[] }>(
+        "/team"
+      );
+      return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "팀 목록 조회에 실패했습니다." };
     }
@@ -26,8 +31,10 @@ export const teamApi = {
   // 단일 팀 조회
   getTeam: async (id: string): Promise<ApiResponse<Team>> => {
     try {
-      const response = await api.get<Team>(`/team/${id}`);
-      return { success: true, data: response.data };
+      const response = await api.get<{ success: boolean; data: Team }>(
+        `/team/${id}`
+      );
+      return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "팀 조회에 실패했습니다." };
     }
@@ -39,8 +46,11 @@ export const teamApi = {
     data: UpdateTeamRequest
   ): Promise<ApiResponse<Team>> => {
     try {
-      const response = await api.patch<Team>(`/team/${id}`, data);
-      return { success: true, data: response.data };
+      const response = await api.patch<{ success: boolean; data: Team }>(
+        `/team/${id}`,
+        data
+      );
+      return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "팀 정보 수정에 실패했습니다." };
     }
@@ -49,8 +59,10 @@ export const teamApi = {
   // 팀 삭제
   deleteTeam: async (id: string): Promise<ApiResponse<Team>> => {
     try {
-      const response = await api.delete<Team>(`/team/${id}`);
-      return { success: true, data: response.data };
+      const response = await api.delete<{ success: boolean; data: Team }>(
+        `/team/${id}`
+      );
+      return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "팀 삭제에 실패했습니다." };
     }
@@ -62,8 +74,10 @@ export const teamApi = {
     userId: string
   ): Promise<ApiResponse<Team>> => {
     try {
-      const response = await api.post<Team>(`/team/${teamId}/user/${userId}`);
-      return { success: true, data: response.data };
+      const response = await api.post<{ success: boolean; data: Team }>(
+        `/team/${teamId}/user/${userId}`
+      );
+      return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "사용자 추가에 실패했습니다." };
     }
@@ -75,8 +89,10 @@ export const teamApi = {
     userId: string
   ): Promise<ApiResponse<Team>> => {
     try {
-      const response = await api.delete<Team>(`/team/${teamId}/user/${userId}`);
-      return { success: true, data: response.data };
+      const response = await api.delete<{ success: boolean; data: Team }>(
+        `/team/${teamId}/user/${userId}`
+      );
+      return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "사용자 제거에 실패했습니다." };
     }

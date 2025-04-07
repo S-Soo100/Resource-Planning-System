@@ -1,8 +1,8 @@
 import React from "react";
-import { IUser } from "@/types/user";
+import { IAuth } from "@/types/auth";
 
 interface UserInfoDisplayProps {
-  user: IUser;
+  user: IAuth | null;
 }
 
 export const UserInfoDisplay: React.FC<UserInfoDisplayProps> = ({ user }) => {
@@ -13,20 +13,17 @@ export const UserInfoDisplay: React.FC<UserInfoDisplayProps> = ({ user }) => {
       </h2>
       <div className="space-y-2">
         <p>
-          <span className="font-medium">ID:</span> {user.id}
+          <span className="font-medium">ID:</span> {user?.id}
         </p>
         <p>
-          <span className="font-medium">이름:</span> {user.name}
+          <span className="font-medium">이름:</span> {user?.name}
         </p>
         <p>
-          <span className="font-medium">이메일:</span> {user.email}
-        </p>
-        <p>
-          <span className="font-medium">접근 레벨:</span> {user.accessLevel}
+          <span className="font-medium">이메일:</span> {user?.email}
         </p>
         <p>
           <span className="font-medium">관리자 여부:</span>{" "}
-          {user.isAdmin ? "예" : "아니오"}
+          {user?.isAdmin ? "예" : "아니오"}
         </p>
       </div>
     </div>

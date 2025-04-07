@@ -44,9 +44,10 @@ export const userApi = {
   // 단일 사용자 조회
   getUser: async (id: string): Promise<ApiResponse<IUser>> => {
     try {
-      const response = await api.get<IUser>(`/user/${id}`);
-      console.log("getUser response = ", response.data);
-      return { success: true, data: response.data };
+      const response = await api.get<{ success: boolean; data: IUser }>(
+        `/user/${id}`
+      );
+      return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "사용자 조회에 실패했습니다." };
     }

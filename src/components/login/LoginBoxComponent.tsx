@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { LoginAuth } from "@/types/loginAuth";
 // import Cookies from "js-cookie";
 import { FaEye, FaRegEyeSlash } from "react-icons/fa";
-import { authApi } from "@/api/auth-api";
+// import { authApi } from "@/api/auth-api";
+import { authService } from "@/services/authService";
 
 export default function LoginBoxComponent() {
   const [auth, setAuth] = useState<LoginAuth>({ email: "", password: "" });
@@ -19,8 +20,8 @@ export default function LoginBoxComponent() {
     event.preventDefault();
     // setLoading(true);
     try {
-      const response = await authApi.login(auth);
-      if (response.success && response.data) {
+      const userBool = await authService.login(auth);
+      if (userBool) {
         setTimeout(() => {
           router.push("/team-select");
         }, 2000);

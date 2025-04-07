@@ -5,12 +5,13 @@ export interface IUser {
   id: number;
   email: string;
   name: string;
-  restrictedWhs: number[];
+  restrictedWhs: string | number[];
   accessLevel: string;
   isAdmin: boolean;
   createdAt: string;
   updatedAt: string;
-  teams: IUserTeam[];
+  teams?: IUserTeam[];
+  Teams?: IUserTeam[];
   Orders: IOrder[];
 }
 

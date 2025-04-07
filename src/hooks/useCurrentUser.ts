@@ -14,7 +14,7 @@ interface UseCurrentUserReturn {
 export const useCurrentUser = (): UseCurrentUserReturn => {
   // const auth = getAuthCookie();
   const auth = authStore((state) => state.user);
-  console.log("auth from store:", auth);
+  // console.log("auth from store:", auth);
 
   const {
     data: userData,
@@ -28,12 +28,6 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
     gcTime: 30 * 60 * 1000, // 30분
     staleTime: 5 * 60 * 1000, // 5분
   });
-
-  console.log("API Response - userData:", userData);
-  console.log("API Response - userData.data:", userData?.data);
-  console.log("API Response - userData.data.teams:", userData?.data?.teams);
-
-  // store의 데이터를 우선 사용하고, API 응답으로 업데이트
   return {
     user: userData?.data || undefined,
     isLoading,

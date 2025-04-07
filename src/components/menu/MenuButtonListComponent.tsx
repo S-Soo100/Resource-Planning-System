@@ -10,13 +10,7 @@ import {
 import { MdOutlineInventory } from "react-icons/md";
 import { PiNewspaperClippingFill } from "react-icons/pi";
 
-interface MenuButtonListComponentProps {
-  teamId: string;
-}
-
-const MenuButtonListComponent: React.FC<MenuButtonListComponentProps> = ({
-  teamId,
-}) => {
+const MenuButtonListComponent = () => {
   const router = useRouter();
 
   const menuItems = [
@@ -24,54 +18,54 @@ const MenuButtonListComponent: React.FC<MenuButtonListComponentProps> = ({
       title: "재고 조회",
       subtitle: "마스터 계정, 직원 계정, 타업체 계정",
       icon: <MdOutlineInventory className="text-3xl" />,
-      onClick: () => router.push(`/item?teamId=${teamId}`),
+      onClick: () => router.push(`/item`),
     },
     {
       title: "품목 조회/수정",
       subtitle: "모든 계정",
       icon: <FaBox className="text-3xl" />,
-      onClick: () => router.push(`/records?teamId=${teamId}`),
+      onClick: () => router.push(`/records`),
     },
     {
       title: "재고 입출고 기록 조회",
       subtitle: "마스터 계정",
       icon: <FaClipboardList className="text-3xl" />,
-      onClick: () => router.push(`/ioHistory?teamId=${teamId}`),
+      onClick: () => router.push(`/ioHistory`),
     },
     {
       title: "발주 요청",
       subtitle: "직원 계정, 타업체 계정",
       icon: <FaTruckLoading className="text-3xl" />,
-      onClick: () => router.push(`/orderRequest?teamId=${teamId}`),
+      onClick: () => router.push(`/orderRequest`),
     },
     {
       title: "발주 기록 확인",
       subtitle: "마스터 계정, 직원 계정, 타업체 계정",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => router.push(`/orderRecord?teamId=${teamId}`),
+      onClick: () => router.push(`/orderRecord`),
     },
   ];
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* Menu Body */}
-      <main className="flex-1 flex flex-col items-center justify-top mt-4 space-y-4 p-4">
+      <main className="flex flex-col items-center flex-1 p-4 mt-4 space-y-4 justify-top">
         {menuItems.map((item, index) => (
           <button
             key={index}
             onClick={item.onClick}
-            className="flex items-center w-full max-w-2xl px-8 py-6 bg-white shadow-md rounded-2xl hover:bg-gray-50 transition-all duration-200 border border-gray-200 hover:shadow-lg"
+            className="flex items-center w-full max-w-2xl px-8 py-6 transition-all duration-200 bg-white border border-gray-200 shadow-md rounded-2xl hover:bg-gray-50 hover:shadow-lg"
           >
             <div className="flex-col w-full">
-              <div className="flex-row flex items-center">
-                <div className="flex-shrink-0 text-blue-600 mr-8">
+              <div className="flex flex-row items-center">
+                <div className="flex-shrink-0 mr-8 text-blue-600">
                   {item.icon}
                 </div>
-                <span className="font-semibold text-xl text-gray-900">
+                <span className="text-xl font-semibold text-gray-900">
                   {item.title}
                 </span>
               </div>
-              <span className="text-base text-gray-600 ml-16 mt-2 block">
+              <span className="block mt-2 ml-16 text-base text-gray-600">
                 {item.subtitle}
               </span>
             </div>

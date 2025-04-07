@@ -1,11 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { IAuth } from "@/types/auth";
-import { IUserTeam } from "@/types/team";
+import { Team } from "@/types/team";
 
 interface AuthState {
   user: IAuth | null;
-  selectedTeam: IUserTeam | null;
+  selectedTeam: Team | null;
   // selectedTeamId:
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -13,7 +13,7 @@ interface AuthState {
   // Actions
   login: (user: IAuth) => void;
   logout: () => void;
-  setTeam: (team: IUserTeam) => void;
+  setTeam: (team: Team) => void;
   resetTeam: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -48,7 +48,7 @@ export const authStore = create<AuthState>()(
           error: null,
         }),
 
-      setTeam: (team: IUserTeam) => set({ selectedTeam: team }),
+      setTeam: (team: Team) => set({ selectedTeam: team }),
 
       resetTeam: () => set({ selectedTeam: null }),
 

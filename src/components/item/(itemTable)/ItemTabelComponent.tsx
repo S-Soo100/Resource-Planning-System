@@ -1,21 +1,21 @@
 "use client";
-import { Iitem } from "@/types/item";
+import { Item } from "@/types/item";
 import { Table } from "antd";
 import { ColumnsType } from "antd/es/table";
 import React, { Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { useItems } from "@/hooks/useItems";
+import { useAllInventories } from "@/hooks/useAllInventories";
 
 export default function ItemTableComponent() {
   const router = useRouter();
-  const { data: items, isLoading, isError } = useItems();
+  const { items, isLoading, isError } = useAllInventories();
 
-  const IitemTableColumns: ColumnsType<Iitem> = [
+  const IitemTableColumns: ColumnsType<Item> = [
     {
       title: "No",
-      dataIndex: "itemId",
+      dataIndex: "id",
       sorter: {
-        compare: (a, b) => a.itemId - b.itemId,
+        compare: (a, b) => a.id - b.id,
         multiple: 1,
       },
       width: "7%",
@@ -56,7 +56,13 @@ export default function ItemTableComponent() {
   return (
     <Suspense fallback={<div>Loading Data...</div>}>
       <section className="m-2 rounded-lg shadow-lg">
-        <Table columns={IitemTableColumns} dataSource={items} rowKey="itemId" />
+        <Table
+          columns={IitemTableColumns}
+          dataSource={items}
+          rowKey={(record) =>
+            record?.id ? `item-table-${record.id}` : Math.random().toString()
+          }
+        />
       </section>
     </Suspense>
   );

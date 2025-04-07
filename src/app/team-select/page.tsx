@@ -49,7 +49,7 @@ export default function TeamSelectPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-gray-900 rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">
             {isRedirecting
               ? "선택된 팀이 있습니다. 메뉴로 이동합니다"
@@ -71,16 +71,16 @@ export default function TeamSelectPage() {
   return (
     <Suspense>
       <div className="p-4">
-        <h1 className="text-2xl font-bold mb-6">팀 선택</h1>
+        <h1 className="mb-6 text-2xl font-bold">팀 선택</h1>
 
         {selectedTeam && (
-          <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
-            <h2 className="text-lg font-semibold text-green-800 mb-2">
+          <div className="p-4 mb-6 border border-green-200 rounded-lg bg-green-50">
+            <h2 className="mb-2 text-lg font-semibold text-green-800">
               현재 선택된 팀
             </h2>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-700 font-medium">
+                <p className="font-medium text-green-700">
                   {selectedTeam.teamName}
                 </p>
                 <p className="text-sm text-green-600">

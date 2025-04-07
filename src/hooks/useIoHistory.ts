@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { IIoHistory } from "@/types/ioHistory";
+import { IIoHistory } from "@/types/(test)/pre_ioHistory";
 import { fetchIoHistory } from "@/api/(io)/fetchIoHistory";
 
 // 입출고 기록을 불러오는 커스텀 훅

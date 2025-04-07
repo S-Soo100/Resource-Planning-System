@@ -12,8 +12,13 @@ export default function MenuPage() {
   const { isLoading: isTeamLoading } = useCurrentTeam();
 
   useEffect(() => {
-    // 초기 2초 대기
-    const timer = setTimeout(() => {
+    let isMounted = true;
+
+    const checkTeamAndRedirect = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      if (!isMounted) return;
+
       if (!isTeamLoading) {
         if (!auth.selectedTeam) {
           auth.resetTeam();
@@ -22,15 +27,19 @@ export default function MenuPage() {
         }
         setIsLoading(false);
       }
-    }, 1000);
+    };
 
-    return () => clearTimeout(timer);
+    checkTeamAndRedirect();
+
+    return () => {
+      isMounted = false;
+    };
   }, [auth.selectedTeam, router, isTeamLoading, auth]);
 
   if (isLoading || isTeamLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -41,7 +50,7 @@ export default function MenuPage() {
 
   return (
     <>
-      <MenuButtonListComponent teamId={auth.selectedTeam.id.toString()} />
+      <MenuButtonListComponent />
     </>
   );
 }

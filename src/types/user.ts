@@ -11,7 +11,7 @@ export interface IUser {
   createdAt: string;
   updatedAt: string;
   teams?: IUserTeam[];
-  Teams?: IUserTeam[];
+  // Teams?: IUserTeam[];
   Orders: IOrder[];
 }
 

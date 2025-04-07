@@ -1,7 +1,7 @@
 import { ApiResponse } from "./common";
 
 // item(품목)
-export interface Iitem {
+export interface Item {
   id: number; // 품목 id
   itemCode: string; // 품목 코드
   itemName: string; // 품목 이름
@@ -11,7 +11,7 @@ export interface Iitem {
   updatedAt: string;
 }
 
-export const dummyItemResponse: Iitem[] = [
+export const dummyItemResponse: Item[] = [
   {
     id: 0,
     itemCode: "RX-0",
@@ -103,16 +103,16 @@ export interface UpdateItemQuantityRequest {
 }
 
 export interface ItemResponse extends ApiResponse {
-  data?: Iitem;
+  data?: Item;
 }
 
 export interface ItemsResponse extends ApiResponse {
-  data?: Iitem[];
+  data?: Item[];
 }
 
 export interface ItemsByWarehouseResponse extends ApiResponse {
   data?: {
     warehouseId: string;
-    items: Iitem[];
+    items: Item[];
   };
 }

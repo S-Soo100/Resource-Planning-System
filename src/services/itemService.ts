@@ -35,6 +35,8 @@ export const itemService = {
     // 성공 시 캐시 무효화
     if (response.success && invalidateInventory) {
       await invalidateInventory(item.warehouseId.toString());
+      // 페이지 새로고침 추가
+      window.location.reload();
     }
 
     return response;
@@ -50,6 +52,8 @@ export const itemService = {
     // 성공 시 캐시 무효화
     if (response.success && invalidateInventory && data.warehouseId) {
       await invalidateInventory(data.warehouseId);
+      // 페이지 새로고침
+      // window.location.reload();
     }
 
     return response;

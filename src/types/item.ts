@@ -89,6 +89,7 @@ export const dummyItemResponse: Item[] = [
 //   updatedAt: string;
 // }
 
+// 프론트엔드에서 사용할 형식
 export interface CreateItemRequest {
   name: string; // itemName과 동일
   description: string;
@@ -99,6 +100,14 @@ export interface CreateItemRequest {
   category: string;
   unit: string;
   price: number;
+}
+
+// API 요청 시 사용할 형식
+export interface CreateItemApiRequest {
+  itemName: string;
+  itemCode: string;
+  itemQuantity: number;
+  warehouseId: number;
 }
 
 export interface UpdateItemRequest {

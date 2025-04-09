@@ -1,13 +1,13 @@
 import { api } from "./api";
 import { ApiResponse } from "../types/common";
 import {
-  CreateItemRequest,
+  CreateItemApiRequest,
   UpdateItemRequest,
   UpdateItemQuantityRequest,
 } from "../types/item";
 
 export const createItem = async (
-  data: CreateItemRequest
+  data: CreateItemApiRequest
 ): Promise<ApiResponse> => {
   try {
     const response = await api.post<ApiResponse>("/item", data);

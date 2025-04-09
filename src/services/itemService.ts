@@ -4,7 +4,11 @@ import {
   updateItem as updateItemApi,
   deleteItem as deleteItemApi,
 } from "@/api/item-api";
-import { CreateItemRequest, UpdateItemRequest } from "@/types/item";
+import {
+  CreateItemRequest,
+  CreateItemApiRequest,
+  UpdateItemRequest,
+} from "@/types/item";
 import { ApiResponse } from "@/types/common";
 
 export const itemService = {
@@ -13,18 +17,56 @@ export const itemService = {
     return response;
   },
 
-  addItem: async (item: CreateItemRequest) => {
-    const response = await createItem(item);
+  addItem: async (
+    item: CreateItemRequest,
+    invalidateInventory?: (warehouseId?: string) => Promise<void>
+  ) => {
+    // API 요구사항에 맞게 데이터 변환
+    const apiRequest: CreateItemApiRequest = {
+      itemName: item.name,
+      itemCode: item.sku,
+      itemQuantity: item.quantity,
+      warehouseId: item.warehouseId,
+    };
+
+    // 변환된 데이터로 API 호출
+    const response = await createItem(apiRequest);
+
+    // 성공 시 캐시 무효화
+    if (response.success && invalidateInventory) {
+      await invalidateInventory(item.warehouseId.toString());
+    }
+
     return response;
   },
 
-  updateItem: async (id: string, data: UpdateItemRequest) => {
+  updateItem: async (
+    id: string,
+    data: UpdateItemRequest,
+    invalidateInventory?: (warehouseId?: string) => Promise<void>
+  ) => {
     const response = await updateItemApi(id, data);
+
+    // 성공 시 캐시 무효화
+    if (response.success && invalidateInventory && data.warehouseId) {
+      await invalidateInventory(data.warehouseId);
+    }
+
     return response;
   },
 
-  deleteItem: async (id: string) => {
+  deleteItem: async (
+    id: string,
+    warehouseId?: string,
+    invalidateInventory?: (warehouseId?: string) => Promise<void>
+  ) => {
     const response = await deleteItemApi(id);
+
+    // 성공 시 캐시 무효화
+    if (response.success && invalidateInventory && warehouseId) {
+      await invalidateInventory(warehouseId);
+    }
+
     return response;
   },
 };

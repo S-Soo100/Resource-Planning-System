@@ -1,10 +1,12 @@
 import { warehouseApi } from "@/api/warehouse-api";
 import { authService } from "@/services/authService";
 import { IWarehouse } from "@/types/warehouse";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Warehouse } from "@/types/warehouse";
 
-export function useAllInventories() {
+export function useInventory() {
+  const queryClient = useQueryClient();
+
   if (
     !authService.getSelectedTeam() ||
     authService.getSelectedTeam()?.Warehouses === undefined
@@ -41,10 +43,26 @@ export function useAllInventories() {
     );
   }
 
+  // 캐시 무효화 함수
+  const invalidateInventory = async (warehouseId?: string) => {
+    if (warehouseId) {
+      // 특정 창고의 캐시만 무효화
+      await queryClient.invalidateQueries({
+        queryKey: ["inventory", warehouseId],
+      });
+    } else {
+      // 모든 창고 캐시 무효화
+      await queryClient.invalidateQueries({
+        queryKey: ["inventory"],
+      });
+    }
+  };
+
   return {
     isLoading,
     isError: inventoryQueries.some((q) => q.isError), // 하나라도 에러면 에러 처리
     warehouses: warehouses,
     items: warehouses.flatMap((w) => w.items),
+    invalidateInventory,
   };
 }

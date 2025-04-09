@@ -1,7 +1,6 @@
 import { api } from "./api";
 import { ApiResponse } from "../types/common";
 import {
-  Item,
   CreateItemRequest,
   UpdateItemRequest,
   UpdateItemQuantityRequest,

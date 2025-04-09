@@ -18,13 +18,12 @@ export interface Item {
   }[];
 }
 
-// 현재 앱에서는 이 인터페이스가 아닌 아래쪽에 정의된 CreateItemRequest를 사용하고 있습니다.
-// export interface CreateItemRequest {
-//   itemCode: string;
-//   itemName: string;
-//   itemQuantity: number;
-//   warehouseId: number;
-// }
+export interface CreateItemRequest {
+  itemCode: string;
+  itemName: string;
+  itemQuantity: number;
+  warehouseId: number;
+}
 
 export const dummyItemResponse: Item[] = [
   {
@@ -90,11 +89,11 @@ export const dummyItemResponse: Item[] = [
 // }
 
 export interface CreateItemRequest {
-  name: string; // itemName과 동일
+  name: string;
   description: string;
-  sku: string; // itemCode와 동일
-  warehouseId: number; // warehouseId와 동일
-  quantity: number; // itemQuantity와 동일
+  sku: string;
+  warehouseId: number;
+  quantity: number;
   minimumQuantity: number;
   category: string;
   unit: string;

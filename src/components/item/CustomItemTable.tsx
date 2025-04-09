@@ -82,12 +82,18 @@ export default function CustomItemTable() {
     };
 
     try {
-      // withInventoryUpdate를 사용하여 아이템 추가 및 캐시 무효화
-      const response = await withInventoryUpdate(
-        () => itemService.addItem(newItemData),
-        invalidateInventory,
-        newItemData.warehouseId.toString()
+      // 방법 1: 수정된 addItem 메서드를 직접 호출하여 invalidateInventory 전달
+      const response = await itemService.addItem(
+        newItemData,
+        invalidateInventory
       );
+
+      // 기존 방법 2: withInventoryUpdate 헬퍼 함수 사용
+      // const response = await withInventoryUpdate(
+      //   () => itemService.addItem(newItemData),
+      //   invalidateInventory,
+      //   newItemData.warehouseId.toString()
+      // );
 
       if (response.success) {
         // 아이템 추가 성공 메시지

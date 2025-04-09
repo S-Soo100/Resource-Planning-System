@@ -1,14 +1,27 @@
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { Item } from "@/types/item";
-// import { fetchItems } from "@/api/(item)/fetchItems";
+// import { warehouseApi } from "@/api/warehouse-api";
+// import { authService } from "@/services/authService";
+// import { IWarehouse } from "@/types/warehouse";
+// import { useQueries } from "@tanstack/react-query";
+// import { Warehouse } from "@/types/warehouse";
+// import { Item } from "@/types/item";
 
-// 재고 목록을 가져오는 커스텀 훅
-export const useItems = (): UseQueryResult<Item[], Error> => {
-  console.log("useItems");
-  return useQuery<Item[]>({
-    queryKey: ["items"], // 캐싱을 위한 키
-    // queryFn: fetchItems, // API 호출 함수
-    staleTime: 1000 * 60 * 30, // 30분 동안 캐싱 유지
-    refetchOnWindowFocus: false, // 창이 포커스될 때 다시 불러오지 않음
-  });
-};
+// interface UseItemsReturn {
+//   data: { warehouseId: number; items: Item[] }[] | undefined;
+//   isLoading: boolean;
+//   error: Error | null;
+// }
+
+// export const useItems = (): UseItemsReturn => {
+//   // team의 창고 id목록 가져오기
+//   const team = authService.getSelectedTeam();
+//   if (!team || !team.Warehouses) {
+//     throw new Error("팀 정보를 찾을 수 없습니다.");
+//   }
+//   const warehouseIds = team.Warehouses.map((warehouse) => warehouse.id);
+
+//   // 창고 id목록 기반으로 재고 쿼리 옵션 배열 생성
+//   const { data, isLoading, isError } = useQuery({
+//     queryKey: ["items"],
+//     queryFn: () => fetchItems(),
+//   });
+// };

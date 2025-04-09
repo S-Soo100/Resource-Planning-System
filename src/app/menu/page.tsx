@@ -38,8 +38,14 @@ export default function MenuPage() {
 
   if (isLoading || isTeamLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+      <div className="p-4 space-y-4">
+        <div className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+        <div className="space-y-3">
+          <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+          <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+          <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+          <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+        </div>
       </div>
     );
   }

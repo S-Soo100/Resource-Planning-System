@@ -44,6 +44,18 @@ const MenuButtonListComponent = () => {
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () => router.push(`/orderRecord`),
     },
+    {
+      title: "패키지 관리",
+      subtitle: " ",
+      icon: <PiNewspaperClippingFill className="text-3xl" />,
+      onClick: () => router.push(`/orderRecord`),
+    },
+    {
+      title: "관리자 기능",
+      subtitle: " ",
+      icon: <PiNewspaperClippingFill className="text-3xl" />,
+      onClick: () => router.push(`/orderRecord`),
+    },
   ];
 
   return (

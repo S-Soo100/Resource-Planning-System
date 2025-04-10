@@ -3,11 +3,13 @@ import {
   getAllItems,
   updateItem as updateItemApi,
   deleteItem as deleteItemApi,
+  updateItemQuantity as updateItemQuantityApi,
 } from "@/api/item-api";
 import {
   CreateItemRequest,
   CreateItemApiRequest,
   UpdateItemRequest,
+  UpdateItemQuantityRequest,
 } from "@/types/item";
 import { ApiResponse } from "@/types/common";
 
@@ -53,6 +55,25 @@ export const itemService = {
     if (response.success && invalidateInventory && data.warehouseId) {
       await invalidateInventory(data.warehouseId);
       // 페이지 새로고침
+      // window.location.reload();
+    }
+
+    return response;
+  },
+
+  updateItemQuantity: async (
+    id: string,
+    data: UpdateItemQuantityRequest,
+    invalidateInventory?: (warehouseId?: string) => Promise<void>,
+    warehouseId?: string
+  ) => {
+    const response = await updateItemQuantityApi(id, data);
+
+    // 성공 시 캐시 무효화
+    if (response.success && invalidateInventory && warehouseId) {
+      await invalidateInventory(warehouseId);
+
+      // 캐시 무효화 후 변경사항이 바로 반영되도록 페이지 새로고침
       // window.location.reload();
     }
 

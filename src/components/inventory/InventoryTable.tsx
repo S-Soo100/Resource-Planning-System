@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { Item, CreateItemRequest } from "@/types/item";
-import { Input, Button, Modal, Select, Pagination } from "antd";
+import { CreateItemRequest, UpdateItemQuantityRequest } from "@/types/item";
+import { Button, Modal, Select, Pagination } from "antd";
 import {
   SearchOutlined,
   PlusCircleOutlined,
@@ -14,13 +14,16 @@ import { authService } from "@/services/authService";
 import { IWarehouse } from "@/types/warehouse";
 import { useInventory } from "@/hooks/useInventory";
 import { itemService } from "@/services/itemService";
+import { useItemMutation } from "@/hooks/useItemMutation";
 
 export default function InventoryTable() {
   const router = useRouter();
+  const { updateQuantityMutation } = useItemMutation();
   const { items, isLoading, isError, invalidateInventory } = useInventory();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isStockInModalOpen, setIsStockInModalOpen] = useState(false);
   const [isStockOutModalOpen, setIsStockOutModalOpen] = useState(false);
+  const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -50,6 +53,23 @@ export default function InventoryTable() {
     quantity: 0,
     warehouseId: 0,
     note: "",
+  });
+  const [quantityEditValues, setQuantityEditValues] = useState<{
+    itemId: number | null;
+    itemCode: string;
+    itemName: string;
+    currentQuantity: number;
+    newQuantity: number;
+    reason: string;
+    warehouseId: number;
+  }>({
+    itemId: null,
+    itemCode: "",
+    itemName: "",
+    currentQuantity: 0,
+    newQuantity: 0,
+    reason: "",
+    warehouseId: 0,
   });
 
   useEffect(() => {
@@ -189,6 +209,71 @@ export default function InventoryTable() {
     }
   };
 
+  const handleOpenEditQuantityModal = (item: any) => {
+    setQuantityEditValues({
+      itemId: item.id,
+      itemCode: item.itemCode,
+      itemName: item.itemName,
+      currentQuantity: item.itemQuantity,
+      newQuantity: item.itemQuantity,
+      reason: "",
+      warehouseId: item.warehouseId,
+    });
+    setIsEditQuantityModalOpen(true);
+  };
+
+  const handleCloseEditQuantityModal = () => {
+    setIsEditQuantityModalOpen(false);
+  };
+
+  const handleQuantityEditFormChange = (
+    field: string,
+    value: string | number
+  ) => {
+    setQuantityEditValues({
+      ...quantityEditValues,
+      [field]: value,
+    });
+  };
+
+  const handleUpdateQuantity = async () => {
+    if (!quantityEditValues.itemId) return;
+
+    try {
+      const data: UpdateItemQuantityRequest = {
+        quantity: quantityEditValues.newQuantity,
+      };
+
+      updateQuantityMutation.mutate(
+        {
+          id: quantityEditValues.itemId.toString(),
+          data,
+        },
+        {
+          onSuccess: (response) => {
+            if (response.success) {
+              alert("재고 수량이 성공적으로 업데이트되었습니다.");
+              handleCloseEditQuantityModal();
+            } else {
+              alert(
+                `오류 발생: ${
+                  response.message || "알 수 없는 오류가 발생했습니다."
+                }`
+              );
+            }
+          },
+          onError: (error) => {
+            console.error("수량 업데이트 중 오류 발생:", error);
+            alert("수량 업데이트 중 오류가 발생했습니다.");
+          },
+        }
+      );
+    } catch (error) {
+      console.error("수량 업데이트 중 오류 발생:", error);
+      alert("수량 업데이트 중 오류가 발생했습니다.");
+    }
+  };
+
   const filteredItems = items.filter((item) => {
     return (
       item.itemCode.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -313,7 +398,7 @@ export default function InventoryTable() {
                     <div className="flex justify-center">
                       <button
                         className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-150 shadow-sm"
-                        onClick={() => router.push(`/item/edit/${item.id}`)}
+                        onClick={() => handleOpenEditQuantityModal(item)}
                       >
                         수정
                       </button>
@@ -369,12 +454,12 @@ export default function InventoryTable() {
               <label className="block text-sm font-medium mb-2 text-gray-700">
                 품목 코드
               </label>
-              <Input
+              <input
                 placeholder="예: ABC-123"
                 value={formValues.itemCode}
                 onChange={(e) => handleFormChange("itemCode", e.target.value)}
                 required
-                className="rounded-xl"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
               />
               {!formValues.itemCode && (
                 <div className="text-red-500 text-sm mt-1">
@@ -387,12 +472,12 @@ export default function InventoryTable() {
               <label className="block text-sm font-medium mb-2 text-gray-700">
                 품목명
               </label>
-              <Input
+              <input
                 placeholder="예: 서플라이 휠"
                 value={formValues.itemName}
                 onChange={(e) => handleFormChange("itemName", e.target.value)}
                 required
-                className="rounded-xl"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
               />
               {!formValues.itemName && (
                 <div className="text-red-500 text-sm mt-1">
@@ -405,7 +490,7 @@ export default function InventoryTable() {
               <label className="block text-sm font-medium mb-2 text-gray-700">
                 초기 수량
               </label>
-              <Input
+              <input
                 type="number"
                 min={0}
                 value={formValues.itemQuantity}
@@ -415,7 +500,7 @@ export default function InventoryTable() {
                     parseInt(e.target.value) || 0
                   )
                 }
-                className="rounded-xl"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
               />
             </div>
 
@@ -506,7 +591,7 @@ export default function InventoryTable() {
               <label className="block text-sm font-medium mb-2 text-gray-700">
                 입고 수량
               </label>
-              <Input
+              <input
                 type="number"
                 min={1}
                 value={stockFormValues.quantity}
@@ -517,7 +602,7 @@ export default function InventoryTable() {
                   )
                 }
                 required
-                className="rounded-xl"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
               />
             </div>
 
@@ -546,12 +631,12 @@ export default function InventoryTable() {
               <label className="block text-sm font-medium mb-2 text-gray-700">
                 비고
               </label>
-              <Input.TextArea
+              <textarea
                 placeholder="입고 관련 메모"
                 value={stockFormValues.note}
                 onChange={(e) => handleStockFormChange("note", e.target.value)}
                 rows={3}
-                className="rounded-xl"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
               />
             </div>
 
@@ -625,7 +710,7 @@ export default function InventoryTable() {
               <label className="block text-sm font-medium mb-2 text-gray-700">
                 출고 수량
               </label>
-              <Input
+              <input
                 type="number"
                 min={1}
                 value={stockFormValues.quantity}
@@ -636,7 +721,7 @@ export default function InventoryTable() {
                   )
                 }
                 required
-                className="rounded-xl"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
               />
             </div>
 
@@ -665,12 +750,12 @@ export default function InventoryTable() {
               <label className="block text-sm font-medium mb-2 text-gray-700">
                 비고
               </label>
-              <Input.TextArea
+              <textarea
                 placeholder="출고 관련 메모"
                 value={stockFormValues.note}
                 onChange={(e) => handleStockFormChange("note", e.target.value)}
                 rows={3}
-                className="rounded-xl"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
               />
             </div>
 
@@ -690,6 +775,95 @@ export default function InventoryTable() {
                 className="rounded-xl"
               >
                 출고 처리
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* 재고 수량 수정 모달 */}
+        <Modal
+          title="재고 수량 수정"
+          open={isEditQuantityModalOpen}
+          onCancel={handleCloseEditQuantityModal}
+          footer={null}
+          className="rounded-2xl"
+        >
+          <div className="mt-4">
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2 text-gray-700">
+                품목 정보
+              </label>
+              <div className="p-3 bg-gray-50 rounded-xl">
+                <p className="font-medium">{quantityEditValues.itemName}</p>
+                <p className="text-gray-600 text-sm">
+                  {quantityEditValues.itemCode}
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2 text-gray-700">
+                현재 수량
+              </label>
+              <div className="p-3 bg-gray-50 rounded-xl">
+                <p className="font-medium">
+                  {quantityEditValues.currentQuantity}
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2 text-gray-700">
+                새 수량
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={quantityEditValues.newQuantity}
+                onChange={(e) =>
+                  handleQuantityEditFormChange(
+                    "newQuantity",
+                    parseInt(e.target.value) || 0
+                  )
+                }
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+              />
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2 text-gray-700">
+                수정 사유
+              </label>
+              <textarea
+                placeholder="수량 수정 사유를 입력해주세요"
+                value={quantityEditValues.reason}
+                onChange={(e) =>
+                  handleQuantityEditFormChange("reason", e.target.value)
+                }
+                rows={3}
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <Button
+                onClick={handleCloseEditQuantityModal}
+                className="rounded-xl"
+              >
+                취소
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleUpdateQuantity}
+                disabled={
+                  quantityEditValues.newQuantity ===
+                    quantityEditValues.currentQuantity ||
+                  !quantityEditValues.reason
+                }
+                className="rounded-xl"
+              >
+                수정 완료
               </Button>
             </div>
           </div>

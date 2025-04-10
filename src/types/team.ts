@@ -1,5 +1,5 @@
 import { IMappingUser } from "./mappingUser";
-import { IWarehouse } from "./warehouse";
+import { TeamWarehouse } from "./warehouse";
 
 export interface IUserTeam {
   id: number;
@@ -15,7 +15,7 @@ export interface Team {
   createdAt: string;
   updatedAt: string;
   TeamUserMap: IMappingUser[];
-  Warehouses: IWarehouse[];
+  Warehouses: TeamWarehouse[];
 }
 
 export interface CreateTeamRequest {

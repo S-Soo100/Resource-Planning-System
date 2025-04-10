@@ -1,10 +1,12 @@
 import { Item } from "./item";
 
 // warehouse(창고)
-export interface IWarehouse {
+export interface TeamWarehouse {
   id: number; // 창고 id
   warehouseName: string; // 창고 이름
   warehouseAddress: string; // 창고 주소
+  location: string; // 창고 위치
+  capacity: number; // 창고 용량
   // teamId: number; // 팀 id (FK)
 }
 
@@ -24,12 +26,18 @@ export interface Warehouse {
   updatedAt: string;
 }
 
-export interface CreateWarehouseRequest {
+export interface CreateWarehouseProps {
+  id: string;
   name: string;
-  description?: string;
-  teamId: string;
-  location?: string;
-  capacity?: number;
+  location: string;
+  detailLocation: string;
+  capacity: number;
+}
+
+export interface CreateWarehouseRequest {
+  warehouseName: string;
+  warehouseAddress: string;
+  teamId: number;
 }
 
 export interface UpdateWarehouseRequest {

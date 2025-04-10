@@ -4,7 +4,7 @@ import { Item, CreateItemRequest } from "@/types/item";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
-import { IWarehouse } from "@/types/warehouse";
+import { TeamWarehouse } from "@/types/warehouse";
 import { useInventory } from "@/hooks/useInventory";
 import { itemService } from "@/services/itemService";
 
@@ -30,7 +30,7 @@ export default function CustomItemTable() {
     itemQuantity: 0,
     warehouseId: 0,
   });
-  const [warehouses, setWarehouses] = useState<IWarehouse[]>([]);
+  const [warehouses, setWarehouses] = useState<TeamWarehouse[]>([]);
 
   // 팀의 창고 정보 가져오기
   useEffect(() => {

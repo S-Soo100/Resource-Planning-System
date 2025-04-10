@@ -1,6 +1,6 @@
 import { warehouseApi } from "@/api/warehouse-api";
 import { authService } from "@/services/authService";
-import { IWarehouse } from "@/types/warehouse";
+import { TeamWarehouse } from "@/types/warehouse";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Warehouse } from "@/types/warehouse";
 import { getItemsByWarehouse } from "@/api/item-api";
@@ -16,7 +16,7 @@ export function useInventory() {
     throw new Error("선택된 팀이 없거나 팀의 창고 정보가 없습니다.");
   }
   // 1. 창고 목록 가져오기
-  const wareHouses: IWarehouse[] = authService.getSelectedTeam()!.Warehouses;
+  const wareHouses: TeamWarehouse[] = authService.getSelectedTeam()!.Warehouses;
 
   // 2. 창고 목록 기반으로 재고 쿼리 옵션 배열 생성
   const warehouseIds = wareHouses.map((w) => w.id);

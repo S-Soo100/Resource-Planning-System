@@ -11,7 +11,7 @@ import {
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
-import { IWarehouse } from "@/types/warehouse";
+import { TeamWarehouse } from "@/types/warehouse";
 import { useInventory } from "@/hooks/useInventory";
 import { itemService } from "@/services/itemService";
 import { useItemMutation } from "@/hooks/useItemMutation";
@@ -38,7 +38,7 @@ export default function InventoryTable() {
     itemQuantity: 0,
     warehouseId: 0,
   });
-  const [warehouses, setWarehouses] = useState<IWarehouse[]>([]);
+  const [warehouses, setWarehouses] = useState<TeamWarehouse[]>([]);
   const [stockFormValues, setStockFormValues] = useState<{
     itemId: number | null;
     itemCode: string;

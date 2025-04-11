@@ -12,7 +12,7 @@ export interface TeamWarehouse {
 
 export interface Warehouse {
   id: string;
-  name: string;
+  warehouseName: string;
   description?: string;
   teamId: string;
   team: {
@@ -20,7 +20,7 @@ export interface Warehouse {
     teamName: string;
   };
   items: Item[];
-  location?: string;
+  warehouseAddress?: string;
   capacity?: number;
   createdAt: string;
   updatedAt: string;
@@ -49,7 +49,7 @@ export interface UpdateWarehouseRequest {
 
 export interface WarehouseResponse {
   success: boolean;
-  data?: Warehouse;
+  data?: { data: Warehouse };
   error?: string;
 }
 

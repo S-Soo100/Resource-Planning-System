@@ -45,9 +45,11 @@ export const warehouseApi = {
   },
 
   // 단일 창고 조회
-  getWarehouse: async (id: string): Promise<ApiResponse<Warehouse>> => {
+  getWarehouse: async (
+    id: string
+  ): Promise<ApiResponse<{ data: Warehouse }>> => {
     try {
-      const response = await api.get<Warehouse>(`/warehouse/${id}`);
+      const response = await api.get<{ data: Warehouse }>(`/warehouse/${id}`);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: "창고 조회에 실패했습니다." };

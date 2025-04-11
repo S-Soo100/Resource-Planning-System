@@ -6,11 +6,13 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
 import { TeamWarehouse } from "@/types/warehouse";
 import { useInventory } from "@/hooks/useInventory";
-import { itemService } from "@/services/itemService";
+import { useItems } from "@/hooks/useItems";
 
 export default function CustomItemTable() {
   const router = useRouter();
-  const { items, isLoading, isError, invalidateInventory } = useInventory();
+  const { items, isLoading, isError } = useInventory();
+  const { useAddItem } = useItems();
+  const addItemMutation = useAddItem();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<string | null>(null);
@@ -96,7 +98,7 @@ export default function CustomItemTable() {
     warehouseId: number;
   }
 
-  const handleAddItem = async (values: AddItemFormValues) => {
+  const handleAddItem = (values: AddItemFormValues) => {
     // API를 통한 아이템 추가 로직
     const newItemData: CreateItemRequest = {
       name: values.itemName,
@@ -110,25 +112,26 @@ export default function CustomItemTable() {
       price: 0,
     };
 
-    try {
-      const response = await itemService.addItem(
-        newItemData,
-        invalidateInventory
-      );
-
-      if (response.success) {
-        // 아이템 추가 성공 메시지
-        alert(`아이템 "${values.itemName}"이(가) 추가되었습니다.`);
-        handleCloseModal();
-      } else {
-        alert(
-          `오류 발생: ${response.message || "알 수 없는 오류가 발생했습니다."}`
-        );
-      }
-    } catch (error) {
-      console.error("아이템 추가 중 오류 발생:", error);
-      alert("아이템 추가 중 오류가 발생했습니다.");
-    }
+    // React Query 뮤테이션 사용
+    addItemMutation.mutate(newItemData, {
+      onSuccess: (response) => {
+        if (response.success) {
+          // 아이템 추가 성공 메시지
+          alert(`아이템 "${values.itemName}"이(가) 추가되었습니다.`);
+          handleCloseModal();
+        } else {
+          alert(
+            `오류 발생: ${
+              response.message || "알 수 없는 오류가 발생했습니다."
+            }`
+          );
+        }
+      },
+      onError: (error) => {
+        console.error("아이템 추가 중 오류 발생:", error);
+        alert("아이템 추가 중 오류가 발생했습니다.");
+      },
+    });
   };
 
   // 정렬 처리

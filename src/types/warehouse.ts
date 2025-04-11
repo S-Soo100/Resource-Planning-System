@@ -28,8 +28,8 @@ export interface Warehouse {
 
 export interface CreateWarehouseProps {
   id: string;
-  name: string;
-  location: string;
+  warehouseName: string;
+  warehouseAddress: string;
   detailLocation: string;
   capacity: number;
 }
@@ -41,9 +41,9 @@ export interface CreateWarehouseRequest {
 }
 
 export interface UpdateWarehouseRequest {
-  name?: string;
+  warehouseName?: string;
   description?: string;
-  location?: string;
+  warehouseAddress?: string;
   capacity?: number;
 }
 

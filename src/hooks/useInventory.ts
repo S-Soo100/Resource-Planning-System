@@ -6,100 +6,92 @@ import { Warehouse } from "@/types/warehouse";
 import { getItemsByWarehouse } from "@/api/item-api";
 import { Item } from "@/types/item";
 
-export function useInventory() {
-  const queryClient = useQueryClient();
+interface UseInventoryReturn {
+  isLoading: boolean;
+  isError: boolean;
+  warehouses: Warehouse[];
+  items: Item[];
+  invalidateInventory: (warehouseId?: string) => Promise<void>;
+}
 
-  if (
-    !authService.getSelectedTeam() ||
-    authService.getSelectedTeam()?.Warehouses === undefined
-  ) {
+export function useInventory(): UseInventoryReturn {
+  const queryClient = useQueryClient();
+  const selectedTeam = authService.getSelectedTeam();
+
+  if (!selectedTeam || selectedTeam.Warehouses === undefined) {
     throw new Error("선택된 팀이 없거나 팀의 창고 정보가 없습니다.");
   }
+
   // 1. 창고 목록 가져오기
-  const wareHouses: TeamWarehouse[] = authService.getSelectedTeam()!.Warehouses;
+  const warehouses: TeamWarehouse[] = selectedTeam.Warehouses;
+  const warehouseIds = warehouses.map((w) => w.id);
+  const hasWarehouses = warehouseIds.length > 0;
 
-  // 2. 창고 목록 기반으로 재고 쿼리 옵션 배열 생성
-  const warehouseIds = wareHouses.map((w) => w.id);
-
-  // 3-1. 창고 정보 가져오기
+  // 2-1. 창고 정보 가져오기
   const warehouseQueries = useQueries({
     queries: warehouseIds.map((id) => ({
       queryKey: ["warehouse", id],
       queryFn: () => warehouseApi.getWarehouse(id.toString()),
-      enabled: wareHouses && warehouseIds.length > 0,
+      enabled: hasWarehouses,
       staleTime: 1800000, // 30분
     })),
   });
 
-  // 3-2. 각 창고별 아이템 정보 가져오기
+  // 2-2. 각 창고별 아이템 정보 가져오기
   const itemQueries = useQueries({
     queries: warehouseIds.map((id) => ({
       queryKey: ["items", id],
       queryFn: () => getItemsByWarehouse(id.toString()),
-      enabled: wareHouses && warehouseIds.length > 0,
+      enabled: hasWarehouses,
       staleTime: 1800000, // 30분
     })),
   });
 
-  // 로딩 상태 통합
+  // 쿼리 상태 계산
   const isLoading =
     warehouseQueries.some((q) => q.isLoading) ||
     itemQueries.some((q) => q.isLoading);
-
-  // 모든 쿼리 성공 여부 확인
+  const isError =
+    warehouseQueries.some((q) => q.isError) ||
+    itemQueries.some((q) => q.isError);
   const isAllWarehouseSuccess = warehouseQueries.every((q) => q.isSuccess);
   const isAllItemsSuccess = itemQueries.every((q) => q.isSuccess);
 
-  // 4. 데이터 가공 및 반환
-  let warehouses: Warehouse[] = [];
-  let allItems: Item[] = [];
+  // 3. 데이터 가공
+  const warehouseData =
+    isAllWarehouseSuccess && hasWarehouses
+      ? warehouseQueries.flatMap((q) => (q.data?.data ? [q.data.data] : []))
+      : [];
 
-  if (isAllWarehouseSuccess && warehouseIds.length > 0) {
-    // 창고 정보 가공
-    warehouses = warehouseQueries.flatMap((q) =>
-      q.data && q.data.data ? [q.data.data] : []
-    );
-  }
-
-  if (isAllItemsSuccess && warehouseIds.length > 0) {
-    // 아이템 정보 가공
-    allItems = itemQueries.flatMap((q) =>
-      q.data && q.data.data ? q.data.data : []
-    );
-  }
-
-  // 디버깅
-  console.log("창고 정보:", warehouses);
-  console.log("전체 아이템:", allItems);
+  const itemsData =
+    isAllItemsSuccess && hasWarehouses
+      ? itemQueries.flatMap((q) => (q.data?.data ? q.data.data : []))
+      : [];
 
   // 캐시 무효화 함수
   const invalidateInventory = async (warehouseId?: string) => {
+    const invalidateCache = async (key: string, id?: string) => {
+      await queryClient.invalidateQueries({
+        queryKey: id ? [key, id] : [key],
+      });
+    };
+
     if (warehouseId) {
       // 특정 창고의 캐시만 무효화
-      await queryClient.invalidateQueries({
-        queryKey: ["warehouse", warehouseId],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["items", warehouseId],
-      });
+      await invalidateCache("warehouse", warehouseId);
+      await invalidateCache("items", warehouseId);
     } else {
       // 모든 창고 캐시 무효화
-      await queryClient.invalidateQueries({
-        queryKey: ["warehouse"],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["items"],
-      });
+      await invalidateCache("warehouse");
+      await invalidateCache("items");
     }
   };
 
   return {
     isLoading,
-    isError:
-      warehouseQueries.some((q) => q.isError) ||
-      itemQueries.some((q) => q.isError),
-    warehouses: warehouses,
-    items: allItems,
+    isError,
+    warehouses: warehouseData,
+    items: itemsData,
     invalidateInventory,
   };
 }

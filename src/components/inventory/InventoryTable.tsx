@@ -1,43 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { CreateItemRequest, UpdateItemQuantityRequest } from "@/types/item";
-import { Button, Modal, Select, Pagination } from "antd";
-import {
-  SearchOutlined,
-  PlusCircleOutlined,
-  MinusCircleOutlined,
-} from "@ant-design/icons";
+import { UpdateItemQuantityRequest } from "@/types/item";
+import { Button, Modal, Select } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
 import { TeamWarehouse } from "@/types/warehouse";
 import { useInventory } from "@/hooks/useInventory";
-import { itemService } from "@/services/itemService";
 import { useItemMutation } from "@/hooks/useItemMutation";
 
 export default function InventoryTable() {
   const router = useRouter();
   const { updateQuantityMutation } = useItemMutation();
   const { items, isLoading, isError, invalidateInventory } = useInventory();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isStockInModalOpen, setIsStockInModalOpen] = useState(false);
   const [isStockOutModalOpen, setIsStockOutModalOpen] = useState(false);
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
-  const [formValues, setFormValues] = useState<{
-    itemCode: string;
-    itemName: string;
-    itemQuantity: number;
-    warehouseId: number;
-  }>({
-    itemCode: "",
-    itemName: "",
-    itemQuantity: 0,
-    warehouseId: 0,
-  });
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [warehouses, setWarehouses] = useState<TeamWarehouse[]>([]);
   const [stockFormValues, setStockFormValues] = useState<{
     itemId: number | null;
@@ -83,64 +66,6 @@ export default function InventoryTable() {
 
   const handleSearch = (value: string) => {
     setSearchText(value);
-  };
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setFormValues({
-      itemCode: "",
-      itemName: "",
-      itemQuantity: 0,
-      warehouseId: 0,
-    });
-    setIsModalOpen(false);
-  };
-
-  const handleFormChange = (field: string, value: string | number) => {
-    setFormValues({
-      ...formValues,
-      [field]: value,
-    });
-  };
-
-  const handleFormSubmit = () => {
-    handleAddItem(formValues);
-  };
-
-  const handleAddItem = async (values: typeof formValues) => {
-    const newItemData: CreateItemRequest = {
-      name: values.itemName,
-      description: "",
-      sku: values.itemCode,
-      warehouseId: values.warehouseId,
-      quantity: values.itemQuantity || 0,
-      minimumQuantity: 0,
-      category: "",
-      unit: "개",
-      price: 0,
-    };
-
-    try {
-      const response = await itemService.addItem(
-        newItemData,
-        invalidateInventory
-      );
-
-      if (response.success) {
-        alert(`아이템 "${values.itemName}"이(가) 추가되었습니다.`);
-        handleCloseModal();
-      } else {
-        alert(
-          `오류 발생: ${response.message || "알 수 없는 오류가 발생했습니다."}`
-        );
-      }
-    } catch (error) {
-      console.error("아이템 추가 중 오류 발생:", error);
-      alert("아이템 추가 중 오류가 발생했습니다.");
-    }
   };
 
   const handleOpenStockInModal = () => {
@@ -282,13 +207,11 @@ export default function InventoryTable() {
   });
 
   const paginatedItems = filteredItems.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   if (isLoading)
     return <div className="p-4 text-center">데이터를 불러오는 중...</div>;
@@ -302,7 +225,7 @@ export default function InventoryTable() {
   return (
     <>
       <div className="overflow-x-auto relative">
-        <div className="mb-4">
+        <div className="flex justify-between items-center mb-4">
           <div className="relative w-64 m-4">
             <input
               type="text"
@@ -313,9 +236,63 @@ export default function InventoryTable() {
             />
             <SearchOutlined className="absolute right-3 top-2.5 text-gray-400 text-sm" />
           </div>
+
+          <div className="flex items-center space-x-2">
+            <select
+              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            >
+              <option value={10}>10개 보기</option>
+              <option value={20}>20개 보기</option>
+              <option value={50}>50개 보기</option>
+              <option value={100}>100개 보기</option>
+            </select>
+
+            <button
+              onClick={handleOpenStockInModal}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
+            >
+              <svg
+                className="h-5 w-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+              입고
+            </button>
+            <button
+              onClick={handleOpenStockOutModal}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
+            >
+              <svg
+                className="h-5 w-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M20 12H4"
+                />
+              </svg>
+              출고
+            </button>
+          </div>
         </div>
 
-        <table className="min-w-full bg-white rounded-2xl overflow-hidden shadow-sm">
+        <table className="mx-3 my-2  bg-white rounded-2xl overflow-hidden shadow-sm">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
@@ -349,13 +326,6 @@ export default function InventoryTable() {
                     <p className="text-lg text-gray-500 mb-4">
                       표시할 품목이 없습니다
                     </p>
-                    <Button
-                      type="primary"
-                      onClick={handleOpenModal}
-                      className="bg-blue-500 hover:bg-blue-600 border-0 rounded-xl"
-                    >
-                      새 품목 추가하기
-                    </Button>
                   </div>
                 </td>
               </tr>
@@ -410,140 +380,90 @@ export default function InventoryTable() {
           </tbody>
         </table>
 
-        {filteredItems.length > 0 && (
-          <div className="mt-4 flex justify-center">
-            <Pagination
-              current={currentPage}
-              total={filteredItems.length}
-              pageSize={pageSize}
-              onChange={handlePageChange}
-              showSizeChanger={false}
-              className="rounded-xl"
-            />
+        {/* 페이지네이션 */}
+        {filteredItems.length > itemsPerPage && (
+          <div className="flex justify-center mt-4">
+            <nav className="inline-flex rounded-md shadow">
+              <button
+                onClick={() => paginate(currentPage > 1 ? currentPage - 1 : 1)}
+                disabled={currentPage === 1}
+                className={`relative inline-flex items-center px-3 py-2 rounded-l-md border ${
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
+                } text-sm font-medium`}
+              >
+                이전
+              </button>
+
+              {Array.from({
+                length: Math.ceil(filteredItems.length / itemsPerPage),
+              }).map((_, index) => {
+                // 현재 페이지 주변 5개만 표시
+                if (
+                  index + 1 === 1 ||
+                  index + 1 ===
+                    Math.ceil(filteredItems.length / itemsPerPage) ||
+                  (index + 1 >= currentPage - 2 && index + 1 <= currentPage + 2)
+                ) {
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => paginate(index + 1)}
+                      className={`relative inline-flex items-center px-4 py-2 border ${
+                        currentPage === index + 1
+                          ? "bg-blue-500 text-white"
+                          : "bg-white text-gray-700 hover:bg-gray-50"
+                      } text-sm font-medium`}
+                    >
+                      {index + 1}
+                    </button>
+                  );
+                }
+
+                // 건너뛴 페이지를 표시하는 줄임표
+                if (
+                  (index + 1 === currentPage - 3 && currentPage > 4) ||
+                  (index + 1 === currentPage + 3 &&
+                    currentPage <
+                      Math.ceil(filteredItems.length / itemsPerPage) - 3)
+                ) {
+                  return (
+                    <span
+                      key={index}
+                      className="relative inline-flex items-center px-4 py-2 border bg-white text-gray-700 text-sm font-medium"
+                    >
+                      ...
+                    </span>
+                  );
+                }
+
+                return null;
+              })}
+
+              <button
+                onClick={() =>
+                  paginate(
+                    currentPage < Math.ceil(filteredItems.length / itemsPerPage)
+                      ? currentPage + 1
+                      : currentPage
+                  )
+                }
+                disabled={
+                  currentPage === Math.ceil(filteredItems.length / itemsPerPage)
+                }
+                className={`relative inline-flex items-center px-3 py-2 rounded-r-md border ${
+                  currentPage === Math.ceil(filteredItems.length / itemsPerPage)
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
+                } text-sm font-medium`}
+              >
+                다음
+              </button>
+            </nav>
           </div>
         )}
 
-        {/* Floating Buttons for Stock Management */}
-        <div className="fixed bottom-8 right-8 flex flex-col space-y-4">
-          <button
-            onClick={handleOpenStockInModal}
-            className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg flex items-center justify-center transition-all duration-300"
-            title="입고"
-          >
-            <PlusCircleOutlined style={{ fontSize: "24px" }} />
-          </button>
-          <button
-            onClick={handleOpenStockOutModal}
-            className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg flex items-center justify-center transition-all duration-300"
-            title="출고"
-          >
-            <MinusCircleOutlined style={{ fontSize: "24px" }} />
-          </button>
-        </div>
-
-        {/* Modal for Adding New Item */}
-        <Modal
-          title="새 품목 추가"
-          open={isModalOpen}
-          onCancel={handleCloseModal}
-          footer={null}
-          className="rounded-2xl"
-        >
-          <div className="mt-4">
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                품목 코드
-              </label>
-              <input
-                placeholder="예: ABC-123"
-                value={formValues.itemCode}
-                onChange={(e) => handleFormChange("itemCode", e.target.value)}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-              />
-              {!formValues.itemCode && (
-                <div className="text-red-500 text-sm mt-1">
-                  품목 코드를 입력해주세요
-                </div>
-              )}
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                품목명
-              </label>
-              <input
-                placeholder="예: 서플라이 휠"
-                value={formValues.itemName}
-                onChange={(e) => handleFormChange("itemName", e.target.value)}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-              />
-              {!formValues.itemName && (
-                <div className="text-red-500 text-sm mt-1">
-                  품목명을 입력해주세요
-                </div>
-              )}
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                초기 수량
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={formValues.itemQuantity}
-                onChange={(e) =>
-                  handleFormChange(
-                    "itemQuantity",
-                    parseInt(e.target.value) || 0
-                  )
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-              />
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                창고 선택
-              </label>
-              <Select
-                style={{ width: "100%" }}
-                placeholder="창고를 선택해주세요"
-                value={formValues.warehouseId || undefined}
-                onChange={(value) => handleFormChange("warehouseId", value)}
-                className="rounded-xl"
-              >
-                {warehouses.map((warehouse) => (
-                  <Select.Option key={warehouse.id} value={warehouse.id}>
-                    {warehouse.warehouseName}
-                  </Select.Option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <Button onClick={handleCloseModal} className="rounded-xl">
-                취소
-              </Button>
-              <Button
-                type="primary"
-                onClick={handleFormSubmit}
-                disabled={
-                  !formValues.itemCode ||
-                  !formValues.itemName ||
-                  !formValues.warehouseId
-                }
-                className="rounded-xl"
-              >
-                추가
-              </Button>
-            </div>
-          </div>
-        </Modal>
-
-        {/* Modal for Stock In */}
         <Modal
           title="입고 등록"
           open={isStockInModalOpen}

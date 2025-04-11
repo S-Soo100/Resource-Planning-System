@@ -1,59 +1,63 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
 import React from "react";
 import { useInventory } from "@/hooks/useInventory";
-import { itemService, withInventoryUpdate } from "@/services/itemService";
+import { useItems } from "@/hooks/useItems";
 import { UpdateItemRequest, Item } from "@/types/item";
 
 const ItemManager: React.FC = () => {
-  const { isLoading, warehouses, items, invalidateInventory } = useInventory();
+  const { isLoading, warehouses, items } = useInventory();
+  const { useUpdateItem, useDeleteItem } = useItems();
 
-  /* 
-  // 실제 구현 시 사용할 추가 예시 코드
-  const handleAddItem = async (newItem: CreateItemRequest) => {
-    // 방법 1: withInventoryUpdate 헬퍼 함수 사용
-    const response = await withInventoryUpdate(
-      () => itemService.addItem(newItem),
-      invalidateInventory,
-      newItem.warehouseId.toString() // number를 string으로 변환
-    );
+  // 아이템 업데이트 뮤테이션
+  const updateItemMutation = useUpdateItem();
 
-    if (response.success) {
-      console.log("아이템이 성공적으로 추가되었습니다.");
-    } else {
-      console.error("아이템 추가 실패:", response.message);
-    }
+  // 아이템 삭제 뮤테이션
+  const deleteItemMutation = useDeleteItem();
+
+  /*
+  // 아이템 추가 예시 코드 (React Query 사용)
+  // 다음과 같이 useAddItem 훅을 사용할 수 있습니다:
+  
+  import { CreateItemRequest } from "@/types/item";
+  
+  const { useAddItem } = useItems();
+  const addItemMutation = useAddItem();
+  
+  const handleAddItem = (newItem: CreateItemRequest) => {
+    addItemMutation.mutate(newItem, {
+      onSuccess: () => {
+        console.log("아이템이 성공적으로 추가되었습니다.");
+      },
+      onError: (error) => {
+        console.error("아이템 추가 실패:", error);
+      }
+    });
   };
   */
 
-  const handleUpdateItem = async (
+  const handleUpdateItem = (
     id: string,
     itemData: UpdateItemRequest,
     warehouseId: string
   ) => {
-    // 방법 2: 직접 호출 후 invalidate
-    const response = await itemService.updateItem(id, itemData);
-
-    if (response.success) {
-      // 성공 시에만 캐시 무효화
-      await invalidateInventory(warehouseId);
-      console.log("아이템이 성공적으로 업데이트되었습니다.");
-    } else {
-      console.error("아이템 업데이트 실패:", response.message);
-    }
+    // React Query 뮤테이션 사용
+    updateItemMutation.mutate({
+      id,
+      data: {
+        ...itemData,
+        warehouseId, // 캐시 무효화를 위해 warehouseId 전달
+      },
+    });
   };
 
-  const handleDeleteItem = async (id: string) => {
-    // 방법 1: withInventoryUpdate 헬퍼 함수 사용 (모든 창고 데이터 갱신)
-    const response = await withInventoryUpdate(
-      () => itemService.deleteItem(id),
-      invalidateInventory
-      // warehouseId를 전달하지 않으면 모든 창고 캐시가 무효화됨
-    );
-
-    if (response.success) {
-      console.log("아이템이 성공적으로 삭제되었습니다.");
-    } else {
-      console.error("아이템 삭제 실패:", response.message);
-    }
+  const handleDeleteItem = (id: string, warehouseId: string) => {
+    // React Query 뮤테이션 사용
+    deleteItemMutation.mutate({
+      id,
+      itemWarehouseId: warehouseId,
+    });
   };
 
   if (isLoading) {
@@ -94,7 +98,14 @@ const ItemManager: React.FC = () => {
               >
                 +1
               </button>
-              <button onClick={() => handleDeleteItem(item.id.toString())}>
+              <button
+                onClick={() =>
+                  handleDeleteItem(
+                    item.id.toString(),
+                    item.warehouseId.toString()
+                  )
+                }
+              >
                 삭제
               </button>
             </li>

@@ -9,12 +9,13 @@ import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
 import { TeamWarehouse } from "@/types/warehouse";
 import { useInventory } from "@/hooks/useInventory";
-import { useItemMutation } from "@/hooks/useItemMutation";
+import { useItems } from "@/hooks/useItems";
 
 export default function InventoryTable() {
   const router = useRouter();
-  const { updateQuantityMutation } = useItemMutation();
-  const { items, isLoading, isError, invalidateInventory } = useInventory();
+  const { items, isLoading, isError } = useInventory();
+  const { useUpdateItemQuantity } = useItems();
+  const updateQuantityMutation = useUpdateItemQuantity();
   const [isStockInModalOpen, setIsStockInModalOpen] = useState(false);
   const [isStockOutModalOpen, setIsStockOutModalOpen] = useState(false);
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
@@ -110,24 +111,104 @@ export default function InventoryTable() {
     });
   };
 
-  const handleStockIn = async () => {
+  const handleStockIn = () => {
     try {
       console.log("입고 처리:", stockFormValues);
-      alert(`${stockFormValues.quantity}개 입고 처리되었습니다.`);
-      handleCloseStockInModal();
-      await invalidateInventory();
+
+      // 현재 아이템 정보 찾기
+      const currentItem = items.find(
+        (item) => item.id === stockFormValues.itemId
+      );
+      if (!currentItem) {
+        alert("선택한 품목을 찾을 수 없습니다.");
+        return;
+      }
+
+      // 입고는 기존 수량에 추가
+      const newQuantity = currentItem.itemQuantity + stockFormValues.quantity;
+
+      // 수량 업데이트 뮤테이션 사용
+      updateQuantityMutation.mutate(
+        {
+          id: stockFormValues.itemId!.toString(),
+          data: { quantity: newQuantity },
+          itemWarehouseId: stockFormValues.warehouseId.toString(),
+        },
+        {
+          onSuccess: (response) => {
+            if (response.success) {
+              alert(`${stockFormValues.quantity}개 입고 처리되었습니다.`);
+              handleCloseStockInModal();
+            } else {
+              alert(
+                `오류 발생: ${
+                  response.message || "알 수 없는 오류가 발생했습니다."
+                }`
+              );
+            }
+          },
+          onError: (error) => {
+            console.error("입고 처리 중 오류 발생:", error);
+            alert("입고 처리 중 오류가 발생했습니다.");
+          },
+        }
+      );
     } catch (error) {
       console.error("입고 처리 중 오류 발생:", error);
       alert("입고 처리 중 오류가 발생했습니다.");
     }
   };
 
-  const handleStockOut = async () => {
+  const handleStockOut = () => {
     try {
       console.log("출고 처리:", stockFormValues);
-      alert(`${stockFormValues.quantity}개 출고 처리되었습니다.`);
-      handleCloseStockOutModal();
-      await invalidateInventory();
+
+      // 현재 아이템 정보 찾기
+      const currentItem = items.find(
+        (item) => item.id === stockFormValues.itemId
+      );
+      if (!currentItem) {
+        alert("선택한 품목을 찾을 수 없습니다.");
+        return;
+      }
+
+      // 출고 수량이 현재 재고보다 많으면 오류
+      if (stockFormValues.quantity > currentItem.itemQuantity) {
+        alert(
+          `출고 수량(${stockFormValues.quantity})이 현재 재고(${currentItem.itemQuantity})보다 많습니다.`
+        );
+        return;
+      }
+
+      // 출고는 기존 수량에서 감소
+      const newQuantity = currentItem.itemQuantity - stockFormValues.quantity;
+
+      // 수량 업데이트 뮤테이션 사용
+      updateQuantityMutation.mutate(
+        {
+          id: stockFormValues.itemId!.toString(),
+          data: { quantity: newQuantity },
+          itemWarehouseId: stockFormValues.warehouseId.toString(),
+        },
+        {
+          onSuccess: (response) => {
+            if (response.success) {
+              alert(`${stockFormValues.quantity}개 출고 처리되었습니다.`);
+              handleCloseStockOutModal();
+            } else {
+              alert(
+                `오류 발생: ${
+                  response.message || "알 수 없는 오류가 발생했습니다."
+                }`
+              );
+            }
+          },
+          onError: (error) => {
+            console.error("출고 처리 중 오류 발생:", error);
+            alert("출고 처리 중 오류가 발생했습니다.");
+          },
+        }
+      );
     } catch (error) {
       console.error("출고 처리 중 오류 발생:", error);
       alert("출고 처리 중 오류가 발생했습니다.");
@@ -161,7 +242,7 @@ export default function InventoryTable() {
     });
   };
 
-  const handleUpdateQuantity = async () => {
+  const handleUpdateQuantity = () => {
     if (!quantityEditValues.itemId) return;
 
     try {
@@ -173,6 +254,7 @@ export default function InventoryTable() {
         {
           id: quantityEditValues.itemId.toString(),
           data,
+          itemWarehouseId: quantityEditValues.warehouseId.toString(),
         },
         {
           onSuccess: (response) => {

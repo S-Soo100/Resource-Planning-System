@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // antd React 버전 호환성 경고 억제
+  env: {
+    DISABLE_ANTD_COMPATIBLE_WARNING: "true",
+  },
 };
 
 export default nextConfig;

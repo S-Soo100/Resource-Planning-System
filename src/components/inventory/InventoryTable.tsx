@@ -479,28 +479,30 @@ export default function InventoryTable() {
               <Select
                 style={{ width: "100%" }}
                 placeholder="품목을 선택해주세요"
-                value={stockFormValues.itemId || undefined}
-                onChange={(value, option) => {
+                labelInValue
+                value={
+                  stockFormValues.itemId
+                    ? {
+                        value: stockFormValues.itemId,
+                        label: `${stockFormValues.itemName} (${stockFormValues.itemCode})`,
+                      }
+                    : undefined
+                }
+                onChange={(selected) => {
+                  const value = selected.value;
+                  const selectedItem = items.find((item) => item.id === value);
                   handleStockFormChange("itemId", value);
-                  const selectedOption = Array.isArray(option)
-                    ? option[0]
-                    : option;
-                  const selectedItem = (selectedOption as any)?.item;
-                  handleStockFormChange(
-                    "itemCode",
-                    selectedItem?.itemCode || ""
-                  );
-                  handleStockFormChange(
-                    "itemName",
-                    selectedItem?.itemName || ""
-                  );
+                  if (selectedItem) {
+                    handleStockFormChange("itemCode", selectedItem.itemCode);
+                    handleStockFormChange("itemName", selectedItem.itemName);
+                  }
                 }}
                 showSearch
                 optionFilterProp="children"
                 className="rounded-xl"
               >
                 {items.map((item) => (
-                  <Select.Option key={item.id} value={item.id} item={item}>
+                  <Select.Option key={item.id} value={item.id}>
                     {item.itemName} ({item.itemCode})
                   </Select.Option>
                 ))}
@@ -533,10 +535,21 @@ export default function InventoryTable() {
               <Select
                 style={{ width: "100%" }}
                 placeholder="창고를 선택해주세요"
-                value={stockFormValues.warehouseId || undefined}
-                onChange={(value) =>
-                  handleStockFormChange("warehouseId", value)
+                labelInValue
+                value={
+                  stockFormValues.warehouseId
+                    ? {
+                        value: stockFormValues.warehouseId,
+                        label:
+                          warehouses.find(
+                            (w) => w.id === stockFormValues.warehouseId
+                          )?.warehouseName || "",
+                      }
+                    : undefined
                 }
+                onChange={(selected) => {
+                  handleStockFormChange("warehouseId", selected.value);
+                }}
                 className="rounded-xl"
               >
                 {warehouses.map((warehouse) => (
@@ -597,28 +610,30 @@ export default function InventoryTable() {
               <Select
                 style={{ width: "100%" }}
                 placeholder="품목을 선택해주세요"
-                value={stockFormValues.itemId || undefined}
-                onChange={(value, option) => {
+                labelInValue
+                value={
+                  stockFormValues.itemId
+                    ? {
+                        value: stockFormValues.itemId,
+                        label: `${stockFormValues.itemName} (${stockFormValues.itemCode})`,
+                      }
+                    : undefined
+                }
+                onChange={(selected) => {
+                  const value = selected.value;
+                  const selectedItem = items.find((item) => item.id === value);
                   handleStockFormChange("itemId", value);
-                  const selectedOption = Array.isArray(option)
-                    ? option[0]
-                    : option;
-                  const selectedItem = (selectedOption as any)?.item;
-                  handleStockFormChange(
-                    "itemCode",
-                    selectedItem?.itemCode || ""
-                  );
-                  handleStockFormChange(
-                    "itemName",
-                    selectedItem?.itemName || ""
-                  );
+                  if (selectedItem) {
+                    handleStockFormChange("itemCode", selectedItem.itemCode);
+                    handleStockFormChange("itemName", selectedItem.itemName);
+                  }
                 }}
                 showSearch
                 optionFilterProp="children"
                 className="rounded-xl"
               >
                 {items.map((item) => (
-                  <Select.Option key={item.id} value={item.id} item={item}>
+                  <Select.Option key={item.id} value={item.id}>
                     {item.itemName} ({item.itemCode}) - 재고:{" "}
                     {item.itemQuantity}
                   </Select.Option>
@@ -652,10 +667,21 @@ export default function InventoryTable() {
               <Select
                 style={{ width: "100%" }}
                 placeholder="창고를 선택해주세요"
-                value={stockFormValues.warehouseId || undefined}
-                onChange={(value) =>
-                  handleStockFormChange("warehouseId", value)
+                labelInValue
+                value={
+                  stockFormValues.warehouseId
+                    ? {
+                        value: stockFormValues.warehouseId,
+                        label:
+                          warehouses.find(
+                            (w) => w.id === stockFormValues.warehouseId
+                          )?.warehouseName || "",
+                      }
+                    : undefined
                 }
+                onChange={(selected) => {
+                  handleStockFormChange("warehouseId", selected.value);
+                }}
                 className="rounded-xl"
               >
                 {warehouses.map((warehouse) => (

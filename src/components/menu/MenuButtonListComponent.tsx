@@ -18,7 +18,7 @@ const MenuButtonListComponent = () => {
       title: "재고 조회",
       subtitle: "마스터 계정, 직원 계정, 타업체 계정",
       icon: <MdOutlineInventory className="text-3xl" />,
-      onClick: () => router.push(`/inventory`),
+      onClick: () => router.push(`/stock`),
     },
     {
       title: "품목 조회/수정",

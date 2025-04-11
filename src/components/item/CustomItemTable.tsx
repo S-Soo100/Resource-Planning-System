@@ -5,12 +5,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
 import { TeamWarehouse } from "@/types/warehouse";
-import { useInventory } from "@/hooks/useInventory";
+import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
 
 export default function CustomItemTable() {
   const router = useRouter();
-  const { items, isLoading, isError } = useInventory();
+  const { items, isLoading, isError } = useWarehouseItems();
   const { useAddItem } = useItems();
   const addItemMutation = useAddItem();
   const [isModalOpen, setIsModalOpen] = useState(false);

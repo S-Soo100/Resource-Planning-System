@@ -6,7 +6,7 @@ import { Warehouse } from "@/types/warehouse";
 import { getItemsByWarehouse } from "@/api/item-api";
 import { Item } from "@/types/item";
 
-interface UseInventoryReturn {
+interface useWarehouseItemsReturn {
   isLoading: boolean;
   isError: boolean;
   warehouses: Warehouse[];
@@ -14,7 +14,7 @@ interface UseInventoryReturn {
   invalidateInventory: (warehouseId?: string) => Promise<void>;
 }
 
-export function useInventory(): UseInventoryReturn {
+export function useWarehouseItems(): useWarehouseItemsReturn {
   const queryClient = useQueryClient();
   const selectedTeam = authService.getSelectedTeam();
 

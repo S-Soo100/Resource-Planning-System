@@ -31,8 +31,8 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
   const [newWarehouse, setNewWarehouse] = useState<
     Omit<CreateWarehouseProps, "id">
   >({
-    name: "",
-    location: "",
+    warehouseName: "",
+    warehouseAddress: "",
     detailLocation: "",
     capacity: 0,
   });
@@ -44,8 +44,8 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setNewWarehouse({
-      name: "",
-      location: "",
+      warehouseName: "",
+      warehouseAddress: "",
       detailLocation: "",
       capacity: 0,
     });
@@ -74,9 +74,9 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
 
       // newWarehouse를 CreateWarehouseRequest로 변환
       const warehouseRequest: CreateWarehouseRequest = {
-        warehouseName: newWarehouse.name,
+        warehouseName: newWarehouse.warehouseName,
         warehouseAddress:
-          newWarehouse.location +
+          newWarehouse.warehouseAddress +
           (newWarehouse.detailLocation
             ? ` ${newWarehouse.detailLocation}`
             : ""),
@@ -111,7 +111,7 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
     const fullAddress = data.roadAddress || data.jibunAddress;
     setNewWarehouse({
       ...newWarehouse,
-      location: fullAddress,
+      warehouseAddress: fullAddress,
     });
     setIsAddressModalOpen(false);
   };
@@ -152,9 +152,11 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
               key={warehouse.id}
               className="bg-blue-50 hover:bg-blue-100 text-left p-4 rounded-lg border border-blue-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm"
             >
-              <h3 className="font-semibold text-blue-800">{warehouse.name}</h3>
+              <h3 className="font-semibold text-blue-800">
+                {warehouse.warehouseName}
+              </h3>
               <div className="mt-2 text-sm text-gray-600">
-                <p>위치: {warehouse.location}</p>
+                <p>위치: {warehouse.warehouseAddress}</p>
                 <p>용량: {warehouse.capacity}㎡</p>
               </div>
             </button>
@@ -196,15 +198,15 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
               <div className="mb-4">
                 <label
                   className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="name"
+                  htmlFor="warehouseName"
                 >
                   창고명
                 </label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  value={newWarehouse.name}
+                  id="warehouseName"
+                  name="warehouseName"
+                  value={newWarehouse.warehouseName}
                   onChange={handleInputChange}
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   required
@@ -213,16 +215,16 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
               <div className="mb-4">
                 <label
                   className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="location"
+                  htmlFor="warehouseAddress"
                 >
                   주소
                 </label>
                 <div className="flex">
                   <input
                     type="text"
-                    id="location"
-                    name="location"
-                    value={newWarehouse.location}
+                    id="warehouseAddress"
+                    name="warehouseAddress"
+                    value={newWarehouse.warehouseAddress}
                     onChange={handleInputChange}
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     readOnly

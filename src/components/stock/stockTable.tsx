@@ -369,7 +369,7 @@ export default function StockTable() {
         </div>
 
         {/* 창고 목록 디버깅 정보 */}
-        <div className="p-4 mb-6 bg-gray-100 rounded-lg">
+        {/* <div className="p-4 mb-6 bg-gray-100 rounded-lg">
           <h3 className="font-bold mb-2">창고 목록 디버깅 정보:</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -388,7 +388,8 @@ export default function StockTable() {
                     {warehouses &&
                       warehouses.map((w, idx) => (
                         <li key={`debug-hook-warehouse-${idx}`}>
-                          ID: {w.id}, 이름: {w.name || "없음"}, 팀: {w.teamId}
+                          ID: {w.id}, 이름: {w.warehouseName || "없음"}, 팀:{" "}
+                          {w.teamId}
                         </li>
                       ))}
                   </ul>
@@ -414,9 +415,9 @@ export default function StockTable() {
               )}
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {localWarehouses.map((warehouse, warehouseIndex) => {
+        {warehouses.map((warehouse, warehouseIndex) => {
           const warehouseItems = getWarehouseItems(Number(warehouse.id));
           const filteredItems = getFilteredItems(warehouseItems);
 
@@ -427,7 +428,7 @@ export default function StockTable() {
             >
               <h2 className="text-xl font-bold mb-4 px-4">
                 {warehouse.warehouseName ||
-                  localWarehouses.find((w) => w.id === Number(warehouse.id))
+                  warehouses.find((w) => w.id === warehouse.id)
                     ?.warehouseName ||
                   `창고 ${warehouse.id}`}
               </h2>

@@ -101,12 +101,12 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
     const apiData = warehouse as unknown as ApiWarehouse;
     return {
       id: String(apiData.id),
-      name: apiData.warehouseName,
+      warehouseName: apiData.warehouseName,
       description: "",
       teamId: String(apiData.teamId),
       team: apiData.team || { id: apiData.teamId, teamName: "" },
       items: apiData.items || [],
-      location: apiData.warehouseAddress,
+      warehouseAddress: apiData.warehouseAddress,
       createdAt: apiData.createdAt,
       updatedAt: apiData.updatedAt,
     } as Warehouse;

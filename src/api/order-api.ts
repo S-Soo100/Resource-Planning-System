@@ -4,7 +4,7 @@ import {
   CreateOrderRequest,
   UpdateOrderRequest,
   UpdateOrderStatusRequest,
-} from "../types/order";
+} from "../types/(order)/order";
 
 export const createOrder = async (
   data: CreateOrderRequest

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { LoginAuth } from "@/types/loginAuth";
+import { LoginAuth } from "@/types/(auth)/loginAuth";
 // import Cookies from "js-cookie";
 import { FaEye, FaRegEyeSlash } from "react-icons/fa";
 // import { authApi } from "@/api/auth-api";

@@ -3,7 +3,7 @@ import { userApi } from "@/api/user-api";
 import { ApiResponse } from "@/api/api";
 // import { getAuthCookie } from "@/api/cookie-api";
 import { authStore } from "@/store/authStore";
-import { IUser } from "@/types/user";
+import { IUser } from "@/types/(auth)/user";
 
 interface UseCurrentUserReturn {
   user: IUser | undefined;

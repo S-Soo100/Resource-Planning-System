@@ -1,4 +1,4 @@
-import { LoginAuth, LoginResponse } from "@/types/loginAuth";
+import { LoginAuth, LoginResponse } from "@/types/(auth)/loginAuth";
 import { api, ApiResponse } from "./api";
 import { setToken } from "./cookie-api";
 import { authStore } from "@/store/authStore";

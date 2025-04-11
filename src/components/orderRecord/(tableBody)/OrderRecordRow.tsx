@@ -1,5 +1,5 @@
 "use client";
-import { IOrderRecord } from "@/types/orderRecord";
+import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { useState } from "react";
 import OrderRecordDetails from "./OrderRecordDetail";
 import TableCell from "./TableCell";

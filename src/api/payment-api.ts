@@ -1,6 +1,9 @@
 import { api } from "./api";
 import { ApiResponse } from "../types/common";
-import { CreatePaymentRequest, UpdatePaymentRequest } from "../types/payment";
+import {
+  CreatePaymentRequest,
+  UpdatePaymentRequest,
+} from "../types/(order)/payment";
 
 export const createPayment = async (
   data: CreatePaymentRequest

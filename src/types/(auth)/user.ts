@@ -1,5 +1,5 @@
-import { IOrder } from "./order";
-import { IUserTeam } from "./team";
+import { IOrder } from "../(order)/order";
+import { IUserTeam } from "../team";
 
 export interface IUser {
   id: number;

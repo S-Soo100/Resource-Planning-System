@@ -1,8 +1,8 @@
 import { authApi } from "@/api/auth-api";
 import { teamApi } from "@/api/team-api";
 import { authStore } from "@/store/authStore";
-import { IAuth } from "@/types/auth";
-import { LoginAuth } from "@/types/loginAuth";
+import { IAuth } from "@/types/(auth)/auth";
+import { LoginAuth } from "@/types/(auth)/loginAuth";
 import { Team } from "@/types/team";
 
 export const authService = {

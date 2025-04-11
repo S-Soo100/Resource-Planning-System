@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { IUser } from "@/types/user";
+import { IUser } from "@/types/(auth)/user";
 import { IUserTeam } from "@/types/team";
 
 // 확장된 사용자 타입 정의

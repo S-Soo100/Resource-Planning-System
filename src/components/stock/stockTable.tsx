@@ -11,18 +11,22 @@ import { TeamWarehouse } from "@/types/warehouse";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
 
+// Select 컴포넌트의 value 타입을 위한 인터페이스 정의
+interface SelectOption {
+  value: any;
+  label: string;
+}
+
 export default function StockTable() {
   const router = useRouter();
-  const { items, isLoading, isError } = useWarehouseItems();
+  const { items, warehouses, isLoading, isError } = useWarehouseItems();
   const { useUpdateItemQuantity } = useItems();
   const updateQuantityMutation = useUpdateItemQuantity();
   const [isStockInModalOpen, setIsStockInModalOpen] = useState(false);
   const [isStockOutModalOpen, setIsStockOutModalOpen] = useState(false);
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [warehouses, setWarehouses] = useState<TeamWarehouse[]>([]);
+  const [localWarehouses, setLocalWarehouses] = useState<TeamWarehouse[]>([]);
   const [stockFormValues, setStockFormValues] = useState<{
     itemId: number | null;
     itemCode: string;
@@ -59,9 +63,9 @@ export default function StockTable() {
   useEffect(() => {
     const team = authService.getSelectedTeam();
     if (team && team.Warehouses) {
-      setWarehouses(team.Warehouses);
+      setLocalWarehouses(team.Warehouses);
     } else {
-      setWarehouses([]);
+      setLocalWarehouses([]);
     }
   }, []);
 
@@ -281,19 +285,20 @@ export default function StockTable() {
     }
   };
 
-  const filteredItems = items.filter((item) => {
-    return (
-      item.itemCode.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.itemName.toLowerCase().includes(searchText.toLowerCase())
-    );
-  });
+  // 창고별로 아이템 필터링
+  const getWarehouseItems = (warehouseId: number) => {
+    return items.filter((item) => item.warehouseId === warehouseId);
+  };
 
-  const paginatedItems = filteredItems.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+  // 검색 기능
+  const getFilteredItems = (warehouseItems: any[]) => {
+    return warehouseItems.filter((item) => {
+      return (
+        item.itemCode.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.itemName.toLowerCase().includes(searchText.toLowerCase())
+      );
+    });
+  };
 
   if (isLoading)
     return <div className="p-4 text-center">데이터를 불러오는 중...</div>;
@@ -306,7 +311,7 @@ export default function StockTable() {
 
   return (
     <>
-      <div className="overflow-x-auto relative">
+      <div key="warehouse-container" className="overflow-x-auto relative">
         <div className="flex justify-between items-center mb-4">
           <div className="relative w-64 m-4">
             <input
@@ -320,17 +325,6 @@ export default function StockTable() {
           </div>
 
           <div className="flex items-center space-x-2">
-            <select
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={itemsPerPage}
-              onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            >
-              <option value={10}>10개 보기</option>
-              <option value={20}>20개 보기</option>
-              <option value={50}>50개 보기</option>
-              <option value={100}>100개 보기</option>
-            </select>
-
             <button
               onClick={handleOpenStockInModal}
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
@@ -374,177 +368,157 @@ export default function StockTable() {
           </div>
         </div>
 
-        <table className="mx-3 my-2  bg-white rounded-2xl overflow-hidden shadow-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
-                ID
-              </th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                품목 코드
-              </th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                품목명
-              </th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                재고수량
-              </th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                창고
-              </th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                최종수정일
-              </th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
-                관리
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {paginatedItems.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-8 text-center">
-                  <div className="py-6">
-                    <p className="text-lg text-gray-500 mb-4">
-                      표시할 품목이 없습니다
-                    </p>
+        {/* 창고 목록 디버깅 정보 */}
+        <div className="p-4 mb-6 bg-gray-100 rounded-lg">
+          <h3 className="font-bold mb-2">창고 목록 디버깅 정보:</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h4 className="font-semibold">
+                useWarehouseItems 훅의 창고 목록 ({warehouses.length}개):
+              </h4>
+              {warehouses.length > 0 ? (
+                <div>
+                  <pre className="bg-gray-100 p-2 rounded-lg overflow-auto max-h-60 text-xs">
+                    {JSON.stringify(warehouses, null, 2)}
+                  </pre>
+                  <div className="mt-4 text-sm font-medium text-gray-700">
+                    실제 창고 정보:
                   </div>
-                </td>
-              </tr>
-            ) : (
-              paginatedItems.map((item) => (
-                <tr
-                  key={item.id}
-                  className="hover:bg-gray-50 transition-colors duration-150"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {item.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <a
-                      className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
-                      onClick={() => router.push(`/item/detail/${item.id}`)}
-                    >
-                      {item.itemCode}
-                    </a>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <a
-                      className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
-                      onClick={() => router.push(`/item/detail/${item.id}`)}
-                    >
-                      {item.itemName}
-                    </a>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                    {item.itemQuantity}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {warehouses.find((w) => w.id === item.warehouseId)
-                      ?.warehouseName || item.warehouseId}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    <div className="flex justify-center">
-                      <button
-                        className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-150 shadow-sm"
-                        onClick={() => handleOpenEditQuantityModal(item)}
-                      >
-                        수정
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
-        {/* 페이지네이션 */}
-        {filteredItems.length > itemsPerPage && (
-          <div className="flex justify-center mt-4">
-            <nav className="inline-flex rounded-md shadow">
-              <button
-                onClick={() => paginate(currentPage > 1 ? currentPage - 1 : 1)}
-                disabled={currentPage === 1}
-                className={`relative inline-flex items-center px-3 py-2 rounded-l-md border ${
-                  currentPage === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                } text-sm font-medium`}
-              >
-                이전
-              </button>
-
-              {Array.from({
-                length: Math.ceil(filteredItems.length / itemsPerPage),
-              }).map((_, index) => {
-                // 현재 페이지 주변 5개만 표시
-                if (
-                  index + 1 === 1 ||
-                  index + 1 ===
-                    Math.ceil(filteredItems.length / itemsPerPage) ||
-                  (index + 1 >= currentPage - 2 && index + 1 <= currentPage + 2)
-                ) {
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => paginate(index + 1)}
-                      className={`relative inline-flex items-center px-4 py-2 border ${
-                        currentPage === index + 1
-                          ? "bg-blue-500 text-white"
-                          : "bg-white text-gray-700 hover:bg-gray-50"
-                      } text-sm font-medium`}
-                    >
-                      {index + 1}
-                    </button>
-                  );
-                }
-
-                // 건너뛴 페이지를 표시하는 줄임표
-                if (
-                  (index + 1 === currentPage - 3 && currentPage > 4) ||
-                  (index + 1 === currentPage + 3 &&
-                    currentPage <
-                      Math.ceil(filteredItems.length / itemsPerPage) - 3)
-                ) {
-                  return (
-                    <span
-                      key={index}
-                      className="relative inline-flex items-center px-4 py-2 border bg-white text-gray-700 text-sm font-medium"
-                    >
-                      ...
-                    </span>
-                  );
-                }
-
-                return null;
-              })}
-
-              <button
-                onClick={() =>
-                  paginate(
-                    currentPage < Math.ceil(filteredItems.length / itemsPerPage)
-                      ? currentPage + 1
-                      : currentPage
-                  )
-                }
-                disabled={
-                  currentPage === Math.ceil(filteredItems.length / itemsPerPage)
-                }
-                className={`relative inline-flex items-center px-3 py-2 rounded-r-md border ${
-                  currentPage === Math.ceil(filteredItems.length / itemsPerPage)
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                } text-sm font-medium`}
-              >
-                다음
-              </button>
-            </nav>
+                  <ul className="list-disc pl-5 mt-2">
+                    {warehouses &&
+                      warehouses.map((w, idx) => (
+                        <li key={`debug-hook-warehouse-${idx}`}>
+                          ID: {w.id}, 이름: {w.name || "없음"}, 팀: {w.teamId}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className="text-red-500">창고 데이터가 없습니다.</p>
+              )}
+            </div>
+            <div>
+              <h4 className="font-semibold">
+                로컬 창고 목록 ({localWarehouses.length}개):
+              </h4>
+              {localWarehouses.length > 0 ? (
+                <ul className="list-disc pl-5">
+                  {localWarehouses.map((w, idx) => (
+                    <li key={`debug-local-warehouse-${idx}`}>
+                      ID: {w.id}, 이름: {w.warehouseName || "없음"}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-red-500">로컬 창고 데이터가 없습니다.</p>
+              )}
+            </div>
           </div>
-        )}
+        </div>
+
+        {localWarehouses.map((warehouse, warehouseIndex) => {
+          const warehouseItems = getWarehouseItems(Number(warehouse.id));
+          const filteredItems = getFilteredItems(warehouseItems);
+
+          return (
+            <div
+              key={`warehouse-${warehouse.id}-${warehouseIndex}`}
+              className="mb-8"
+            >
+              <h2 className="text-xl font-bold mb-4 px-4">
+                {warehouse.warehouseName ||
+                  localWarehouses.find((w) => w.id === Number(warehouse.id))
+                    ?.warehouseName ||
+                  `창고 ${warehouse.id}`}
+              </h2>
+
+              <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
+                      ID
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                      품목 코드
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                      품목명
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                      재고수량
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                      최종수정일
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
+                      관리
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center">
+                        <div className="py-6">
+                          <p className="text-lg text-gray-500 mb-4">
+                            창고가 비었습니다.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredItems.map((item, itemIndex) => (
+                      <tr
+                        key={`item-${warehouse.id}-${item.id}-${itemIndex}`}
+                        className="hover:bg-gray-50 transition-colors duration-150"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {item.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <a
+                            className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
+                            onClick={() =>
+                              router.push(`/item/detail/${item.id}`)
+                            }
+                          >
+                            {item.itemCode}
+                          </a>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <a
+                            className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
+                            onClick={() =>
+                              router.push(`/item/detail/${item.id}`)
+                            }
+                          >
+                            {item.itemName}
+                          </a>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                          {item.itemQuantity}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <div className="flex justify-center">
+                            <button
+                              className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-150 shadow-sm"
+                              onClick={() => handleOpenEditQuantityModal(item)}
+                            >
+                              수정
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
 
         <Modal
           title="입고 등록"
@@ -570,7 +544,7 @@ export default function StockTable() {
                       }
                     : undefined
                 }
-                onChange={(selected) => {
+                onChange={(selected: SelectOption) => {
                   const value = selected.value;
                   const selectedItem = items.find((item) => item.id === value);
                   handleStockFormChange("itemId", value);
@@ -623,18 +597,18 @@ export default function StockTable() {
                     ? {
                         value: stockFormValues.warehouseId,
                         label:
-                          warehouses.find(
+                          localWarehouses.find(
                             (w) => w.id === stockFormValues.warehouseId
                           )?.warehouseName || "",
                       }
                     : undefined
                 }
-                onChange={(selected) => {
+                onChange={(selected: SelectOption) => {
                   handleStockFormChange("warehouseId", selected.value);
                 }}
                 className="rounded-xl"
               >
-                {warehouses.map((warehouse) => (
+                {localWarehouses.map((warehouse) => (
                   <Select.Option key={warehouse.id} value={warehouse.id}>
                     {warehouse.warehouseName}
                   </Select.Option>
@@ -676,7 +650,6 @@ export default function StockTable() {
           </div>
         </Modal>
 
-        {/* Modal for Stock Out */}
         <Modal
           title="출고 등록"
           open={isStockOutModalOpen}
@@ -701,7 +674,7 @@ export default function StockTable() {
                       }
                     : undefined
                 }
-                onChange={(selected) => {
+                onChange={(selected: SelectOption) => {
                   const value = selected.value;
                   const selectedItem = items.find((item) => item.id === value);
                   handleStockFormChange("itemId", value);
@@ -755,18 +728,18 @@ export default function StockTable() {
                     ? {
                         value: stockFormValues.warehouseId,
                         label:
-                          warehouses.find(
+                          localWarehouses.find(
                             (w) => w.id === stockFormValues.warehouseId
                           )?.warehouseName || "",
                       }
                     : undefined
                 }
-                onChange={(selected) => {
+                onChange={(selected: SelectOption) => {
                   handleStockFormChange("warehouseId", selected.value);
                 }}
                 className="rounded-xl"
               >
-                {warehouses.map((warehouse) => (
+                {localWarehouses.map((warehouse) => (
                   <Select.Option key={warehouse.id} value={warehouse.id}>
                     {warehouse.warehouseName}
                   </Select.Option>
@@ -808,7 +781,6 @@ export default function StockTable() {
           </div>
         </Modal>
 
-        {/* 재고 수량 수정 모달 */}
         <Modal
           title="재고 수량 수정"
           open={isEditQuantityModalOpen}

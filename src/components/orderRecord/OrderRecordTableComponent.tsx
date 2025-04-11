@@ -1,6 +1,6 @@
 "use client";
 import OrderRecordRow from "@/components/orderRecord/(tableBody)/OrderRecordRow";
-import { IOrderRecord } from "@/types/orderRecord";
+import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { useState, useEffect } from "react";
 import TableCell from "./(tableBody)/TableCell";
 

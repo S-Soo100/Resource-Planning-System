@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { api, ApiResponse } from "./api";
-import { IUser } from "@/types/user";
+import { IUser } from "@/types/(auth)/user";
 
 export interface CreateUserRequest {
   email: string;

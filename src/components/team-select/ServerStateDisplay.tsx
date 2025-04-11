@@ -1,5 +1,5 @@
 import React from "react";
-import { IUser } from "@/types/user";
+import { IUser } from "@/types/(auth)/user";
 
 interface ServerStateDisplayProps {
   serverUser: IUser;

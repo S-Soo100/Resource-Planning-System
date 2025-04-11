@@ -3,7 +3,7 @@ import {
   Supplier,
   CreateSupplierRequest,
   UpdateSupplierRequest,
-} from "@/types/supplier";
+} from "@/types/(order)/supplier";
 
 export const supplierApi = {
   // 공급업체 생성

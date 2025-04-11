@@ -1,6 +1,6 @@
 "use client";
 
-import { IOrderRecord } from "@/types/orderRecord";
+import { IOrderRecord } from "@/types/(order)/orderRecord";
 import React from "react";
 
 const OrderRecordDetails: React.FC<{ record: IOrderRecord }> = ({ record }) => {

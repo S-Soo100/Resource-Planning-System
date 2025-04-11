@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { IAuth } from "@/types/auth";
+import { IAuth } from "@/types/(auth)/auth";
 import { Team } from "@/types/team";
 
 interface AuthState {

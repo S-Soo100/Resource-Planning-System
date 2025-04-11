@@ -1,5 +1,5 @@
 import React from "react";
-import { IAuth } from "@/types/auth";
+import { IAuth } from "@/types/(auth)/auth";
 
 interface UserInfoDisplayProps {
   user: IAuth | null;

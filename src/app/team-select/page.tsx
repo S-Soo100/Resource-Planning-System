@@ -70,7 +70,7 @@ export default function TeamSelectPage() {
 
   return (
     <Suspense>
-      <div className="p-4">
+      <div className="p-4 min-h-screen">
         <h1 className="mb-6 text-2xl font-bold">팀 선택</h1>
 
         {selectedTeam && (

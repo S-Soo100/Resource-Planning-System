@@ -19,12 +19,6 @@ export interface InventoryRecord {
 }
 
 export interface CreateInventoryRecordRequest {
-  // inventoryId: string;
-  // type: InventoryRecordType;
-  // quantity: number;
-  // reason: string;
-  // referenceId?: string;
-  // referenceType?: string;
   inboundDate?: string;
   outboundDate?: string;
   inboundLocation?: string;

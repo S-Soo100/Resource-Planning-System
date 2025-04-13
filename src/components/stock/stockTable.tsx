@@ -2,7 +2,6 @@
 "use client";
 
 import { UpdateItemQuantityRequest } from "@/types/item";
-import { Button, Modal, Select } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -10,12 +9,9 @@ import { authService } from "@/services/authService";
 import { TeamWarehouse } from "@/types/warehouse";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
-
-// Select 컴포넌트의 value 타입을 위한 인터페이스 정의
-interface SelectOption {
-  value: any;
-  label: string;
-}
+import { StockInModal, StockOutModal, EditQuantityModal } from "./modal";
+import { CreateInventoryRecordRequest } from "@/types/inventory-record";
+import { inventoryRecordService } from "@/services/inventoryRecordService";
 
 export default function StockTable() {
   const router = useRouter();
@@ -32,6 +28,8 @@ export default function StockTable() {
     itemCode: string;
     itemName: string;
     quantity: number;
+    location: string;
+    price: number;
     warehouseId: number;
     note: string;
   }>({
@@ -39,6 +37,8 @@ export default function StockTable() {
     itemCode: "",
     itemName: "",
     quantity: 0,
+    location: "",
+    price: 0,
     warehouseId: 0,
     note: "",
   });
@@ -83,6 +83,8 @@ export default function StockTable() {
       itemCode: "",
       itemName: "",
       quantity: 0,
+      location: "",
+      price: 0,
       warehouseId: 0,
       note: "",
     });
@@ -99,6 +101,8 @@ export default function StockTable() {
       itemCode: "",
       itemName: "",
       quantity: 0,
+      location: "",
+      price: 0,
       warehouseId: 0,
       note: "",
     });
@@ -131,32 +135,60 @@ export default function StockTable() {
       // 입고는 기존 수량에 추가
       const newQuantity = currentItem.itemQuantity + stockFormValues.quantity;
 
-      // 수량 업데이트 뮤테이션 사용
-      updateQuantityMutation.mutate(
-        {
-          id: stockFormValues.itemId!.toString(),
-          data: { quantity: newQuantity },
-          itemWarehouseId: stockFormValues.warehouseId.toString(),
-        },
-        {
-          onSuccess: (response) => {
-            if (response.success) {
-              alert(`${stockFormValues.quantity}개 입고 처리되었습니다.`);
-              handleCloseStockInModal();
-            } else {
-              alert(
-                `오류 발생: ${
-                  response.message || "알 수 없는 오류가 발생했습니다."
-                }`
-              );
-            }
-          },
-          onError: (error) => {
-            console.error("입고 처리 중 오류 발생:", error);
-            alert("입고 처리 중 오류가 발생했습니다.");
-          },
-        }
-      );
+      // 입고 기록 생성 데이터 준비
+      const inventoryRecordData: CreateInventoryRecordRequest = {
+        inboundDate: new Date().toISOString(),
+        inboundQuantity: stockFormValues.quantity,
+        inboundLocation: stockFormValues.location,
+        itemId: stockFormValues.itemId ?? undefined,
+        price: stockFormValues.price,
+        remarks: stockFormValues.note,
+        name: stockFormValues.itemName,
+      };
+
+      // 입고 기록 생성
+      inventoryRecordService
+        .createInventoryRecord(inventoryRecordData)
+        .then((success) => {
+          if (success) {
+            // 수량 업데이트 뮤테이션 사용
+            updateQuantityMutation.mutate(
+              {
+                id: stockFormValues.itemId!.toString(),
+                data: { quantity: newQuantity },
+                itemWarehouseId: stockFormValues.warehouseId.toString(),
+              },
+              {
+                onSuccess: (response) => {
+                  if (response.success) {
+                    alert(`${stockFormValues.quantity}개 입고 처리되었습니다.`);
+                    handleCloseStockInModal();
+                  } else {
+                    alert(
+                      `오류 발생: ${
+                        response.message || "알 수 없는 오류가 발생했습니다."
+                      }`
+                    );
+                    handleCloseStockInModal();
+                  }
+                },
+                onError: (error) => {
+                  console.error("입고 처리 중 오류 발생:", error);
+                  alert("입고 처리 중 오류가 발생했습니다.");
+                  handleCloseStockInModal();
+                },
+              }
+            );
+          } else {
+            alert("입고 기록 생성 중 오류가 발생했습니다.");
+            handleCloseStockInModal();
+          }
+        })
+        .catch((error) => {
+          console.error("입고 기록 생성 중 오류 발생:", error);
+          alert("입고 기록 생성 중 오류가 발생했습니다.");
+          handleCloseStockInModal();
+        });
     } catch (error) {
       console.error("입고 처리 중 오류 발생:", error);
       alert("입고 처리 중 오류가 발생했습니다.");
@@ -205,11 +237,13 @@ export default function StockTable() {
                   response.message || "알 수 없는 오류가 발생했습니다."
                 }`
               );
+              handleCloseStockOutModal();
             }
           },
           onError: (error) => {
             console.error("출고 처리 중 오류 발생:", error);
             alert("출고 처리 중 오류가 발생했습니다.");
+            handleCloseStockOutModal();
           },
         }
       );
@@ -368,55 +402,6 @@ export default function StockTable() {
           </div>
         </div>
 
-        {/* 창고 목록 디버깅 정보 */}
-        {/* <div className="p-4 mb-6 bg-gray-100 rounded-lg">
-          <h3 className="font-bold mb-2">창고 목록 디버깅 정보:</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h4 className="font-semibold">
-                useWarehouseItems 훅의 창고 목록 ({warehouses.length}개):
-              </h4>
-              {warehouses.length > 0 ? (
-                <div>
-                  <pre className="bg-gray-100 p-2 rounded-lg overflow-auto max-h-60 text-xs">
-                    {JSON.stringify(warehouses, null, 2)}
-                  </pre>
-                  <div className="mt-4 text-sm font-medium text-gray-700">
-                    실제 창고 정보:
-                  </div>
-                  <ul className="list-disc pl-5 mt-2">
-                    {warehouses &&
-                      warehouses.map((w, idx) => (
-                        <li key={`debug-hook-warehouse-${idx}`}>
-                          ID: {w.id}, 이름: {w.warehouseName || "없음"}, 팀:{" "}
-                          {w.teamId}
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-              ) : (
-                <p className="text-red-500">창고 데이터가 없습니다.</p>
-              )}
-            </div>
-            <div>
-              <h4 className="font-semibold">
-                로컬 창고 목록 ({localWarehouses.length}개):
-              </h4>
-              {localWarehouses.length > 0 ? (
-                <ul className="list-disc pl-5">
-                  {localWarehouses.map((w, idx) => (
-                    <li key={`debug-local-warehouse-${idx}`}>
-                      ID: {w.id}, 이름: {w.warehouseName || "없음"}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-red-500">로컬 창고 데이터가 없습니다.</p>
-              )}
-            </div>
-          </div>
-        </div> */}
-
         {warehouses.map((warehouse, warehouseIndex) => {
           const warehouseItems = getWarehouseItems(Number(warehouse.id));
           const filteredItems = getFilteredItems(warehouseItems);
@@ -521,354 +506,33 @@ export default function StockTable() {
           );
         })}
 
-        <Modal
-          title="입고 등록"
-          open={isStockInModalOpen}
-          onCancel={handleCloseStockInModal}
-          footer={null}
-          className="rounded-2xl"
-        >
-          <div className="mt-4">
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                품목 선택
-              </label>
-              <Select
-                style={{ width: "100%" }}
-                placeholder="품목을 선택해주세요"
-                labelInValue
-                value={
-                  stockFormValues.itemId
-                    ? {
-                        value: stockFormValues.itemId,
-                        label: `${stockFormValues.itemName} (${stockFormValues.itemCode})`,
-                      }
-                    : undefined
-                }
-                onChange={(selected: SelectOption) => {
-                  const value = selected.value;
-                  const selectedItem = items.find((item) => item.id === value);
-                  handleStockFormChange("itemId", value);
-                  if (selectedItem) {
-                    handleStockFormChange("itemCode", selectedItem.itemCode);
-                    handleStockFormChange("itemName", selectedItem.itemName);
-                  }
-                }}
-                showSearch
-                optionFilterProp="children"
-                className="rounded-xl"
-              >
-                {items.map((item) => (
-                  <Select.Option key={item.id} value={item.id}>
-                    {item.itemName} ({item.itemCode})
-                  </Select.Option>
-                ))}
-              </Select>
-            </div>
+        <StockInModal
+          isOpen={isStockInModalOpen}
+          onClose={handleCloseStockInModal}
+          items={items}
+          warehouses={localWarehouses}
+          stockFormValues={stockFormValues}
+          onFormChange={handleStockFormChange}
+          onStockIn={handleStockIn}
+        />
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                입고 수량
-              </label>
-              <input
-                type="number"
-                min={1}
-                value={stockFormValues.quantity}
-                onChange={(e) =>
-                  handleStockFormChange(
-                    "quantity",
-                    parseInt(e.target.value) || 0
-                  )
-                }
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-              />
-            </div>
+        <StockOutModal
+          isOpen={isStockOutModalOpen}
+          onClose={handleCloseStockOutModal}
+          items={items}
+          warehouses={localWarehouses}
+          stockFormValues={stockFormValues}
+          onFormChange={handleStockFormChange}
+          onStockOut={handleStockOut}
+        />
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                창고 선택
-              </label>
-              <Select
-                style={{ width: "100%" }}
-                placeholder="창고를 선택해주세요"
-                labelInValue
-                value={
-                  stockFormValues.warehouseId
-                    ? {
-                        value: stockFormValues.warehouseId,
-                        label:
-                          localWarehouses.find(
-                            (w) => w.id === stockFormValues.warehouseId
-                          )?.warehouseName || "",
-                      }
-                    : undefined
-                }
-                onChange={(selected: SelectOption) => {
-                  handleStockFormChange("warehouseId", selected.value);
-                }}
-                className="rounded-xl"
-              >
-                {localWarehouses.map((warehouse) => (
-                  <Select.Option key={warehouse.id} value={warehouse.id}>
-                    {warehouse.warehouseName}
-                  </Select.Option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                비고
-              </label>
-              <textarea
-                placeholder="입고 관련 메모"
-                value={stockFormValues.note}
-                onChange={(e) => handleStockFormChange("note", e.target.value)}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <Button onClick={handleCloseStockInModal} className="rounded-xl">
-                취소
-              </Button>
-              <Button
-                type="primary"
-                onClick={handleStockIn}
-                disabled={
-                  !stockFormValues.itemId ||
-                  stockFormValues.quantity <= 0 ||
-                  !stockFormValues.warehouseId
-                }
-                style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
-                className="rounded-xl"
-              >
-                입고 처리
-              </Button>
-            </div>
-          </div>
-        </Modal>
-
-        <Modal
-          title="출고 등록"
-          open={isStockOutModalOpen}
-          onCancel={handleCloseStockOutModal}
-          footer={null}
-          className="rounded-2xl"
-        >
-          <div className="mt-4">
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                품목 선택
-              </label>
-              <Select
-                style={{ width: "100%" }}
-                placeholder="품목을 선택해주세요"
-                labelInValue
-                value={
-                  stockFormValues.itemId
-                    ? {
-                        value: stockFormValues.itemId,
-                        label: `${stockFormValues.itemName} (${stockFormValues.itemCode})`,
-                      }
-                    : undefined
-                }
-                onChange={(selected: SelectOption) => {
-                  const value = selected.value;
-                  const selectedItem = items.find((item) => item.id === value);
-                  handleStockFormChange("itemId", value);
-                  if (selectedItem) {
-                    handleStockFormChange("itemCode", selectedItem.itemCode);
-                    handleStockFormChange("itemName", selectedItem.itemName);
-                  }
-                }}
-                showSearch
-                optionFilterProp="children"
-                className="rounded-xl"
-              >
-                {items.map((item) => (
-                  <Select.Option key={item.id} value={item.id}>
-                    {item.itemName} ({item.itemCode}) - 재고:{" "}
-                    {item.itemQuantity}
-                  </Select.Option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                출고 수량
-              </label>
-              <input
-                type="number"
-                min={1}
-                value={stockFormValues.quantity}
-                onChange={(e) =>
-                  handleStockFormChange(
-                    "quantity",
-                    parseInt(e.target.value) || 0
-                  )
-                }
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-              />
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                창고 선택
-              </label>
-              <Select
-                style={{ width: "100%" }}
-                placeholder="창고를 선택해주세요"
-                labelInValue
-                value={
-                  stockFormValues.warehouseId
-                    ? {
-                        value: stockFormValues.warehouseId,
-                        label:
-                          localWarehouses.find(
-                            (w) => w.id === stockFormValues.warehouseId
-                          )?.warehouseName || "",
-                      }
-                    : undefined
-                }
-                onChange={(selected: SelectOption) => {
-                  handleStockFormChange("warehouseId", selected.value);
-                }}
-                className="rounded-xl"
-              >
-                {localWarehouses.map((warehouse) => (
-                  <Select.Option key={warehouse.id} value={warehouse.id}>
-                    {warehouse.warehouseName}
-                  </Select.Option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                비고
-              </label>
-              <textarea
-                placeholder="출고 관련 메모"
-                value={stockFormValues.note}
-                onChange={(e) => handleStockFormChange("note", e.target.value)}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <Button onClick={handleCloseStockOutModal} className="rounded-xl">
-                취소
-              </Button>
-              <Button
-                type="primary"
-                onClick={handleStockOut}
-                disabled={
-                  !stockFormValues.itemId ||
-                  stockFormValues.quantity <= 0 ||
-                  !stockFormValues.warehouseId
-                }
-                danger
-                className="rounded-xl"
-              >
-                출고 처리
-              </Button>
-            </div>
-          </div>
-        </Modal>
-
-        <Modal
-          title="재고 수량 수정"
-          open={isEditQuantityModalOpen}
-          onCancel={handleCloseEditQuantityModal}
-          footer={null}
-          className="rounded-2xl"
-        >
-          <div className="mt-4">
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                품목 정보
-              </label>
-              <div className="p-3 bg-gray-50 rounded-xl">
-                <p className="font-medium">{quantityEditValues.itemName}</p>
-                <p className="text-gray-600 text-sm">
-                  {quantityEditValues.itemCode}
-                </p>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                현재 수량
-              </label>
-              <div className="p-3 bg-gray-50 rounded-xl">
-                <p className="font-medium">
-                  {quantityEditValues.currentQuantity}
-                </p>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                새 수량
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={quantityEditValues.newQuantity}
-                onChange={(e) =>
-                  handleQuantityEditFormChange(
-                    "newQuantity",
-                    parseInt(e.target.value) || 0
-                  )
-                }
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-              />
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                수정 사유
-              </label>
-              <textarea
-                placeholder="수량 수정 사유를 입력해주세요"
-                value={quantityEditValues.reason}
-                onChange={(e) =>
-                  handleQuantityEditFormChange("reason", e.target.value)
-                }
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <Button
-                onClick={handleCloseEditQuantityModal}
-                className="rounded-xl"
-              >
-                취소
-              </Button>
-              <Button
-                type="primary"
-                onClick={handleUpdateQuantity}
-                disabled={
-                  quantityEditValues.newQuantity ===
-                    quantityEditValues.currentQuantity ||
-                  !quantityEditValues.reason
-                }
-                className="rounded-xl"
-              >
-                수정 완료
-              </Button>
-            </div>
-          </div>
-        </Modal>
+        <EditQuantityModal
+          isOpen={isEditQuantityModalOpen}
+          onClose={handleCloseEditQuantityModal}
+          quantityEditValues={quantityEditValues}
+          onFormChange={handleQuantityEditFormChange}
+          onUpdateQuantity={handleUpdateQuantity}
+        />
       </div>
     </>
   );

@@ -3,7 +3,7 @@ import { CreateWarehouseRequest } from "@/types/warehouse";
 import { QueryClient } from "@tanstack/react-query";
 
 export const adminService = {
-  addWarehouse: async (
+  createWarehouse: async (
     warehouse: CreateWarehouseRequest,
     queryClient?: QueryClient
   ): Promise<boolean> => {

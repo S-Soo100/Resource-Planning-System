@@ -1,9 +1,9 @@
-import IoHistoryTable from "@/components/ioHistory/(table)/IoHistoryTable";
+import IoHistoryRecordListComponent from "@/components/ioHistory/ItemRecordListComponent";
 
 export default function IoHistoryPage() {
   return (
     <div>
-      <IoHistoryTable />
+      <IoHistoryRecordListComponent />
     </div>
   );
 }

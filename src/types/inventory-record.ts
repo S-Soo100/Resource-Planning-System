@@ -19,20 +19,20 @@ export interface InventoryRecord {
 }
 
 export interface CreateInventoryRecordRequest {
-  inboundDate?: string;
-  outboundDate?: string;
-  inboundLocation?: string;
-  outboundLocation?: string;
-  inboundQuantity?: number;
-  outboundQuantity?: number;
-  remarks?: string;
-  supplierId?: number;
-  packageId?: number;
-  itemId?: number;
-  userId?: number;
-  name?: string;
-  price?: number;
-  description?: string;
+  inboundDate?: string | null;
+  outboundDate?: string | null;
+  inboundLocation?: string | null;
+  outboundLocation?: string | null;
+  inboundQuantity?: number | null;
+  outboundQuantity?: number | null;
+  remarks?: string | null;
+  supplierId?: number | null;
+  packageId?: number | null;
+  itemId?: number | null;
+  userId?: number | null;
+  name?: string | null;
+  price?: number | null;
+  description?: string | null;
 }
 
 export interface UpdateInventoryRecordRequest {

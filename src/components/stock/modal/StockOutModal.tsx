@@ -3,7 +3,8 @@
 
 import { Button, Modal, Select } from "antd";
 import React from "react";
-import { TeamWarehouse } from "@/types/warehouse";
+import { Warehouse } from "@/types/warehouse";
+import { StockTableFormValues } from "../stockTable";
 
 // Select 컴포넌트의 value 타입을 위한 인터페이스 정의
 interface SelectOption {
@@ -11,21 +12,12 @@ interface SelectOption {
   label: string;
 }
 
-interface StockFormValues {
-  itemId: number | null;
-  itemCode: string;
-  itemName: string;
-  quantity: number;
-  warehouseId: number;
-  note: string;
-}
-
 interface StockOutModalProps {
   isOpen: boolean;
   onClose: () => void;
   items: any[];
-  warehouses: TeamWarehouse[];
-  stockFormValues: StockFormValues;
+  warehouses: Warehouse[];
+  stockFormValues: StockTableFormValues;
   onFormChange: (field: string, value: string | number | null) => void;
   onStockOut: () => void;
 }
@@ -39,6 +31,44 @@ export default function StockOutModal({
   onFormChange,
   onStockOut,
 }: StockOutModalProps) {
+  const validateAndSubmit = () => {
+    // 유효성 검사
+    if (!stockFormValues.itemId) {
+      alert("품목을 선택해주세요.");
+      return;
+    }
+
+    if (!stockFormValues.warehouseId) {
+      alert("창고를 선택해주세요.");
+      return;
+    }
+
+    if (
+      !stockFormValues.outboundQuantity ||
+      stockFormValues.outboundQuantity <= 0
+    ) {
+      alert("출고 수량은 1개 이상이어야 합니다.");
+      return;
+    }
+
+    // 선택한 상품의 현재 재고 확인
+    const selectedItem = items.find(
+      (item) => item.id === stockFormValues.itemId
+    );
+    if (
+      selectedItem &&
+      selectedItem.itemQuantity < stockFormValues.outboundQuantity
+    ) {
+      alert(
+        `출고 수량(${stockFormValues.outboundQuantity})이 현재 재고(${selectedItem.itemQuantity})보다 많습니다.`
+      );
+      return;
+    }
+
+    // 모든 유효성 검사 통과 시 onStockOut 호출
+    onStockOut();
+  };
+
   return (
     <Modal
       title="출고 등록"
@@ -60,17 +90,18 @@ export default function StockOutModal({
               stockFormValues.itemId
                 ? {
                     value: stockFormValues.itemId,
-                    label: `${stockFormValues.itemName} (${stockFormValues.itemCode})`,
+                    label: `${stockFormValues.name} (${stockFormValues.itemId})`,
                   }
                 : undefined
             }
             onChange={(selected: SelectOption) => {
               const value = selected.value;
               const selectedItem = items.find((item) => item.id === value);
+              console.log("품목 선택:", selected);
+              console.log("선택된 품목 데이터:", selectedItem);
               onFormChange("itemId", value);
               if (selectedItem) {
-                onFormChange("itemCode", selectedItem.itemCode);
-                onFormChange("itemName", selectedItem.itemName);
+                onFormChange("name", selectedItem.itemName);
               }
             }}
             showSearch
@@ -92,9 +123,9 @@ export default function StockOutModal({
           <input
             type="number"
             min={1}
-            value={stockFormValues.quantity}
+            value={stockFormValues.outboundQuantity ?? 0}
             onChange={(e) =>
-              onFormChange("quantity", parseInt(e.target.value) || 0)
+              onFormChange("outboundQuantity", parseInt(e.target.value) || 0)
             }
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
@@ -115,18 +146,19 @@ export default function StockOutModal({
                     value: stockFormValues.warehouseId,
                     label:
                       warehouses.find(
-                        (w) => w.id === stockFormValues.warehouseId
+                        (w) => Number(w.id) === stockFormValues.warehouseId
                       )?.warehouseName || "",
                   }
                 : undefined
             }
             onChange={(selected: SelectOption) => {
+              console.log("창고 선택:", selected);
               onFormChange("warehouseId", selected.value);
             }}
             className="rounded-xl"
           >
             {warehouses.map((warehouse) => (
-              <Select.Option key={warehouse.id} value={warehouse.id}>
+              <Select.Option key={warehouse.id} value={Number(warehouse.id)}>
                 {warehouse.warehouseName}
               </Select.Option>
             ))}
@@ -135,13 +167,26 @@ export default function StockOutModal({
 
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2 text-gray-700">
+            설명
+          </label>
+          <textarea
+            placeholder="품목 설명"
+            value={stockFormValues.description ?? ""}
+            onChange={(e) => onFormChange("description", e.target.value)}
+            rows={3}
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+          />
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2 text-gray-700">
             비고
           </label>
           <textarea
             placeholder="출고 관련 메모"
-            value={stockFormValues.note}
-            onChange={(e) => onFormChange("note", e.target.value)}
-            rows={3}
+            value={stockFormValues.remarks ?? ""}
+            onChange={(e) => onFormChange("remarks", e.target.value)}
+            rows={2}
             className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
           />
         </div>
@@ -152,12 +197,7 @@ export default function StockOutModal({
           </Button>
           <Button
             type="primary"
-            onClick={onStockOut}
-            disabled={
-              !stockFormValues.itemId ||
-              stockFormValues.quantity <= 0 ||
-              !stockFormValues.warehouseId
-            }
+            onClick={validateAndSubmit}
             danger
             className="rounded-xl"
           >

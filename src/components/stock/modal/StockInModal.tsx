@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Button, Modal, Select } from "antd";
-import { TeamWarehouse } from "@/types/warehouse";
+import { Warehouse } from "@/types/warehouse";
+import { StockTableFormValues } from "../stockTable";
+import { Item } from "@/types/item";
 
 // Select 컴포넌트의 value 타입을 위한 인터페이스 정의
 interface SelectOption {
@@ -10,23 +13,12 @@ interface SelectOption {
   label: string;
 }
 
-interface StockFormValues {
-  itemId: number | null;
-  itemCode: string;
-  itemName: string;
-  quantity: number;
-  price: number;
-  warehouseId: number;
-  note: string;
-  location: string;
-}
-
 interface StockInModalProps {
   isOpen: boolean;
   onClose: () => void;
   items: any[];
-  warehouses: TeamWarehouse[];
-  stockFormValues: StockFormValues;
+  warehouses: Warehouse[];
+  formValue: StockTableFormValues;
   onFormChange: (field: string, value: string | number | null) => void;
   onStockIn: () => void;
 }
@@ -36,10 +28,31 @@ export default function StockInModal({
   onClose,
   items,
   warehouses,
-  stockFormValues,
+  formValue: formValue,
   onFormChange,
   onStockIn,
 }: StockInModalProps) {
+  const validateAndSubmit = () => {
+    // 유효성 검사
+    if (!formValue.itemId) {
+      alert("품목을 선택해주세요.");
+      return;
+    }
+
+    if (!formValue.warehouseId) {
+      alert("창고를 선택해주세요.");
+      return;
+    }
+
+    if (!formValue.inboundQuantity || formValue.inboundQuantity <= 0) {
+      alert("입고 수량은 1개 이상이어야 합니다.");
+      return;
+    }
+
+    // 모든 유효성 검사 통과 시 onStockIn 호출
+    onStockIn();
+  };
+
   return (
     <Modal
       title="입고 등록"
@@ -60,23 +73,24 @@ export default function StockInModal({
             placeholder="창고를 선택해주세요"
             labelInValue
             value={
-              stockFormValues.warehouseId
+              formValue.warehouseId
                 ? {
-                    value: stockFormValues.warehouseId,
+                    value: formValue.warehouseId,
                     label:
                       warehouses.find(
-                        (w) => w.id === stockFormValues.warehouseId
+                        (w) => Number(w.id) === formValue.warehouseId
                       )?.warehouseName || "",
                   }
                 : undefined
             }
             onChange={(selected: SelectOption) => {
+              console.log("창고 선택:", selected);
               onFormChange("warehouseId", selected.value);
             }}
             className="rounded-xl"
           >
             {warehouses.map((warehouse) => (
-              <Select.Option key={warehouse.id} value={warehouse.id}>
+              <Select.Option key={warehouse.id} value={Number(warehouse.id)}>
                 {warehouse.warehouseName}
               </Select.Option>
             ))}
@@ -90,22 +104,32 @@ export default function StockInModal({
           <Select
             style={{ width: "100%" }}
             placeholder="품목을 선택해주세요"
-            labelInValue
+            // labelInValue
             value={
-              stockFormValues.itemId
+              formValue.itemId
                 ? {
-                    value: stockFormValues.itemId,
-                    label: `${stockFormValues.itemName} (${stockFormValues.itemCode})`,
+                    value: formValue.itemId,
+                    label: `${formValue.name} (${formValue.itemId})`,
                   }
                 : undefined
             }
             onChange={(selected: SelectOption) => {
-              const value = selected.value;
-              const selectedItem = items.find((item) => item.id === value);
-              onFormChange("itemId", value);
+              console.log("selected", selected);
+              const selectedItem = items.find((item) => item.id === selected);
+              console.log("품목 선택:", selectedItem);
               if (selectedItem) {
-                onFormChange("itemCode", selectedItem.itemCode);
-                onFormChange("itemName", selectedItem.itemName);
+                onFormChange("itemId", selectedItem.id);
+                onFormChange("name", selectedItem.itemName);
+                onFormChange("itemId", selectedItem.id);
+                onFormChange("name", selectedItem.itemName);
+                onFormChange("itemId", selectedItem.id);
+                onFormChange("name", selectedItem.itemName);
+                onFormChange("itemId", selectedItem.id);
+                onFormChange("name", selectedItem.itemName);
+                console.log("selectedItem", selectedItem);
+                console.log("selectedItem id", selectedItem.id);
+                console.log("selectedItem name", selectedItem.itemName);
+                console.log("formValue item", formValue.itemId, formValue.name);
               }
             }}
             showSearch
@@ -127,9 +151,9 @@ export default function StockInModal({
           <input
             type="number"
             min={1}
-            value={stockFormValues.quantity}
+            value={formValue.inboundQuantity || 0}
             onChange={(e) =>
-              onFormChange("quantity", parseInt(e.target.value) || 0)
+              onFormChange("inboundQuantity", parseInt(e.target.value) || 0)
             }
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
@@ -143,7 +167,7 @@ export default function StockInModal({
           <input
             type="number"
             min={1}
-            value={stockFormValues.price}
+            value={formValue.price ?? 0}
             onChange={(e) =>
               onFormChange("price", parseInt(e.target.value) || 0)
             }
@@ -154,13 +178,26 @@ export default function StockInModal({
 
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2 text-gray-700">
+            설명
+          </label>
+          <textarea
+            placeholder="품목 설명"
+            value={formValue.description ?? ""}
+            onChange={(e) => onFormChange("description", e.target.value)}
+            rows={3}
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+          />
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2 text-gray-700">
             비고
           </label>
           <textarea
             placeholder="입고 관련 메모"
-            value={stockFormValues.note}
-            onChange={(e) => onFormChange("note", e.target.value)}
-            rows={3}
+            value={formValue.remarks ?? ""}
+            onChange={(e) => onFormChange("remarks", e.target.value)}
+            rows={2}
             className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
           />
         </div>
@@ -171,12 +208,7 @@ export default function StockInModal({
           </Button>
           <Button
             type="primary"
-            onClick={onStockIn}
-            disabled={
-              !stockFormValues.itemId ||
-              stockFormValues.quantity <= 0 ||
-              !stockFormValues.warehouseId
-            }
+            onClick={validateAndSubmit}
             style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
             className="rounded-xl"
           >

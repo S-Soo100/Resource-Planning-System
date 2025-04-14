@@ -1,21 +1,21 @@
 import { ApiResponse } from "./common";
 
-export enum InventoryRecordType {
-  IN = "IN",
-  OUT = "OUT",
-  ADJUSTMENT = "ADJUSTMENT",
-}
-
+//!
 export interface InventoryRecord {
-  id: string;
-  inventoryId: string;
-  type: InventoryRecordType;
+  id: number;
+  name: string;
   quantity: number;
-  reason: string;
-  referenceId?: string;
-  referenceType?: string;
+  price: number;
+  description: string;
   createdAt: string;
   updatedAt: string;
+  supplierId: number;
+  supplier: {
+    id: number;
+    name: string;
+    contact: string;
+    email: string;
+  };
 }
 
 export interface CreateInventoryRecordRequest {
@@ -36,7 +36,6 @@ export interface CreateInventoryRecordRequest {
 }
 
 export interface UpdateInventoryRecordRequest {
-  type?: InventoryRecordType;
   quantity?: number;
   reason?: string;
   referenceId?: string;

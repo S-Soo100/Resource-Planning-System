@@ -3,15 +3,31 @@
 
 import { UpdateItemQuantityRequest } from "@/types/item";
 import { SearchOutlined } from "@ant-design/icons";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { authService } from "@/services/authService";
-import { TeamWarehouse } from "@/types/warehouse";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
 import { StockInModal, StockOutModal, EditQuantityModal } from "./modal";
 import { CreateInventoryRecordRequest } from "@/types/inventory-record";
 import { inventoryRecordService } from "@/services/inventoryRecordService";
+
+export interface StockTableFormValues extends CreateInventoryRecordRequest {
+  inboundDate?: string | null;
+  outboundDate?: string | null;
+  inboundLocation?: string | null;
+  outboundLocation?: string | null;
+  inboundQuantity?: number | null;
+  outboundQuantity?: number | null;
+  remarks?: string | null;
+  supplierId?: number | null;
+  packageId?: number | null;
+  itemId?: number | null;
+  userId?: number | null;
+  name?: string | null;
+  price?: number | null;
+  description?: string | null;
+  warehouseId: number | null;
+}
 
 export default function StockTable() {
   const router = useRouter();
@@ -22,25 +38,23 @@ export default function StockTable() {
   const [isStockOutModalOpen, setIsStockOutModalOpen] = useState(false);
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [localWarehouses, setLocalWarehouses] = useState<TeamWarehouse[]>([]);
-  const [stockFormValues, setStockFormValues] = useState<{
-    itemId: number | null;
-    itemCode: string;
-    itemName: string;
-    quantity: number;
-    location: string;
-    price: number;
-    warehouseId: number;
-    note: string;
-  }>({
-    itemId: null,
-    itemCode: "",
-    itemName: "",
-    quantity: 0,
-    location: "",
-    price: 0,
+
+  const [formValues, setFormValue] = useState<StockTableFormValues>({
     warehouseId: 0,
-    note: "",
+    inboundDate: "",
+    outboundDate: "",
+    inboundLocation: "",
+    outboundLocation: "",
+    inboundQuantity: 0,
+    outboundQuantity: 0,
+    remarks: "",
+    supplierId: 0,
+    packageId: 0,
+    itemId: 0,
+    userId: 0,
+    name: "",
+    price: 0,
+    description: "",
   });
   const [quantityEditValues, setQuantityEditValues] = useState<{
     itemId: number | null;
@@ -60,15 +74,6 @@ export default function StockTable() {
     warehouseId: 0,
   });
 
-  useEffect(() => {
-    const team = authService.getSelectedTeam();
-    if (team && team.Warehouses) {
-      setLocalWarehouses(team.Warehouses);
-    } else {
-      setLocalWarehouses([]);
-    }
-  }, []);
-
   const handleSearch = (value: string) => {
     setSearchText(value);
   };
@@ -78,15 +83,15 @@ export default function StockTable() {
   };
 
   const handleCloseStockInModal = () => {
-    setStockFormValues({
+    setFormValue({
       itemId: null,
-      itemCode: "",
-      itemName: "",
-      quantity: 0,
-      location: "",
+      inboundQuantity: 0,
+      inboundLocation: "",
       price: 0,
       warehouseId: 0,
-      note: "",
+      description: "",
+      remarks: "",
+      name: "",
     });
     setIsStockInModalOpen(false);
   };
@@ -96,15 +101,15 @@ export default function StockTable() {
   };
 
   const handleCloseStockOutModal = () => {
-    setStockFormValues({
+    setFormValue({
       itemId: null,
-      itemCode: "",
-      itemName: "",
-      quantity: 0,
-      location: "",
+      outboundQuantity: 0,
+      outboundLocation: "",
       price: 0,
       warehouseId: 0,
-      note: "",
+      description: "",
+      remarks: "",
+      name: "",
     });
     setIsStockOutModalOpen(false);
   };
@@ -113,37 +118,37 @@ export default function StockTable() {
     field: string,
     value: string | number | null
   ) => {
-    setStockFormValues({
-      ...stockFormValues,
+    setFormValue({
+      ...formValues,
       [field]: value,
     });
   };
 
   const handleStockIn = () => {
     try {
-      console.log("입고 처리:", stockFormValues);
+      console.log("입고 처리:", formValues);
 
       // 현재 아이템 정보 찾기
-      const currentItem = items.find(
-        (item) => item.id === stockFormValues.itemId
-      );
+      const currentItem = items.find((item) => item.id === formValues.itemId);
       if (!currentItem) {
         alert("선택한 품목을 찾을 수 없습니다.");
         return;
       }
 
       // 입고는 기존 수량에 추가
-      const newQuantity = currentItem.itemQuantity + stockFormValues.quantity;
+      const newQuantity =
+        currentItem.itemQuantity + formValues.inboundQuantity!;
 
       // 입고 기록 생성 데이터 준비
       const inventoryRecordData: CreateInventoryRecordRequest = {
         inboundDate: new Date().toISOString(),
-        inboundQuantity: stockFormValues.quantity,
-        inboundLocation: stockFormValues.location,
-        itemId: stockFormValues.itemId ?? undefined,
-        price: stockFormValues.price,
-        remarks: stockFormValues.note,
-        name: stockFormValues.itemName,
+        inboundQuantity: formValues.inboundQuantity,
+        inboundLocation: formValues.inboundLocation,
+        itemId: formValues.itemId ?? undefined,
+        price: formValues.price,
+        remarks: formValues.remarks,
+        name: formValues.name,
+        description: formValues.description,
       };
 
       // 입고 기록 생성
@@ -154,14 +159,16 @@ export default function StockTable() {
             // 수량 업데이트 뮤테이션 사용
             updateQuantityMutation.mutate(
               {
-                id: stockFormValues.itemId!.toString(),
+                id: formValues.itemId!.toString(),
                 data: { quantity: newQuantity },
-                itemWarehouseId: stockFormValues.warehouseId.toString(),
+                itemWarehouseId: (formValues.warehouseId || 0).toString(),
               },
               {
                 onSuccess: (response) => {
                   if (response.success) {
-                    alert(`${stockFormValues.quantity}개 입고 처리되었습니다.`);
+                    alert(
+                      `${formValues.inboundQuantity}개 입고 처리되었습니다.`
+                    );
                     handleCloseStockInModal();
                   } else {
                     alert(
@@ -197,39 +204,38 @@ export default function StockTable() {
 
   const handleStockOut = () => {
     try {
-      console.log("출고 처리:", stockFormValues);
+      console.log("출고 처리:", formValues);
 
       // 현재 아이템 정보 찾기
-      const currentItem = items.find(
-        (item) => item.id === stockFormValues.itemId
-      );
+      const currentItem = items.find((item) => item.id === formValues.itemId);
       if (!currentItem) {
         alert("선택한 품목을 찾을 수 없습니다.");
         return;
       }
 
       // 출고 수량이 현재 재고보다 많으면 오류
-      if (stockFormValues.quantity > currentItem.itemQuantity) {
+      if (formValues.outboundQuantity! > currentItem.itemQuantity) {
         alert(
-          `출고 수량(${stockFormValues.quantity})이 현재 재고(${currentItem.itemQuantity})보다 많습니다.`
+          `출고 수량(${formValues.outboundQuantity})이 현재 재고(${currentItem.itemQuantity})보다 많습니다.`
         );
         return;
       }
 
       // 출고는 기존 수량에서 감소
-      const newQuantity = currentItem.itemQuantity - stockFormValues.quantity;
+      const newQuantity =
+        currentItem.itemQuantity - formValues.outboundQuantity!;
 
       // 수량 업데이트 뮤테이션 사용
       updateQuantityMutation.mutate(
         {
-          id: stockFormValues.itemId!.toString(),
+          id: formValues.itemId!.toString(),
           data: { quantity: newQuantity },
-          itemWarehouseId: stockFormValues.warehouseId.toString(),
+          itemWarehouseId: (formValues.warehouseId || 0).toString(),
         },
         {
           onSuccess: (response) => {
             if (response.success) {
-              alert(`${stockFormValues.quantity}개 출고 처리되었습니다.`);
+              alert(`${formValues.outboundQuantity}개 출고 처리되었습니다.`);
               handleCloseStockOutModal();
             } else {
               alert(
@@ -510,8 +516,8 @@ export default function StockTable() {
           isOpen={isStockInModalOpen}
           onClose={handleCloseStockInModal}
           items={items}
-          warehouses={localWarehouses}
-          stockFormValues={stockFormValues}
+          warehouses={warehouses}
+          formValue={formValues}
           onFormChange={handleStockFormChange}
           onStockIn={handleStockIn}
         />
@@ -520,8 +526,8 @@ export default function StockTable() {
           isOpen={isStockOutModalOpen}
           onClose={handleCloseStockOutModal}
           items={items}
-          warehouses={localWarehouses}
-          stockFormValues={stockFormValues}
+          warehouses={warehouses}
+          stockFormValues={formValues}
           onFormChange={handleStockFormChange}
           onStockOut={handleStockOut}
         />

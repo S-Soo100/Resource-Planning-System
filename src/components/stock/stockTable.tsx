@@ -9,6 +9,8 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
 import { CreateInventoryRecordRequest } from "@/types/inventory-record";
 import EditQuantityModal from "./modal/EditQuantityModal";
+import InboundModal from "./modal/InboundModal";
+import OutboundModal from "./modal/OutboundModal";
 
 export interface StockTableFormValues extends CreateInventoryRecordRequest {
   inboundDate?: string | null;
@@ -34,7 +36,19 @@ export default function StockTable() {
   const { useUpdateItemQuantity } = useItems();
   const updateQuantityMutation = useUpdateItemQuantity();
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
+  const [isInboundModalOpen, setIsInboundModalOpen] = useState(false);
+  const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [hideZeroStock, setHideZeroStock] = useState(false);
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
+    null
+  );
+  const [selectedInboundItem, setSelectedInboundItem] = useState<any | null>(
+    null
+  );
+  const [selectedOutboundItem, setSelectedOutboundItem] = useState<any | null>(
+    null
+  );
 
   const [quantityEditValues, setQuantityEditValues] = useState<{
     itemId: number | null;
@@ -51,6 +65,48 @@ export default function StockTable() {
     currentQuantity: 0,
     newQuantity: 0,
     reason: "",
+    warehouseId: 0,
+  });
+
+  const [inboundValues, setInboundValues] = useState<{
+    itemId: number | null;
+    itemCode: string;
+    itemName: string;
+    quantity: number;
+    date: string;
+    location: string;
+    remarks: string;
+    warehouseId: number;
+  }>({
+    itemId: null,
+    itemCode: "",
+    itemName: "",
+    quantity: 1,
+    date: new Date().toISOString().split("T")[0],
+    location: "",
+    remarks: "",
+    warehouseId: 0,
+  });
+
+  const [outboundValues, setOutboundValues] = useState<{
+    itemId: number | null;
+    itemCode: string;
+    itemName: string;
+    currentQuantity: number;
+    quantity: number;
+    date: string;
+    location: string;
+    remarks: string;
+    warehouseId: number;
+  }>({
+    itemId: null,
+    itemCode: "",
+    itemName: "",
+    currentQuantity: 0,
+    quantity: 1,
+    date: new Date().toISOString().split("T")[0],
+    location: "",
+    remarks: "",
     warehouseId: 0,
   });
 
@@ -75,6 +131,43 @@ export default function StockTable() {
     setIsEditQuantityModalOpen(false);
   };
 
+  const handleOpenInboundModal = (warehouseId: number) => {
+    setInboundValues({
+      ...inboundValues,
+      warehouseId,
+      itemId: null,
+      itemCode: "",
+      itemName: "",
+    });
+    setSelectedWarehouseId(warehouseId);
+    setSelectedInboundItem(null);
+    setIsInboundModalOpen(true);
+  };
+
+  const handleCloseInboundModal = () => {
+    setIsInboundModalOpen(false);
+    setSelectedInboundItem(null);
+  };
+
+  const handleOpenOutboundModal = (warehouseId: number) => {
+    setOutboundValues({
+      ...outboundValues,
+      warehouseId,
+      itemId: null,
+      itemCode: "",
+      itemName: "",
+      currentQuantity: 0,
+    });
+    setSelectedWarehouseId(warehouseId);
+    setSelectedOutboundItem(null);
+    setIsOutboundModalOpen(true);
+  };
+
+  const handleCloseOutboundModal = () => {
+    setIsOutboundModalOpen(false);
+    setSelectedOutboundItem(null);
+  };
+
   const handleQuantityEditFormChange = (
     field: string,
     value: string | number
@@ -83,6 +176,70 @@ export default function StockTable() {
       ...quantityEditValues,
       [field]: value,
     });
+  };
+
+  const handleInboundFormChange = (
+    field: string,
+    value: string | number | null
+  ) => {
+    if (field === "itemId") {
+      const selectedItem = items.find((item) => item.id === value);
+      setSelectedInboundItem(selectedItem || null);
+
+      if (selectedItem) {
+        setInboundValues({
+          ...inboundValues,
+          itemId: selectedItem.id,
+          itemCode: selectedItem.itemCode,
+          itemName: selectedItem.itemName,
+        });
+      } else {
+        setInboundValues({
+          ...inboundValues,
+          itemId: null,
+          itemCode: "",
+          itemName: "",
+        });
+      }
+    } else {
+      setInboundValues({
+        ...inboundValues,
+        [field]: value,
+      });
+    }
+  };
+
+  const handleOutboundFormChange = (
+    field: string,
+    value: string | number | null
+  ) => {
+    if (field === "itemId") {
+      const selectedItem = items.find((item) => item.id === value);
+      setSelectedOutboundItem(selectedItem || null);
+
+      if (selectedItem) {
+        setOutboundValues({
+          ...outboundValues,
+          itemId: selectedItem.id,
+          itemCode: selectedItem.itemCode,
+          itemName: selectedItem.itemName,
+          currentQuantity: selectedItem.itemQuantity,
+        });
+      } else {
+        setOutboundValues({
+          ...outboundValues,
+          itemId: null,
+          itemCode: "",
+          itemName: "",
+          currentQuantity: 0,
+        });
+      }
+    } else {
+      setOutboundValues({
+        ...outboundValues,
+        [field]: value,
+      });
+    }
   };
 
   const handleUpdateQuantity = () => {
@@ -124,18 +281,114 @@ export default function StockTable() {
     }
   };
 
+  const handleSubmitInbound = () => {
+    if (!inboundValues.itemId) return;
+
+    try {
+      const data: UpdateItemQuantityRequest = {
+        quantity:
+          (getItemById(inboundValues.itemId)?.itemQuantity || 0) +
+          inboundValues.quantity,
+      };
+
+      updateQuantityMutation.mutate(
+        {
+          id: inboundValues.itemId.toString(),
+          data,
+          itemWarehouseId: inboundValues.warehouseId.toString(),
+        },
+        {
+          onSuccess: (response) => {
+            if (response.success) {
+              alert("입고가 성공적으로 처리되었습니다.");
+              handleCloseInboundModal();
+            } else {
+              alert(
+                `오류 발생: ${
+                  response.message || "알 수 없는 오류가 발생했습니다."
+                }`
+              );
+            }
+          },
+          onError: (error) => {
+            console.error("입고 처리 중 오류 발생:", error);
+            alert("입고 처리 중 오류가 발생했습니다.");
+          },
+        }
+      );
+    } catch (error) {
+      console.error("입고 처리 중 오류 발생:", error);
+      alert("입고 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleSubmitOutbound = () => {
+    if (!outboundValues.itemId) return;
+
+    try {
+      const currentQuantity =
+        getItemById(outboundValues.itemId)?.itemQuantity || 0;
+
+      if (outboundValues.quantity > currentQuantity) {
+        alert("출고 수량이 현재 재고보다 많습니다.");
+        return;
+      }
+
+      const data: UpdateItemQuantityRequest = {
+        quantity: currentQuantity - outboundValues.quantity,
+      };
+
+      updateQuantityMutation.mutate(
+        {
+          id: outboundValues.itemId.toString(),
+          data,
+          itemWarehouseId: outboundValues.warehouseId.toString(),
+        },
+        {
+          onSuccess: (response) => {
+            if (response.success) {
+              alert("출고가 성공적으로 처리되었습니다.");
+              handleCloseOutboundModal();
+            } else {
+              alert(
+                `오류 발생: ${
+                  response.message || "알 수 없는 오류가 발생했습니다."
+                }`
+              );
+            }
+          },
+          onError: (error) => {
+            console.error("출고 처리 중 오류 발생:", error);
+            alert("출고 처리 중 오류가 발생했습니다.");
+          },
+        }
+      );
+    } catch (error) {
+      console.error("출고 처리 중 오류 발생:", error);
+      alert("출고 처리 중 오류가 발생했습니다.");
+    }
+  };
+
   // 창고별로 아이템 필터링
   const getWarehouseItems = (warehouseId: number) => {
     return items.filter((item) => item.warehouseId === warehouseId);
   };
 
+  // 아이템 ID로 아이템 찾기
+  const getItemById = (itemId: number) => {
+    return items.find((item) => item.id === itemId);
+  };
+
   // 검색 기능
   const getFilteredItems = (warehouseItems: any[]) => {
     return warehouseItems.filter((item) => {
-      return (
+      const matchesSearch =
         item.itemCode.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.itemName.toLowerCase().includes(searchText.toLowerCase())
-      );
+        item.itemName.toLowerCase().includes(searchText.toLowerCase());
+
+      const passesZeroFilter = hideZeroStock ? item.itemQuantity > 0 : true;
+
+      return matchesSearch && passesZeroFilter;
     });
   };
 
@@ -152,58 +405,33 @@ export default function StockTable() {
     <>
       <div key="warehouse-container" className="overflow-x-auto relative">
         <div className="flex justify-between items-center mb-4">
-          <div className="relative w-64 m-4">
-            <input
-              type="text"
-              placeholder="품목코드 또는 품목명 검색..."
-              className="w-full px-4 py-2 bg-gray-50 border-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm text-sm"
-              value={searchText}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
-            <SearchOutlined className="absolute right-3 top-2.5 text-gray-400 text-sm" />
-          </div>
+          <div className="flex items-center space-x-4 m-4">
+            <div className="relative w-64">
+              <input
+                type="text"
+                placeholder="품목코드 또는 품목명 검색..."
+                className="w-full px-4 py-2 bg-gray-50 border-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm text-sm"
+                value={searchText}
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+              <SearchOutlined className="absolute right-3 top-2.5 text-gray-400 text-sm" />
+            </div>
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => {}}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
-            >
-              <svg
-                className="h-5 w-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="hideZeroStock"
+                checked={hideZeroStock}
+                onChange={(e) => setHideZeroStock(e.target.checked)}
+                className="rounded text-blue-500 focus:ring-blue-400 h-4 w-4"
+              />
+              <label
+                htmlFor="hideZeroStock"
+                className="ml-2 text-sm text-gray-700"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              입고
-            </button>
-            <button
-              onClick={() => {}}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
-            >
-              <svg
-                className="h-5 w-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M20 12H4"
-                />
-              </svg>
-              출고
-            </button>
+                재고가 0인 품목 숨기기
+              </label>
+            </div>
           </div>
         </div>
 
@@ -216,12 +444,59 @@ export default function StockTable() {
               key={`warehouse-${warehouse.id}-${warehouseIndex}`}
               className="mb-8"
             >
-              <h2 className="text-xl font-bold mb-4 px-4">
-                {warehouse.warehouseName ||
-                  warehouses.find((w) => w.id === warehouse.id)
-                    ?.warehouseName ||
-                  `창고 ${warehouse.id}`}
-              </h2>
+              <div className="flex justify-between items-center mb-4 px-4">
+                <h2 className="text-xl font-bold">
+                  {warehouse.warehouseName ||
+                    warehouses.find((w) => w.id === warehouse.id)
+                      ?.warehouseName ||
+                    `창고 ${warehouse.id}`}
+                </h2>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleOpenInboundModal(Number(warehouse.id))}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
+                  >
+                    <svg
+                      className="h-5 w-5 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    입고
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleOpenOutboundModal(Number(warehouse.id))
+                    }
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
+                  >
+                    <svg
+                      className="h-5 w-5 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M20 12H4"
+                      />
+                    </svg>
+                    출고
+                  </button>
+                </div>
+              </div>
 
               <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
                 <thead className="bg-gray-50">
@@ -316,6 +591,28 @@ export default function StockTable() {
           quantityEditValues={quantityEditValues}
           onFormChange={handleQuantityEditFormChange}
           onUpdateQuantity={handleUpdateQuantity}
+        />
+        <InboundModal
+          isOpen={isInboundModalOpen}
+          onClose={handleCloseInboundModal}
+          inboundValues={inboundValues}
+          onFormChange={handleInboundFormChange}
+          onSubmitInbound={handleSubmitInbound}
+          warehouseItems={
+            selectedWarehouseId ? getWarehouseItems(selectedWarehouseId) : []
+          }
+          selectedItem={selectedInboundItem}
+        />
+        <OutboundModal
+          isOpen={isOutboundModalOpen}
+          onClose={handleCloseOutboundModal}
+          outboundValues={outboundValues}
+          onFormChange={handleOutboundFormChange}
+          onSubmitOutbound={handleSubmitOutbound}
+          warehouseItems={
+            selectedWarehouseId ? getWarehouseItems(selectedWarehouseId) : []
+          }
+          selectedItem={selectedOutboundItem}
         />
       </div>
     </>

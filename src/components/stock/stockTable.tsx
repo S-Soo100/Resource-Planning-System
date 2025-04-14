@@ -7,9 +7,8 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
-import { StockInModal, StockOutModal, EditQuantityModal } from "./modal";
 import { CreateInventoryRecordRequest } from "@/types/inventory-record";
-import { inventoryRecordService } from "@/services/inventoryRecordService";
+import EditQuantityModal from "./modal/EditQuantityModal";
 
 export interface StockTableFormValues extends CreateInventoryRecordRequest {
   inboundDate?: string | null;
@@ -34,28 +33,9 @@ export default function StockTable() {
   const { items, warehouses, isLoading, isError } = useWarehouseItems();
   const { useUpdateItemQuantity } = useItems();
   const updateQuantityMutation = useUpdateItemQuantity();
-  const [isStockInModalOpen, setIsStockInModalOpen] = useState(false);
-  const [isStockOutModalOpen, setIsStockOutModalOpen] = useState(false);
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
 
-  const [formValues, setFormValue] = useState<StockTableFormValues>({
-    warehouseId: 0,
-    inboundDate: "",
-    outboundDate: "",
-    inboundLocation: "",
-    outboundLocation: "",
-    inboundQuantity: 0,
-    outboundQuantity: 0,
-    remarks: "",
-    supplierId: 0,
-    packageId: 0,
-    itemId: 0,
-    userId: 0,
-    name: "",
-    price: 0,
-    description: "",
-  });
   const [quantityEditValues, setQuantityEditValues] = useState<{
     itemId: number | null;
     itemCode: string;
@@ -76,187 +56,6 @@ export default function StockTable() {
 
   const handleSearch = (value: string) => {
     setSearchText(value);
-  };
-
-  const handleOpenStockInModal = () => {
-    setIsStockInModalOpen(true);
-  };
-
-  const handleCloseStockInModal = () => {
-    setFormValue({
-      itemId: null,
-      inboundQuantity: 0,
-      inboundLocation: "",
-      price: 0,
-      warehouseId: 0,
-      description: "",
-      remarks: "",
-      name: "",
-    });
-    setIsStockInModalOpen(false);
-  };
-
-  const handleOpenStockOutModal = () => {
-    setIsStockOutModalOpen(true);
-  };
-
-  const handleCloseStockOutModal = () => {
-    setFormValue({
-      itemId: null,
-      outboundQuantity: 0,
-      outboundLocation: "",
-      price: 0,
-      warehouseId: 0,
-      description: "",
-      remarks: "",
-      name: "",
-    });
-    setIsStockOutModalOpen(false);
-  };
-
-  const handleStockFormChange = (
-    field: string,
-    value: string | number | null
-  ) => {
-    setFormValue({
-      ...formValues,
-      [field]: value,
-    });
-  };
-
-  const handleStockIn = () => {
-    try {
-      console.log("입고 처리:", formValues);
-
-      // 현재 아이템 정보 찾기
-      const currentItem = items.find((item) => item.id === formValues.itemId);
-      if (!currentItem) {
-        alert("선택한 품목을 찾을 수 없습니다.");
-        return;
-      }
-
-      // 입고는 기존 수량에 추가
-      const newQuantity =
-        currentItem.itemQuantity + formValues.inboundQuantity!;
-
-      // 입고 기록 생성 데이터 준비
-      const inventoryRecordData: CreateInventoryRecordRequest = {
-        inboundDate: new Date().toISOString(),
-        inboundQuantity: formValues.inboundQuantity,
-        inboundLocation: formValues.inboundLocation,
-        itemId: formValues.itemId ?? undefined,
-        price: formValues.price,
-        remarks: formValues.remarks,
-        name: formValues.name,
-        description: formValues.description,
-      };
-
-      // 입고 기록 생성
-      inventoryRecordService
-        .createInventoryRecord(inventoryRecordData)
-        .then((success) => {
-          if (success) {
-            // 수량 업데이트 뮤테이션 사용
-            updateQuantityMutation.mutate(
-              {
-                id: formValues.itemId!.toString(),
-                data: { quantity: newQuantity },
-                itemWarehouseId: (formValues.warehouseId || 0).toString(),
-              },
-              {
-                onSuccess: (response) => {
-                  if (response.success) {
-                    alert(
-                      `${formValues.inboundQuantity}개 입고 처리되었습니다.`
-                    );
-                    handleCloseStockInModal();
-                  } else {
-                    alert(
-                      `오류 발생: ${
-                        response.message || "알 수 없는 오류가 발생했습니다."
-                      }`
-                    );
-                    handleCloseStockInModal();
-                  }
-                },
-                onError: (error) => {
-                  console.error("입고 처리 중 오류 발생:", error);
-                  alert("입고 처리 중 오류가 발생했습니다.");
-                  handleCloseStockInModal();
-                },
-              }
-            );
-          } else {
-            alert("입고 기록 생성 중 오류가 발생했습니다.");
-            handleCloseStockInModal();
-          }
-        })
-        .catch((error) => {
-          console.error("입고 기록 생성 중 오류 발생:", error);
-          alert("입고 기록 생성 중 오류가 발생했습니다.");
-          handleCloseStockInModal();
-        });
-    } catch (error) {
-      console.error("입고 처리 중 오류 발생:", error);
-      alert("입고 처리 중 오류가 발생했습니다.");
-    }
-  };
-
-  const handleStockOut = () => {
-    try {
-      console.log("출고 처리:", formValues);
-
-      // 현재 아이템 정보 찾기
-      const currentItem = items.find((item) => item.id === formValues.itemId);
-      if (!currentItem) {
-        alert("선택한 품목을 찾을 수 없습니다.");
-        return;
-      }
-
-      // 출고 수량이 현재 재고보다 많으면 오류
-      if (formValues.outboundQuantity! > currentItem.itemQuantity) {
-        alert(
-          `출고 수량(${formValues.outboundQuantity})이 현재 재고(${currentItem.itemQuantity})보다 많습니다.`
-        );
-        return;
-      }
-
-      // 출고는 기존 수량에서 감소
-      const newQuantity =
-        currentItem.itemQuantity - formValues.outboundQuantity!;
-
-      // 수량 업데이트 뮤테이션 사용
-      updateQuantityMutation.mutate(
-        {
-          id: formValues.itemId!.toString(),
-          data: { quantity: newQuantity },
-          itemWarehouseId: (formValues.warehouseId || 0).toString(),
-        },
-        {
-          onSuccess: (response) => {
-            if (response.success) {
-              alert(`${formValues.outboundQuantity}개 출고 처리되었습니다.`);
-              handleCloseStockOutModal();
-            } else {
-              alert(
-                `오류 발생: ${
-                  response.message || "알 수 없는 오류가 발생했습니다."
-                }`
-              );
-              handleCloseStockOutModal();
-            }
-          },
-          onError: (error) => {
-            console.error("출고 처리 중 오류 발생:", error);
-            alert("출고 처리 중 오류가 발생했습니다.");
-            handleCloseStockOutModal();
-          },
-        }
-      );
-    } catch (error) {
-      console.error("출고 처리 중 오류 발생:", error);
-      alert("출고 처리 중 오류가 발생했습니다.");
-    }
   };
 
   const handleOpenEditQuantityModal = (item: any) => {
@@ -366,7 +165,7 @@ export default function StockTable() {
 
           <div className="flex items-center space-x-2">
             <button
-              onClick={handleOpenStockInModal}
+              onClick={() => {}}
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
             >
               <svg
@@ -386,7 +185,7 @@ export default function StockTable() {
               입고
             </button>
             <button
-              onClick={handleOpenStockOutModal}
+              onClick={() => {}}
               className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
             >
               <svg
@@ -511,27 +310,6 @@ export default function StockTable() {
             </div>
           );
         })}
-
-        <StockInModal
-          isOpen={isStockInModalOpen}
-          onClose={handleCloseStockInModal}
-          items={items}
-          warehouses={warehouses}
-          formValue={formValues}
-          onFormChange={handleStockFormChange}
-          onStockIn={handleStockIn}
-        />
-
-        <StockOutModal
-          isOpen={isStockOutModalOpen}
-          onClose={handleCloseStockOutModal}
-          items={items}
-          warehouses={warehouses}
-          stockFormValues={formValues}
-          onFormChange={handleStockFormChange}
-          onStockOut={handleStockOut}
-        />
-
         <EditQuantityModal
           isOpen={isEditQuantityModalOpen}
           onClose={handleCloseEditQuantityModal}

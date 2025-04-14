@@ -8,7 +8,7 @@ export interface ISupplier {
 }
 
 export interface Supplier {
-  id: string;
+  id: number;
   name: string;
   contactPerson?: string;
   email?: string;

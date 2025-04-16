@@ -59,25 +59,25 @@ const MenuButtonListComponent = () => {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen">
       {/* Menu Body */}
-      <main className="flex flex-col items-center flex-1 p-4 mt-4 space-y-4 justify-top">
+      <main className="flex flex-col items-center w-full p-4 space-y-4 pb-6">
         {menuItems.map((item, index) => (
           <button
             key={index}
             onClick={item.onClick}
-            className="flex items-center w-full max-w-2xl px-8 py-6 transition-all duration-200 bg-white border border-gray-200 shadow-md rounded-2xl hover:bg-gray-50 hover:shadow-lg"
+            className="flex items-center w-full max-w-2xl px-8 py-4 transition-all duration-200 bg-white border border-gray-200 shadow-lg rounded-2xl hover:scale-105 hover:shadow-xl hover:-translate-y-1"
           >
             <div className="flex-col w-full">
               <div className="flex flex-row items-center">
-                <div className="flex-shrink-0 mr-8 text-blue-600">
+                <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mr-8 text-white bg-blue-600 rounded-full">
                   {item.icon}
                 </div>
                 <span className="text-xl font-semibold text-gray-900">
                   {item.title}
                 </span>
               </div>
-              <span className="block mt-2 ml-16 text-base text-gray-600">
+              <span className="block mt-2 ml-20 text-base text-gray-600">
                 {item.subtitle}
               </span>
             </div>

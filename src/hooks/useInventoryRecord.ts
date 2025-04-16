@@ -1,4 +1,7 @@
+import { ApiResponse } from "@/api/api";
+import { getAllInventoryRecords } from "@/api/inventory-record-api";
 import { InventoryRecord } from "@/types/inventory-record";
+import { useQuery } from "@tanstack/react-query";
 
 interface UseInventoryRecordReturn {
   records: InventoryRecord[] | undefined;
@@ -7,8 +10,13 @@ interface UseInventoryRecordReturn {
 }
 
 export const useInventoryRecord = (): UseInventoryRecordReturn => {
-  const { data: records, isLoading, error } = useQuery<InventoryRecord[]>({
+  const { data, isLoading, error } = useQuery<
+    ApiResponse<InventoryRecord[]>,
+    Error
+  >({
+    queryKey: ["inventory-records"],
+    queryFn: () => getAllInventoryRecords(),
+  });
 
-
-  return { records, isLoading, isError };
+  return { records: data?.data, isLoading, error };
 };

@@ -11,6 +11,7 @@ import { CreateInventoryRecordRequest } from "@/types/inventory-record";
 import EditQuantityModal from "./modal/EditQuantityModal";
 import InboundModal from "./modal/InboundModal";
 import OutboundModal from "./modal/OutboundModal";
+import { inventoryRecordService } from "@/services/inventoryRecordService";
 
 export interface StockTableFormValues extends CreateInventoryRecordRequest {
   inboundDate?: string | null;
@@ -32,7 +33,8 @@ export interface StockTableFormValues extends CreateInventoryRecordRequest {
 
 export default function StockTable() {
   const router = useRouter();
-  const { items, warehouses, isLoading, isError } = useWarehouseItems();
+  const { items, warehouses, isLoading, isError, invalidateInventory } =
+    useWarehouseItems();
   const { useUpdateItemQuantity } = useItems();
   const updateQuantityMutation = useUpdateItemQuantity();
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
@@ -58,6 +60,7 @@ export default function StockTable() {
     newQuantity: number;
     reason: string;
     warehouseId: number;
+    price: number;
   }>({
     itemId: null,
     itemCode: "",
@@ -66,6 +69,7 @@ export default function StockTable() {
     newQuantity: 0,
     reason: "",
     warehouseId: 0,
+    price: 0,
   });
 
   const [inboundValues, setInboundValues] = useState<{
@@ -77,6 +81,7 @@ export default function StockTable() {
     location: string;
     remarks: string;
     warehouseId: number;
+    price: number;
   }>({
     itemId: null,
     itemCode: "",
@@ -86,6 +91,7 @@ export default function StockTable() {
     location: "",
     remarks: "",
     warehouseId: 0,
+    price: 0,
   });
 
   const [outboundValues, setOutboundValues] = useState<{
@@ -98,6 +104,7 @@ export default function StockTable() {
     location: string;
     remarks: string;
     warehouseId: number;
+    price: number;
   }>({
     itemId: null,
     itemCode: "",
@@ -108,6 +115,7 @@ export default function StockTable() {
     location: "",
     remarks: "",
     warehouseId: 0,
+    price: 0,
   });
 
   const handleSearch = (value: string) => {
@@ -123,6 +131,7 @@ export default function StockTable() {
       newQuantity: item.itemQuantity,
       reason: "",
       warehouseId: item.warehouseId,
+      price: 0,
     });
     setIsEditQuantityModalOpen(true);
   };
@@ -259,6 +268,37 @@ export default function StockTable() {
         {
           onSuccess: (response) => {
             if (response.success) {
+              // 재고 기록 생성
+              const recordData: CreateInventoryRecordRequest = {
+                itemId: quantityEditValues.itemId,
+                remarks: quantityEditValues.reason,
+                name: quantityEditValues.itemName,
+                price: quantityEditValues.price,
+              };
+
+              // 수량 변화에 따라 입고 또는 출고 수량 설정
+              const currentQuantity = quantityEditValues.currentQuantity;
+              const newQuantity = quantityEditValues.newQuantity;
+
+              if (newQuantity > currentQuantity) {
+                // 수량 증가 (입고)
+                recordData.inboundQuantity = newQuantity - currentQuantity;
+                recordData.inboundDate = new Date().toISOString();
+                // quantity는 양수로 설정 (입고)
+                recordData.quantity = newQuantity - currentQuantity;
+              } else if (newQuantity < currentQuantity) {
+                // 수량 감소 (출고)
+                recordData.outboundQuantity = currentQuantity - newQuantity;
+                recordData.outboundDate = new Date().toISOString();
+                // quantity는 음수로 설정 (출고)
+                recordData.quantity = -(currentQuantity - newQuantity);
+              }
+
+              // 재고 기록 저장
+              inventoryRecordService.createInventoryRecord(recordData, () =>
+                invalidateInventory(quantityEditValues.warehouseId.toString())
+              );
+
               alert("재고 수량이 성공적으로 업데이트되었습니다.");
               handleCloseEditQuantityModal();
             } else {
@@ -285,10 +325,11 @@ export default function StockTable() {
     if (!inboundValues.itemId) return;
 
     try {
+      const newTotalQuantity =
+        (getItemById(inboundValues.itemId)?.itemQuantity || 0) +
+        inboundValues.quantity;
       const data: UpdateItemQuantityRequest = {
-        quantity:
-          (getItemById(inboundValues.itemId)?.itemQuantity || 0) +
-          inboundValues.quantity,
+        quantity: newTotalQuantity,
       };
 
       updateQuantityMutation.mutate(
@@ -300,6 +341,24 @@ export default function StockTable() {
         {
           onSuccess: (response) => {
             if (response.success) {
+              // 입고 기록 생성
+              const recordData: CreateInventoryRecordRequest = {
+                itemId: inboundValues.itemId,
+                inboundQuantity: inboundValues.quantity,
+                inboundDate: inboundValues.date,
+                inboundLocation: inboundValues.location,
+                remarks: inboundValues.remarks,
+                name: inboundValues.itemName,
+                price: inboundValues.price,
+                // 자동으로 quantity 계산 (입고는 양수)
+                quantity: inboundValues.quantity,
+              };
+
+              // 재고 기록 저장
+              inventoryRecordService.createInventoryRecord(recordData, () =>
+                invalidateInventory(inboundValues.warehouseId.toString())
+              );
+
               alert("입고가 성공적으로 처리되었습니다.");
               handleCloseInboundModal();
             } else {
@@ -334,8 +393,9 @@ export default function StockTable() {
         return;
       }
 
+      const newTotalQuantity = currentQuantity - outboundValues.quantity;
       const data: UpdateItemQuantityRequest = {
-        quantity: currentQuantity - outboundValues.quantity,
+        quantity: newTotalQuantity,
       };
 
       updateQuantityMutation.mutate(
@@ -347,6 +407,26 @@ export default function StockTable() {
         {
           onSuccess: (response) => {
             if (response.success) {
+              // 출고 기록 생성
+              const recordData: CreateInventoryRecordRequest = {
+                itemId: outboundValues.itemId,
+                outboundQuantity: outboundValues.quantity,
+                outboundDate: outboundValues.date,
+                outboundLocation: outboundValues.location,
+                remarks: outboundValues.remarks,
+                name: outboundValues.itemName,
+                price: outboundValues.price,
+                // 자동으로 quantity 계산 (출고는 음수)
+                quantity: -outboundValues.quantity,
+                // 임시로 비활성화됨
+                // warehouseId: outboundValues.warehouseId
+              };
+
+              // 재고 기록 저장
+              inventoryRecordService.createInventoryRecord(recordData, () =>
+                invalidateInventory(outboundValues.warehouseId.toString())
+              );
+
               alert("출고가 성공적으로 처리되었습니다.");
               handleCloseOutboundModal();
             } else {

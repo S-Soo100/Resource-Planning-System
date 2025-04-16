@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { authStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { FaUsers, FaWarehouse, FaBuilding } from "react-icons/fa";
@@ -8,12 +8,21 @@ import WarehouseManagement from "@/components/admin/WarehouseManagement";
 import TeamManagement from "@/components/admin/TeamManagement";
 import AdminMenuCard from "@/components/admin/AdminMenuCard";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
+import { TeamWarehouse } from "@/types/warehouse";
 
 export default function AdminPage() {
   const router = useRouter();
   const zustandAuth = authStore((state) => state.user);
   const [activeTab, setActiveTab] = useState("team-members");
+  const [localWarehouses, setLocalWarehouses] = useState<TeamWarehouse[]>([]);
   const { team } = useCurrentTeam();
+
+  useEffect(() => {
+    if (team) {
+      setLocalWarehouses(team.Warehouses);
+      console.log("team.Warehouses:", JSON.stringify(team.Warehouses, null, 2));
+    }
+  }, [team]);
 
   // 탭에 따른 콘텐츠 렌더링
   const renderTabContent = () => {
@@ -24,12 +33,12 @@ export default function AdminPage() {
         return (
           <WarehouseManagement
             warehouses={
-              team?.Warehouses
-                ? team.Warehouses.map((warehouse) => ({
+              localWarehouses
+                ? localWarehouses.map((warehouse) => ({
                     id: warehouse.id.toString(),
-                    name: warehouse.warehouseName,
-                    location: warehouse.warehouseAddress,
-                    capacity: 0, // 기본값 제공
+                    warehouseName: warehouse.warehouseName,
+                    warehouseAddress: warehouse.warehouseAddress,
+                    capacity: warehouse.capacity || 0,
                   }))
                 : []
             }

@@ -1,4 +1,4 @@
-import IoHistoryRecordListComponent from "@/components/ioHistory/ItemRecordListComponent";
+import IoHistoryRecordListComponent from "@/components/ioHistory/IoHistoryRecordListComponent";
 
 export default function IoHistoryPage() {
   return (

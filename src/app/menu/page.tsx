@@ -38,15 +38,31 @@ export default function MenuPage() {
 
   if (isLoading || isTeamLoading) {
     return (
-      <div className="p-4 space-y-4">
-        <div className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
-        <div className="space-y-3">
-          <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
-          <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
-          <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
-          <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+      <>
+        <div className="p-4 space-y-4">
+          <div className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+          <div className="space-y-3">
+            <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+          </div>
         </div>
-      </div>
+
+        {/* Footer */}
+        <div className="w-full px-4 py-3 bg-white shadow-inner mb-2">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex flex-col items-center justify-center text-center">
+              <p className="text-sm text-gray-500">
+                KARS 재고관리 시스템 v1.0.0
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                © 2025 Kangsters. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -56,7 +72,21 @@ export default function MenuPage() {
 
   return (
     <>
-      <MenuButtonListComponent />
+      <div className=" pb-6 ">
+        <MenuButtonListComponent />
+      </div>
+
+      {/* Footer */}
+      <div className="w-full px-4 py-3 bg-white shadow-inner mb-2">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex flex-col items-center justify-center text-center">
+            <p className="text-sm text-gray-500">KARS 재고관리 시스템 v1.0.0</p>
+            <p className="text-xs text-gray-400 mt-1">
+              © 2025 Kangsters. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

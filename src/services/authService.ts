@@ -1,7 +1,6 @@
 import { authApi } from "@/api/auth-api";
 import { teamApi } from "@/api/team-api";
 import { authStore } from "@/store/authStore";
-import { IAuth } from "@/types/(auth)/auth";
 import { LoginAuth } from "@/types/(auth)/loginAuth";
 import { Team } from "@/types/team";
 
@@ -24,11 +23,6 @@ export const authService = {
     }
     authStore.getState().setTeam(response.data);
     return true;
-  },
-
-  getUserAuth: (): IAuth | null => {
-    if (authStore.getState().user) return authStore.getState().user;
-    return null;
   },
 
   getSelectedTeam: (): Team | null => {

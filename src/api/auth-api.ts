@@ -10,7 +10,7 @@ export const authApi = {
       const response = await api.post<LoginResponse>("/auth/login", data);
       setToken(response.data.token);
       // authStore.getState().login(response.data.user);
-      console.log("어스API 호출의 반환값: ", response.data);
+      // console.log("어스API 호출의 반환값: ", response.data);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: `${error}발생, 로그인에 실패했습니다.` };

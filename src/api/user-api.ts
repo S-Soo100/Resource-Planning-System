@@ -47,6 +47,7 @@ export const userApi = {
       const response = await api.get<{ success: boolean; data: IUser }>(
         `/user/${id}`
       );
+      console.log("단일 사용자 조회", response);
       return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "사용자 조회에 실패했습니다." };

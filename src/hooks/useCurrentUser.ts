@@ -22,12 +22,20 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
     error,
   } = useQuery<ApiResponse<IUser>, Error>({
     queryKey: ["user", auth?.id],
-    queryFn: () => userApi.getUser(auth!.id.toString()),
+    queryFn: async () => {
+      try {
+        const response = await userApi.getUser(auth!.id.toString());
+        return response;
+      } catch (err) {
+        throw err;
+      }
+    },
     enabled: !!auth?.id,
     // 캐시 설정 추가
     gcTime: 30 * 60 * 1000, // 30분
     staleTime: 5 * 60 * 1000, // 5분
   });
+
   return {
     user: userData?.data || undefined,
     isLoading,

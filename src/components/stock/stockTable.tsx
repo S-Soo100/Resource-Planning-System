@@ -13,11 +13,24 @@ import InboundModal from "./modal/InboundModal";
 import OutboundModal from "./modal/OutboundModal";
 import { inventoryRecordService } from "@/services/inventoryRecordService";
 
+// 파일 타입 정의 추가
+export interface AttachedFile {
+  file: File;
+  preview: string;
+  name: string;
+  type: string;
+  size: number;
+}
+
 export interface StockTableFormValues extends CreateInventoryRecordRequest {
   inboundDate?: string | null;
   outboundDate?: string | null;
-  inboundLocation?: string | null;
-  outboundLocation?: string | null;
+  inboundPlace?: string | null;
+  inboundAddress?: string | null;
+  inboundAddressDetail?: string | null;
+  outboundPlace?: string | null;
+  outboundAddress?: string | null;
+  outboundAddressDetail?: string | null;
   inboundQuantity?: number | null;
   outboundQuantity?: number | null;
   remarks?: string | null;
@@ -26,9 +39,9 @@ export interface StockTableFormValues extends CreateInventoryRecordRequest {
   itemId?: number | null;
   userId?: number | null;
   name?: string | null;
-  price?: number | null;
   description?: string | null;
   warehouseId: number | null;
+  attachedFiles?: AttachedFile[]; // 첨부파일 필드 추가
 }
 
 export default function StockTable() {
@@ -60,7 +73,6 @@ export default function StockTable() {
     newQuantity: number;
     reason: string;
     warehouseId: number;
-    price: number;
   }>({
     itemId: null,
     itemCode: "",
@@ -69,7 +81,6 @@ export default function StockTable() {
     newQuantity: 0,
     reason: "",
     warehouseId: 0,
-    price: 0,
   });
 
   const [inboundValues, setInboundValues] = useState<{
@@ -78,20 +89,24 @@ export default function StockTable() {
     itemName: string;
     quantity: number;
     date: string;
-    location: string;
+    inboundPlace: string;
+    inboundAddress: string;
+    inboundAddressDetail: string;
     remarks: string;
     warehouseId: number;
-    price: number;
+    attachedFiles: AttachedFile[];
   }>({
     itemId: null,
     itemCode: "",
     itemName: "",
     quantity: 1,
     date: new Date().toISOString().split("T")[0],
-    location: "",
+    inboundPlace: "",
+    inboundAddress: "",
+    inboundAddressDetail: "",
     remarks: "",
     warehouseId: 0,
-    price: 0,
+    attachedFiles: [],
   });
 
   const [outboundValues, setOutboundValues] = useState<{
@@ -101,10 +116,12 @@ export default function StockTable() {
     currentQuantity: number;
     quantity: number;
     date: string;
-    location: string;
+    outboundPlace: string;
+    outboundAddress: string;
+    outboundAddressDetail: string;
     remarks: string;
     warehouseId: number;
-    price: number;
+    attachedFiles: AttachedFile[];
   }>({
     itemId: null,
     itemCode: "",
@@ -112,10 +129,12 @@ export default function StockTable() {
     currentQuantity: 0,
     quantity: 1,
     date: new Date().toISOString().split("T")[0],
-    location: "",
+    outboundPlace: "",
+    outboundAddress: "",
+    outboundAddressDetail: "",
     remarks: "",
     warehouseId: 0,
-    price: 0,
+    attachedFiles: [],
   });
 
   const handleSearch = (value: string) => {
@@ -131,7 +150,6 @@ export default function StockTable() {
       newQuantity: item.itemQuantity,
       reason: "",
       warehouseId: item.warehouseId,
-      price: 0,
     });
     setIsEditQuantityModalOpen(true);
   };
@@ -189,7 +207,7 @@ export default function StockTable() {
 
   const handleInboundFormChange = (
     field: string,
-    value: string | number | null
+    value: string | number | null | AttachedFile[]
   ) => {
     if (field === "itemId") {
       const selectedItem = items.find((item) => item.id === value);
@@ -220,7 +238,7 @@ export default function StockTable() {
 
   const handleOutboundFormChange = (
     field: string,
-    value: string | number | null
+    value: string | number | null | AttachedFile[]
   ) => {
     if (field === "itemId") {
       const selectedItem = items.find((item) => item.id === value);
@@ -251,6 +269,84 @@ export default function StockTable() {
     }
   };
 
+  // 파일 업로드 처리 함수 (입고)
+  const handleInboundFileUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const newFiles: AttachedFile[] = Array.from(files).map((file) => {
+      // 파일 미리보기 URL 생성
+      const preview = URL.createObjectURL(file);
+
+      return {
+        file,
+        preview,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      };
+    });
+
+    setInboundValues({
+      ...inboundValues,
+      attachedFiles: [...inboundValues.attachedFiles, ...newFiles],
+    });
+  };
+
+  // 파일 업로드 처리 함수 (출고)
+  const handleOutboundFileUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const newFiles: AttachedFile[] = Array.from(files).map((file) => {
+      // 파일 미리보기 URL 생성
+      const preview = URL.createObjectURL(file);
+
+      return {
+        file,
+        preview,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      };
+    });
+
+    setOutboundValues({
+      ...outboundValues,
+      attachedFiles: [...outboundValues.attachedFiles, ...newFiles],
+    });
+  };
+
+  // 파일 삭제 처리 함수 (입고)
+  const handleInboundFileDelete = (index: number) => {
+    const updatedFiles = [...inboundValues.attachedFiles];
+
+    // 미리보기 URL 해제
+    URL.revokeObjectURL(updatedFiles[index].preview);
+
+    // 파일 배열에서 제거
+    updatedFiles.splice(index, 1);
+
+    setInboundValues({
+      ...inboundValues,
+      attachedFiles: updatedFiles,
+    });
+  };
+
+  // 파일 삭제 처리 함수 (출고)
+  const handleOutboundFileDelete = (index: number) => {
+    const updatedFiles = [...outboundValues.attachedFiles];
+
+    // 미리보기 URL 해제
+    URL.revokeObjectURL(updatedFiles[index].preview);
+
+    // 파일 배열에서 제거
+    updatedFiles.splice(index, 1);
+
+    setOutboundValues({
+      ...outboundValues,
+      attachedFiles: updatedFiles,
+    });
+  };
+
   const handleUpdateQuantity = () => {
     if (!quantityEditValues.itemId) return;
 
@@ -273,7 +369,7 @@ export default function StockTable() {
                 itemId: quantityEditValues.itemId,
                 remarks: quantityEditValues.reason,
                 name: quantityEditValues.itemName,
-                price: quantityEditValues.price,
+                price: 0, // price는 항상 0으로 설정
               };
 
               // 수량 변화에 따라 입고 또는 출고 수량 설정
@@ -332,6 +428,13 @@ export default function StockTable() {
         quantity: newTotalQuantity,
       };
 
+      // 주소와 상세주소 합치기
+      const fullAddress =
+        inboundValues.inboundAddress +
+        (inboundValues.inboundAddressDetail
+          ? ` ${inboundValues.inboundAddressDetail}`
+          : "");
+
       updateQuantityMutation.mutate(
         {
           id: inboundValues.itemId.toString(),
@@ -346,12 +449,15 @@ export default function StockTable() {
                 itemId: inboundValues.itemId,
                 inboundQuantity: inboundValues.quantity,
                 inboundDate: inboundValues.date,
-                inboundLocation: inboundValues.location,
+                inboundPlace: inboundValues.inboundPlace, // 입고처 필드 사용
+                inboundAddress: fullAddress, // 합쳐진 주소 사용 (기본주소 + 상세주소)
                 remarks: inboundValues.remarks,
                 name: inboundValues.itemName,
-                price: inboundValues.price,
+                price: 0, // price는 항상 0으로 설정
                 // 자동으로 quantity 계산 (입고는 양수)
                 quantity: inboundValues.quantity,
+                // 첨부파일 추가 (서버 구현 필요)
+                // attachedFiles: inboundValues.attachedFiles
               };
 
               // 재고 기록 저장
@@ -393,6 +499,13 @@ export default function StockTable() {
         return;
       }
 
+      // 주소와 상세주소 합치기
+      const fullAddress =
+        outboundValues.outboundAddress +
+        (outboundValues.outboundAddressDetail
+          ? ` ${outboundValues.outboundAddressDetail}`
+          : "");
+
       const newTotalQuantity = currentQuantity - outboundValues.quantity;
       const data: UpdateItemQuantityRequest = {
         quantity: newTotalQuantity,
@@ -412,12 +525,15 @@ export default function StockTable() {
                 itemId: outboundValues.itemId,
                 outboundQuantity: outboundValues.quantity,
                 outboundDate: outboundValues.date,
-                outboundLocation: outboundValues.location,
+                outboundPlace: outboundValues.outboundPlace,
+                outboundAddress: fullAddress, // 합쳐진 주소 사용 (기본주소 + 상세주소)
                 remarks: outboundValues.remarks,
                 name: outboundValues.itemName,
-                price: outboundValues.price,
+                price: 0, // price는 항상 0으로 설정
                 // 자동으로 quantity 계산 (출고는 음수)
                 quantity: -outboundValues.quantity,
+                // 첨부파일 추가 (서버 구현 필요)
+                // attachedFiles: outboundValues.attachedFiles
                 // 임시로 비활성화됨
                 // warehouseId: outboundValues.warehouseId
               };
@@ -682,6 +798,8 @@ export default function StockTable() {
             selectedWarehouseId ? getWarehouseItems(selectedWarehouseId) : []
           }
           selectedItem={selectedInboundItem}
+          onFileUpload={handleInboundFileUpload}
+          onFileDelete={handleInboundFileDelete}
         />
         <OutboundModal
           isOpen={isOutboundModalOpen}
@@ -693,6 +811,8 @@ export default function StockTable() {
             selectedWarehouseId ? getWarehouseItems(selectedWarehouseId) : []
           }
           selectedItem={selectedOutboundItem}
+          onFileUpload={handleOutboundFileUpload}
+          onFileDelete={handleOutboundFileDelete}
         />
       </div>
     </>

@@ -24,6 +24,12 @@ export interface ApiInventoryRecord {
   outboundDate: string | null;
   inboundLocation: string | null;
   outboundLocation: string | null;
+  inboundPlace: string | null;
+  inboundAddress: string | null;
+  inboundAddressDetail: string | null;
+  outboundPlace: string | null;
+  outboundAddress: string | null;
+  outboundAddressDetail: string | null;
   inboundQuantity: number | null;
   outboundQuantity: number | null;
   remarks: string | null;
@@ -52,6 +58,12 @@ export interface CreateInventoryRecordRequest {
   outboundDate?: string | null;
   inboundLocation?: string | null;
   outboundLocation?: string | null;
+  inboundPlace?: string | null;
+  inboundAddress?: string | null;
+  inboundAddressDetail?: string | null;
+  outboundPlace?: string | null;
+  outboundAddress?: string | null;
+  outboundAddressDetail?: string | null;
   inboundQuantity?: number | null;
   outboundQuantity?: number | null;
   remarks?: string | null;

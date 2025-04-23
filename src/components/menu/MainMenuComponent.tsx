@@ -61,6 +61,12 @@ const MainMenuComponent = () => {
       requireAdmin: false,
     },
     {
+      title: "업체 관리",
+      icon: <PiNewspaperClippingFill className="text-3xl" />,
+      onClick: () => router.push(`/supplier`),
+      requireAdmin: false,
+    },
+    {
       title: "관리 - 창고별 품목 관리",
       icon: <FaBox className="text-3xl" />,
       onClick: () => checkAdminAccess(`/items`),

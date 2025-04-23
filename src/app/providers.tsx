@@ -10,7 +10,22 @@ export default function Providers({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster position="top-center" />
+      <Toaster
+        position="top-center"
+        containerStyle={{
+          position: "fixed",
+          zIndex: 9999,
+          top: 16,
+          left: 16,
+          right: 16,
+          bottom: 16,
+          pointerEvents: "none",
+        }}
+        toastOptions={{
+          className: "",
+          duration: 3000,
+        }}
+      />
       <ConfigProvider
         theme={{
           token: {

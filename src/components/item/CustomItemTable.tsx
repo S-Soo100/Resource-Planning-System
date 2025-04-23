@@ -530,11 +530,25 @@ export default function CustomItemTable() {
                   {isTeamItemsLoading ? (
                     <option disabled>로딩 중...</option>
                   ) : teamItems.length > 0 ? (
-                    teamItems.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.itemCode} - {item.itemName}
-                      </option>
-                    ))
+                    teamItems.map((item) => {
+                      // 현재 창고에 이미 있는 품목인지 확인
+                      const isExistingItem = items.some(
+                        (warehouseItem) =>
+                          warehouseItem.warehouseId === currentWarehouseId &&
+                          warehouseItem.itemCode === item.itemCode
+                      );
+
+                      return (
+                        <option
+                          key={item.id}
+                          value={item.id}
+                          disabled={isExistingItem}
+                        >
+                          {item.itemCode} - {item.itemName}
+                          {isExistingItem ? " (이미 등록됨)" : ""}
+                        </option>
+                      );
+                    })
                   ) : (
                     <option disabled>등록된 팀 품목이 없습니다</option>
                   )}

@@ -1,53 +1,67 @@
 import { ApiResponse } from "./common";
 
-// package(패키지)
 export interface IPackage {
-  packageId: number; // 패키지 id
-  packageName: string; // 패키지 이름
-}
-
-export interface Package {
-  id: string;
-  name: string;
+  id: number;
+  packageName: string;
   teamId: number;
-  itemList: string[];
-  description: string;
-  weight: number;
-  dimensions: {
-    length: number;
-    width: number;
-    height: number;
+  itemlist: string[];
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  team: {
+    id: number;
+    teamName: string;
   };
-  createdAt: string | null;
-  updatedAt: string | null;
+  inventoryRecords: Array<{
+    id: number;
+    inboundDate: string;
+    outboundDate: string;
+    inboundQuantity: number;
+    outboundQuantity: number;
+  }>;
 }
 
-export interface CreatePackageRequest {
-  name: string;
-  description: string;
-  weight: number;
-  dimensions: {
-    length: number;
-    width: number;
-    height: number;
+export interface PackageApi {
+  id: number;
+  packageName: string;
+  teamId: number;
+  itemlist: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  team: {
+    id: number;
+    teamName: string;
   };
+  inventoryRecords: Array<{
+    id: number;
+    inboundDate: string;
+    outboundDate: string;
+    inboundQuantity: number;
+    outboundQuantity: number;
+  }>;
 }
 
-export interface UpdatePackageRequest {
-  name?: string;
-  description?: string;
-  weight?: number;
-  dimensions?: {
-    length: number;
-    width: number;
-    height: number;
-  };
+export interface CreateIPackageDto {
+  packageName: string;
+  teamId: number;
+  itemlist: string[];
+}
+
+export interface CreatePackageDto {
+  packageName: string;
+  teamId: number;
+  itemlist: string;
+}
+
+export interface UpdatePackageDto {
+  packageName?: string;
+  teamId?: number;
+  itemlist?: string;
 }
 
 export interface PackageResponse extends ApiResponse {
-  data?: Package;
+  data?: PackageApi;
 }
 
 export interface PackagesResponse extends ApiResponse {
-  data?: Package[];
+  data?: PackageApi[];
 }

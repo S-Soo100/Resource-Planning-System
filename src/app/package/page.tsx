@@ -3,7 +3,11 @@
 import React, { useState } from "react";
 import { usePackages } from "@/hooks/usePackages";
 import { useTeamItems } from "@/hooks/useTeamItems";
-import { CreateIPackageDto, UpdatePackageDto } from "@/types/package";
+import {
+  CreateIPackageDto,
+  UpdatePackageDto,
+  PackageApi,
+} from "@/types/package";
 import { TeamItem } from "@/types/team-item";
 import { authStore } from "@/store/authStore";
 
@@ -50,15 +54,22 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
 };
 
 export default function PacakgePage() {
-  const {
-    packages,
-    isLoading,
-    error,
-    addPackage,
-    updatePackage,
-    deletePackage,
-  } = usePackages();
-  const { teamItems, isLoading: isTeamItemsLoading } = useTeamItems();
+  // usePackages 훅 수정
+  const packageHooks = usePackages();
+  const getPackages = packageHooks.useGetPackages();
+  const packages = getPackages.packages || [];
+  const isLoading = getPackages.isLoading;
+  const error = getPackages.error;
+
+  const createPackageMutation = packageHooks.useCreatePackage();
+  const updatePackageMutation = packageHooks.useUpdatePackage();
+  const deletePackageMutation = packageHooks.useDeletePackage();
+
+  // useTeamItems 훅 수정
+  const getTeamItems = useTeamItems().useGetTeamItems();
+  const teamItems = getTeamItems.teamItems || [];
+  const isTeamItemsLoading = getTeamItems.isLoading;
+
   const selectedTeamId = authStore((state) => state.selectedTeam?.id);
 
   // 모달 상태 관리
@@ -139,8 +150,8 @@ export default function PacakgePage() {
       itemlist: selectedItems,
     };
 
-    const success = await addPackage(packageData);
-    if (success) {
+    const success = await createPackageMutation.createPackageAsync(packageData);
+    if (success.success) {
       setNewPackageName("");
       setSelectedItems([]);
       closeAddModal();
@@ -175,8 +186,12 @@ export default function PacakgePage() {
       itemlist: editSelectedItems.join(", "),
     };
 
-    const success = await updatePackage(editingPackageId, packageData);
-    if (success) {
+    const success = await updatePackageMutation.updatePackageAsync({
+      id: editingPackageId,
+      packageData,
+    });
+
+    if (success.success) {
       setEditMode(false);
       setEditingPackageId("");
       setEditPackageName("");
@@ -188,8 +203,10 @@ export default function PacakgePage() {
   // 패키지 삭제 핸들러
   const handleDeletePackage = async (packageId: number) => {
     if (window.confirm("정말로 이 패키지를 삭제하시겠습니까?")) {
-      const success = await deletePackage(packageId.toString());
-      if (success) {
+      const success = await deletePackageMutation.deletePackageAsync(
+        packageId.toString()
+      );
+      if (success.success) {
         alert("패키지가 삭제되었습니다.");
       }
     }
@@ -209,7 +226,11 @@ export default function PacakgePage() {
   };
 
   // 패키지의 아이템 목록을 배지 형태로 표시
-  const renderPackageItems = (pkg: { id: number; itemlist: string }) => {
+  const renderPackageItems = (pkg: {
+    id: number;
+    itemlist: string;
+    createdAt?: string | null;
+  }) => {
     if (!pkg.itemlist) return <p className="text-gray-500">아이템 없음</p>;
 
     const itemCodes = pkg.itemlist.split(", ");
@@ -253,7 +274,7 @@ export default function PacakgePage() {
   }
 
   if (error) {
-    return <div className="p-4 text-red-500">오류: {error}</div>;
+    return <div className="p-4 text-red-500">오류: {error.message}</div>;
   }
 
   if (!selectedTeamId) {
@@ -466,7 +487,7 @@ export default function PacakgePage() {
           <p>등록된 패키지가 없습니다.</p>
         ) : (
           <ul className="space-y-4">
-            {packages.map((pkg) => (
+            {packages.map((pkg: PackageApi) => (
               <li
                 key={pkg.id}
                 className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"

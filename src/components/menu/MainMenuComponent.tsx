@@ -10,7 +10,7 @@ import {
 import { MdOutlineInventory } from "react-icons/md";
 import { PiNewspaperClippingFill } from "react-icons/pi";
 
-const MenuButtonListComponent = () => {
+const MainMenuComponent = () => {
   const router = useRouter();
 
   const menuItems = [
@@ -20,12 +20,12 @@ const MenuButtonListComponent = () => {
       icon: <MdOutlineInventory className="text-3xl" />,
       onClick: () => router.push(`/stock`),
     },
-    // {
-    //   title: "창고별 품목 관리",
-    //   subtitle: "창고별로 관리하는 품목들이 보이고, 전체품목중에서 추가/삭제",
-    //   icon: <FaBox className="text-3xl" />,
-    //   onClick: () => router.push(`/items`),
-    // },
+    {
+      title: "창고별 품목 관리",
+      subtitle: "창고별로 관리하는 품목들이 보이고, 전체품목중에서 추가/삭제",
+      icon: <FaBox className="text-3xl" />,
+      onClick: () => router.push(`/items`),
+    },
     {
       title: "재고 입출고 기록 조회",
       subtitle: "마스터 계정",
@@ -95,4 +95,4 @@ const MenuButtonListComponent = () => {
   );
 };
 
-export default MenuButtonListComponent;
+export default MainMenuComponent;

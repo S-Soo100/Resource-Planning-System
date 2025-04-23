@@ -3,7 +3,7 @@
 
 import { UpdateItemQuantityRequest } from "@/types/item";
 import { SearchOutlined } from "@ant-design/icons";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
@@ -136,6 +136,21 @@ export default function StockTable() {
     warehouseId: 0,
     attachedFiles: [],
   });
+
+  // 페이지 로드 시 첫 번째 창고 자동 선택 (수정된 버전)
+  useEffect(() => {
+    // 데이터가 로드되고 창고 목록이 있을 때
+    if (!isLoading && warehouses && warehouses.length > 0) {
+      console.log("창고 목록 로드됨:", warehouses);
+
+      // 선택된 창고가 없으면 첫 번째 창고 선택
+      if (selectedWarehouseId === null) {
+        const firstWarehouseId = Number(warehouses[0].id);
+        console.log("첫 번째 창고 자동 선택:", firstWarehouseId);
+        setSelectedWarehouseId(firstWarehouseId);
+      }
+    }
+  }, [isLoading, warehouses]);
 
   const handleSearch = (value: string) => {
     setSearchText(value);
@@ -588,6 +603,11 @@ export default function StockTable() {
     });
   };
 
+  // 창고 선택 핸들러
+  const handleWarehouseSelect = (warehouseId: number) => {
+    setSelectedWarehouseId(warehouseId);
+  };
+
   if (isLoading)
     return <div className="p-4 text-center">데이터를 불러오는 중...</div>;
   if (isError)
@@ -600,57 +620,98 @@ export default function StockTable() {
   return (
     <>
       <div key="warehouse-container" className="overflow-x-auto relative">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center space-x-4 m-4">
-            <div className="relative w-64">
-              <input
-                type="text"
-                placeholder="품목코드 또는 품목명 검색..."
-                className="w-full px-4 py-2 bg-gray-50 border-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm text-sm"
-                value={searchText}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-              <SearchOutlined className="absolute right-3 top-2.5 text-gray-400 text-sm" />
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="hideZeroStock"
-                checked={hideZeroStock}
-                onChange={(e) => setHideZeroStock(e.target.checked)}
-                className="rounded text-blue-500 focus:ring-blue-400 h-4 w-4"
-              />
-              <label
-                htmlFor="hideZeroStock"
-                className="ml-2 text-sm text-gray-700"
+        {/* 창고 선택 카드 목록 */}
+        <div className="mb-6 px-4">
+          <h2 className="text-xl font-bold mb-4">창고 선택</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {warehouses.map((warehouse) => (
+              <div
+                key={`warehouse-card-${warehouse.id}`}
+                className={`p-4 rounded-lg shadow-md cursor-pointer transition-all duration-200 ${
+                  selectedWarehouseId === Number(warehouse.id)
+                    ? "bg-blue-500 text-white ring-2 ring-blue-600 transform scale-105"
+                    : "bg-white hover:bg-gray-50"
+                }`}
+                onClick={() => handleWarehouseSelect(Number(warehouse.id))}
               >
-                재고가 0인 품목 숨기기
-              </label>
-            </div>
+                <h3
+                  className={`text-lg font-semibold mb-2 ${
+                    selectedWarehouseId === Number(warehouse.id)
+                      ? "text-white"
+                      : "text-gray-800"
+                  }`}
+                >
+                  {warehouse.warehouseName}
+                </h3>
+                <div
+                  className={`text-sm ${
+                    selectedWarehouseId === Number(warehouse.id)
+                      ? "text-blue-100"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {getWarehouseItems(Number(warehouse.id)).length}개 품목
+                </div>
+                {warehouse.warehouseAddress && (
+                  <div
+                    className={`text-sm mt-1 truncate ${
+                      selectedWarehouseId === Number(warehouse.id)
+                        ? "text-blue-100"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {warehouse.warehouseAddress}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
-        {warehouses.map((warehouse, warehouseIndex) => {
-          const warehouseItems = getWarehouseItems(Number(warehouse.id));
-          const filteredItems = getFilteredItems(warehouseItems);
+        {selectedWarehouseId && (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center space-x-4 m-4">
+                <div className="relative w-64">
+                  <input
+                    type="text"
+                    placeholder="품목코드 또는 품목명 검색..."
+                    className="w-full px-4 py-2 bg-gray-50 border-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm text-sm"
+                    value={searchText}
+                    onChange={(e) => handleSearch(e.target.value)}
+                  />
+                  <SearchOutlined className="absolute right-3 top-2.5 text-gray-400 text-sm" />
+                </div>
 
-          return (
-            <div
-              key={`warehouse-${warehouse.id}-${warehouseIndex}`}
-              className="mb-8"
-            >
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="hideZeroStock"
+                    checked={hideZeroStock}
+                    onChange={(e) => setHideZeroStock(e.target.checked)}
+                    className="rounded text-blue-500 focus:ring-blue-400 h-4 w-4"
+                  />
+                  <label
+                    htmlFor="hideZeroStock"
+                    className="ml-2 text-sm text-gray-700"
+                  >
+                    재고가 0인 품목 숨기기
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* 선택된 창고 정보 */}
+            <div className="mb-8">
               <div className="flex justify-between items-center mb-4 px-4">
                 <h2 className="text-xl font-bold">
-                  {warehouse.warehouseName ||
-                    warehouses.find((w) => w.id === warehouse.id)
-                      ?.warehouseName ||
-                    `창고 ${warehouse.id}`}
+                  {warehouses.find((w) => Number(w.id) === selectedWarehouseId)
+                    ?.warehouseName || `창고 ${selectedWarehouseId}`}
                 </h2>
 
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => handleOpenInboundModal(Number(warehouse.id))}
+                    onClick={() => handleOpenInboundModal(selectedWarehouseId)}
                     className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
                   >
                     <svg
@@ -670,9 +731,7 @@ export default function StockTable() {
                     입고
                   </button>
                   <button
-                    onClick={() =>
-                      handleOpenOutboundModal(Number(warehouse.id))
-                    }
+                    onClick={() => handleOpenOutboundModal(selectedWarehouseId)}
                     className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
                   >
                     <svg
@@ -694,6 +753,15 @@ export default function StockTable() {
                 </div>
               </div>
 
+              {/* 창고 주소 표시 */}
+              <div className="mb-4 px-4">
+                <p className="text-sm text-gray-500">
+                  {warehouses.find((w) => Number(w.id) === selectedWarehouseId)
+                    ?.warehouseAddress || "주소 정보가 없습니다."}
+                </p>
+              </div>
+
+              {/* 선택된 창고의 재고 테이블 */}
               <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
                 <thead className="bg-gray-50">
                   <tr>
@@ -718,69 +786,102 @@ export default function StockTable() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredItems.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center">
-                        <div className="py-6">
-                          <p className="text-lg text-gray-500 mb-4">
-                            창고가 비었습니다.
-                          </p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredItems.map((item, itemIndex) => (
-                      <tr
-                        key={`item-${warehouse.id}-${item.id}-${itemIndex}`}
-                        className="hover:bg-gray-50 transition-colors duration-150"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {item.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <a
-                            className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
-                            onClick={() =>
-                              router.push(`/item/detail/${item.id}`)
-                            }
-                          >
-                            {item.itemCode}
-                          </a>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <a
-                            className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
-                            onClick={() =>
-                              router.push(`/item/detail/${item.id}`)
-                            }
-                          >
-                            {item.itemName}
-                          </a>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                          {item.itemQuantity}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          <div className="flex justify-center">
-                            <button
-                              className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-150 shadow-sm"
-                              onClick={() => handleOpenEditQuantityModal(item)}
-                            >
-                              수정
-                            </button>
+                  {(() => {
+                    const warehouseItems =
+                      getWarehouseItems(selectedWarehouseId);
+                    const filteredItems = getFilteredItems(warehouseItems);
+
+                    return filteredItems.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-8 text-center">
+                          <div className="py-6">
+                            <p className="text-lg text-gray-500 mb-4">
+                              창고가 비었습니다.
+                            </p>
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
+                    ) : (
+                      filteredItems.map((item, itemIndex) => (
+                        <tr
+                          key={`item-${selectedWarehouseId}-${item.id}-${itemIndex}`}
+                          className="hover:bg-gray-50 transition-colors duration-150"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {item.id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <a
+                              className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
+                              onClick={() =>
+                                router.push(`/item/detail/${item.id}`)
+                              }
+                            >
+                              {item.itemCode}
+                            </a>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <a
+                              className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
+                              onClick={() =>
+                                router.push(`/item/detail/${item.id}`)
+                              }
+                            >
+                              {item.itemName}
+                            </a>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                            {item.itemQuantity}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {new Date(item.updatedAt).toLocaleDateString(
+                              "ko-KR"
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            <div className="flex justify-center">
+                              <button
+                                className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-150 shadow-sm"
+                                onClick={() =>
+                                  handleOpenEditQuantityModal(item)
+                                }
+                              >
+                                수정
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    );
+                  })()}
                 </tbody>
               </table>
             </div>
-          );
-        })}
+          </>
+        )}
+
+        {!selectedWarehouseId && warehouses.length > 0 && (
+          <div className="text-center py-10 text-gray-500">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+              />
+            </svg>
+            <h3 className="mt-2 text-lg font-medium">창고를 선택해주세요</h3>
+            <p className="mt-1 text-sm">
+              위의 창고 목록에서 창고를 선택하면 해당 창고의 재고가 표시됩니다.
+            </p>
+          </div>
+        )}
+
         <EditQuantityModal
           isOpen={isEditQuantityModalOpen}
           onClose={handleCloseEditQuantityModal}

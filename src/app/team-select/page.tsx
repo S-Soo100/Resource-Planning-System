@@ -71,7 +71,31 @@ export default function TeamSelectPage() {
   return (
     <Suspense>
       <div className="p-4 min-h-screen">
-        <h1 className="mb-6 text-2xl font-bold">팀 선택</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">팀 선택</h1>
+          {serverUser?.isAdmin && (
+            <button
+              className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition"
+              aria-label="팀 추가"
+              onClick={() => alert("팀 추가 기능 구현 예정")}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
 
         {selectedTeam && (
           <div className="p-4 mb-6 border border-green-200 rounded-lg bg-green-50">

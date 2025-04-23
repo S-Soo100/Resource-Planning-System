@@ -28,8 +28,8 @@ export default function IoHistoryRecordListComponent() {
   // 팀의 창고 정보 가져오기
   useEffect(() => {
     const team = authService.getSelectedTeam();
-    if (team && team.Warehouses) {
-      setWarehouses(team.Warehouses);
+    if (team && team.warehouses) {
+      setWarehouses(team.warehouses);
     } else {
       setWarehouses([]);
     }

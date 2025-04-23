@@ -36,12 +36,12 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
   const queryClient = useQueryClient();
   const selectedTeam = authService.getSelectedTeam();
 
-  if (!selectedTeam || selectedTeam.Warehouses === undefined) {
+  if (!selectedTeam || selectedTeam.warehouses === undefined) {
     throw new Error("선택된 팀이 없거나 팀의 창고 정보가 없습니다.");
   }
 
   // 1. 창고 목록 가져오기
-  const warehouses: TeamWarehouse[] = selectedTeam.Warehouses;
+  const warehouses: TeamWarehouse[] = selectedTeam.warehouses;
   const warehouseIds = warehouses.map((w) => w.id);
   const hasWarehouses = warehouseIds.length > 0;
 
@@ -49,7 +49,7 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
   const warehouseQueries = useQueries({
     queries: warehouseIds.map((id) => ({
       queryKey: ["warehouse", id],
-      queryFn: () => warehouseApi.getWarehouse(id.toString()),
+      queryFn: () => warehouseApi.getWarehouse(id),
       enabled: hasWarehouses,
       staleTime: 1800000, // 30분
     })),
@@ -59,7 +59,7 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
   const itemQueries = useQueries({
     queries: warehouseIds.map((id) => ({
       queryKey: ["items", id],
-      queryFn: () => getItemsByWarehouse(id.toString()),
+      queryFn: () => getItemsByWarehouse(id),
       enabled: hasWarehouses,
       staleTime: 1800000, // 30분
     })),
@@ -100,10 +100,10 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
   const formattedWarehouses = warehousesData.map((warehouse) => {
     const apiData = warehouse as unknown as ApiWarehouse;
     return {
-      id: String(apiData.id),
+      id: apiData.id,
       warehouseName: apiData.warehouseName,
       description: "",
-      teamId: String(apiData.teamId),
+      teamId: apiData.teamId,
       team: apiData.team || { id: apiData.teamId, teamName: "" },
       items: apiData.items || [],
       warehouseAddress: apiData.warehouseAddress,

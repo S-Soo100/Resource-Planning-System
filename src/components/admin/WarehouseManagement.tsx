@@ -1,10 +1,7 @@
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { Address } from "react-daum-postcode";
-import {
-  CreateWarehouseRequest,
-  CreateWarehouseProps,
-} from "@/types/warehouse";
+import { CreateWarehouseDto, CreateWarehouseProps } from "@/types/warehouse";
 import { adminService } from "@/services/adminService";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -34,7 +31,6 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
     warehouseName: "",
     warehouseAddress: "",
     detailLocation: "",
-    capacity: 0,
   });
 
   const handleOpenModal = () => {
@@ -47,7 +43,6 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
       warehouseName: "",
       warehouseAddress: "",
       detailLocation: "",
-      capacity: 0,
     });
   };
 
@@ -55,7 +50,7 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
     const { name, value } = e.target;
     setNewWarehouse({
       ...newWarehouse,
-      [name]: name === "capacity" ? Number(value) : value,
+      [name]: value,
     });
   };
 
@@ -72,8 +67,8 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
         return;
       }
 
-      // newWarehouse를 CreateWarehouseRequest로 변환
-      const warehouseRequest: CreateWarehouseRequest = {
+      // newWarehouse를 CreateWarehouseDto로 변환
+      const warehouseRequest: CreateWarehouseDto = {
         warehouseName: newWarehouse.warehouseName,
         warehouseAddress:
           newWarehouse.warehouseAddress +
@@ -157,7 +152,6 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
               </h3>
               <div className="mt-2 text-sm text-gray-600">
                 <p>위치: {warehouse.warehouseAddress}</p>
-                <p>용량: {warehouse.capacity}㎡</p>
               </div>
             </button>
           ))}
@@ -254,24 +248,6 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
                   onChange={handleInputChange}
                   placeholder="건물명, 동/호수 등 상세 주소를 입력하세요"
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-              <div className="mb-6">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="capacity"
-                >
-                  용량 (㎡)
-                </label>
-                <input
-                  type="number"
-                  id="capacity"
-                  name="capacity"
-                  value={newWarehouse.capacity}
-                  onChange={handleInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  min="0"
-                  required
                 />
               </div>
               <div className="flex justify-end">

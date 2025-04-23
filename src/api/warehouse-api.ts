@@ -2,14 +2,14 @@
 import { api, ApiResponse } from "./api";
 import {
   Warehouse,
-  CreateWarehouseRequest,
+  CreateWarehouseDto,
   UpdateWarehouseRequest,
 } from "@/types/warehouse";
 
 export const warehouseApi = {
   // 창고 생성
   createWarehouse: async (
-    data: CreateWarehouseRequest
+    data: CreateWarehouseDto
   ): Promise<ApiResponse<Warehouse>> => {
     try {
       const response = await api.post<Warehouse>("/warehouse", data);
@@ -21,10 +21,10 @@ export const warehouseApi = {
 
   // 모든 창고 조회 (선택적으로 특정 팀의 창고만 조회)
   getAllWarehouses: async (
-    teamId?: string
+    teamId?: string | number
   ): Promise<ApiResponse<Warehouse[]>> => {
     try {
-      const params = teamId ? { teamId } : undefined;
+      const params = teamId ? { teamId: teamId.toString() } : undefined;
       const response = await api.get<Warehouse[]>("/warehouse", { params });
       return { success: true, data: response.data };
     } catch (error) {
@@ -34,7 +34,7 @@ export const warehouseApi = {
 
   // 팀별 창고 조회
   getTeamWarehouses: async (
-    teamId: string
+    teamId: string | number
   ): Promise<ApiResponse<Warehouse[]>> => {
     try {
       const response = await api.get<Warehouse[]>(`/warehouse/team/${teamId}`);
@@ -46,7 +46,7 @@ export const warehouseApi = {
 
   // 단일 창고 조회
   getWarehouse: async (
-    id: string
+    id: string | number
   ): Promise<ApiResponse<{ data: Warehouse }>> => {
     try {
       const response = await api.get<{ data: Warehouse }>(`/warehouse/${id}`);
@@ -58,7 +58,7 @@ export const warehouseApi = {
 
   // 창고 정보 수정
   updateWarehouse: async (
-    id: string,
+    id: string | number,
     data: UpdateWarehouseRequest
   ): Promise<ApiResponse<Warehouse>> => {
     try {
@@ -70,7 +70,9 @@ export const warehouseApi = {
   },
 
   // 창고 삭제
-  deleteWarehouse: async (id: string): Promise<ApiResponse<Warehouse>> => {
+  deleteWarehouse: async (
+    id: string | number
+  ): Promise<ApiResponse<Warehouse>> => {
     try {
       const response = await api.delete<Warehouse>(`/warehouse/${id}`);
       return { success: true, data: response.data };
@@ -81,7 +83,7 @@ export const warehouseApi = {
 
   // 창고 접근 권한 확인
   checkWarehouseAccess: async (
-    id: string
+    id: string | number
   ): Promise<ApiResponse<{ hasAccess: boolean }>> => {
     try {
       const response = await api.get<{ hasAccess: boolean }>(

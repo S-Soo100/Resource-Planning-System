@@ -19,8 +19,8 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (team) {
-      setLocalWarehouses(team.Warehouses);
-      console.log("team.Warehouses:", JSON.stringify(team.Warehouses, null, 2));
+      setLocalWarehouses(team.warehouses);
+      console.log("team.warehouses:", JSON.stringify(team.warehouses, null, 2));
     }
   }, [team]);
 
@@ -38,7 +38,6 @@ export default function AdminPage() {
                     id: warehouse.id.toString(),
                     warehouseName: warehouse.warehouseName,
                     warehouseAddress: warehouse.warehouseAddress,
-                    capacity: warehouse.capacity || 0,
                   }))
                 : []
             }

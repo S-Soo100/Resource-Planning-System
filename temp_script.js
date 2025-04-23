@@ -1,1 +1,1 @@
-console.log(JSON.stringify(team?.Warehouses, null, 2))
+console.log(JSON.stringify(team?.warehouses, null, 2));

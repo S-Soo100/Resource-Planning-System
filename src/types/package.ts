@@ -9,6 +9,8 @@ export interface IPackage {
 export interface Package {
   id: string;
   name: string;
+  teamId: number;
+  itemList: string[];
   description: string;
   weight: number;
   dimensions: {
@@ -16,8 +18,8 @@ export interface Package {
     width: number;
     height: number;
   };
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 export interface CreatePackageRequest {

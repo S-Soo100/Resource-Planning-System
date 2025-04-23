@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { User } from "lucide-react";
-import { IoLogOutOutline } from "react-icons/io5";
+import { User, ChevronLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { authStore } from "@/store/authStore";
@@ -28,19 +27,22 @@ const AppBarComponent = () => {
   const renderLeftContent = () => {
     if (pathname === "/" || pathname === "/menu") {
       return (
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2">
-            <div className="bg-gray-200 rounded-full p-2">
-              <User className="h-6 w-6 text-blue-600" />
+            <div className="bg-gray-100 rounded-full p-1.5 shadow-sm">
+              <User className="h-5 w-5 text-blue-500" />
             </div>
-            <span className="font-medium">{user?.name || "사용자"}</span>
+            <span className="text-sm font-medium text-gray-800">
+              {user?.name || "사용자"}
+            </span>
           </div>
           {selectedTeam && (
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-300">|</span>
-              <span className="text-gray-300">팀:</span>
-              <span className="font-medium">{selectedTeam.id}</span>
-              <span className="font-medium">{selectedTeam.teamName}</span>
+            <div className="flex items-center space-x-1.5">
+              <span className="text-gray-400 text-xs">•</span>
+              <span className="text-xs text-gray-500">팀:</span>
+              <span className="text-xs font-medium text-gray-800">
+                {selectedTeam.teamName}
+              </span>
             </div>
           )}
         </div>
@@ -49,9 +51,10 @@ const AppBarComponent = () => {
       return (
         <button
           onClick={() => router.back()}
-          className="text-white bg-gray-700 px-3 py-1 rounded-full"
+          className="flex items-center text-blue-500 focus:outline-none"
         >
-          뒤로가기
+          <ChevronLeft className="h-5 w-5" />
+          <span className="text-sm">뒤로</span>
         </button>
       );
     }
@@ -61,46 +64,36 @@ const AppBarComponent = () => {
   const renderRightContent = () => {
     if (pathname === "/" || pathname === "/menu") {
       return (
-        <div className="bg-slate-700 rounded-full p-2">
-          <IoLogOutOutline className="text-white text-2xl" onClick={logout} />
-        </div>
+        <button
+          onClick={logout}
+          className="text-blue-500 text-sm font-medium focus:outline-none"
+        >
+          로그아웃
+        </button>
       );
     } else if (pathname !== "/signin") {
       return (
         <div className="relative z-50">
-          {" "}
-          {/* z-index 추가 */}
-          <div
-            className="bg-gray-200 rounded-full p-2 cursor-pointer"
+          <button
+            className="flex items-center justify-center bg-gray-100 rounded-full p-1.5 shadow-sm focus:outline-none"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <User className="h-6 w-6 text-blue-600" />
-          </div>
+            <User className="h-5 w-5 text-blue-500" />
+          </button>
           {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-50">
-              {" "}
-              {/* z-50 추가 */}
-              <ul className="py-2">
-                <li
-                  className="text-black px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {}}
-                >
+            <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-xl z-50 overflow-hidden border border-gray-100">
+              <ul className="py-1">
+                <li className="text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer">
                   메뉴 1
                 </li>
-                <li
-                  className="text-black px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {}}
-                >
+                <li className="text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer">
                   메뉴 2
                 </li>
-                <li
-                  className="text-black px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {}}
-                >
+                <li className="text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer">
                   메뉴 3
                 </li>
                 <li
-                  className="text-black px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  className="text-sm text-red-500 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={logout}
                 >
                   로그아웃
@@ -115,9 +108,7 @@ const AppBarComponent = () => {
   };
 
   return (
-    <div className="flex items-center justify-between bg-gray-800 text-white p-4 z-50 relative shadow-md">
-      {" "}
-      {/* z-50 추가 */}
+    <div className="flex items-center justify-between bg-white text-gray-800 px-4 py-3 shadow-sm border-b border-gray-100 sticky top-0 z-50">
       {renderLeftContent()}
       {renderRightContent()}
     </div>

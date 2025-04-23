@@ -14,8 +14,8 @@ export interface Team {
   description?: string;
   createdAt: string;
   updatedAt: string;
-  TeamUserMap: IMappingUser[];
-  Warehouses: TeamWarehouse[];
+  teamUserMap: IMappingUser[];
+  warehouses: TeamWarehouse[];
 }
 
 export interface CreateTeamRequest {

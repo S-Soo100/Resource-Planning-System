@@ -37,8 +37,8 @@ export default function CustomItemTable() {
   // 팀의 창고 정보 가져오기
   useEffect(() => {
     const team = authService.getSelectedTeam();
-    if (team && team.Warehouses) {
-      setWarehouses(team.Warehouses);
+    if (team && team.warehouses) {
+      setWarehouses(team.warehouses);
     } else {
       setWarehouses([]);
     }
@@ -382,10 +382,14 @@ export default function CustomItemTable() {
                         ?.warehouseName || item.warehouseId}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(item.createdAt).toLocaleDateString("ko-KR")}
+                      {new Date(item.createdAt ?? "").toLocaleDateString(
+                        "ko-KR"
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
+                      {new Date(item.updatedAt ?? "").toLocaleDateString(
+                        "ko-KR"
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm flex space-x-2">
                       <button

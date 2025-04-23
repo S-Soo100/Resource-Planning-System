@@ -34,7 +34,7 @@ export const getAllItems = async (
 };
 
 export const getItemsByWarehouse = async (
-  warehouseId: string
+  warehouseId: string | number
 ): Promise<ApiResponse> => {
   try {
     const response = await api.get<ApiResponse>(

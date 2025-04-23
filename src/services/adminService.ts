@@ -1,10 +1,10 @@
 import { warehouseApi } from "@/api/warehouse-api";
-import { CreateWarehouseRequest } from "@/types/warehouse";
+import { CreateWarehouseDto } from "@/types/warehouse";
 import { QueryClient } from "@tanstack/react-query";
 
 export const adminService = {
   createWarehouse: async (
-    warehouse: CreateWarehouseRequest,
+    warehouse: CreateWarehouseDto,
     queryClient?: QueryClient
   ): Promise<boolean> => {
     try {

@@ -20,12 +20,12 @@ const MenuButtonListComponent = () => {
       icon: <MdOutlineInventory className="text-3xl" />,
       onClick: () => router.push(`/stock`),
     },
-    {
-      title: "품목 조회/수정",
-      subtitle: "모든 계정",
-      icon: <FaBox className="text-3xl" />,
-      onClick: () => router.push(`/items`),
-    },
+    // {
+    //   title: "창고별 품목 관리",
+    //   subtitle: "창고별로 관리하는 품목들이 보이고, 전체품목중에서 추가/삭제",
+    //   icon: <FaBox className="text-3xl" />,
+    //   onClick: () => router.push(`/items`),
+    // },
     {
       title: "재고 입출고 기록 조회",
       subtitle: "마스터 계정",
@@ -49,6 +49,13 @@ const MenuButtonListComponent = () => {
       subtitle: " ",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () => router.push(`/package`),
+    },
+
+    {
+      title: "관리 - 전체 품목 관리",
+      subtitle: "모든 품목 목록이 보임",
+      icon: <FaBox className="text-3xl" />,
+      onClick: () => router.push(`/team-items`),
     },
     {
       title: "관리자 기능",

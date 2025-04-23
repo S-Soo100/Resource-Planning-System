@@ -62,8 +62,22 @@ export default function TeamSelectPage() {
 
   if (error) {
     return (
-      <div className="p-4 text-red-500">
-        에러가 발생했습니다: {error.message}
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="p-8 bg-red-50 border-2 border-red-500 rounded-lg shadow-lg max-w-md w-full">
+          <h2 className="text-2xl font-bold text-red-700 mb-2">서버 에러</h2>
+          <p className="text-red-600 mb-4">
+            서버에서 사용자 데이터를 가져오는 중 오류가 발생했습니다.
+          </p>
+          <div className="bg-red-100 p-3 rounded text-red-800 text-sm">
+            <p className="font-mono">{error.message}</p>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded transition-colors"
+          >
+            다시 시도
+          </button>
+        </div>
       </div>
     );
   }

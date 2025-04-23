@@ -1,40 +1,43 @@
 // supplier(구매처)
-export interface ISupplier {
-  supplierId: number; // 구매처 id
-  supplierName: string; // 구매처 이름
-  supplierAddress: string; // 주소
-  supplierPhoneNumber: string; // 전화번호
-  registrationNumber: string; // 사업자 번호
-}
+// export interface ISupplier {
+//   supplierId: number; // 구매처 id
+//   supplierName: string; // 구매처 이름
+//   supplierAddress: string; // 주소
+//   supplierPhoneNumber: string; // 전화번호
+//   registrationNumber: string; // 사업자 번호
+// }
 
 export interface Supplier {
   id: number;
-  name: string;
-  contactPerson?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
+  supplierName: string;
+  email: string;
+  supplierAddress: string;
+  supplierPhoneNumber: string;
+  registrationNumber: string; // 사업자 번호
+  memo: string;
+  teamId: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateSupplierRequest {
-  name: string;
-  contactPerson?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  description?: string;
+  supplierName: string;
+  email: string;
+  supplierAddress: string;
+  supplierPhoneNumber: string;
+  registrationNumber: string;
+  memo?: string;
+  teamId: number;
 }
 
 export interface UpdateSupplierRequest {
-  name?: string;
-  contactPerson?: string;
+  supplierName?: string;
   email?: string;
-  phone?: string;
-  address?: string;
-  description?: string;
+  supplierAddress?: string;
+  supplierPhoneNumber?: string;
+  registrationNumber?: string;
+  memo?: string;
+  teamId?: number;
 }
 
 export interface SupplierResponse {

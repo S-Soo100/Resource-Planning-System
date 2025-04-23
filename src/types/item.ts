@@ -47,7 +47,6 @@ export interface UpdateItemRequest {
 
 export interface UpdateItemQuantityRequest {
   quantity: number;
-  // reason: string;
 }
 
 export interface ItemResponse extends ApiResponse {

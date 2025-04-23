@@ -25,8 +25,20 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
     queryFn: async () => {
       try {
         const response = await userApi.getUser(auth!.id.toString());
+        if (!response.success) {
+          throw new Error(
+            response.error || "사용자 정보를 가져오는데 실패했습니다"
+          );
+        }
         return response;
-      } catch (err) {
+      } catch (err: unknown) {
+        console.error("사용자 정보 조회 에러:", err);
+        const error = err as { response?: { status: number }; message: string };
+        if (error.response?.status === 500) {
+          throw new Error(
+            `서버 에러가 발생했습니다 (${error.response.status}): ${error.message}`
+          );
+        }
         throw err;
       }
     },
@@ -34,6 +46,7 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
     // 캐시 설정 추가
     gcTime: 30 * 60 * 1000, // 30분
     staleTime: 5 * 60 * 1000, // 5분
+    retry: 1, // 실패 시 1번만 재시도
   });
 
   return {

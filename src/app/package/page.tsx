@@ -74,6 +74,19 @@ export default function PacakgePage() {
   const [editPackageName, setEditPackageName] = useState("");
   const [editSelectedItems, setEditSelectedItems] = useState<string[]>([]);
 
+  // 아이템 목록 펼침/접힘 상태 관리
+  const [expandedPackages, setExpandedPackages] = useState<
+    Record<number, boolean>
+  >({});
+
+  // 아이템 목록 펼침/접힘 토글
+  const togglePackageExpand = (packageId: number) => {
+    setExpandedPackages((prev) => ({
+      ...prev,
+      [packageId]: !prev[packageId],
+    }));
+  };
+
   // 아이템 선택 관리
   const handleItemSelect = (itemCode: string) => {
     if (selectedItems.includes(itemCode)) {
@@ -195,17 +208,44 @@ export default function PacakgePage() {
     return teamItems.find((item) => item.itemCode === itemCode);
   };
 
-  // 패키지의 아이템 목록을 아이템 이름으로 표시
-  const renderPackageItems = (itemlistString: string) => {
-    if (!itemlistString) return "아이템 없음";
+  // 패키지의 아이템 목록을 배지 형태로 표시
+  const renderPackageItems = (pkg: { id: number; itemlist: string }) => {
+    if (!pkg.itemlist) return <p className="text-gray-500">아이템 없음</p>;
 
-    const itemCodes = itemlistString.split(", ");
-    return itemCodes
-      .map((code) => {
-        const item = findItemByCode(code);
-        return item ? `${item.itemName} (${code})` : code;
-      })
-      .join(", ");
+    const itemCodes = pkg.itemlist.split(", ");
+    const isExpanded = expandedPackages[pkg.id] || false;
+    const displayCount = isExpanded
+      ? itemCodes.length
+      : Math.min(5, itemCodes.length);
+    const hasMore = itemCodes.length > 5;
+
+    return (
+      <div>
+        <div className="flex flex-wrap gap-2 mt-2">
+          {itemCodes.slice(0, displayCount).map((code: string) => {
+            const item = findItemByCode(code);
+            return (
+              <span
+                key={code}
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                title={item ? `${item.itemName} (${code})` : code}
+              >
+                {item ? item.itemName : code}
+              </span>
+            );
+          })}
+        </div>
+
+        {hasMore && (
+          <button
+            onClick={() => togglePackageExpand(pkg.id)}
+            className="mt-2 text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
+          >
+            {isExpanded ? "접기" : `+ ${itemCodes.length - 5}개 더 보기`}
+          </button>
+        )}
+      </div>
+    );
   };
 
   if (isLoading || isTeamItemsLoading) {
@@ -265,14 +305,19 @@ export default function PacakgePage() {
         {selectedItems.length > 0 && (
           <div className="mt-2 text-sm">
             <p className="font-semibold">선택된 아이템:</p>
-            <ul className="list-disc pl-5 mt-1">
+            <div className="flex flex-wrap gap-2 mt-1">
               {selectedItems.map((itemCode) => {
                 const item = findItemByCode(itemCode);
                 return (
-                  <li key={itemCode}>{item ? item.itemName : itemCode}</li>
+                  <span
+                    key={itemCode}
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  >
+                    {item ? item.itemName : itemCode}
+                  </span>
                 );
               })}
-            </ul>
+            </div>
           </div>
         )}
       </div>
@@ -378,16 +423,19 @@ export default function PacakgePage() {
               {editSelectedItems.length > 0 && (
                 <div className="mt-2 text-sm">
                   <p className="font-semibold">선택된 아이템:</p>
-                  <ul className="list-disc pl-5 mt-1">
+                  <div className="flex flex-wrap gap-2 mt-1">
                     {editSelectedItems.map((itemCode) => {
                       const item = findItemByCode(itemCode);
                       return (
-                        <li key={itemCode}>
+                        <span
+                          key={itemCode}
+                          className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                        >
                           {item ? item.itemName : itemCode}
-                        </li>
+                        </span>
                       );
                     })}
-                  </ul>
+                  </div>
                 </div>
               )}
             </div>
@@ -419,19 +467,23 @@ export default function PacakgePage() {
         ) : (
           <ul className="space-y-4">
             {packages.map((pkg) => (
-              <li key={pkg.id} className="p-4 border rounded">
+              <li
+                key={pkg.id}
+                className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              >
                 <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold">{pkg.packageName}</h3>
-                    <p className="mt-2 text-sm">
-                      아이템: {renderPackageItems(pkg.itemlist)}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg">{pkg.packageName}</h3>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-600 mb-1">포함 아이템:</p>
+                      {renderPackageItems(pkg)}
+                    </div>
+                    <p className="mt-3 text-xs text-gray-500">
                       생성일:{" "}
                       {new Date(pkg.createdAt as string).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 ml-4">
                     <button
                       onClick={() =>
                         handleStartEdit(pkg.id, pkg.packageName, pkg.itemlist)

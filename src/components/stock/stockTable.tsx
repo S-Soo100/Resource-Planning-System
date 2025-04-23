@@ -71,7 +71,6 @@ export default function StockTable() {
     itemName: string;
     currentQuantity: number;
     newQuantity: number;
-    reason: string;
     warehouseId: number;
   }>({
     itemId: null,
@@ -79,7 +78,6 @@ export default function StockTable() {
     itemName: "",
     currentQuantity: 0,
     newQuantity: 0,
-    reason: "",
     warehouseId: 0,
   });
 
@@ -163,7 +161,6 @@ export default function StockTable() {
       itemName: item.itemName,
       currentQuantity: item.itemQuantity,
       newQuantity: item.itemQuantity,
-      reason: "",
       warehouseId: item.warehouseId,
     });
     setIsEditQuantityModalOpen(true);
@@ -382,9 +379,9 @@ export default function StockTable() {
               // 재고 기록 생성
               const recordData: CreateInventoryRecordRequest = {
                 itemId: quantityEditValues.itemId,
-                remarks: quantityEditValues.reason,
                 name: quantityEditValues.itemName,
                 price: 0, // price는 항상 0으로 설정
+                remarks: "", // 빈 문자열로 설정
               };
 
               // 수량 변화에 따라 입고 또는 출고 수량 설정

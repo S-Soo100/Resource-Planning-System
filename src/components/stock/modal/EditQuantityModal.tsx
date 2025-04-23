@@ -9,7 +9,6 @@ interface QuantityEditValues {
   itemName: string;
   currentQuantity: number;
   newQuantity: number;
-  reason: string;
   warehouseId: number;
 }
 
@@ -90,19 +89,6 @@ export default function EditQuantityModal({
                     className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                   />
                 </div>
-
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2 text-gray-700">
-                    수정 사유
-                  </label>
-                  <textarea
-                    placeholder="수량 수정 사유를 입력해주세요"
-                    value={quantityEditValues.reason}
-                    onChange={(e) => onFormChange("reason", e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -112,8 +98,7 @@ export default function EditQuantityModal({
               onClick={onUpdateQuantity}
               disabled={
                 quantityEditValues.newQuantity ===
-                  quantityEditValues.currentQuantity ||
-                !quantityEditValues.reason
+                quantityEditValues.currentQuantity
               }
               className="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
             >

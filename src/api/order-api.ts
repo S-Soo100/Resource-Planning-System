@@ -1,13 +1,14 @@
 import { api } from "./api";
 import { ApiResponse } from "../types/common";
 import {
-  CreateOrderRequest,
-  UpdateOrderRequest,
-  UpdateOrderStatusRequest,
+  CreateOrderDto,
+  UpdateOrderDto,
+  UpdateOrderStatusDto,
 } from "../types/(order)/order";
 
+// 주문 생성
 export const createOrder = async (
-  data: CreateOrderRequest
+  data: CreateOrderDto
 ): Promise<ApiResponse> => {
   try {
     const response = await api.post<ApiResponse>("/order", data);
@@ -17,6 +18,7 @@ export const createOrder = async (
   }
 };
 
+// 모든 주문 조회
 export const getAllOrders = async (): Promise<ApiResponse> => {
   try {
     const response = await api.get<ApiResponse>("/order");
@@ -26,6 +28,7 @@ export const getAllOrders = async (): Promise<ApiResponse> => {
   }
 };
 
+// 사용자별 주문 조회
 export const getOrdersByUserId = async (
   userId: string
 ): Promise<ApiResponse> => {
@@ -37,6 +40,7 @@ export const getOrdersByUserId = async (
   }
 };
 
+// 공급업체별 주문 조회
 export const getOrdersBySupplierId = async (
   supplierId: string
 ): Promise<ApiResponse> => {
@@ -50,6 +54,7 @@ export const getOrdersBySupplierId = async (
   }
 };
 
+// 단일 주문 조회
 export const getOrder = async (id: string): Promise<ApiResponse> => {
   try {
     const response = await api.get<ApiResponse>(`/order/${id}`);
@@ -59,9 +64,10 @@ export const getOrder = async (id: string): Promise<ApiResponse> => {
   }
 };
 
+// 주문 정보 수정
 export const updateOrder = async (
   id: string,
-  data: UpdateOrderRequest
+  data: UpdateOrderDto
 ): Promise<ApiResponse> => {
   try {
     const response = await api.patch<ApiResponse>(`/order/${id}`, data);
@@ -71,6 +77,7 @@ export const updateOrder = async (
   }
 };
 
+// 주문 삭제
 export const deleteOrder = async (id: string): Promise<ApiResponse> => {
   try {
     const response = await api.delete<ApiResponse>(`/order/${id}`);
@@ -80,9 +87,10 @@ export const deleteOrder = async (id: string): Promise<ApiResponse> => {
   }
 };
 
+// 주문 상태 변경
 export const updateOrderStatus = async (
   id: string,
-  data: UpdateOrderStatusRequest
+  data: UpdateOrderStatusDto
 ): Promise<ApiResponse> => {
   try {
     const response = await api.patch<ApiResponse>(`/order/${id}/status`, data);

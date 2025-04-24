@@ -19,8 +19,8 @@ export interface Team {
 }
 
 export interface CreateTeamRequest {
-  name: string;
-  description?: string;
+  teamName: string;
+  // description?: string;
 }
 
 export interface UpdateTeamRequest {
@@ -38,4 +38,16 @@ export interface TeamsResponse {
   success: boolean;
   data?: Team[];
   error?: string;
+}
+
+export interface UserTeamMapping {
+  id: number;
+  mapping_id: string;
+  userId: number;
+  teamId: number;
+  user: {
+    id: number;
+    email: string;
+    name: string;
+  };
 }

@@ -1,12 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { api, ApiResponse } from "./api";
-import { Team, CreateTeamRequest, UpdateTeamRequest } from "@/types/team";
+import {
+  Team,
+  CreateTeamRequest,
+  UpdateTeamRequest,
+  IUserTeam,
+  UserTeamMapping,
+} from "@/types/team";
 
 export const teamApi = {
   // 팀 생성
-  createTeam: async (data: CreateTeamRequest): Promise<ApiResponse<Team>> => {
+  createTeam: async (
+    data: CreateTeamRequest
+  ): Promise<ApiResponse<IUserTeam>> => {
     try {
-      const response = await api.post<{ success: boolean; data: Team }>(
+      const response = await api.post<{ success: boolean; data: IUserTeam }>(
         "/team",
         data
       );
@@ -70,13 +78,14 @@ export const teamApi = {
 
   // 팀에 사용자 추가
   addUserToTeam: async (
-    teamId: string,
+    teamId: number,
     userId: string
-  ): Promise<ApiResponse<Team>> => {
+  ): Promise<ApiResponse<UserTeamMapping>> => {
     try {
-      const response = await api.post<{ success: boolean; data: Team }>(
-        `/team/${teamId}/user/${userId}`
-      );
+      const response = await api.post<{
+        success: boolean;
+        data: UserTeamMapping;
+      }>(`/team/${teamId}/user/${userId}`);
       return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "사용자 추가에 실패했습니다." };

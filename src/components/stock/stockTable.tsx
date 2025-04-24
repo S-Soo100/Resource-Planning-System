@@ -12,6 +12,7 @@ import EditQuantityModal from "./modal/EditQuantityModal";
 import InboundModal from "./modal/InboundModal";
 import OutboundModal from "./modal/OutboundModal";
 import { inventoryRecordService } from "@/services/inventoryRecordService";
+import { authService } from "@/services/authService";
 
 // 파일 타입 정의 추가
 export interface AttachedFile {
@@ -46,8 +47,14 @@ export interface StockTableFormValues extends CreateInventoryRecordRequest {
 
 export default function StockTable() {
   const router = useRouter();
-  const { items, warehouses, isLoading, isError, invalidateInventory } =
-    useWarehouseItems();
+  const {
+    items,
+    warehouses,
+    isLoading,
+    isError,
+    invalidateInventory,
+    refetchAll,
+  } = useWarehouseItems();
   const { useUpdateItemQuantity } = useItems();
   const updateQuantityMutation = useUpdateItemQuantity();
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
@@ -134,6 +141,27 @@ export default function StockTable() {
     warehouseId: 0,
     attachedFiles: [],
   });
+
+  // 페이지 초기 로드 시 데이터 리페치
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log("StockTable: 초기 데이터 리페치 시작");
+
+        // 팀 정보 먼저 갱신 (zustand 스토어 업데이트)
+        await authService.refreshSelectedTeam();
+        console.log("StockTable: 팀 정보 갱신 완료");
+
+        // 이후 창고 및 아이템 데이터 리페치
+        await refetchAll();
+        console.log("StockTable: 초기 데이터 리페치 완료");
+      } catch (error) {
+        console.error("StockTable: 데이터 리페치 중 오류 발생", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // 페이지 로드 시 첫 번째 창고 자동 선택 (수정된 버전)
   useEffect(() => {
@@ -603,6 +631,8 @@ export default function StockTable() {
   // 창고 선택 핸들러
   const handleWarehouseSelect = (warehouseId: number) => {
     setSelectedWarehouseId(warehouseId);
+    // 창고 선택 시 최신 데이터로 리프레시
+    refetchAll();
   };
 
   if (isLoading)

@@ -160,7 +160,6 @@ export function useItems(warehouseId?: string) {
     return useMutation({
       mutationFn: ({
         id,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         itemWarehouseId, // 린터가 사용되지 않는다고 표시할 수 있지만, onSuccess에서 variables로 접근하기 위해 필요함
       }: {
         id: string;

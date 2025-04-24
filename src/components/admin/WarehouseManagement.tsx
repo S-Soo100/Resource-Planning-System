@@ -8,10 +8,9 @@ import { toast } from "react-hot-toast";
 import { authService } from "@/services/authService";
 
 // SearchAddressModal을 동적으로 import
-const SearchAddressModal = dynamic(
-  () => import("../orderRequest/(addressSearch)/SearchAddressModal"),
-  { ssr: false }
-);
+const SearchAddressModal = dynamic(() => import("../SearchAddressModal"), {
+  ssr: false,
+});
 
 interface WarehouseManagementProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { LoginAuth } from "@/types/(auth)/loginAuth";
 // import Cookies from "js-cookie";
@@ -9,48 +9,57 @@ import { FaEye, FaRegEyeSlash } from "react-icons/fa";
 import { authService } from "@/services/authService";
 
 export default function LoginBoxComponent() {
-  const [auth, setAuth] = useState<LoginAuth>(() => {
-    if (process.env.NODE_ENV === "development") {
-      return {
-        email: process.env.NEXT_PUBLIC_TEST_ACCOUNT_EMAIL || "",
-        password: process.env.NEXT_PUBLIC_TEST_ACCOUNT_PASSWORD || "",
-      };
-    }
-    return { email: "", password: "" };
-  });
+  const [auth, setAuth] = useState<LoginAuth>({ email: "", password: "" });
   const router = useRouter();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // setLoading(true);
+    setLoginError(null);
+    setIsLoading(true);
+
     try {
       const userBool = await authService.login(auth);
       if (userBool) {
         setTimeout(() => {
           router.push("/team-select");
         }, 2000);
+      } else {
+        setLoginError(
+          "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요."
+        );
+        setIsLoading(false);
       }
     } catch (err) {
-      // setError("로그인 중 오류가 발생했습니다.");
+      setLoginError("로그인 중 오류가 발생했습니다.");
       console.error("로그인 에러:", err);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 min-w-96">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 min-w-96 relative">
       <div className="w-full max-w-md mx-4 bg-white rounded-xl shadow-lg p-8">
         <div className="text-center">
           <div className="flex justify-center mb-6">
             <User className="h-12 w-12 text-blue-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">KARS1234</h1>
-          <p className="text-gray-600 mb-8">계정에 로그인하세요</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">KARS</h1>
+          <p className="text-gray-600 mb-8">캥스터즈 자동 재고관리 시스템</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {loginError && (
+            <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+              {loginError}
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="email"
@@ -117,8 +126,9 @@ export default function LoginBoxComponent() {
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg
                       hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                       transition-colors duration-200"
+            disabled={isLoading}
           >
-            로그인
+            {isLoading ? "로그인 중..." : "로그인"}
           </button>
         </form>
 
@@ -142,6 +152,15 @@ export default function LoginBoxComponent() {
           </div> */}
         </div>
       </div>
+
+      {/* 로딩 오버레이 */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-5 rounded-full">
+            <Loader className="h-8 w-8 text-blue-600 animate-spin" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

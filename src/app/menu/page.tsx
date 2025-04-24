@@ -15,7 +15,7 @@ export default function MenuPage() {
     let isMounted = true;
 
     const checkTeamAndRedirect = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       if (!isMounted) return;
 
@@ -39,14 +39,23 @@ export default function MenuPage() {
   if (isLoading || isTeamLoading) {
     return (
       <>
-        <div className="p-4 space-y-4">
-          <div className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
-          <div className="space-y-3">
-            <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
-            <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
-            <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
-            <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
-          </div>
+        <div className="flex flex-col min-h-screen">
+          <main className="flex flex-col items-center w-full p-4 space-y-4 pb-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item) => (
+              <div
+                key={item}
+                className="flex items-center w-full max-w-2xl px-8 py-4 bg-gray-100 border border-gray-200 rounded-2xl animate-pulse"
+              >
+                <div className="flex-col w-full">
+                  <div className="flex flex-row items-center">
+                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mr-8 bg-gray-300 rounded-full"></div>
+                    <div className="h-6 bg-gray-300 rounded-lg w-48"></div>
+                  </div>
+                  <div className="h-4 mt-2 ml-20 bg-gray-200 rounded-lg w-32"></div>
+                </div>
+              </div>
+            ))}
+          </main>
         </div>
 
         {/* Footer */}

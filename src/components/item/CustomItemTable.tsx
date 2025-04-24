@@ -13,7 +13,8 @@ import { TeamItem } from "@/types/team-item";
 export default function CustomItemTable() {
   const router = useRouter();
   const { items, isLoading, isError } = useWarehouseItems();
-  const { teamItems, isLoading: isTeamItemsLoading } = useTeamItems();
+  const { teamItems = [], isLoading: isTeamItemsLoading } =
+    useTeamItems().useGetTeamItems();
   const { useAddItem, useDeleteItem } = useItems();
   const addItemMutation = useAddItem();
   const deleteItemMutation = useDeleteItem();

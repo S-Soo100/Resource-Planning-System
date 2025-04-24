@@ -1,4 +1,4 @@
-import create from "zustand";
+import { create } from "zustand";
 
 interface User {
   id: number;
@@ -13,7 +13,11 @@ interface AuthState {
   logout: () => void;
 }
 
-const useAuth = create<AuthState>()();
-// ... Zustand 설정
+const useAuth = create<AuthState>((set) => ({
+  isLoggedIn: false,
+  user: null,
+  login: (user: User) => set({ isLoggedIn: true, user }),
+  logout: () => set({ isLoggedIn: false, user: null }),
+}));
 
 export { useAuth };

@@ -3,12 +3,6 @@
 
 import React, { useEffect, useRef } from "react";
 
-declare global {
-  interface Window {
-    daum: any;
-  }
-}
-
 interface SearchAddressModalProps {
   isOpen: boolean;
   onClose: () => void;

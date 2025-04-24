@@ -161,7 +161,7 @@ export default function StockTable() {
     };
 
     fetchData();
-  }, []);
+  }, [refetchAll]);
 
   // 페이지 로드 시 첫 번째 창고 자동 선택 (수정된 버전)
   useEffect(() => {
@@ -176,7 +176,7 @@ export default function StockTable() {
         setSelectedWarehouseId(firstWarehouseId);
       }
     }
-  }, [isLoading, warehouses]);
+  }, [isLoading, warehouses, selectedWarehouseId]);
 
   const handleSearch = (value: string) => {
     setSearchText(value);

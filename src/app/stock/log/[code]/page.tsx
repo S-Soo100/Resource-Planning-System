@@ -10,7 +10,7 @@ interface LogItem {
   remark: string;
 }
 
-export default function Log({ code }: { code: string }) {
+export default function Log() {
   const [logData, setLogData] = useState<LogItem[]>([
     {
       date: "2024.12.25",
@@ -27,7 +27,8 @@ export default function Log({ code }: { code: string }) {
       remark: "덕구에서 3대 수령",
     },
   ]);
-  const params: { code: string } = useParams();
+  const params = useParams();
+  const code = params.code as string;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +43,7 @@ export default function Log({ code }: { code: string }) {
   return (
     <div className="max-w-4xl mx-auto p-8">
       <h1 className="text-2xl text-center mb-4 font-bold">
-        물품 {params.code} 입/출고 로그
+        물품 {code} 입/출고 로그
       </h1>
       <table className="w-full border-collapse border border-gray-300">
         <thead>

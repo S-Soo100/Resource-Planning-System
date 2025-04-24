@@ -30,4 +30,30 @@ export const authService = {
       return authStore.getState().selectedTeam;
     return null;
   },
+
+  // 현재 선택된 팀 정보를 서버에서 다시 가져와 업데이트하는 함수
+  refreshSelectedTeam: async (): Promise<boolean> => {
+    const currentTeam = authStore.getState().selectedTeam;
+    if (!currentTeam || !currentTeam.id) {
+      console.error("팀 정보 갱신 실패 - 선택된 팀 없음");
+      return false;
+    }
+
+    try {
+      console.log("팀 정보 갱신 시도 - teamId:", currentTeam.id);
+      const response = await teamApi.getTeam(currentTeam.id.toString());
+      if (response == null || !response.data) {
+        console.error("팀 정보 갱신 실패 - 응답 데이터 없음");
+        return false;
+      }
+
+      // 팀 정보 업데이트
+      authStore.getState().setTeam(response.data);
+      console.log("팀 정보 갱신 성공", response.data);
+      return true;
+    } catch (error) {
+      console.error("팀 정보 갱신 중 오류 발생:", error);
+      return false;
+    }
+  },
 };

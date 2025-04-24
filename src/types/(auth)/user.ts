@@ -1,4 +1,4 @@
-import { IOrder } from "../(order)/order";
+import { Order } from "../(order)/order";
 import { IUserTeam } from "../team";
 
 export interface IUser {
@@ -11,34 +11,36 @@ export interface IUser {
   createdAt: string;
   updatedAt: string;
   teams?: IUserTeam[];
-  // Teams?: IUserTeam[];
-  Orders: IOrder[];
+  orders?: Order[];
 }
 
-// export interface User {
-//   id: string;
-//   email: string;
-//   name: string;
-//   role: "admin" | "user";
-//   warehouseAccess: string[];
-//   createdAt: string;
-//   updatedAt: string;
-// }
+export interface CreateUserDto {
+  email: string;
+  password: string;
+  name: string;
+  restrictedWhs: string;
+  accessLevel: "user";
+  isAdmin: false;
+}
 
-// export interface UserLogin {
-//   email: string;
-//   password: string;
-// }
+export interface CreateUserResponse {
+  id: number;
+  email: string;
+  name: string;
+  restrictedWhs: string;
+  accessLevel: string;
+  isAdmin: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
-// export interface UserLoginResponse {
-//   token: string;
-//   user: User;
-// }
+export interface UpdateUserRequest {
+  name?: string;
+  email?: string;
+  password?: string;
+  role?: "admin" | "user";
+}
 
-// export interface UserProfile {
-//   id: string;
-//   email: string;
-//   name: string;
-//   role: "admin" | "user";
-//   warehouseAccess: string[];
-// }
+export interface WarehouseAccessRequest {
+  warehouseIds: string[];
+}

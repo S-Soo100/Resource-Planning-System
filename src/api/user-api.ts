@@ -1,30 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { api, ApiResponse } from "./api";
-import { IUser } from "@/types/(auth)/user";
-
-export interface CreateUserRequest {
-  email: string;
-  name: string;
-  password: string;
-  role?: "admin" | "user";
-}
-
-export interface UpdateUserRequest {
-  name?: string;
-  email?: string;
-  password?: string;
-  role?: "admin" | "user";
-}
-
-export interface WarehouseAccessRequest {
-  warehouseIds: string[];
-}
+import {
+  IUser,
+  CreateUserDto,
+  CreateUserResponse,
+  UpdateUserRequest,
+  WarehouseAccessRequest,
+} from "@/types/(auth)/user";
 
 export const userApi = {
   // 사용자 생성
-  createUser: async (data: CreateUserRequest): Promise<ApiResponse<IUser>> => {
+  createUser: async (
+    data: CreateUserDto
+  ): Promise<ApiResponse<CreateUserResponse>> => {
     try {
-      const response = await api.post<IUser>("/user", data);
+      const response = await api.post<CreateUserResponse>("/user", data);
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: "사용자 생성에 실패했습니다." };

@@ -89,10 +89,10 @@ export default function AdminPage() {
                 onTabChange={setActiveTab}
               />
               <AdminMenuCard
-                title="창고 관리"
+                title="창고 및 품목 관리"
                 icon={<FaWarehouse />}
                 id="warehouse"
-                description="창고 정보 및 위치 관리"
+                description="창고 정보 및 품목 관리"
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
               />

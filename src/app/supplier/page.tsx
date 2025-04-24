@@ -12,7 +12,7 @@ import { authStore } from "@/store/authStore";
 
 // Daum 주소 검색 모달 동적 임포트
 const SearchAddressModal = dynamic(
-  () => import("@/components/orderRequest/(addressSearch)/SearchAddressModal"),
+  () => import("@/components/SearchAddressModal"),
   { ssr: false }
 );
 

@@ -14,16 +14,3 @@ const TableCell = ({
 };
 
 export default TableCell;
-// // 사용 예시
-// <table>
-//   <thead>
-//     <tr>
-//       <TableCell isHeader={true}>제목</TableCell>
-//     </tr>
-//   </thead>
-//   <tbody>
-//     <tr>
-//       <TableCell isHeader={false}>내용</TableCell>
-//     </tr>
-//   </tbody>
-// </table>;

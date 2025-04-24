@@ -3,18 +3,18 @@
 import React, { useState } from "react";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { CreateTeamItemDto } from "@/types/team-item";
-import { teamItemsApi } from "@/api/team-items-api";
 import { authStore } from "@/store/authStore";
 
 export default function TeamItemsPage() {
-  const { teamItems, isLoading, error, refetch } = useTeamItems();
+  const { useGetTeamItems, useCreateTeamItem } = useTeamItems();
+  const { data: teamItems = [], isLoading, error } = useGetTeamItems();
+  const { createTeamItem, isPending: submitLoading } = useCreateTeamItem();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<Omit<CreateTeamItemDto, "teamId">>({
     itemCode: "",
     itemName: "",
     memo: "",
   });
-  const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const selectedTeam = authStore((state) => state.selectedTeam);
 
@@ -55,7 +55,6 @@ export default function TeamItemsPage() {
       return;
     }
 
-    setSubmitLoading(true);
     setSubmitError(null);
 
     try {
@@ -65,18 +64,11 @@ export default function TeamItemsPage() {
         teamId: teamIdNumber,
       };
 
-      const response = await teamItemsApi.createTeamItem(teamItemDto);
-
-      if (response.success) {
-        refetch(); // 목록 새로고침
-        handleCloseModal();
-      } else {
-        setSubmitError(response.error || "아이템 생성에 실패했습니다.");
-      }
-    } catch {
+      await createTeamItem(teamItemDto);
+      handleCloseModal();
+    } catch (error) {
+      console.error("아이템 생성 오류:", error);
       setSubmitError("아이템 생성 중 오류가 발생했습니다.");
-    } finally {
-      setSubmitLoading(false);
     }
   };
 
@@ -85,7 +77,11 @@ export default function TeamItemsPage() {
   }
 
   if (error) {
-    return <div className="p-4 text-center text-red-500">{error}</div>;
+    return (
+      <div className="p-4 text-center text-red-500">
+        {error.message || "오류가 발생했습니다"}
+      </div>
+    );
   }
 
   return (

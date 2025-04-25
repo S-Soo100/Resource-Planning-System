@@ -1,39 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KARS (카스) - v0.0.5
 
-## Getting Started
+## 프로젝트 소개
 
-First, run the development server:
+KARS는 Next.js 기반의 웹 애플리케이션으로, 물품 관리 및 주문 시스템을 제공합니다. 팀별 주문 관리, 재고 관리, 주문 이력 조회 등의 기능이 포함되어 있습니다.
+
+## 기술 스택
+
+### 프론트엔드
+
+- **Next.js 15.1.3**: React 기반 프레임워크
+- **React 18.2.0**: UI 컴포넌트 라이브러리
+- **TypeScript**: 타입 안정성을 위한 JavaScript 확장
+- **TailwindCSS**: 유틸리티 기반 CSS 프레임워크
+- **Ant Design**: UI 컴포넌트 라이브러리
+- **Zustand**: 상태 관리 라이브러리
+- **React Query**: 서버 상태 관리 및 데이터 페칭 라이브러리
+
+### 개발 환경
+
+- **Turbopack**: 개발 서버 속도 향상
+- **ESLint**: 코드 품질 관리
+- **PostCSS**: CSS 처리 도구
+
+## 주요 기능 상세
+
+### 인증 및 권한 관리
+
+- 로그인/로그아웃 기능
+- 권한 기반 접근 제어 (관리자/일반 사용자/외부업체)
+- 팀 선택 및 관리
+
+### 메인 메뉴 및 네비게이션
+
+- 사용자 권한에 따른 동적 메뉴 표시
+- 관리자 전용 기능 접근 제한
+
+### 재고 관리 시스템
+
+- **재고 조회**: 현재 보유 재고 실시간 확인
+- **재고 입출고 기록**: 모든 입출고 내역 추적 및 조회
+- **창고별 품목 관리**: 각 창고/팀별 품목 관리 (관리자 전용)
+- **전체 품목 관리**: 시스템 내 모든 품목 관리 (관리자 전용)
+
+### 주문 관리 시스템
+
+- **발주 요청**: 사용자가 필요한 품목 발주 신청
+  - 패키지 기반 주문 시스템
+  - 상세 배송 정보 입력
+  - 파일 첨부 기능
+- **발주 기록 확인**: 과거 발주 내역 조회 및 상태 추적
+- **패키지 관리**: 자주 사용하는 품목 조합을 패키지로 관리
+
+### 업체 관리
+
+- 공급업체 정보 관리
+- 업체별 주문 내역 확인
+
+### 관리자 기능
+
+- **팀 관리**: 사용자 팀 생성 및 관리
+- **품목 관리**: 품목 추가, 수정, 삭제
+- **권한 관리**: 사용자 권한 설정
+
+## 사용자 역할
+
+- **마스터 계정(관리자)**: 모든 기능 접근 가능, 시스템 관리
+- **직원 계정**: 재고 조회, 발주 요청, 발주 기록 확인 가능
+- **타업체 계정**: 제한된 재고 조회, 발주 요청, 발주 기록 확인 가능
+
+## 프로젝트 구조
+
+```
+src/
+├── app/               # 페이지 및 라우팅
+│   ├── admin/         # 관리자 기능
+│   ├── menu/          # 메뉴 화면
+│   ├── orderForm/     # 주문서 기능
+│   ├── orderRecord/   # 주문 이력
+│   ├── orderRequest/  # 주문 요청
+│   ├── signin/        # 로그인
+│   ├── stock/         # 재고 관리
+│   └── team-select/   # 팀 선택
+├── components/        # 재사용 컴포넌트
+├── hooks/             # 커스텀 훅
+├── services/          # API 서비스
+├── store/             # 상태 관리
+├── types/             # 타입 정의
+└── utils/             # 유틸리티 함수
+```
+
+## 시작하기
+
+### 개발 서버 실행
 
 ```bash
 npm run dev
-# or
+# 또는
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 빌드
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+# 또는
+yarn build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 프로덕션 서버 실행
 
-## Learn More
+```bash
+npm run start
+# 또는
+yarn start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Vercel 배포
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+이 프로젝트는 Vercel 플랫폼에 배포할 준비가 되어 있습니다.
 
 # Vercel 배포 준비 완료
 

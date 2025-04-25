@@ -1,8 +1,8 @@
-import type { NextConfig } from "next";
+/** @type {import('next').NextConfig} */
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   /* config options here */
-  transpilePackages: ["lucide-react"], // add this
+  transpilePackages: ["lucide-react"],
 
   // 런타임 모드를 `server`로 설정
   experimental: {
@@ -28,4 +28,4 @@ const nextConfig: NextConfig = {
   output: "standalone",
 };
 
-export default nextConfig;
+module.exports = nextConfig;

@@ -17,7 +17,7 @@ export function usePackages() {
           throw new Error("선택된 팀이 없습니다.");
         }
 
-        const response = await packageApi.getPackage(selectedTeamId);
+        const response = await packageApi.getPackage(String(selectedTeamId));
         if (response.success && response.data) {
           return response.data;
         }

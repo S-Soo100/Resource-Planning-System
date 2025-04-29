@@ -9,7 +9,7 @@ interface NewUserForm {
   password: string;
   confirmPassword: string;
   name: string;
-  userId: string;
+  userId: number;
 }
 
 const TeamMembersManagement: React.FC = () => {
@@ -26,11 +26,11 @@ const TeamMembersManagement: React.FC = () => {
     error,
     addUser,
     isAddingUser,
-    removeUser,
-    isRemovingUser,
     addUserWithCreation,
     isProcessingUser,
-  } = useTeamAdmin(teamId || "");
+    removeUser,
+    isRemovingUser,
+  } = useTeamAdmin(teamId || 0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isExistingUser, setIsExistingUser] = useState(false);
@@ -41,7 +41,7 @@ const TeamMembersManagement: React.FC = () => {
     password: "",
     confirmPassword: "",
     name: "",
-    userId: "",
+    userId: 0,
   });
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
@@ -70,7 +70,7 @@ const TeamMembersManagement: React.FC = () => {
   const validateForm = (): boolean => {
     if (isExistingUser) {
       // 기존 사용자 추가 모드
-      if (!newUserForm.userId.trim()) {
+      if (!newUserForm.userId) {
         setFormError("사용자 ID를 입력해주세요.");
         return false;
       }
@@ -119,7 +119,7 @@ const TeamMembersManagement: React.FC = () => {
         setDetailMessage(
           `기존 사용자(ID: ${newUserForm.userId})를 팀(${teamId})에 추가 시도 중...`
         );
-        addUser(newUserForm.userId);
+        addUser(Number(newUserForm.userId));
         setFormSuccess("사용자가 팀에 추가되었습니다.");
       } catch (error) {
         if (error instanceof Error) {
@@ -161,7 +161,7 @@ const TeamMembersManagement: React.FC = () => {
       password: "",
       confirmPassword: "",
       name: "",
-      userId: "",
+      userId: 0,
     });
 
     // 성공 시 3초 후 모달 닫기
@@ -187,7 +187,7 @@ const TeamMembersManagement: React.FC = () => {
       password: "",
       confirmPassword: "",
       name: "",
-      userId: "",
+      userId: 0,
     });
   };
 
@@ -267,7 +267,7 @@ const TeamMembersManagement: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => removeUser(String(user.userId))}
+                      onClick={() => removeUser(user.userId)}
                       disabled={isRemovingUser || !user.userId}
                       className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >

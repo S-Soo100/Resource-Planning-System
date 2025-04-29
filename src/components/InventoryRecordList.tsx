@@ -1,6 +1,7 @@
 import React from "react";
 import { useGetWarehouseInventoryRecords } from "../hooks/useInventoryRecord";
 import { format } from "date-fns";
+import { InventoryRecord } from "../types/inventory-record";
 
 interface InventoryRecordListProps {
   warehouseId: string;
@@ -13,15 +14,15 @@ export const InventoryRecordList: React.FC<InventoryRecordListProps> = ({
   startDate,
   endDate,
 }) => {
-  const {
-    data: records,
-    isLoading,
-    error,
-  } = useGetWarehouseInventoryRecords(warehouseId, startDate, endDate);
+  const { records, isLoading, error } = useGetWarehouseInventoryRecords(
+    Number(warehouseId),
+    startDate?.toISOString(),
+    endDate?.toISOString()
+  );
 
   if (isLoading) return <div>로딩 중...</div>;
   if (error) return <div>에러가 발생했습니다: {error.message}</div>;
-  // if (!records) return <div>데이터가 없습니다.</div>;
+  if (!records) return <div>데이터가 없습니다.</div>;
 
   return (
     <div className="overflow-x-auto">
@@ -46,18 +47,22 @@ export const InventoryRecordList: React.FC<InventoryRecordListProps> = ({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {records.map((record) => (
+          {records.map((record: InventoryRecord) => (
             <tr key={record.id}>
               <td className="px-6 py-4 whitespace-nowrap">
                 {format(
-                  new Date(record.inboundDate || record.outboundDate),
+                  new Date(
+                    record.inboundDate || record.outboundDate || new Date()
+                  ),
                   "yyyy-MM-dd"
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {record.item?.name}
+                {record.item?.itemName}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">{record.quantity}</td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {record.inboundQuantity || record.outboundQuantity}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 {record.inboundDate ? "입고" : "출고"}
               </td>

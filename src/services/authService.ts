@@ -16,7 +16,7 @@ export const authService = {
 
   selectTeam: async (teamId: number): Promise<boolean> => {
     // console.log("팀 선택 시도 - teamId:", teamId);
-    const response = await teamApi.getTeam(teamId.toString());
+    const response = await teamApi.getTeam(teamId);
     if (response == null || !response.data) {
       console.error("팀 선택 실패 - 응답 데이터 없음");
       return false;
@@ -41,7 +41,7 @@ export const authService = {
 
     try {
       console.log("팀 정보 갱신 시도 - teamId:", currentTeam.id);
-      const response = await teamApi.getTeam(currentTeam.id.toString());
+      const response = await teamApi.getTeam(currentTeam.id);
       if (response == null || !response.data) {
         console.error("팀 정보 갱신 실패 - 응답 데이터 없음");
         return false;

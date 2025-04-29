@@ -17,8 +17,7 @@ export function useTeamItems() {
           throw new Error("선택된 팀이 없습니다.");
         }
 
-        const teamIdNumber = parseInt(selectedTeamId, 10);
-        const response = await teamItemsApi.getTeamItemsByTeam(teamIdNumber);
+        const response = await teamItemsApi.getTeamItemsByTeam(selectedTeamId);
         if (response.success && response.data) {
           return response.data;
         }

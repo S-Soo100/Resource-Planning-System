@@ -8,7 +8,7 @@ import { CreateUserDto } from "@/types/(auth)/user";
 /**
  * 팀 사용자 관리를 위한 커스텀 훅
  */
-export const useTeamAdmin = (teamId: string | number) => {
+export const useTeamAdmin = (teamId: number) => {
   const queryClient = useQueryClient();
 
   // 팀 정보 및 팀 사용자 목록 조회
@@ -19,7 +19,7 @@ export const useTeamAdmin = (teamId: string | number) => {
   } = useQuery<Team>({
     queryKey: ["team", teamId],
     queryFn: async () => {
-      const response = await teamApi.getTeam(String(teamId));
+      const response = await teamApi.getTeam(Number(teamId));
       if (!response.success || !response.data) {
         throw new Error(response.error || "팀 정보를 가져오는데 실패했습니다.");
       }
@@ -43,66 +43,21 @@ export const useTeamAdmin = (teamId: string | number) => {
 
   // 팀에 유저 추가
   const addUserToTeam = useMutation({
-    mutationFn: async (userId: string) => {
-      console.log(`팀(${teamId})에 사용자(${userId}) 추가 시도`);
-
-      // 팀 ID 유효성 검사
-      if (!teamId) {
-        throw new Error("팀 ID가 없습니다.");
-      }
-
-      // 사용자 ID 유효성 검사
-      if (!userId) {
-        throw new Error("사용자 ID가 없습니다.");
-      }
-
-      // 숫자로 변환 시 NaN이 될 수 있으므로 확인
-      const numericTeamId = Number(teamId);
-      if (isNaN(numericTeamId)) {
-        throw new Error(`유효하지 않은 팀 ID입니다: ${teamId}`);
-      }
-
-      // 직접 API URL 확인용 로그
-      console.log(`API 호출 URL: /team/${numericTeamId}/user/${userId}`);
-
-      try {
-        const response = await teamApi.addUserToTeam(numericTeamId, userId);
-        console.log("팀에 사용자 추가 응답:", response);
-
-        if (!response.success) {
-          console.error("팀에 사용자 추가 실패:", response.error);
-          throw new Error(response.error || "유저 추가에 실패했습니다.");
-        }
-
-        if (!response.data) {
-          console.error("팀에 사용자 추가 응답에 데이터가 없습니다:", response);
-          throw new Error("유저 추가 응답이 올바르지 않습니다.");
-        }
-
-        return response.data;
-      } catch (error) {
-        console.error("팀에 사용자 추가 중 예외 발생:", error);
-        throw error;
-      }
+    mutationFn: async (userId: number) => {
+      return await teamApi.addUserToTeam(teamId, userId);
     },
     onSuccess: () => {
-      // 팀 데이터 다시 불러오기
-      queryClient.invalidateQueries({ queryKey: ["team", teamId] });
+      queryClient.invalidateQueries({ queryKey: ["teamUsers", teamId] });
     },
   });
 
   // 팀에서 유저 제거
   const removeUser = useMutation({
-    mutationFn: async (userId: string) => {
-      const response = await teamApi.removeUserFromTeam(String(teamId), userId);
-      if (!response.success || !response.data) {
-        throw new Error(response.error || "유저 제거에 실패했습니다.");
-      }
-      return response.data;
+    mutationFn: async (userId: number) => {
+      return await teamApi.removeUserFromTeam(teamId, userId);
     },
     onSuccess: () => {
-      // 팀 데이터 다시 불러오기
-      queryClient.invalidateQueries({ queryKey: ["team", teamId] });
+      queryClient.invalidateQueries({ queryKey: ["teamUsers", teamId] });
     },
   });
 
@@ -126,16 +81,12 @@ export const useTeamAdmin = (teamId: string | number) => {
           };
         }
 
-        // ID 문자열 변환
-        const userId = String(newUser.id);
-        console.log(`팀에 추가할 사용자 ID: ${userId}`);
-
         // 팀에 사용자 추가 시도
         try {
           // 짧은 지연 추가 (API 서버 상태 반영 시간 확보)
           await new Promise((resolve) => setTimeout(resolve, 500));
 
-          const addResult = await addUserToTeam.mutateAsync(userId);
+          const addResult = await addUserToTeam.mutateAsync(newUser.id);
           console.log("팀에 사용자 추가 결과:", addResult);
 
           return { success: true, data: newUser };

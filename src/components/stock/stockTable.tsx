@@ -1006,7 +1006,6 @@ export default function StockTable() {
           selectedItem={selectedInboundItem}
           onFileUpload={handleInboundFileUpload}
           onFileDelete={handleInboundFileDelete}
-          suppliers={suppliersList || []}
         />
         <OutboundModal
           isOpen={isOutboundModalOpen}
@@ -1020,7 +1019,6 @@ export default function StockTable() {
           selectedItem={selectedOutboundItem}
           onFileUpload={handleOutboundFileUpload}
           onFileDelete={handleOutboundFileDelete}
-          suppliers={suppliersList || []}
         />
       </div>
     </>

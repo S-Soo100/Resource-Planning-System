@@ -5,20 +5,6 @@ import React, { useRef, useState } from "react";
 import { AttachedFile } from "../stockTable";
 import SearchAddressModal from "./SearchAddressModal";
 
-interface InboundValues {
-  itemId?: number | null;
-  itemCode?: string;
-  itemName?: string;
-  quantity: number;
-  date: string;
-  inboundPlace?: string;
-  inboundAddress?: string;
-  inboundAddressDetail?: string;
-  remarks?: string;
-  warehouseId: number;
-  attachedFiles: AttachedFile[];
-}
-
 interface InboundModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -44,11 +30,6 @@ interface InboundModalProps {
   selectedItem: any;
   onFileUpload: (files: FileList | null) => void;
   onFileDelete: (index: number) => void;
-  suppliers?: {
-    id: number;
-    supplierName: string;
-    supplierAddress: string;
-  }[];
 }
 
 export default function InboundModal({
@@ -61,7 +42,6 @@ export default function InboundModal({
   selectedItem,
   onFileUpload,
   onFileDelete,
-  suppliers = [],
 }: InboundModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);

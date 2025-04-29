@@ -4,27 +4,8 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Warehouse } from "@/types/warehouse";
 import { getItemsByWarehouse } from "@/api/item-api";
 import { Item } from "@/types/item";
-import { ApiResponse } from "@/api/api";
-import { useEffect, useMemo } from "react";
 import { authStore } from "@/store/authStore";
 import { teamApi } from "@/api/team-api";
-
-// API 응답에서 받는 창고 데이터 구조
-interface ApiWarehouse {
-  id: number;
-  warehouseName: string;
-  warehouseAddress: string;
-  teamId: number;
-  createdAt: string;
-  updatedAt: string;
-  team?: {
-    id: number;
-    teamName: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-  items?: Item[];
-}
 
 interface useWarehouseItemsReturn {
   isLoading: boolean;
@@ -33,6 +14,11 @@ interface useWarehouseItemsReturn {
   items: Item[];
   invalidateInventory: () => Promise<void>;
   refetchAll: () => Promise<void>;
+}
+
+interface WarehousesData {
+  warehouses: Warehouse[];
+  items: Item[];
 }
 
 export function useWarehouseItems(): useWarehouseItemsReturn {
@@ -63,7 +49,7 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
   const hasWarehouses = warehouseIds.length > 0;
 
   // 모든 창고의 아이템 정보를 한 번에 가져오기
-  const { data: allWarehousesData } = useQuery({
+  const { data: allWarehousesData } = useQuery<WarehousesData>({
     queryKey: ["allWarehouses", selectedTeamId],
     queryFn: async () => {
       if (!hasWarehouses) return { warehouses: [], items: [] };
@@ -75,13 +61,13 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
       const warehouseResponses = await Promise.all(warehousePromises);
       const warehouses = warehouseResponses
         .filter((response) => response.success && response.data)
-        .map((response) => response.data!.data);
+        .map((response) => response.data!.data as Warehouse);
 
       // 2. 모든 창고의 아이템 정보 가져오기
       const itemPromises = warehouseIds.map((id) => getItemsByWarehouse(id));
       const itemResponses = await Promise.all(itemPromises);
       const items = itemResponses.flatMap((response) =>
-        response.success && response.data ? response.data : []
+        response.success && response.data ? (response.data as Item[]) : []
       );
 
       return { warehouses, items };

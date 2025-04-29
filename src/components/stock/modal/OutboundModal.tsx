@@ -4,23 +4,6 @@
 import React, { useRef, useState } from "react";
 import { AttachedFile } from "../stockTable";
 import SearchAddressModal from "./SearchAddressModal";
-import { Supplier } from "@/types/(order)/supplier";
-
-interface OutboundValues {
-  itemId?: number | null;
-  itemCode?: string;
-  itemName?: string;
-  currentQuantity?: number;
-  quantity: number;
-  date: string;
-  outboundPlace?: string; // 출고처 필드
-  outboundAddress?: string; // 출고 주소 필드
-  outboundAddressDetail?: string; // 기타주소 필드 추가
-  remarks?: string;
-  warehouseId: number;
-  attachedFiles: AttachedFile[];
-  supplierId?: number;
-}
 
 interface OutboundModalProps {
   isOpen: boolean;

@@ -7,8 +7,13 @@ import TableCell from "../orderRecord/(tableBody)/TableCell";
 import { authStore } from "@/store/authStore";
 import { useSuppliers } from "@/hooks/useSupplier";
 import { Supplier } from "@/types/(order)/supplier";
+import { ApiResponse } from "@/types/common";
 
 type TabType = "all" | "user" | "supplier";
+
+interface OrderResponse extends ApiResponse {
+  data: IOrderRecord[];
+}
 
 const OrderRecordTabs = () => {
   const [activeTab, setActiveTab] = useState<TabType>("all");
@@ -75,12 +80,12 @@ const OrderRecordTabs = () => {
   const getActiveOrders = (): IOrderRecord[] => {
     switch (activeTab) {
       case "user":
-        return userOrders?.data || [];
+        return (userOrders as OrderResponse)?.data || [];
       case "supplier":
-        return supplierOrders?.data || [];
+        return (supplierOrders as OrderResponse)?.data || [];
       case "all":
       default:
-        return allOrders?.data || [];
+        return (allOrders as OrderResponse)?.data || [];
     }
   };
 

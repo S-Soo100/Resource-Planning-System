@@ -228,13 +228,17 @@ const OrderRequestFormComponent = () => {
     const orderData: CreateOrderDto = {
       userId: 1, // 현재 로그인한 사용자 ID (실제로는 인증 시스템에서 가져와야 함)
       supplierId: 1, // 공급업체 ID (실제로는 선택된 패키지에 따라 결정될 수 있음)
+      packageId: selectedPackage?.id || 0,
       requester: formData.requester,
       receiver: formData.receiver,
       receiverPhone: formData.phone,
       receiverAddress: `${formData.address} ${formData.detailAddress}`.trim(),
       purchaseDate: formData.requestDate,
+      outboundDate: formData.requestDate,
+      installationDate: formData.setupDate,
       manager: formData.manager,
       status: "요청", // 기본 상태
+      memo: formData.notes,
       orderItems: orderItemRequests,
     };
 

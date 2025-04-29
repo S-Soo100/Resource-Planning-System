@@ -181,7 +181,7 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
     setItemSubmitError(null);
 
     try {
-      const teamIdNumber = parseInt(selectedTeam.id, 10);
+      const teamIdNumber = Number(selectedTeam.id);
       const teamItemDto: CreateTeamItemDto = {
         ...itemFormData,
         teamId: teamIdNumber,

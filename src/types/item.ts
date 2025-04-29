@@ -3,14 +3,15 @@ import { ApiResponse } from "./common";
 // item(품목)
 //? 4월 23일
 export interface Item {
-  id: number; // 품목 id
-  itemCode: string; // 품목 코드
-  itemName: string; // 품목 이름
-  itemQuantity: number; // 수량
-  warehouseId: number; // 창고 id (FK)
-  createdAt: string | null;
-  updatedAt: string | null;
+  id: number;
+  itemCode: string;
+  itemName: string;
+  itemQuantity: number;
+  warehouseId: number;
+  createdAt: string;
+  updatedAt: string;
   memo: string | null;
+  deletedAt: string | null;
 }
 
 // 프론트엔드에서 사용할 형식

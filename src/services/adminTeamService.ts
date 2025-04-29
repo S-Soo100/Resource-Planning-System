@@ -12,10 +12,7 @@ export const adminTeamService = {
     const user = authStore.getState().user;
 
     if (newTeam.data?.id && user?.id) {
-      const response = await teamApi.addUserToTeam(
-        newTeam.data.id,
-        String(user.id)
-      );
+      const response = await teamApi.addUserToTeam(newTeam.data.id, user.id);
       return response.data;
     }
 

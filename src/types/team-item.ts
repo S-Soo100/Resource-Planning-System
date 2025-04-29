@@ -4,8 +4,8 @@ export interface TeamItem {
   itemName: string;
   teamId: number;
   memo: string;
-  createdAt: string | null;
-  updatedAt: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 export interface CreateTeamItemDto {

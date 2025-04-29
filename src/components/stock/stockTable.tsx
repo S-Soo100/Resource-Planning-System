@@ -7,12 +7,13 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
-import { CreateInventoryRecordRequest } from "@/types/inventory-record";
+import { CreateInventoryRecordDto } from "@/types/inventory-record";
 import EditQuantityModal from "./modal/EditQuantityModal";
 import InboundModal from "./modal/InboundModal";
 import OutboundModal from "./modal/OutboundModal";
 import { inventoryRecordService } from "@/services/inventoryRecordService";
-import { authService } from "@/services/authService";
+import { useSuppliers } from "@/hooks/useSupplier";
+// import { authService } from "@/services/authService";
 
 // 파일 타입 정의 추가
 export interface AttachedFile {
@@ -23,38 +24,33 @@ export interface AttachedFile {
   size: number;
 }
 
-export interface StockTableFormValues extends CreateInventoryRecordRequest {
-  inboundDate?: string | null;
-  outboundDate?: string | null;
-  inboundPlace?: string | null;
-  inboundAddress?: string | null;
-  inboundAddressDetail?: string | null;
-  outboundPlace?: string | null;
-  outboundAddress?: string | null;
-  outboundAddressDetail?: string | null;
-  inboundQuantity?: number | null;
-  outboundQuantity?: number | null;
-  remarks?: string | null;
-  supplierId?: number | null;
-  packageId?: number | null;
-  itemId?: number | null;
-  userId?: number | null;
-  name?: string | null;
-  description?: string | null;
-  warehouseId: number | null;
-  attachedFiles?: AttachedFile[]; // 첨부파일 필드 추가
+export interface StockTableFormValues {
+  itemId?: number;
+  warehouseId: number;
+  inboundDate?: string;
+  outboundDate?: string;
+  inboundPlace?: string;
+  inboundAddress?: string;
+  inboundAddressDetail?: string;
+  outboundPlace?: string;
+  outboundAddress?: string;
+  outboundAddressDetail?: string;
+  inboundQuantity?: number;
+  outboundQuantity?: number;
+  remarks?: string;
+  supplierId?: number;
+  packageId?: number;
+  userId?: number;
+  name?: string;
+  description?: string;
+  attachedFiles?: File[];
+  attachedFilesPreview?: AttachedFile[];
 }
 
 export default function StockTable() {
   const router = useRouter();
-  const {
-    items,
-    warehouses,
-    isLoading,
-    isError,
-    invalidateInventory,
-    refetchAll,
-  } = useWarehouseItems();
+  const { items, warehouses, isLoading, isError, invalidateInventory } =
+    useWarehouseItems();
   const { useUpdateItemQuantity } = useItems();
   const updateQuantityMutation = useUpdateItemQuantity();
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
@@ -100,6 +96,7 @@ export default function StockTable() {
     remarks: string;
     warehouseId: number;
     attachedFiles: AttachedFile[];
+    supplierId?: number;
   }>({
     itemId: null,
     itemCode: "",
@@ -127,6 +124,7 @@ export default function StockTable() {
     remarks: string;
     warehouseId: number;
     attachedFiles: AttachedFile[];
+    supplierId?: number;
   }>({
     itemId: null,
     itemCode: "",
@@ -142,39 +140,51 @@ export default function StockTable() {
     attachedFiles: [],
   });
 
-  // 페이지 초기 로드 시 데이터 리페치
+  const { useGetSuppliers } = useSuppliers();
+  const { suppliers: suppliersResponse } = useGetSuppliers();
+  const [suppliersList, setSuppliersList] = useState<
+    {
+      id: number;
+      supplierName: string;
+      supplierAddress: string;
+    }[]
+  >([]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        console.log("StockTable: 초기 데이터 리페치 시작");
-
-        // 팀 정보 먼저 갱신 (zustand 스토어 업데이트)
-        await authService.refreshSelectedTeam();
-        console.log("StockTable: 팀 정보 갱신 완료");
-
-        // 이후 창고 및 아이템 데이터 리페치
-        await refetchAll();
-        console.log("StockTable: 초기 데이터 리페치 완료");
-      } catch (error) {
-        console.error("StockTable: 데이터 리페치 중 오류 발생", error);
+    if (suppliersResponse) {
+      if (
+        typeof suppliersResponse === "object" &&
+        "data" in suppliersResponse
+      ) {
+        setSuppliersList(
+          suppliersResponse.data as {
+            id: number;
+            supplierName: string;
+            supplierAddress: string;
+          }[]
+        );
+      } else {
+        setSuppliersList(
+          suppliersResponse as {
+            id: number;
+            supplierName: string;
+            supplierAddress: string;
+          }[]
+        );
       }
-    };
+    }
+  }, [suppliersResponse]);
 
-    fetchData();
-  }, [refetchAll]);
-
-  // 페이지 로드 시 첫 번째 창고 자동 선택 (수정된 버전)
+  // 페이지 로드 시 첫 번째 창고 자동 선택
   useEffect(() => {
-    // 데이터가 로드되고 창고 목록이 있을 때
-    if (!isLoading && warehouses && warehouses.length > 0) {
-      console.log("창고 목록 로드됨:", warehouses);
-
-      // 선택된 창고가 없으면 첫 번째 창고 선택
-      if (selectedWarehouseId === null) {
-        const firstWarehouseId = Number(warehouses[0].id);
-        console.log("첫 번째 창고 자동 선택:", firstWarehouseId);
-        setSelectedWarehouseId(firstWarehouseId);
-      }
+    if (
+      !isLoading &&
+      warehouses &&
+      warehouses.length > 0 &&
+      selectedWarehouseId === null
+    ) {
+      const firstWarehouseId = Number(warehouses[0].id);
+      setSelectedWarehouseId(firstWarehouseId);
     }
   }, [isLoading, warehouses, selectedWarehouseId]);
 
@@ -247,7 +257,7 @@ export default function StockTable() {
 
   const handleInboundFormChange = (
     field: string,
-    value: string | number | null | AttachedFile[]
+    value: string | number | null | AttachedFile[] | undefined
   ) => {
     if (field === "itemId") {
       const selectedItem = items.find((item) => item.id === value);
@@ -268,6 +278,16 @@ export default function StockTable() {
           itemName: "",
         });
       }
+    } else if (field === "supplierId") {
+      const selectedSupplier = suppliersList?.find(
+        (supplier) => supplier.id === value
+      );
+      setInboundValues({
+        ...inboundValues,
+        supplierId: value as number | undefined,
+        inboundPlace: selectedSupplier?.supplierName || "",
+        inboundAddress: selectedSupplier?.supplierAddress || "",
+      });
     } else {
       setInboundValues({
         ...inboundValues,
@@ -278,7 +298,7 @@ export default function StockTable() {
 
   const handleOutboundFormChange = (
     field: string,
-    value: string | number | null | AttachedFile[]
+    value: string | number | null | AttachedFile[] | undefined
   ) => {
     if (field === "itemId") {
       const selectedItem = items.find((item) => item.id === value);
@@ -301,6 +321,16 @@ export default function StockTable() {
           currentQuantity: 0,
         });
       }
+    } else if (field === "supplierId") {
+      const selectedSupplier = suppliersList?.find(
+        (supplier) => supplier.id === value
+      );
+      setOutboundValues({
+        ...outboundValues,
+        supplierId: value as number | undefined,
+        outboundPlace: selectedSupplier?.supplierName || "",
+        outboundAddress: selectedSupplier?.supplierAddress || "",
+      });
     } else {
       setOutboundValues({
         ...outboundValues,
@@ -405,30 +435,29 @@ export default function StockTable() {
           onSuccess: (response) => {
             if (response.success) {
               // 재고 기록 생성
-              const recordData: CreateInventoryRecordRequest = {
-                itemId: quantityEditValues.itemId,
-                name: quantityEditValues.itemName,
-                price: 0, // price는 항상 0으로 설정
-                remarks: "", // 빈 문자열로 설정
-              };
-
-              // 수량 변화에 따라 입고 또는 출고 수량 설정
               const currentQuantity = quantityEditValues.currentQuantity;
               const newQuantity = quantityEditValues.newQuantity;
 
-              if (newQuantity > currentQuantity) {
-                // 수량 증가 (입고)
-                recordData.inboundQuantity = newQuantity - currentQuantity;
-                recordData.inboundDate = new Date().toISOString();
-                // quantity는 양수로 설정 (입고)
-                recordData.quantity = newQuantity - currentQuantity;
-              } else if (newQuantity < currentQuantity) {
-                // 수량 감소 (출고)
-                recordData.outboundQuantity = currentQuantity - newQuantity;
-                recordData.outboundDate = new Date().toISOString();
-                // quantity는 음수로 설정 (출고)
-                recordData.quantity = -(currentQuantity - newQuantity);
-              }
+              const recordData: CreateInventoryRecordDto = {
+                itemId: quantityEditValues.itemId!,
+                inboundQuantity:
+                  newQuantity > currentQuantity
+                    ? newQuantity - currentQuantity
+                    : undefined,
+                outboundQuantity:
+                  newQuantity < currentQuantity
+                    ? currentQuantity - newQuantity
+                    : undefined,
+                inboundDate:
+                  newQuantity > currentQuantity
+                    ? new Date().toISOString()
+                    : undefined,
+                outboundDate:
+                  newQuantity < currentQuantity
+                    ? new Date().toISOString()
+                    : undefined,
+                remarks: "",
+              };
 
               // 재고 기록 저장
               inventoryRecordService.createInventoryRecord(recordData, () =>
@@ -468,13 +497,6 @@ export default function StockTable() {
         quantity: newTotalQuantity,
       };
 
-      // 주소와 상세주소 합치기
-      const fullAddress =
-        inboundValues.inboundAddress +
-        (inboundValues.inboundAddressDetail
-          ? ` ${inboundValues.inboundAddressDetail}`
-          : "");
-
       updateQuantityMutation.mutate(
         {
           id: inboundValues.itemId.toString(),
@@ -485,28 +507,25 @@ export default function StockTable() {
           onSuccess: (response) => {
             if (response.success) {
               // 입고 기록 생성
-              const recordData: CreateInventoryRecordRequest = {
-                itemId: inboundValues.itemId,
+              const recordData: CreateInventoryRecordDto = {
+                itemId: inboundValues.itemId!,
                 inboundQuantity: inboundValues.quantity,
                 inboundDate: inboundValues.date,
-                inboundPlace: inboundValues.inboundPlace, // 입고처 필드 사용
-                inboundAddress: fullAddress, // 합쳐진 주소 사용 (기본주소 + 상세주소)
+                inboundLocation: inboundValues.inboundPlace,
                 remarks: inboundValues.remarks,
-                name: inboundValues.itemName,
-                price: 0, // price는 항상 0으로 설정
-                // 자동으로 quantity 계산 (입고는 양수)
-                quantity: inboundValues.quantity,
-                // 첨부파일 추가 (서버 구현 필요)
-                // attachedFiles: inboundValues.attachedFiles
               };
 
               // 재고 기록 저장
-              inventoryRecordService.createInventoryRecord(recordData, () =>
-                invalidateInventory(inboundValues.warehouseId.toString())
-              );
-
-              alert("입고가 성공적으로 처리되었습니다.");
-              handleCloseInboundModal();
+              inventoryRecordService
+                .createInventoryRecord(recordData, () => {
+                  invalidateInventory(inboundValues.warehouseId.toString());
+                  alert("입고가 성공적으로 처리되었습니다.");
+                  handleCloseInboundModal();
+                })
+                .catch((error) => {
+                  console.error("입고 기록 생성 실패:", error);
+                  alert(error.error || "입고 처리 중 오류가 발생했습니다.");
+                });
             } else {
               alert(
                 `오류 발생: ${
@@ -539,13 +558,6 @@ export default function StockTable() {
         return;
       }
 
-      // 주소와 상세주소 합치기
-      const fullAddress =
-        outboundValues.outboundAddress +
-        (outboundValues.outboundAddressDetail
-          ? ` ${outboundValues.outboundAddressDetail}`
-          : "");
-
       const newTotalQuantity = currentQuantity - outboundValues.quantity;
       const data: UpdateItemQuantityRequest = {
         quantity: newTotalQuantity,
@@ -561,30 +573,25 @@ export default function StockTable() {
           onSuccess: (response) => {
             if (response.success) {
               // 출고 기록 생성
-              const recordData: CreateInventoryRecordRequest = {
-                itemId: outboundValues.itemId,
+              const recordData: CreateInventoryRecordDto = {
+                itemId: outboundValues.itemId!,
                 outboundQuantity: outboundValues.quantity,
                 outboundDate: outboundValues.date,
-                outboundPlace: outboundValues.outboundPlace,
-                outboundAddress: fullAddress, // 합쳐진 주소 사용 (기본주소 + 상세주소)
+                outboundLocation: outboundValues.outboundPlace,
                 remarks: outboundValues.remarks,
-                name: outboundValues.itemName,
-                price: 0, // price는 항상 0으로 설정
-                // 자동으로 quantity 계산 (출고는 음수)
-                quantity: -outboundValues.quantity,
-                // 첨부파일 추가 (서버 구현 필요)
-                // attachedFiles: outboundValues.attachedFiles
-                // 임시로 비활성화됨
-                // warehouseId: outboundValues.warehouseId
               };
 
               // 재고 기록 저장
-              inventoryRecordService.createInventoryRecord(recordData, () =>
-                invalidateInventory(outboundValues.warehouseId.toString())
-              );
-
-              alert("출고가 성공적으로 처리되었습니다.");
-              handleCloseOutboundModal();
+              inventoryRecordService
+                .createInventoryRecord(recordData, () => {
+                  invalidateInventory(outboundValues.warehouseId.toString());
+                  alert("출고가 성공적으로 처리되었습니다.");
+                  handleCloseOutboundModal();
+                })
+                .catch((error) => {
+                  console.error("출고 기록 생성 실패:", error);
+                  alert(error.error || "출고 처리 중 오류가 발생했습니다.");
+                });
             } else {
               alert(
                 `오류 발생: ${
@@ -631,8 +638,6 @@ export default function StockTable() {
   // 창고 선택 핸들러
   const handleWarehouseSelect = (warehouseId: number) => {
     setSelectedWarehouseId(warehouseId);
-    // 창고 선택 시 최신 데이터로 리프레시
-    refetchAll();
   };
 
   if (isLoading)
@@ -789,100 +794,172 @@ export default function StockTable() {
               </div>
 
               {/* 선택된 창고의 재고 테이블 */}
-              <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
-                      ID
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                      품목 코드
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                      품목명
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                      재고수량
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                      최종수정일
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
-                      관리
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {(() => {
-                    const warehouseItems =
-                      getWarehouseItems(selectedWarehouseId);
-                    const filteredItems = getFilteredItems(warehouseItems);
+              <div className="hidden md:block">
+                {" "}
+                {/* 데스크톱에서만 테이블 표시 */}
+                <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
+                        ID
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                        품목 코드
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                        품목명
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                        재고수량
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                        최종수정일
+                      </th>
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
+                        관리
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {(() => {
+                      const warehouseItems =
+                        getWarehouseItems(selectedWarehouseId);
+                      const filteredItems = getFilteredItems(warehouseItems);
 
-                    return filteredItems.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center">
-                          <div className="py-6">
-                            <p className="text-lg text-gray-500 mb-4">
-                              창고가 비었습니다.
-                            </p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredItems.map((item, itemIndex) => (
-                        <tr
-                          key={`item-${selectedWarehouseId}-${item.id}-${itemIndex}`}
-                          className="hover:bg-gray-50 transition-colors duration-150"
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {item.id}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <a
-                              className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
-                              onClick={() =>
-                                router.push(`/item/detail/${item.id}`)
-                              }
-                            >
-                              {item.itemCode}
-                            </a>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <a
-                              className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
-                              onClick={() =>
-                                router.push(`/item/detail/${item.id}`)
-                              }
-                            >
-                              {item.itemName}
-                            </a>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                            {item.itemQuantity}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {new Date(item.updatedAt).toLocaleDateString(
-                              "ko-KR"
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            <div className="flex justify-center">
-                              <button
-                                className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-150 shadow-sm"
-                                onClick={() =>
-                                  handleOpenEditQuantityModal(item)
-                                }
-                              >
-                                수정
-                              </button>
+                      return filteredItems.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-8 text-center">
+                            <div className="py-6">
+                              <p className="text-lg text-gray-500 mb-4">
+                                창고가 비었습니다.
+                              </p>
                             </div>
                           </td>
                         </tr>
-                      ))
-                    );
-                  })()}
-                </tbody>
-              </table>
+                      ) : (
+                        filteredItems.map((item, itemIndex) => (
+                          <tr
+                            key={`item-${selectedWarehouseId}-${item.id}-${itemIndex}`}
+                            className="hover:bg-gray-50 transition-colors duration-150"
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                              {item.id}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <a
+                                className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
+                                onClick={() =>
+                                  router.push(`/item/detail/${item.id}`)
+                                }
+                              >
+                                {item.itemCode}
+                              </a>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <a
+                                className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
+                                onClick={() =>
+                                  router.push(`/item/detail/${item.id}`)
+                                }
+                              >
+                                {item.itemName}
+                              </a>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                              {item.itemQuantity}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                              {new Date(item.updatedAt).toLocaleDateString(
+                                "ko-KR"
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                              <div className="flex justify-center">
+                                <button
+                                  className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-150 shadow-sm"
+                                  onClick={() =>
+                                    handleOpenEditQuantityModal(item)
+                                  }
+                                >
+                                  수정
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      );
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 모바일용 카드 뷰 */}
+              <div className="md:hidden px-4">
+                {(() => {
+                  const warehouseItems = getWarehouseItems(selectedWarehouseId);
+                  const filteredItems = getFilteredItems(warehouseItems);
+
+                  return filteredItems.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-lg text-gray-500 mb-4">
+                        창고가 비었습니다.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-4">
+                      {filteredItems.map((item, itemIndex) => (
+                        <div
+                          key={`item-card-${selectedWarehouseId}-${item.id}-${itemIndex}`}
+                          className="bg-white rounded-xl shadow-sm p-4 space-y-3"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div
+                                className="text-blue-500 font-medium text-lg mb-1 cursor-pointer"
+                                onClick={() =>
+                                  router.push(`/item/detail/${item.id}`)
+                                }
+                              >
+                                {item.itemName}
+                              </div>
+                              <div className="text-gray-500 text-sm">
+                                {item.itemCode}
+                              </div>
+                            </div>
+                            <button
+                              className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors duration-150 shadow-sm"
+                              onClick={() => handleOpenEditQuantityModal(item)}
+                            >
+                              수정
+                            </button>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                            <div>
+                              <div className="text-gray-500 text-sm">
+                                재고수량
+                              </div>
+                              <div className="font-medium">
+                                {item.itemQuantity}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-gray-500 text-sm">
+                                최종수정일
+                              </div>
+                              <div className="text-sm">
+                                {new Date(item.updatedAt).toLocaleDateString(
+                                  "ko-KR"
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           </>
         )}
@@ -928,6 +1005,7 @@ export default function StockTable() {
           selectedItem={selectedInboundItem}
           onFileUpload={handleInboundFileUpload}
           onFileDelete={handleInboundFileDelete}
+          suppliers={suppliersList || []}
         />
         <OutboundModal
           isOpen={isOutboundModalOpen}
@@ -941,6 +1019,7 @@ export default function StockTable() {
           selectedItem={selectedOutboundItem}
           onFileUpload={handleOutboundFileUpload}
           onFileDelete={handleOutboundFileDelete}
+          suppliers={suppliersList || []}
         />
       </div>
     </>

@@ -41,7 +41,14 @@ const MainMenuComponent = () => {
       requireAdmin: false,
     },
     {
-      title: "발주 요청",
+      title: "패키지 출고 요청",
+      subtitle: "직원 계정, 타업체 계정",
+      icon: <FaTruckLoading className="text-3xl" />,
+      onClick: () => router.push(`/orderRequest`),
+      requireAdmin: false,
+    },
+    {
+      title: "개별 품목 출고 요청",
       subtitle: "직원 계정, 타업체 계정",
       icon: <FaTruckLoading className="text-3xl" />,
       onClick: () => router.push(`/orderRequest`),

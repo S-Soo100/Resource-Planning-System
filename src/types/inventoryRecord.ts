@@ -2,14 +2,11 @@ import { Item } from "./item";
 
 export interface InventoryRecord {
   id: string;
-  itemId: string;
-  item?: Item;
+  item: Item;
   quantity: number;
   inboundDate?: string;
   outboundDate?: string;
-  location: string;
   remarks?: string;
-  warehouseId: string;
   createdAt: string;
   updatedAt: string;
 }

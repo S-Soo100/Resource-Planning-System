@@ -1,81 +1,78 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiResponse } from "./common";
+import { Item } from "./item";
 
-// export interface InventoryRecord {
-//   id: number;
-//   name: string;
-//   quantity: number;
-//   price: number;
-//   description: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   supplierId: number;
-//   supplier: {
-//     id: number;
-//     name: string;
-//     contact: string;
-//     email: string;
-//   };
-// }
-
-// API 응답 구조에 맞는 인터페이스 정의
-export interface ApiInventoryRecord {
+export interface InventoryRecord {
   id: number;
   inboundDate: string | null;
   outboundDate: string | null;
-  inboundLocation: string | null;
   outboundLocation: string | null;
-  inboundPlace: string | null;
-  inboundAddress: string | null;
-  inboundAddressDetail: string | null;
-  outboundPlace: string | null;
-  outboundAddress: string | null;
-  outboundAddressDetail: string | null;
+  inboundLocation: string | null;
   inboundQuantity: number | null;
   outboundQuantity: number | null;
   remarks: string | null;
-  supplierId: number | null;
   packageId: number | null;
-  itemId: number | null;
+  itemId: number;
   userId: number | null;
+  orderId: number | null;
   createdAt: string;
   updatedAt: string;
-  supplier: null;
-  package: null;
-  item: {
-    id: number;
-    itemCode: string;
-    itemName: string;
-    itemQuantity: number;
-    warehouseId: number;
-    createdAt: string;
-    updatedAt: string;
-  } | null;
-  user: null;
+  deletedAt: string | null;
+  supplierId: number | null;
+  supplier: any | null;
+  package: any | null;
+  item: Item;
+  user: any | null;
+  order: any | null;
+  files: any[];
 }
 
-export interface CreateInventoryRecordRequest {
-  inboundDate?: string | null;
-  outboundDate?: string | null;
-  inboundLocation?: string | null;
-  outboundLocation?: string | null;
-  inboundPlace?: string | null;
-  inboundAddress?: string | null;
-  inboundAddressDetail?: string | null;
-  outboundPlace?: string | null;
-  outboundAddress?: string | null;
-  outboundAddressDetail?: string | null;
-  inboundQuantity?: number | null;
-  outboundQuantity?: number | null;
-  remarks?: string | null;
-  supplierId?: number | null;
-  packageId?: number | null;
-  itemId?: number | null;
-  userId?: number | null;
-  name?: string | null;
-  price?: number | null;
-  description?: string | null;
-  quantity?: number | null;
-  warehouseId?: number | null;
+// // API 응답 구조에 맞는 인터페이스 정의
+// export interface ApiInventoryRecord {
+//   id: number;
+//   inboundDate: string | null;
+//   outboundDate: string | null;
+//   inboundLocation: string | null;
+//   outboundLocation: string | null;
+//   inboundPlace: string | null;
+//   inboundAddress: string | null;
+//   inboundAddressDetail: string | null;
+//   outboundPlace: string | null;
+//   outboundAddress: string | null;
+//   outboundAddressDetail: string | null;
+//   inboundQuantity: number | null;
+//   outboundQuantity: number | null;
+//   remarks: string | null;
+//   supplierId: number | null;
+//   packageId: number | null;
+//   itemId: number | null;
+//   userId: number | null;
+//   createdAt: string;
+//   updatedAt: string;
+//   supplier: null;
+//   package: null;
+//   item: {
+//     id: number;
+//     itemCode: string;
+//     itemName: string;
+//     itemQuantity: number;
+//     warehouseId: number;
+//     createdAt: string;
+//     updatedAt: string;
+//   } | null;
+//   user: null;
+// }
+
+export interface CreateInventoryRecordDto {
+  itemId: number;
+  inboundQuantity?: number;
+  outboundQuantity?: number;
+  inboundLocation?: string;
+  outboundLocation?: string;
+  remarks?: string;
+  inboundDate?: string;
+  outboundDate?: string;
+  attachedFiles?: File[];
 }
 
 export interface UpdateInventoryRecordRequest {
@@ -86,21 +83,22 @@ export interface UpdateInventoryRecordRequest {
 }
 
 export interface InventoryRecordResponse extends ApiResponse {
-  data?: ApiInventoryRecord;
+  data?: InventoryRecord;
 }
 
-export interface InventoryRecordsResponse extends ApiResponse {
-  data?: ApiInventoryRecord[];
+export interface InventoryRecordsResponse {
+  success: boolean;
+  data: InventoryRecord[];
 }
 
 export interface InventoryRecordsByInventoryResponse extends ApiResponse {
   data?: {
     inventoryId: string;
-    records: ApiInventoryRecord[];
+    records: InventoryRecord[];
   };
 }
 
 // API 응답 형식
 export interface ApiInventoryRecordResponse extends ApiResponse {
-  data?: ApiInventoryRecord[];
+  data?: InventoryRecord[];
 }

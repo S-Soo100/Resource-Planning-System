@@ -15,6 +15,7 @@
     "@tanstack/react-query-devtools": "^5.62.16",
     "antd": "^5.23.0",
     "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
     "formik": "^2.4.6",
     "js-cookie": "^3.0.5",
     "jspdf": "^3.0.0",

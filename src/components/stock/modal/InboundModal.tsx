@@ -4,7 +4,6 @@
 import React, { useRef, useState } from "react";
 import { AttachedFile } from "../stockTable";
 import SearchAddressModal from "./SearchAddressModal";
-import { Supplier } from "@/types/(order)/supplier";
 
 interface InboundValues {
   itemId?: number | null;
@@ -12,13 +11,12 @@ interface InboundValues {
   itemName?: string;
   quantity: number;
   date: string;
-  inboundPlace?: string; // 입고처 필드
-  inboundAddress?: string; // 입고 주소 필드
-  inboundAddressDetail?: string; // 기타주소 필드 추가
+  inboundPlace?: string;
+  inboundAddress?: string;
+  inboundAddressDetail?: string;
   remarks?: string;
   warehouseId: number;
   attachedFiles: AttachedFile[];
-  supplierId?: number;
 }
 
 interface InboundModalProps {
@@ -36,7 +34,6 @@ interface InboundModalProps {
     remarks: string;
     warehouseId: number;
     attachedFiles: AttachedFile[];
-    supplierId?: number;
   };
   onFormChange: (
     field: string,
@@ -258,29 +255,6 @@ export default function InboundModal({
                       required
                       className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                     />
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-gray-700">
-                      공급업체
-                    </label>
-                    <select
-                      value={inboundValues.supplierId || ""}
-                      onChange={(e) =>
-                        onFormChange(
-                          "supplierId",
-                          parseInt(e.target.value) || undefined
-                        )
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-                    >
-                      <option value="">공급업체 없음</option>
-                      {suppliers.map((supplier) => (
-                        <option key={supplier.id} value={supplier.id}>
-                          {supplier.supplierName}
-                        </option>
-                      ))}
-                    </select>
                   </div>
 
                   <div className="mb-4">

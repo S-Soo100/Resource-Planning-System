@@ -31,7 +31,7 @@ interface useWarehouseItemsReturn {
   isError: boolean;
   warehouses: Warehouse[];
   items: Item[];
-  invalidateInventory: (warehouseId?: string) => Promise<void>;
+  invalidateInventory: () => Promise<void>;
   refetchAll: () => Promise<void>;
 }
 
@@ -94,7 +94,7 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
   });
 
   // 캐시 무효화 함수
-  const invalidateInventory = async (warehouseId?: string) => {
+  const invalidateInventory = async () => {
     if (!hasValidTeam) return;
 
     await queryClient.invalidateQueries({

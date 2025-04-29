@@ -9,13 +9,21 @@ export interface IUserTeam {
 }
 
 export interface Team {
-  id: string;
+  id: number;
   teamName: string;
   description?: string;
   createdAt: string;
   updatedAt: string;
   teamUserMap: IMappingUser[];
   warehouses: TeamWarehouse[];
+  mainWarehouseId: number;
+  package?: { id: number; packageName: string }[];
+  suppliers?: {
+    id: number;
+    supplierName: string;
+    supplierAddress: string;
+    supplierPhoneNumber: string;
+  }[];
 }
 
 export interface CreateTeamRequest {

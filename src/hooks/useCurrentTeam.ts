@@ -19,7 +19,7 @@ export const useCurrentTeam = (): UseCurrentTeamReturn => {
     error,
   } = useQuery<ApiResponse<Team>, Error>({
     queryKey: ["currentTeam", currentTeamId],
-    queryFn: () => teamApi.getTeam(currentTeamId!.toString()),
+    queryFn: () => teamApi.getTeam(currentTeamId!),
     enabled: !!currentTeamId,
   });
 

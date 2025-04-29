@@ -37,7 +37,7 @@ export const teamApi = {
   },
 
   // 단일 팀 조회
-  getTeam: async (id: string): Promise<ApiResponse<Team>> => {
+  getTeam: async (id: number): Promise<ApiResponse<Team>> => {
     try {
       const response = await api.get<{ success: boolean; data: Team }>(
         `/team/${id}`
@@ -50,7 +50,7 @@ export const teamApi = {
 
   // 팀 정보 수정
   updateTeam: async (
-    id: string,
+    id: number,
     data: UpdateTeamRequest
   ): Promise<ApiResponse<Team>> => {
     try {
@@ -65,7 +65,7 @@ export const teamApi = {
   },
 
   // 팀 삭제
-  deleteTeam: async (id: string): Promise<ApiResponse<Team>> => {
+  deleteTeam: async (id: number): Promise<ApiResponse<Team>> => {
     try {
       const response = await api.delete<{ success: boolean; data: Team }>(
         `/team/${id}`
@@ -79,7 +79,7 @@ export const teamApi = {
   // 팀에 사용자 추가
   addUserToTeam: async (
     teamId: number,
-    userId: string
+    userId: number
   ): Promise<ApiResponse<UserTeamMapping>> => {
     try {
       const response = await api.post<{
@@ -94,8 +94,8 @@ export const teamApi = {
 
   // 팀에서 사용자 제거
   removeUserFromTeam: async (
-    teamId: string,
-    userId: string
+    teamId: number,
+    userId: number
   ): Promise<ApiResponse<Team>> => {
     try {
       const response = await api.delete<{ success: boolean; data: Team }>(

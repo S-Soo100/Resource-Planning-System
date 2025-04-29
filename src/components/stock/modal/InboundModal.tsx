@@ -4,6 +4,7 @@
 import React, { useRef, useState } from "react";
 import { AttachedFile } from "../stockTable";
 import SearchAddressModal from "./SearchAddressModal";
+import { Supplier } from "@/types/(order)/supplier";
 
 interface InboundValues {
   itemId?: number | null;
@@ -17,21 +18,40 @@ interface InboundValues {
   remarks?: string;
   warehouseId: number;
   attachedFiles: AttachedFile[];
+  supplierId?: number;
 }
 
 interface InboundModalProps {
   isOpen: boolean;
   onClose: () => void;
-  inboundValues: InboundValues;
+  inboundValues: {
+    itemId: number | null;
+    itemCode: string;
+    itemName: string;
+    quantity: number;
+    date: string;
+    inboundPlace: string;
+    inboundAddress: string;
+    inboundAddressDetail: string;
+    remarks: string;
+    warehouseId: number;
+    attachedFiles: AttachedFile[];
+    supplierId?: number;
+  };
   onFormChange: (
     field: string,
-    value: string | number | null | AttachedFile[]
+    value: string | number | null | AttachedFile[] | undefined
   ) => void;
   onSubmitInbound: () => void;
   warehouseItems: any[];
-  selectedItem: any | null;
+  selectedItem: any;
   onFileUpload: (files: FileList | null) => void;
   onFileDelete: (index: number) => void;
+  suppliers?: {
+    id: number;
+    supplierName: string;
+    supplierAddress: string;
+  }[];
 }
 
 export default function InboundModal({
@@ -44,6 +64,7 @@ export default function InboundModal({
   selectedItem,
   onFileUpload,
   onFileDelete,
+  suppliers = [],
 }: InboundModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -237,6 +258,29 @@ export default function InboundModal({
                       required
                       className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                     />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      공급업체
+                    </label>
+                    <select
+                      value={inboundValues.supplierId || ""}
+                      onChange={(e) =>
+                        onFormChange(
+                          "supplierId",
+                          parseInt(e.target.value) || undefined
+                        )
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                    >
+                      <option value="">공급업체 없음</option>
+                      {suppliers.map((supplier) => (
+                        <option key={supplier.id} value={supplier.id}>
+                          {supplier.supplierName}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="mb-4">

@@ -73,6 +73,7 @@ export interface CreateInventoryRecordDto {
   inboundDate?: string;
   outboundDate?: string;
   attachedFiles?: File[];
+  supplierId?: number;
 }
 
 export interface UpdateInventoryRecordRequest {

@@ -461,7 +461,7 @@ export default function StockTable() {
 
               // 재고 기록 저장
               inventoryRecordService.createInventoryRecord(recordData, () =>
-                invalidateInventory(quantityEditValues.warehouseId.toString())
+                invalidateInventory()
               );
 
               alert("재고 수량이 성공적으로 업데이트되었습니다.");
@@ -513,12 +513,13 @@ export default function StockTable() {
                 inboundDate: inboundValues.date,
                 inboundLocation: inboundValues.inboundPlace,
                 remarks: inboundValues.remarks,
+                supplierId: inboundValues.supplierId,
               };
 
               // 재고 기록 저장
               inventoryRecordService
                 .createInventoryRecord(recordData, () => {
-                  invalidateInventory(inboundValues.warehouseId.toString());
+                  invalidateInventory();
                   alert("입고가 성공적으로 처리되었습니다.");
                   handleCloseInboundModal();
                 })
@@ -584,7 +585,7 @@ export default function StockTable() {
               // 재고 기록 저장
               inventoryRecordService
                 .createInventoryRecord(recordData, () => {
-                  invalidateInventory(outboundValues.warehouseId.toString());
+                  invalidateInventory();
                   alert("출고가 성공적으로 처리되었습니다.");
                   handleCloseOutboundModal();
                 })

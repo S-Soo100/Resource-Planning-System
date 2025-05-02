@@ -9,6 +9,9 @@ import {
 import dynamic from "next/dynamic";
 import { Address } from "react-daum-postcode";
 import { authStore } from "@/store/authStore";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Daum 주소 검색 모달 동적 임포트
 const SearchAddressModal = dynamic(
@@ -388,6 +391,9 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
 };
 
 export default function SupplierManagePage() {
+  const router = useRouter();
+  const { user, isLoading: isUserLoading } = useCurrentUser();
+
   const [searchName, setSearchName] = useState<string>("");
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState<boolean>(false);
@@ -483,6 +489,39 @@ export default function SupplierManagePage() {
       console.log("API 응답:", suppliersResponse);
     }
   }, [suppliersResponse]);
+
+  if (isUserLoading || isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || user.accessLevel === "supplier") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            열람 권한이 없습니다
+          </h2>
+          <p className="text-gray-600 mb-6">
+            해당 페이지에 접근할 수 있는 권한이 없습니다.
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            <ArrowLeft size={20} />
+            뒤로가기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 w-full">

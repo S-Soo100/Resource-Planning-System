@@ -6,6 +6,9 @@ import { format } from "date-fns";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
 import { ko } from "date-fns/locale";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // 날짜 포맷팅 유틸리티 함수
 const formatDate = (dateString: string | null) => {
@@ -19,6 +22,8 @@ const formatDate = (dateString: string | null) => {
 };
 
 export default function IoHistoryRecordListComponent() {
+  const router = useRouter();
+  const { user, isLoading: isUserLoading } = useCurrentUser();
   const { warehouses = [] } = useWarehouseItems();
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
     null
@@ -34,7 +39,7 @@ export default function IoHistoryRecordListComponent() {
 
   const {
     records = [],
-    isLoading,
+    isLoading: isDataLoading,
     error,
   } = useGetWarehouseInventoryRecords(
     selectedWarehouseId || 0,
@@ -53,13 +58,42 @@ export default function IoHistoryRecordListComponent() {
   console.log("Current selectedWarehouseId:", selectedWarehouseId);
   console.log("Current warehouses:", warehouses);
 
-  if (isLoading) {
-    return <div>로딩 중...</div>;
+  if (isUserLoading || isDataLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || user.accessLevel === "supplier") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            열람 권한이 없습니다
+          </h2>
+          <p className="text-gray-600 mb-6">
+            해당 페이지에 접근할 수 있는 권한이 없습니다.
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            <ArrowLeft size={20} />
+            뒤로가기
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div>
+      <div className="p-4 text-center text-red-500">
         에러 발생:{" "}
         {error.message || "데이터를 불러오는 중 문제가 발생했습니다."}
       </div>

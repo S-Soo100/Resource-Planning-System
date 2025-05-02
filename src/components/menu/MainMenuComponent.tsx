@@ -18,18 +18,37 @@ const MainMenuComponent = () => {
   // 권한 체크 함수
   const checkAccess = (
     path: string,
-    requiredLevel: "admin" | "user" | "supplier"
+    requiredLevel: "admin" | "user" | "supplier" | ("admin" | "user")[]
   ) => {
-    if (user?.accessLevel !== requiredLevel) {
-      const roleMap = {
-        admin: "관리자",
-        user: "일반 사용자",
-        supplier: "공급자",
-      };
-      alert(
-        `죄송합니다. ${roleMap[requiredLevel]} 권한이 필요한 기능입니다.\n\n현재 계정으로는 해당 기능을 사용할 수 없습니다.`
-      );
-      return;
+    if (Array.isArray(requiredLevel)) {
+      if (!requiredLevel.includes(user?.accessLevel as "admin" | "user")) {
+        const roles = requiredLevel
+          .map((level) => {
+            const roleMap = {
+              admin: "관리자",
+              user: "일반 사용자",
+              supplier: "공급자",
+            };
+            return roleMap[level];
+          })
+          .join(" 또는 ");
+        alert(
+          `죄송합니다. ${roles} 권한이 필요한 기능입니다.\n\n현재 계정으로는 해당 기능을 사용할 수 없습니다.`
+        );
+        return;
+      }
+    } else {
+      if (user?.accessLevel !== requiredLevel) {
+        const roleMap = {
+          admin: "관리자",
+          user: "일반 사용자",
+          supplier: "공급자",
+        };
+        alert(
+          `죄송합니다. ${roleMap[requiredLevel]} 권한이 필요한 기능입니다.\n\n현재 계정으로는 해당 기능을 사용할 수 없습니다.`
+        );
+        return;
+      }
     }
     router.push(path);
   };

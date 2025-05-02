@@ -9,9 +9,11 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { TeamItem } from "@/types/team-item";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function CustomItemTable() {
   const router = useRouter();
+  const { user } = useCurrentUser();
   const { items, isLoading, isError } = useWarehouseItems();
   const { teamItems = [], isLoading: isTeamItemsLoading } =
     useTeamItems().useGetTeamItems();
@@ -333,26 +335,28 @@ export default function CustomItemTable() {
                         </svg>
                       </div>
 
-                      <button
-                        onClick={() => handleOpenModal(warehouse.id)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
-                      >
-                        <svg
-                          className="h-5 w-5 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
+                      {user?.accessLevel === "admin" && (
+                        <button
+                          onClick={() => handleOpenModal(warehouse.id)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                          />
-                        </svg>
-                        관리 품목 추가
-                      </button>
+                          <svg
+                            className="h-5 w-5 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            />
+                          </svg>
+                          관리 품목 추가
+                        </button>
+                      )}
                     </div>
 
                     {/* 품목 테이블 */}
@@ -410,17 +414,19 @@ export default function CustomItemTable() {
                                   ).toLocaleDateString("ko-KR")}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm flex space-x-2">
-                                  <button
-                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs"
-                                    onClick={() =>
-                                      handleDeleteItem(
-                                        item.id,
-                                        item.itemName || ""
-                                      )
-                                    }
-                                  >
-                                    삭제
-                                  </button>
+                                  {user?.accessLevel === "admin" && (
+                                    <button
+                                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs"
+                                      onClick={() =>
+                                        handleDeleteItem(
+                                          item.id,
+                                          item.itemName || ""
+                                        )
+                                      }
+                                    >
+                                      삭제
+                                    </button>
+                                  )}
                                 </td>
                               </tr>
                             ))

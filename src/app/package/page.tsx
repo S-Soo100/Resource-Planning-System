@@ -10,6 +10,9 @@ import {
 } from "@/types/package";
 import { TeamItem } from "@/types/team-item";
 import { authStore } from "@/store/authStore";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // 모달 컴포넌트
 interface ModalProps {
@@ -54,6 +57,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
 };
 
 export default function PacakgePage() {
+  const router = useRouter();
+  const { user, isLoading: isUserLoading } = useCurrentUser();
+
   // usePackages 훅 수정
   const packageHooks = usePackages();
   const getPackages = packageHooks.useGetPackages();
@@ -269,16 +275,65 @@ export default function PacakgePage() {
     );
   };
 
-  if (isLoading || isTeamItemsLoading) {
-    return <div className="p-4">로딩 중...</div>;
+  if (isUserLoading || isLoading || isTeamItemsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || user.accessLevel === "supplier") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            열람 권한이 없습니다
+          </h2>
+          <p className="text-gray-600 mb-6">
+            해당 페이지에 접근할 수 있는 권한이 없습니다.
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            <ArrowLeft size={20} />
+            뒤로가기
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-4 text-red-500">오류: {error.message}</div>;
+    return (
+      <div className="p-4 text-center text-red-500">오류: {error.message}</div>
+    );
   }
 
   if (!selectedTeamId) {
-    return <div className="p-4">팀을 선택해주세요.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            팀을 선택해주세요
+          </h2>
+          <p className="text-gray-600 mb-6">
+            패키지 관리를 위해서는 팀을 먼저 선택해야 합니다.
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            <ArrowLeft size={20} />
+            뒤로가기
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // 패키지 추가 폼 (모달에 들어갈 내용)

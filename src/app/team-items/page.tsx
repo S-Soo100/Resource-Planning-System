@@ -9,6 +9,9 @@ import WarehouseManagement from "@/components/admin/WarehouseManagement";
 // import AdminMenuCard from "@/components/admin/AdminMenuCard";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { TeamWarehouse } from "@/types/warehouse";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // import React, { useState } from "react";
 // import { useTeamItems } from "@/hooks/useTeamItems";
@@ -17,6 +20,8 @@ import { TeamWarehouse } from "@/types/warehouse";
 export default function TeamItemsPage() {
   const [localWarehouses, setLocalWarehouses] = useState<TeamWarehouse[]>([]);
   const { team } = useCurrentTeam();
+  const router = useRouter();
+  const { user, isLoading: isUserLoading } = useCurrentUser();
 
   useEffect(() => {
     if (team) {
@@ -24,6 +29,39 @@ export default function TeamItemsPage() {
       console.log("team.warehouses:", JSON.stringify(team.warehouses, null, 2));
     }
   }, [team]);
+
+  if (isUserLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || user.accessLevel !== "admin") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            관리자 권한이 필요합니다
+          </h2>
+          <p className="text-gray-600 mb-6">
+            해당 페이지는 관리자만 접근할 수 있습니다.
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            <ArrowLeft size={20} />
+            뒤로가기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Suspense>

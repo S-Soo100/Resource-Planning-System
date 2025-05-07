@@ -41,7 +41,7 @@ export default function IoHistoryRecordListComponent() {
     records = [],
     isLoading: isDataLoading,
     error,
-  } = useGetWarehouseInventoryRecords(0, startDate, endDate);
+  } = useGetWarehouseInventoryRecords(startDate, endDate);
 
   // 필터링된 기록
   const filteredRecords = records.filter(

@@ -95,27 +95,33 @@ export const inventoryRecordApi = {
   // 입출고 기록 조회
   getInventoryRecordsByTeamId: async (
     teamId: number,
-    warehouseId: number,
     startDate?: string,
     endDate?: string
   ): Promise<InventoryRecordsResponse> => {
     try {
-      const params = {
-        startDate,
-        endDate,
-      };
+      const params: Record<string, string> = {};
+
+      if (startDate) {
+        params.startDate = startDate;
+      }
+      if (endDate) {
+        params.endDate = endDate;
+      }
 
       console.log("API Request Params:", params);
+
       const response = await api.get<InventoryRecordsResponse>(
         `/inventory-record/team/${teamId}`,
         {
           params,
         }
       );
-      // console.log("API Response:", response.data);
       return response.data;
     } catch (error) {
       console.error("입출고 기록 조회 실패:", error);
+      if (error instanceof AxiosError && error.response) {
+        console.error("요청 설정:", error.config);
+      }
       return {
         success: false,
         data: [],

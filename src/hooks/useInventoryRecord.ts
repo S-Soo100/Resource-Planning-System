@@ -42,24 +42,28 @@ export function useCreateInventoryRecord() {
 
 // 창고별 입출고 기록 조회 훅
 export function useGetWarehouseInventoryRecords(
-  warehouseId: number,
   startDate?: string,
   endDate?: string
 ) {
-  const selectedTeamId = authStore((state) => state.selectedTeam?.id) as number;
+  const selectedTeamId = authStore((state) => state.selectedTeam?.id);
+
   const query = useQuery<InventoryRecordsResponse, Error>({
-    queryKey: ["warehouseInventoryRecords", warehouseId, startDate, endDate],
-    queryFn: () =>
-      inventoryRecordApi.getInventoryRecordsByTeamId(
+    queryKey: ["warehouseInventoryRecords", selectedTeamId, startDate, endDate],
+    queryFn: () => {
+      if (!selectedTeamId) {
+        throw new Error("팀이 선택되지 않았습니다.");
+      }
+      return inventoryRecordApi.getInventoryRecordsByTeamId(
         selectedTeamId,
-        warehouseId,
         startDate,
         endDate
-      ),
-    enabled: true,
+      );
+    },
+    enabled: !!selectedTeamId,
     staleTime: 300000, // 5분
   });
 
+  console.log("Selected Team ID:", selectedTeamId);
   console.log("Query Data:", query.data);
   console.log("Query Success:", query.isSuccess);
 

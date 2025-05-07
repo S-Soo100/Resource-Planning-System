@@ -6,21 +6,34 @@ import {
   InventoryRecordsResponse,
 } from "../types/inventory-record";
 import { AxiosError } from "axios";
+import { authStore } from "@/store/authStore";
 
 // 입출고 기록 생성 함수를 별도로 export
 export const createInventoryRecord = async (
   data: CreateInventoryRecordDto
 ): Promise<ApiResponse<InventoryRecord>> => {
   try {
+    // 현재 로그인한 사용자의 ID 가져오기
+    const currentUser = authStore.getState().user;
+    if (!currentUser) {
+      throw new Error("로그인이 필요합니다.");
+    }
+
+    // 요청 데이터에 userId 추가
+    const requestData = {
+      ...data,
+      userId: currentUser.id,
+    };
+
     // 요청 데이터 로깅
-    console.log("입출고 기록 생성 요청 데이터:", data);
+    console.log("입출고 기록 생성 요청 데이터:", requestData);
 
     // 파일이 있는 경우 FormData 사용
     if (data.attachedFiles && data.attachedFiles.length > 0) {
       const formData = new FormData();
 
       // 기본 데이터를 JSON으로 추가
-      const basicData = { ...data };
+      const basicData = { ...requestData };
       const restData = Object.fromEntries(
         Object.entries(basicData).filter(([key]) => key !== "attachedFiles")
       );
@@ -50,7 +63,7 @@ export const createInventoryRecord = async (
       // 파일이 없는 경우 일반 JSON 요청
       const response = await api.post<InventoryRecord>(
         "/inventory-record",
-        data
+        requestData
       );
       console.log("서버 응답 (파일 없음):", response.data);
       return { success: true, data: response.data };

@@ -49,9 +49,12 @@ export function useGetWarehouseInventoryRecords(
 
   const query = useQuery<InventoryRecordsResponse, Error>({
     queryKey: ["warehouseInventoryRecords", selectedTeamId, startDate, endDate],
-    queryFn: () => {
+    queryFn: async () => {
       if (!selectedTeamId) {
-        throw new Error("팀이 선택되지 않았습니다.");
+        return {
+          success: false,
+          data: [],
+        };
       }
       return inventoryRecordApi.getInventoryRecordsByTeamId(
         selectedTeamId,

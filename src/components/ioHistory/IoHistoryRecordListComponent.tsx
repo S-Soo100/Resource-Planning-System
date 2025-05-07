@@ -41,10 +41,11 @@ export default function IoHistoryRecordListComponent() {
     records = [],
     isLoading: isDataLoading,
     error,
-  } = useGetWarehouseInventoryRecords(
-    selectedWarehouseId || 0,
-    startDate,
-    endDate
+  } = useGetWarehouseInventoryRecords(0, startDate, endDate);
+
+  // 필터링된 기록
+  const filteredRecords = records.filter(
+    (record) => record.item?.warehouseId === selectedWarehouseId
   );
 
   useEffect(() => {
@@ -167,7 +168,7 @@ export default function IoHistoryRecordListComponent() {
       </div>
 
       {/* 기록 목록 테이블 */}
-      {records.length === 0 ? (
+      {filteredRecords.length === 0 ? (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
           <p className="text-gray-500 text-lg">데이터가 없습니다</p>
           <p className="text-gray-400 text-sm mt-2">
@@ -200,11 +201,12 @@ export default function IoHistoryRecordListComponent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {records.map((record) => (
+              {filteredRecords.map((record) => (
                 <tr key={record.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(record.inboundDate) ||
-                      formatDate(record.outboundDate)}
+                    {record.inboundQuantity
+                      ? formatDate(record.inboundDate)
+                      : formatDate(record.outboundDate)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span

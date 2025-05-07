@@ -58,14 +58,14 @@ const MainMenuComponent = () => {
       title: "재고 조회",
       // subtitle: "마스터 계정, 직원 계정",
       icon: <MdOutlineInventory className="text-3xl" />,
-      onClick: () => checkAccess(`/stock`, "user"),
+      onClick: () => checkAccess(`/stock`, ["admin", "user"]),
       accessLevel: ["user", "admin"],
     },
     {
       title: "재고 입출고 기록 조회",
       // subtitle: "마스터 계정",
       icon: <FaClipboardList className="text-3xl" />,
-      onClick: () => checkAccess(`/ioHistory`, "user"),
+      onClick: () => checkAccess(`/ioHistory`, ["admin", "user"]),
       accessLevel: ["user", "admin"],
     },
     {

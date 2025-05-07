@@ -18,10 +18,18 @@ const MainMenuComponent = () => {
   // 권한 체크 함수
   const checkAccess = (
     path: string,
-    requiredLevel: "admin" | "user" | "supplier" | ("admin" | "user")[]
+    requiredLevel:
+      | "admin"
+      | "user"
+      | "supplier"
+      | ("admin" | "user" | "supplier")[]
   ) => {
     if (Array.isArray(requiredLevel)) {
-      if (!requiredLevel.includes(user?.accessLevel as "admin" | "user")) {
+      if (
+        !requiredLevel.includes(
+          user?.accessLevel as "admin" | "user" | "supplier"
+        )
+      ) {
         const roles = requiredLevel
           .map((level) => {
             const roleMap = {
@@ -72,33 +80,33 @@ const MainMenuComponent = () => {
       title: "패키지 출고 요청",
       // subtitle: "공급자 계정",
       icon: <FaTruckLoading className="text-3xl" />,
-      onClick: () => checkAccess(`/orderRequest`, "supplier"),
-      accessLevel: ["supplier"],
+      onClick: () => checkAccess(`/orderRequest`, ["admin", "supplier"]),
+      accessLevel: ["supplier", "admin"],
     },
     {
       title: "개별 품목 출고 요청",
       // subtitle: "공급자 계정",
       icon: <FaTruckLoading className="text-3xl" />,
-      onClick: () => checkAccess(`/orderRequest`, "supplier"),
-      accessLevel: ["supplier"],
+      onClick: () => checkAccess(`/orderRequest`, ["admin", "supplier"]),
+      accessLevel: ["supplier", "admin"],
     },
     {
       title: "발주 기록 확인",
       // subtitle: "공급자 계정",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/orderRecord`, "supplier"),
-      accessLevel: ["supplier"],
+      onClick: () => checkAccess(`/orderRecord`, ["admin", "supplier"]),
+      accessLevel: ["supplier", "admin"],
     },
     {
       title: "패키지 관리",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/package`, "user"),
+      onClick: () => checkAccess(`/package`, ["admin", "user"]),
       accessLevel: ["user", "admin"],
     },
     {
       title: "업체 관리",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/supplier`, "user"),
+      onClick: () => checkAccess(`/supplier`, ["admin", "user"]),
       accessLevel: ["user", "admin"],
     },
     {

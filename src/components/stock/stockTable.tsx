@@ -793,7 +793,10 @@ export default function StockTable() {
                     items={getFilteredItems(
                       getWarehouseItems(selectedWarehouseId)
                     )}
+                    records={[]}
                     onEditQuantity={handleOpenEditQuantityModal}
+                    onInbound={handleSubmitInbound}
+                    onOutbound={handleSubmitOutbound}
                   />
                 </tbody>
               </table>
@@ -803,7 +806,10 @@ export default function StockTable() {
             <div className="md:hidden px-4">
               <StockTableMobile
                 items={getFilteredItems(getWarehouseItems(selectedWarehouseId))}
+                records={[]}
                 onEditQuantity={handleOpenEditQuantityModal}
+                onInbound={handleSubmitInbound}
+                onOutbound={handleSubmitOutbound}
               />
             </div>
           </>

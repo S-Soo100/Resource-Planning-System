@@ -7,6 +7,7 @@ import {
   InventoryRecordsResponse,
 } from "../types/inventory-record";
 import { ApiResponse } from "../types/common";
+import { authStore } from "@/store/authStore";
 
 // 입출고 기록 생성 mutation 훅
 export function useCreateInventoryRecord() {
@@ -45,10 +46,16 @@ export function useGetWarehouseInventoryRecords(
   startDate?: string,
   endDate?: string
 ) {
+  const selectedTeamId = authStore((state) => state.selectedTeam?.id) as number;
   const query = useQuery<InventoryRecordsResponse, Error>({
     queryKey: ["warehouseInventoryRecords", warehouseId, startDate, endDate],
     queryFn: () =>
-      inventoryRecordApi.getInventoryRecords(warehouseId, startDate, endDate),
+      inventoryRecordApi.getInventoryRecordsByTeamId(
+        selectedTeamId,
+        warehouseId,
+        startDate,
+        endDate
+      ),
     enabled: !!warehouseId,
     staleTime: 300000, // 5분
   });

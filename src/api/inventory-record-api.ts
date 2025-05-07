@@ -80,21 +80,21 @@ export const createInventoryRecord = async (
 export const inventoryRecordApi = {
   createInventoryRecord,
   // 입출고 기록 조회
-  getInventoryRecords: async (
+  getInventoryRecordsByTeamId: async (
+    teamId: number,
     warehouseId: number,
     startDate?: string,
     endDate?: string
   ): Promise<InventoryRecordsResponse> => {
     try {
       const params = {
-        warehouseId,
         startDate,
         endDate,
       };
 
       console.log("API Request Params:", params);
       const response = await api.get<InventoryRecordsResponse>(
-        "/inventory-record",
+        `/inventory-record/team/${teamId}`,
         {
           params,
         }

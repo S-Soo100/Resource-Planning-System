@@ -20,6 +20,7 @@ interface InboundModalProps {
     remarks: string;
     warehouseId: number;
     attachedFiles: AttachedFile[];
+    supplierId?: number;
   };
   onFormChange: (
     field: string,
@@ -30,6 +31,11 @@ interface InboundModalProps {
   selectedItem: any;
   onFileUpload: (files: FileList | null) => void;
   onFileDelete: (index: number) => void;
+  suppliers?: {
+    id: number;
+    supplierName: string;
+    supplierAddress: string;
+  }[];
 }
 
 export default function InboundModal({
@@ -42,6 +48,7 @@ export default function InboundModal({
   selectedItem,
   onFileUpload,
   onFileDelete,
+  suppliers = [],
 }: InboundModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -235,6 +242,29 @@ export default function InboundModal({
                       required
                       className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                     />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      공급업체 선택
+                    </label>
+                    <select
+                      value={inboundValues.supplierId || ""}
+                      onChange={(e) => {
+                        const selectedSupplierId = e.target.value
+                          ? parseInt(e.target.value)
+                          : null;
+                        onFormChange("supplierId", selectedSupplierId);
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                    >
+                      <option value="">공급업체를 선택하세요</option>
+                      {suppliers.map((supplier) => (
+                        <option key={supplier.id} value={supplier.id}>
+                          {supplier.supplierName}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="mb-4">

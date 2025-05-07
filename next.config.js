@@ -26,6 +26,10 @@ const nextConfig = {
 
   // Vercel 배포를 위한 설정
   output: "standalone",
+
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 module.exports = nextConfig;

@@ -5,16 +5,21 @@ import {
   UpdateSupplierRequest,
 } from "@/types/(order)/supplier";
 import toast from "react-hot-toast";
+import { authStore } from "@/store/authStore";
 
 export function useSuppliers() {
   const queryClient = useQueryClient();
+  const selectedTeamId = authStore((state) => state.selectedTeam?.id) as number;
 
   // 모든 공급업체 조회 (이름으로 검색 가능)
   const useGetSuppliers = (name?: string) => {
     const query = useQuery({
       queryKey: ["suppliers", { name }],
       queryFn: async () => {
-        const response = await supplierApi.getAllSuppliers(name);
+        const response = await supplierApi.getAllSuppliersByTeamId(
+          selectedTeamId,
+          name
+        );
         if (response.success && response.data) {
           return response.data;
         }

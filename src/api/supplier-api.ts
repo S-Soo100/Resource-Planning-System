@@ -20,10 +20,15 @@ export const supplierApi = {
   },
 
   // 모든 공급업체 조회
-  getAllSuppliers: async (name?: string): Promise<ApiResponse<Supplier[]>> => {
+  getAllSuppliersByTeamId: async (
+    teamId: number,
+    name?: string
+  ): Promise<ApiResponse<Supplier[]>> => {
     try {
       const params = name ? { name } : undefined;
-      const response = await api.get<Supplier[]>("/supplier", { params });
+      const response = await api.get<Supplier[]>(`/supplier/team/${teamId}`, {
+        params,
+      });
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: "공급업체 목록 조회에 실패했습니다." };

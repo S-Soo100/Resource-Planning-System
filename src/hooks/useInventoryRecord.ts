@@ -56,7 +56,7 @@ export function useGetWarehouseInventoryRecords(
         startDate,
         endDate
       ),
-    enabled: !!warehouseId,
+    enabled: true,
     staleTime: 300000, // 5분
   });
 

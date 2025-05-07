@@ -17,6 +17,10 @@ import StockTableHeader from "./components/StockTableHeader";
 import StockTableDesktop from "./components/StockTableDesktop";
 import StockTableMobile from "./components/StockTableMobile";
 import StockTableEmpty from "./components/StockTableEmpty";
+import {
+  useCreateInventoryRecord,
+  useUploadInventoryRecordFile,
+} from "@/hooks/useInventoryRecord";
 // import { authService } from "@/services/authService";
 
 // 파일 타입 정의 추가
@@ -62,6 +66,8 @@ export default function StockTable() {
   } = useWarehouseItems();
   const { useUpdateItemQuantity } = useItems();
   const updateQuantityMutation = useUpdateItemQuantity();
+  const { createInventoryRecordAsync } = useCreateInventoryRecord();
+  const { uploadFileAsync } = useUploadInventoryRecordFile();
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
   const [isInboundModalOpen, setIsInboundModalOpen] = useState(false);
   const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
@@ -495,7 +501,7 @@ export default function StockTable() {
     }
   };
 
-  const handleSubmitInbound = () => {
+  const handleSubmitInbound = async () => {
     if (!inboundValues.itemId) return;
 
     try {
@@ -517,68 +523,41 @@ export default function StockTable() {
         userId: user?.id,
       };
 
-      // 재고 수량 변경 API 호출 부분 주석 처리
-      // const newTotalQuantity =
-      //   (getItemById(inboundValues.itemId)?.itemQuantity || 0) +
-      //   inboundValues.quantity;
-      // const data: UpdateItemQuantityRequest = {
-      //   quantity: newTotalQuantity,
-      // };
+      try {
+        const recordId = await createInventoryRecordAsync(recordData);
+        console.log("입고 기록 생성 성공, recordId:", recordId);
 
-      // updateQuantityMutation.mutate(
-      //   {
-      //     id: inboundValues.itemId.toString(),
-      //     data,
-      //     itemWarehouseId: inboundValues.warehouseId.toString(),
-      //   },
-      //   {
-      //     onSuccess: (response) => {
-      //       if (response.success) {
-      //         // 재고 기록 저장
-      //         inventoryRecordService
-      //           .createInventoryRecord(recordData, () => {
-      //             invalidateInventory();
-      //             alert("입고가 성공적으로 처리되었습니다.");
-      //             handleCloseInboundModal();
-      //           })
-      //           .catch((error) => {
-      //             console.error("입고 기록 생성 실패:", error);
-      //             alert(error.error || "입고 처리 중 오류가 발생했습니다.");
-      //           });
-      //       } else {
-      //         alert(
-      //           `오류 발생: ${
-      //             response.message || "알 수 없는 오류가 발생했습니다."
-      //           }`
-      //         );
-      //       }
-      //     },
-      //     onError: (error) => {
-      //       console.error("입고 처리 중 오류 발생:", error);
-      //       alert("입고 처리 중 오류가 발생했습니다.");
-      //     },
-      //   }
-      // );
+        // 첫 번째 파일이 있는 경우 업로드
+        if (inboundValues.attachedFiles.length > 0 && recordId) {
+          try {
+            const uploadResult = await uploadFileAsync({
+              recordId,
+              file: inboundValues.attachedFiles[0].file,
+            });
+            console.log("파일 업로드 성공:", {
+              recordId,
+              fileName: inboundValues.attachedFiles[0].name,
+              uploadResult,
+            });
+          } catch (error) {
+            console.error("파일 업로드 실패:", error);
+          }
+        }
 
-      // 입출고 기록 생성 API만 호출
-      inventoryRecordService
-        .createInventoryRecord(recordData)
-        .then(async () => {
-          await invalidateInventory();
-          alert("입고가 성공적으로 처리되었습니다.");
-          handleCloseInboundModal();
-        })
-        .catch((error: any) => {
-          console.error("입고 기록 생성 실패:", error);
-          alert(error.error || "입고 처리 중 오류가 발생했습니다.");
-        });
+        await invalidateInventory();
+        alert("입고가 성공적으로 처리되었습니다.");
+        handleCloseInboundModal();
+      } catch (error: any) {
+        console.error("입고 기록 생성 실패:", error);
+        alert(error.error || "입고 처리 중 오류가 발생했습니다.");
+      }
     } catch (error) {
       console.error("입고 처리 중 오류 발생:", error);
       alert("입고 처리 중 오류가 발생했습니다.");
     }
   };
 
-  const handleSubmitOutbound = () => {
+  const handleSubmitOutbound = async () => {
     if (!outboundValues.itemId) return;
 
     try {
@@ -608,58 +587,34 @@ export default function StockTable() {
         supplierId: outboundValues.supplierId,
       };
 
-      // 재고 수량 변경 API 호출 부분 주석 처리
-      // const newTotalQuantity = currentQuantity - outboundValues.quantity;
-      // const data: UpdateItemQuantityRequest = {
-      //   quantity: newTotalQuantity,
-      // };
+      try {
+        const recordId = await createInventoryRecordAsync(recordData);
+        console.log("출고 기록 생성 성공, recordId:", recordId);
 
-      // updateQuantityMutation.mutate(
-      //   {
-      //     id: outboundValues.itemId.toString(),
-      //     data,
-      //     itemWarehouseId: outboundValues.warehouseId.toString(),
-      //   },
-      //   {
-      //     onSuccess: async (response) => {
-      //       if (response.success) {
-      //         try {
-      //           // 재고 기록 저장
-      //           await inventoryRecordService.createInventoryRecord(recordData);
-      //           await invalidateInventory();
-      //           alert("출고가 성공적으로 처리되었습니다.");
-      //           handleCloseOutboundModal();
-      //         } catch (error: any) {
-      //           console.error("출고 기록 생성 실패:", error);
-      //           alert(error.error || "출고 처리 중 오류가 발생했습니다.");
-      //         }
-      //       } else {
-      //         alert(
-      //           `오류 발생: ${
-      //             response.message || "알 수 없는 오류가 발생했습니다."
-      //           }`
-      //         );
-      //       }
-      //     },
-      //     onError: (error) => {
-      //       console.error("출고 처리 중 오류 발생:", error);
-      //       alert("출고 처리 중 오류가 발생했습니다.");
-      //     },
-      //   }
-      // );
+        // 첫 번째 파일이 있는 경우 업로드
+        if (outboundValues.attachedFiles.length > 0 && recordId) {
+          try {
+            const uploadResult = await uploadFileAsync({
+              recordId,
+              file: outboundValues.attachedFiles[0].file,
+            });
+            console.log("파일 업로드 성공:", {
+              recordId,
+              fileName: outboundValues.attachedFiles[0].name,
+              uploadResult,
+            });
+          } catch (error) {
+            console.error("파일 업로드 실패:", error);
+          }
+        }
 
-      // 입출고 기록 생성 API만 호출
-      inventoryRecordService
-        .createInventoryRecord(recordData)
-        .then(async () => {
-          await invalidateInventory();
-          alert("출고가 성공적으로 처리되었습니다.");
-          handleCloseOutboundModal();
-        })
-        .catch((error: any) => {
-          console.error("출고 기록 생성 실패:", error);
-          alert(error.error || "출고 처리 중 오류가 발생했습니다.");
-        });
+        await invalidateInventory();
+        alert("출고가 성공적으로 처리되었습니다.");
+        handleCloseOutboundModal();
+      } catch (error: any) {
+        console.error("출고 기록 생성 실패:", error);
+        alert(error.error || "출고 처리 중 오류가 발생했습니다.");
+      }
     } catch (error) {
       console.error("출고 처리 중 오류 발생:", error);
       alert("출고 처리 중 오류가 발생했습니다.");

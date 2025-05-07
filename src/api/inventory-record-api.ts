@@ -157,6 +157,48 @@ export const inventoryRecordApi = {
       };
     }
   },
+
+  // 파일 업로드 API
+  uploadSingleFile: async (
+    id: number,
+    file: File,
+    expirationTimeMinutes: number = 30
+  ): Promise<ApiResponse<{ url: string }>> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append(
+        "expirationTimeMinutes",
+        expirationTimeMinutes.toString()
+      );
+
+      const response = await api.post<{ url: string }>(
+        `/inventory-record/${id}/upload-with-signed-url`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("파일 업로드 실패:", error);
+      if (error instanceof AxiosError && error.response) {
+        return {
+          success: false,
+          error: error.response.data.message || "파일 업로드에 실패했습니다.",
+          data: undefined,
+        };
+      }
+      return {
+        success: false,
+        error: "파일 업로드에 실패했습니다.",
+        data: undefined,
+      };
+    }
+  },
 };
 
 export const getAllInventoryRecords = async (): Promise<

@@ -88,7 +88,9 @@ export interface UpdateInventoryRecordRequest {
 }
 
 export interface InventoryRecordResponse extends ApiResponse {
-  data?: InventoryRecord;
+  data?: {
+    data: InventoryRecord;
+  };
 }
 
 export interface InventoryRecordsResponse {

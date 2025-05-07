@@ -15,7 +15,6 @@ export const InventoryRecordList: React.FC<InventoryRecordListProps> = ({
   endDate,
 }) => {
   const { records, isLoading, error } = useGetWarehouseInventoryRecords(
-    Number(warehouseId),
     startDate?.toISOString(),
     endDate?.toISOString()
   );

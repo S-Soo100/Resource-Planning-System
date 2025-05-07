@@ -1,14 +1,22 @@
 import React from "react";
 import { useRouter } from "next/navigation";
+import { Item } from "@/types/item";
+import { InventoryRecord } from "@/types/inventory-record";
 
 interface StockTableDesktopProps {
-  items: any[];
-  onEditQuantity: (item: any) => void;
+  items: Item[];
+  records: InventoryRecord[];
+  onEditQuantity: (item: Item) => void;
+  onInbound: (item: Item) => void;
+  onOutbound: (item: Item) => void;
 }
 
 export default function StockTableDesktop({
   items,
+  records,
   onEditQuantity,
+  onInbound,
+  onOutbound,
 }: StockTableDesktopProps) {
   const router = useRouter();
 

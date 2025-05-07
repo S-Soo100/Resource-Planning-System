@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useGetWarehouseInventoryRecords } from "@/hooks/useInventoryRecord";
+import React, { useState, useEffect, useMemo } from "react";
+import { useInventoryRecordsByTeamId } from "@/hooks/useInventoryRecordsByTeamId";
 import { format } from "date-fns";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
@@ -9,6 +9,7 @@ import { ko } from "date-fns/locale";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { filterRecordsByDateRange } from "@/utils/dateFilter";
 
 // 날짜 포맷팅 유틸리티 함수
 const formatDate = (dateString: string | null) => {
@@ -38,26 +39,35 @@ export default function IoHistoryRecordListComponent() {
   );
 
   const {
-    records = [],
+    records,
     isLoading: isDataLoading,
     error,
-  } = useGetWarehouseInventoryRecords(startDate, endDate);
+  } = useInventoryRecordsByTeamId();
 
   // 필터링된 기록
-  const filteredRecords = records.filter(
-    (record) => record.item?.warehouseId === selectedWarehouseId
-  );
+  const filteredRecords = useMemo(() => {
+    // 날짜로 필터링
+    const dateFilteredRecords = filterRecordsByDateRange(
+      records,
+      startDate,
+      endDate
+    );
+
+    // 창고로 필터링
+    if (selectedWarehouseId) {
+      return dateFilteredRecords.filter(
+        (record) => record.item?.warehouseId === selectedWarehouseId
+      );
+    }
+
+    return dateFilteredRecords;
+  }, [records, startDate, endDate, selectedWarehouseId]);
 
   useEffect(() => {
     if (warehouses.length > 0 && !selectedWarehouseId) {
-      console.log("Setting initial warehouse:", warehouses[0].id);
       setSelectedWarehouseId(Number(warehouses[0].id));
     }
   }, [warehouses, selectedWarehouseId]);
-
-  console.log("API Response:", records);
-  console.log("Current selectedWarehouseId:", selectedWarehouseId);
-  console.log("Current warehouses:", warehouses);
 
   if (isUserLoading || isDataLoading) {
     return (

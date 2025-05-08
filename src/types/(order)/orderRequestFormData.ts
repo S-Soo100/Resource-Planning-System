@@ -18,6 +18,8 @@ export type OrderRequestFormData = {
 export type OrderItemWithDetails = {
   teamItem: TeamItem;
   quantity: number;
+  stockAvailable?: boolean;
+  stockQuantity?: number;
 };
 
 export interface OrderRequestFormProps {

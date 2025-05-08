@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
-import { Paperclip, Plus, Minus, X } from "lucide-react";
+import { Paperclip, Plus, Minus, X, AlertCircle } from "lucide-react";
 import { useOrder } from "@/hooks/useOrder";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { useSuppliers } from "@/hooks/useSupplier";
@@ -19,6 +19,8 @@ import { PackageApi } from "@/types/package";
 import { authStore } from "@/store/authStore";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
+import { useItems } from "@/hooks/useItems";
+import { Item } from "@/types/item";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -66,12 +68,22 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const { warehouses } = useWarehouseItems();
   const [warehousesList, setWarehousesList] = useState<Warehouse[]>([]);
 
+  // 창고별 아이템 재고 조회
+  const { useGetItemsByWarehouse } = useItems();
+  const warehouseId = formData.warehouseId?.toString() || "";
+  const { data: warehouseItems } = useGetItemsByWarehouse(warehouseId);
+
+  // useRef로 이전 orderItems 값을 추적
+  const prevOrderItemsRef = useRef(orderItems);
+
+  // 창고 목록 설정
   useEffect(() => {
     if (warehouses) {
       setWarehousesList(warehouses);
     }
   }, [warehouses]);
 
+  // 공급업체 목록 설정
   useEffect(() => {
     if (suppliersResponse) {
       if (
@@ -85,6 +97,64 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
   }, [suppliersResponse]);
 
+  // 창고 아이템 데이터가 변경되면 현재 선택된 아이템의 재고 상태 업데이트
+  useEffect(() => {
+    // warehouseItems가 없거나 창고ID가 없으면 아무 작업도 하지 않음
+    if (
+      !warehouseItems?.data ||
+      !formData.warehouseId ||
+      orderItems.length === 0
+    ) {
+      return;
+    }
+
+    const currentOrderItems = prevOrderItemsRef.current;
+    const warehouseItemsData = warehouseItems.data as Item[];
+
+    // 재고 정보로 orderItems 업데이트
+    const updatedItems = currentOrderItems.map((item) => {
+      // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
+      const stockItem = warehouseItemsData.find(
+        (stockItem) => stockItem.itemCode === item.teamItem.itemCode
+      );
+
+      // 재고 상태가 이미 동일하면 객체를 새로 생성하지 않고 그대로 반환
+      const stockAvailable = stockItem
+        ? stockItem.itemQuantity >= item.quantity
+        : false;
+      const stockQuantity = stockItem?.itemQuantity || 0;
+
+      if (
+        item.stockAvailable === stockAvailable &&
+        item.stockQuantity === stockQuantity
+      ) {
+        return item;
+      }
+
+      // 재고 상태가 변경된 경우에만 새 객체 생성
+      return {
+        ...item,
+        stockAvailable,
+        stockQuantity,
+      };
+    });
+
+    // 변경된 항목이 있는 경우에만 상태 업데이트
+    const hasChanges = updatedItems.some(
+      (item, index) => item !== currentOrderItems[index]
+    );
+
+    if (hasChanges) {
+      setOrderItems(updatedItems);
+    }
+  }, [warehouseItems, formData.warehouseId]);
+
+  // orderItems가 변경될 때 ref 업데이트
+  useEffect(() => {
+    prevOrderItemsRef.current = orderItems;
+  }, [orderItems]);
+
+  // 파일 선택 핸들러
   const handleFileSelection = () => {
     if (selectedFiles.current && selectedFiles.current.files) {
       const fileList = Array.from(selectedFiles.current.files);
@@ -92,6 +162,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
   };
 
+  // 초기 날짜 설정
   useEffect(() => {
     // 현재 날짜를 ISO 형식(YYYY-MM-DD)으로 변환
     const now = new Date();
@@ -123,19 +194,29 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     const itemCodes = selectedPackage.itemlist.split(", ");
 
     // 각 아이템 코드에 대해 teamItems에서 해당 아이템을 찾아 orderItems에 추가
-    const newOrderItems = itemCodes
+    const newItems = itemCodes
       .map((itemCode) => {
         const teamItem = teamItems?.find((item) => item.itemCode === itemCode);
         if (!teamItem) return null;
 
+        // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
+        const stockItem =
+          warehouseItems?.data && formData.warehouseId
+            ? (warehouseItems.data as Item[]).find(
+                (stockItem) => stockItem.itemCode === itemCode
+              )
+            : null;
+
         return {
           teamItem,
           quantity: 1,
+          stockAvailable: stockItem ? stockItem.itemQuantity >= 1 : false,
+          stockQuantity: stockItem?.itemQuantity || 0,
         };
       })
-      .filter((item): item is OrderItemWithDetails => item !== null);
+      .filter((item): item is NonNullable<typeof item> => item !== null);
 
-    setOrderItems(newOrderItems);
+    setOrderItems(newItems);
   };
 
   // 아이템 선택 핸들러
@@ -159,12 +240,22 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       return;
     }
 
+    // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
+    const stockItem =
+      warehouseItems?.data && formData.warehouseId
+        ? (warehouseItems.data as Item[]).find(
+            (stockItem) => stockItem.itemCode === selected.itemCode
+          )
+        : null;
+
     // 아이템 추가
     setOrderItems((prev) => [
       ...prev,
       {
         teamItem: selected,
         quantity: 1,
+        stockAvailable: stockItem ? stockItem.itemQuantity >= 1 : false,
+        stockQuantity: stockItem?.itemQuantity || 0,
       },
     ]);
 
@@ -182,13 +273,19 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     setOrderItems((prev) => {
       const updated = prev.map((item, idx) => {
         if (idx === index) {
+          const newQuantity = increment
+            ? item.quantity + 1
+            : item.quantity > 0
+            ? item.quantity - 1
+            : item.quantity;
+
           return {
             ...item,
-            quantity: increment
-              ? item.quantity + 1
-              : item.quantity > 0
-              ? item.quantity - 1
-              : item.quantity,
+            quantity: newQuantity,
+            stockAvailable:
+              item.stockQuantity !== undefined
+                ? item.stockQuantity >= newQuantity
+                : false,
           };
         }
         return item;
@@ -265,6 +362,17 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       ...formData,
       warehouseId: warehouseId === 0 ? null : warehouseId,
     });
+
+    // 창고가 변경되면 현재 선택된 아이템의 재고 상태를 초기화
+    if (warehouseId === 0) {
+      setOrderItems((currentItems) =>
+        currentItems.map((item) => ({
+          ...item,
+          stockAvailable: undefined,
+          stockQuantity: undefined,
+        }))
+      );
+    }
   };
 
   const validateForm = (): boolean => {
@@ -432,6 +540,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               onChange={handleItemSelect}
               className="w-full px-3 py-2 border rounded-md"
               required={!isPackageOrder}
+              disabled={!formData.warehouseId}
             >
               <option value="0">품목 선택</option>
               {teamItems?.map((item) => (
@@ -440,6 +549,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                 </option>
               ))}
             </select>
+            {!formData.warehouseId && (
+              <p className="text-xs text-amber-600">
+                창고를 먼저 선택해주세요.
+              </p>
+            )}
           </div>
         )}
 
@@ -453,9 +567,24 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   className="flex items-center justify-between py-2 border-b last:border-0"
                 >
                   <div className="flex-1">
-                    <p className="font-medium">{item.teamItem.itemName}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{item.teamItem.itemName}</p>
+                      {formData.warehouseId &&
+                        item.stockAvailable === false && (
+                          <div className="flex items-center text-red-500 text-xs">
+                            <AlertCircle size={14} className="mr-1" />
+                            재고 부족
+                          </div>
+                        )}
+                    </div>
                     <p className="text-xs text-gray-500">
                       코드: {item.teamItem.itemCode}
+                      {formData.warehouseId &&
+                        item.stockQuantity !== undefined && (
+                          <span className="ml-2">
+                            (재고: {item.stockQuantity}개)
+                          </span>
+                        )}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

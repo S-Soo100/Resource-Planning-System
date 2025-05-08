@@ -8,12 +8,32 @@ import { authStore } from "@/store/authStore";
 import { useSuppliers } from "@/hooks/useSupplier";
 import { Supplier } from "@/types/supplier";
 import { ApiResponse } from "@/types/common";
+import { Order, OrderStatus } from "@/types/(order)/order";
 
 type TabType = "all" | "user" | "supplier";
 
 interface OrderResponse extends ApiResponse {
-  data: IOrderRecord[];
+  data: Order[];
 }
+
+// API 응답 데이터를 IOrderRecord 형식으로 변환하는 함수
+const convertToOrderRecord = (order: Order): IOrderRecord => {
+  return {
+    id: order.id,
+    orderer: order.user?.name || "알 수 없음",
+    package: order.package || { id: 0, packageName: "개별 품목", itemlist: "" },
+    quantity:
+      order.orderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0,
+    date: new Date(order.createdAt).toLocaleDateString("ko-KR"),
+    address: order.receiverAddress || "",
+    recipient: order.receiver || "",
+    recipientPhone: order.receiverPhone || "",
+    additionalItems: order.memo || "",
+    quote: "", // 견적서 정보가 없음
+    status: order.status || OrderStatus.requested,
+    orderSheet: "", // 주문서 정보가 없음
+  };
+};
 
 const OrderRecordTabs = () => {
   const [activeTab, setActiveTab] = useState<TabType>("all");
@@ -24,6 +44,7 @@ const OrderRecordTabs = () => {
   const recordsPerPage = 10;
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(false);
+  const [orderRecords, setOrderRecords] = useState<IOrderRecord[]>([]);
 
   const { useAllOrders, useUserOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
@@ -76,30 +97,45 @@ const OrderRecordTabs = () => {
   const { data: supplierOrders, isLoading: supplierLoading } =
     useSupplierOrders(supplierId);
 
-  // 현재 활성화된 탭에 따라 보여줄 데이터 선택
-  const getActiveOrders = (): IOrderRecord[] => {
+  // API 응답 데이터를 IOrderRecord 형식으로 변환
+  useEffect(() => {
+    let ordersData: Order[] = [];
+    let apiResponse: OrderResponse | undefined;
+
     switch (activeTab) {
       case "user":
-        return (userOrders as OrderResponse)?.data || [];
+        apiResponse = userOrders as OrderResponse;
+        break;
       case "supplier":
-        return (supplierOrders as OrderResponse)?.data || [];
+        apiResponse = supplierOrders as OrderResponse;
+        break;
       case "all":
       default:
-        return (allOrders as OrderResponse)?.data || [];
+        apiResponse = allOrders as OrderResponse;
+        break;
     }
-  };
+
+    if (apiResponse && apiResponse.success && apiResponse.data) {
+      ordersData = apiResponse.data;
+      console.log("API 응답 데이터:", ordersData);
+
+      // 데이터 변환 및 설정
+      const convertedRecords = ordersData.map(convertToOrderRecord);
+      setOrderRecords(convertedRecords);
+      console.log("변환된 주문 기록:", convertedRecords);
+    } else {
+      setOrderRecords([]);
+    }
+  }, [activeTab, allOrders, userOrders, supplierOrders]);
 
   // 검색 필터링 적용
-  const filteredOrders = getActiveOrders().filter(
+  const filteredOrders = orderRecords.filter(
     (order: IOrderRecord) =>
       order.orderer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      false ||
       order.package?.packageName
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      false ||
-      order.recipient?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      false
+      order.recipient?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // 페이지네이션 계산
@@ -146,6 +182,26 @@ const OrderRecordTabs = () => {
       case "all":
       default:
         return allLoading;
+    }
+  };
+
+  // 주문 상태를 한글로 변환
+  const getStatusText = (status: string): string => {
+    switch (status) {
+      case OrderStatus.requested:
+        return "요청됨";
+      case OrderStatus.approved:
+        return "승인됨";
+      case OrderStatus.rejected:
+        return "반려됨";
+      case OrderStatus.confirmedByShipper:
+        return "출고자 확인";
+      case OrderStatus.shipmentCompleted:
+        return "출고 완료";
+      case OrderStatus.rejectedByShipper:
+        return "출고자 반려";
+      default:
+        return status;
     }
   };
 
@@ -241,7 +297,7 @@ const OrderRecordTabs = () => {
               <tr className="bg-gray-200">
                 <TableCell isHeader={true}>ID</TableCell>
                 <TableCell isHeader={true}>발주자</TableCell>
-                <TableCell isHeader={true}>패키지</TableCell>
+                <TableCell isHeader={true}>패키지/품목</TableCell>
                 <TableCell isHeader={true}>수량</TableCell>
                 <TableCell isHeader={true}>수령자</TableCell>
                 <TableCell isHeader={true}>날짜</TableCell>
@@ -255,12 +311,14 @@ const OrderRecordTabs = () => {
                     <TableCell isHeader={false}>{record.id}</TableCell>
                     <TableCell isHeader={false}>{record.orderer}</TableCell>
                     <TableCell isHeader={false}>
-                      {record.package?.packageName}
+                      {record.package?.packageName || "개별 품목"}
                     </TableCell>
                     <TableCell isHeader={false}>{record.quantity}</TableCell>
                     <TableCell isHeader={false}>{record.recipient}</TableCell>
                     <TableCell isHeader={false}>{record.date}</TableCell>
-                    <TableCell isHeader={false}>{record.status}</TableCell>
+                    <TableCell isHeader={false}>
+                      {getStatusText(record.status)}
+                    </TableCell>
                   </tr>
                 ))
               ) : (

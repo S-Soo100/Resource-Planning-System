@@ -90,10 +90,19 @@ export interface OrderFile {
   orderId: number;
 }
 
+export enum OrderStatus {
+  requested = "requested", // 요청
+  approved = "approved", // 승인
+  rejected = "rejected", // 반려
+  confirmedByShipper = "confirmedByShipper", // 출고자 확인
+  shipmentCompleted = "shipmentCompleted", // 출고 완료
+  rejectedByShipper = "rejectedByShipper", // 출고자 반려
+}
+
 export interface CreateOrderDto {
   userId: number;
   supplierId: number;
-  packageId: number;
+  packageId: number | null;
   requester: string;
   receiver: string;
   receiverPhone: string;
@@ -102,7 +111,7 @@ export interface CreateOrderDto {
   outboundDate: string;
   installationDate: string;
   manager: string;
-  status: string;
+  status: OrderStatus;
   memo: string;
   orderItems: CreateOrderItemRequest[];
 }

@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useOrder } from "@/hooks/useOrder";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
-import TableCell from "../orderRecord/(tableBody)/TableCell";
+import TableCell from "./(tableBody)/TableCell";
 import { authStore } from "@/store/authStore";
 import { useSuppliers } from "@/hooks/useSupplier";
-import { Supplier } from "@/types/(order)/supplier";
+import { Supplier } from "@/types/supplier";
 import { ApiResponse } from "@/types/common";
 
 type TabType = "all" | "user" | "supplier";

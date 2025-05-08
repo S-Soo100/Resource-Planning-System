@@ -44,8 +44,8 @@ export function useCreateInventoryRecord() {
     createInventoryRecord: mutation.mutate,
     createInventoryRecordAsync: async (data: CreateInventoryRecordDto) => {
       const response = await mutation.mutateAsync(data);
-      console.log("API 응답 전체:", response);
-      console.log("API 응답 data:", response.data);
+      // console.log("API 응답 전체:", response);
+      // console.log("API 응답 data:", response.data);
 
       if (response.success && response.data) {
         // data가 중첩된 구조일 수 있으므로 data.data에서 id를 추출

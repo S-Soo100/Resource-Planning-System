@@ -6,13 +6,17 @@ import { authStore } from "@/store/authStore";
 
 export function useSuppliers() {
   const queryClient = useQueryClient();
-  const selectedTeamId = authStore((state) => state.selectedTeam?.id) as number;
+  const selectedTeam = authStore((state) => state.selectedTeam);
+  const selectedTeamId = selectedTeam?.id;
 
   // 모든 공급업체 조회 (이름으로 검색 가능)
   const useGetSuppliers = (name?: string) => {
     const query = useQuery({
-      queryKey: ["suppliers", { name }],
+      queryKey: ["suppliers", { name, teamId: selectedTeamId }],
       queryFn: async () => {
+        if (!selectedTeamId) {
+          return [];
+        }
         const response = await supplierApi.getAllSuppliersByTeamId(
           selectedTeamId,
           name
@@ -22,6 +26,7 @@ export function useSuppliers() {
         }
         throw new Error(response.error || "공급업체 목록 조회에 실패했습니다");
       },
+      enabled: !!selectedTeamId,
       staleTime: 5 * 60 * 1000, // 5분
     });
 

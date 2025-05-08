@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
 import { Paperclip, Plus, Minus, X, AlertCircle } from "lucide-react";
@@ -21,10 +21,14 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
 import { useItems } from "@/hooks/useItems";
 import { Item } from "@/types/item";
+import { getItemsByWarehouse } from "@/api/item-api";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
   title = "발주 요청",
+  warehousesList: propWarehousesList,
+  warehouseItems: propWarehouseItems,
+  onWarehouseChange,
 }) => {
   const [requestDate, setRequestDate] = useState("");
   const [setupDate, setSetupDate] = useState("");
@@ -64,24 +68,32 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const { suppliers: suppliersResponse } = useGetSuppliers();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
-  // 창고 관련 상태와 훅
+  // 창고 관련 상태와 훅 - props가 없을 경우에만 사용
   const { warehouses } = useWarehouseItems();
   const [warehousesList, setWarehousesList] = useState<Warehouse[]>([]);
 
-  // 창고별 아이템 재고 조회
+  // 창고별 아이템 재고 조회 - props가 없을 경우에만 사용
   const { useGetItemsByWarehouse } = useItems();
   const warehouseId = formData.warehouseId?.toString() || "";
-  const { data: warehouseItems } = useGetItemsByWarehouse(warehouseId);
+  const { data: warehouseItemsData } = useGetItemsByWarehouse(warehouseId);
 
-  // useRef로 이전 orderItems 값을 추적
-  const prevOrderItemsRef = useRef(orderItems);
+  // 실제 사용할 창고 목록과 아이템 데이터 (props 우선)
+  const effectiveWarehousesList = propWarehousesList || warehousesList;
 
-  // 창고 목록 설정
+  // 현재 선택된 창고의 아이템 목록
+  const currentWarehouseItems = useMemo(() => {
+    if (propWarehouseItems && warehouseId) {
+      return propWarehouseItems[warehouseId] || [];
+    }
+    return (warehouseItemsData?.data as Item[]) || [];
+  }, [propWarehouseItems, warehouseId, warehouseItemsData]);
+
+  // 창고 목록 설정 (props가 없을 경우에만)
   useEffect(() => {
-    if (warehouses) {
+    if (!propWarehousesList && warehouses) {
       setWarehousesList(warehouses);
     }
-  }, [warehouses]);
+  }, [propWarehousesList, warehouses]);
 
   // 공급업체 목록 설정
   useEffect(() => {
@@ -97,33 +109,29 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
   }, [suppliersResponse]);
 
-  // 창고 아이템 데이터가 변경되면 현재 선택된 아이템의 재고 상태 업데이트
+  // 현재 창고의 아이템 데이터가 변경되면 재고 상태 업데이트
   useEffect(() => {
-    // warehouseItems가 없거나 창고ID가 없으면 아무 작업도 하지 않음
     if (
-      !warehouseItems?.data ||
+      !currentWarehouseItems ||
       !formData.warehouseId ||
       orderItems.length === 0
     ) {
       return;
     }
 
-    const currentOrderItems = prevOrderItemsRef.current;
-    const warehouseItemsData = warehouseItems.data as Item[];
-
-    // 재고 정보로 orderItems 업데이트
-    const updatedItems = currentOrderItems.map((item) => {
+    const updatedItems = orderItems.map((item) => {
       // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
-      const stockItem = warehouseItemsData.find(
+      const stockItem = currentWarehouseItems.find(
         (stockItem) => stockItem.itemCode === item.teamItem.itemCode
       );
 
-      // 재고 상태가 이미 동일하면 객체를 새로 생성하지 않고 그대로 반환
+      // 재고 상태 계산
       const stockAvailable = stockItem
         ? stockItem.itemQuantity >= item.quantity
         : false;
       const stockQuantity = stockItem?.itemQuantity || 0;
 
+      // 재고 상태가 이미 동일하면 객체를 새로 생성하지 않고 그대로 반환
       if (
         item.stockAvailable === stockAvailable &&
         item.stockQuantity === stockQuantity
@@ -141,18 +149,15 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
     // 변경된 항목이 있는 경우에만 상태 업데이트
     const hasChanges = updatedItems.some(
-      (item, index) => item !== currentOrderItems[index]
+      (item, index) => item !== orderItems[index]
     );
 
     if (hasChanges) {
-      setOrderItems(updatedItems);
+      setTimeout(() => {
+        setOrderItems(updatedItems);
+      }, 0);
     }
-  }, [warehouseItems, formData.warehouseId]);
-
-  // orderItems가 변경될 때 ref 업데이트
-  useEffect(() => {
-    prevOrderItemsRef.current = orderItems;
-  }, [orderItems]);
+  }, [currentWarehouseItems, formData.warehouseId, orderItems]);
 
   // 파일 선택 핸들러
   const handleFileSelection = () => {
@@ -181,7 +186,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const handlePackageSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const packageId = parseInt(e.target.value);
     if (packageId === 0) {
-      setOrderItems([]);
+      setTimeout(() => {
+        setOrderItems([]);
+      }, 0);
       return;
     }
 
@@ -201,8 +208,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
         // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
         const stockItem =
-          warehouseItems?.data && formData.warehouseId
-            ? (warehouseItems.data as Item[]).find(
+          warehouseItemsData && formData.warehouseId
+            ? (warehouseItemsData.data as Item[]).find(
                 (stockItem) => stockItem.itemCode === itemCode
               )
             : null;
@@ -216,7 +223,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
 
-    setOrderItems(newItems);
+    setTimeout(() => {
+      setOrderItems(newItems);
+    }, 0);
   };
 
   // 아이템 선택 핸들러
@@ -242,22 +251,24 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
     // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
     const stockItem =
-      warehouseItems?.data && formData.warehouseId
-        ? (warehouseItems.data as Item[]).find(
+      warehouseItemsData && formData.warehouseId
+        ? (warehouseItemsData.data as Item[]).find(
             (stockItem) => stockItem.itemCode === selected.itemCode
           )
         : null;
 
     // 아이템 추가
-    setOrderItems((prev) => [
-      ...prev,
-      {
-        teamItem: selected,
-        quantity: 1,
-        stockAvailable: stockItem ? stockItem.itemQuantity >= 1 : false,
-        stockQuantity: stockItem?.itemQuantity || 0,
-      },
-    ]);
+    setTimeout(() => {
+      setOrderItems((prev) => [
+        ...prev,
+        {
+          teamItem: selected,
+          quantity: 1,
+          stockAvailable: stockItem ? stockItem.itemQuantity >= 1 : false,
+          stockQuantity: stockItem?.itemQuantity || 0,
+        },
+      ]);
+    }, 0);
 
     // 선택 초기화
     e.target.value = "0";
@@ -265,33 +276,39 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
   // 아이템 제거 핸들러
   const handleRemoveItem = (itemId: number) => {
-    setOrderItems((prev) => prev.filter((item) => item.teamItem.id !== itemId));
+    setTimeout(() => {
+      setOrderItems((prev) =>
+        prev.filter((item) => item.teamItem.id !== itemId)
+      );
+    }, 0);
   };
 
   // 아이템 수량 변경 핸들러
   const handleQuantityChange = (index: number, increment: boolean) => {
-    setOrderItems((prev) => {
-      const updated = prev.map((item, idx) => {
-        if (idx === index) {
-          const newQuantity = increment
-            ? item.quantity + 1
-            : item.quantity > 0
-            ? item.quantity - 1
-            : item.quantity;
+    setTimeout(() => {
+      setOrderItems((prev) => {
+        const updated = prev.map((item, idx) => {
+          if (idx === index) {
+            const newQuantity = increment
+              ? item.quantity + 1
+              : item.quantity > 0
+              ? item.quantity - 1
+              : item.quantity;
 
-          return {
-            ...item,
-            quantity: newQuantity,
-            stockAvailable:
-              item.stockQuantity !== undefined
-                ? item.stockQuantity >= newQuantity
-                : false,
-          };
-        }
-        return item;
+            return {
+              ...item,
+              quantity: newQuantity,
+              stockAvailable:
+                item.stockQuantity !== undefined
+                  ? item.stockQuantity >= newQuantity
+                  : false,
+            };
+          }
+          return item;
+        });
+        return updated;
       });
-      return updated;
-    });
+    }, 0);
   };
 
   const handleChange = (
@@ -356,7 +373,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   };
 
   // 창고 선택 핸들러
-  const handleWarehouseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleWarehouseChange = async (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const warehouseId = parseInt(e.target.value);
     setFormData({
       ...formData,
@@ -365,13 +384,64 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
     // 창고가 변경되면 현재 선택된 아이템의 재고 상태를 초기화
     if (warehouseId === 0) {
-      setOrderItems((currentItems) =>
-        currentItems.map((item) => ({
-          ...item,
-          stockAvailable: undefined,
-          stockQuantity: undefined,
-        }))
-      );
+      setTimeout(() => {
+        setOrderItems((currentItems) =>
+          currentItems.map((item) => ({
+            ...item,
+            stockAvailable: undefined,
+            stockQuantity: undefined,
+          }))
+        );
+      }, 0);
+    } else if (onWarehouseChange) {
+      // 부모 컴포넌트에서 제공한 onWarehouseChange 함수 사용
+      try {
+        await onWarehouseChange(warehouseId);
+      } catch (error) {
+        console.error("창고 아이템 조회 실패:", error);
+      }
+    } else {
+      // 기존 로직: 직접 API 호출 (onWarehouseChange가 없을 때만)
+      setTimeout(async () => {
+        try {
+          // 창고 아이템 데이터를 직접 가져옴
+          const response = await getItemsByWarehouse(warehouseId.toString());
+          if (response.success && response.data) {
+            // API 응답 데이터를 Item[] 타입으로 안전하게 변환
+            const warehouseItemsData = Array.isArray(response.data)
+              ? (response.data as Item[])
+              : [];
+
+            // 현재 선택된 아이템들의 재고 상태 업데이트
+            if (orderItems.length > 0) {
+              const updatedItems = orderItems.map((item) => {
+                // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
+                const stockItem = warehouseItemsData.find(
+                  (stockItem) => stockItem.itemCode === item.teamItem.itemCode
+                );
+
+                // 재고 상태 계산
+                const stockAvailable = stockItem
+                  ? stockItem.itemQuantity >= item.quantity
+                  : false;
+                const stockQuantity = stockItem?.itemQuantity || 0;
+
+                // 새 객체 생성
+                return {
+                  ...item,
+                  stockAvailable,
+                  stockQuantity,
+                };
+              });
+
+              // 상태 업데이트
+              setOrderItems(updatedItems);
+            }
+          }
+        } catch (error) {
+          console.error("창고 아이템 조회 실패:", error);
+        }
+      }, 0);
     }
   };
 
@@ -436,6 +506,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           memo: formData.notes,
         })),
       };
+      console.log(orderData);
 
       createOrder(orderData, {
         onSuccess: (response) => {
@@ -449,24 +520,28 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             }
 
             // 폼 초기화
-            setFormData({
-              manager: "",
-              requester: "",
-              receiver: "",
-              receiverPhone: "",
-              address: "",
-              detailAddress: "",
-              requestDate: "",
-              setupDate: "",
-              notes: "",
-              supplierId: null,
-              warehouseId: null,
-            });
-            toast.success("발주 요청이 완료되었습니다");
-            setOrderItems([]);
-            setFiles([]); // 파일 목록도 초기화
-            // 생성된 주문의 ID나 다른 데이터를 사용할 수 있습니다
-            console.log("생성된 주문:", response.data.id);
+            setTimeout(() => {
+              setFormData({
+                manager: "",
+                requester: "",
+                receiver: "",
+                receiverPhone: "",
+                address: "",
+                detailAddress: "",
+                requestDate: "",
+                setupDate: "",
+                notes: "",
+                supplierId: null,
+                warehouseId: null,
+              });
+              toast.success("발주 요청이 완료되었습니다");
+              setOrderItems([]);
+              setFiles([]); // 파일 목록도 초기화
+              // 생성된 주문의 ID나 다른 데이터를 사용할 수 있습니다
+              if (response.data?.id) {
+                console.log("생성된 주문:", response.data.id);
+              }
+            }, 0);
           } else {
             toast.error(response.message || "발주 요청에 실패했습니다");
           }
@@ -499,7 +574,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             required
           >
             <option value="0">창고 선택</option>
-            {warehousesList.map((warehouse) => (
+            {effectiveWarehousesList.map((warehouse) => (
               <option key={warehouse.id} value={warehouse.id}>
                 {warehouse.warehouseName}
               </option>
@@ -693,13 +768,17 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             className="w-full px-3 py-2 border rounded-md"
           >
             <option value="0">공급업체 선택</option>
-            {Array.isArray(suppliers) &&
-              suppliers.length > 0 &&
+            {Array.isArray(suppliers) && suppliers?.length > 0 ? (
               suppliers.map((supplier: Supplier) => (
                 <option key={supplier.id} value={supplier.id}>
                   {supplier.supplierName}
                 </option>
-              ))}
+              ))
+            ) : (
+              <option value="" disabled>
+                공급업체 목록을 불러올 수 없습니다
+              </option>
+            )}
           </select>
         </div>
         <label htmlFor="receiver" className="block text-sm font-medium">

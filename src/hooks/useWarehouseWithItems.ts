@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Item } from "@/types/item";
-import { getItemsByWarehouse } from "@/api/item-api";
 import { ApiResponse } from "@/types/common";
+import { warehouseApi } from "@/api/warehouse-api";
 
 /**
  * 창고 목록과 창고별 아이템 정보를 관리하는 커스텀 훅
@@ -27,14 +27,12 @@ export function useWarehouseWithItems() {
         return { success: true, data: warehouseItems[warehouseId.toString()] };
       }
 
-      // 창고 아이템 데이터 로드
-      const response = await getItemsByWarehouse(warehouseId.toString());
+      // 창고 정보 로드 (items 배열 포함)
+      const response = await warehouseApi.getWarehouse(warehouseId);
 
       if (response.success && response.data) {
-        // API 응답 데이터를 Item[] 타입으로 안전하게 변환
-        const items = Array.isArray(response.data)
-          ? (response.data as Item[])
-          : [];
+        // 창고 데이터에서 items 배열 추출
+        const items = response.data.data.items || [];
 
         // 상태 업데이트
         setWarehouseItems((prev) => ({
@@ -42,10 +40,10 @@ export function useWarehouseWithItems() {
           [warehouseId.toString()]: items,
         }));
 
-        return response;
+        return { success: true, data: items };
       }
 
-      return response;
+      return { success: false, message: "창고 아이템 조회에 실패했습니다." };
     } catch (error) {
       console.error("창고 아이템 조회 실패:", error);
       return { success: false, message: "창고 아이템 조회에 실패했습니다." };

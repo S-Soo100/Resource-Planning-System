@@ -22,6 +22,7 @@ export const orderService = {
       manager: formData.manager,
       supplierId: formData.supplierId ?? null,
       packageId: formData.packageId ?? null, // null가능하게
+      warehouseId: formData.warehouseId ?? 0, // 창고 ID 추가 (기본값 0)
       requester: formData.requester, // 현재 내 이름
       receiver: formData.receiver, // 받는 사람
       receiverPhone: formData.receiverPhone, // 받는 사람 전화번호

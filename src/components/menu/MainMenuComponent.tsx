@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
@@ -61,7 +62,8 @@ const MainMenuComponent = () => {
     router.push(path);
   };
 
-  const menuItems = [
+  // 재고 관련 메뉴
+  const stockMenuItems = [
     {
       title: "재고 조회",
       // subtitle: "마스터 계정, 직원 계정",
@@ -76,6 +78,16 @@ const MainMenuComponent = () => {
       onClick: () => checkAccess(`/ioHistory`, ["admin", "user"]),
       accessLevel: ["user", "admin"],
     },
+    {
+      title: "패키지 관리",
+      icon: <PiNewspaperClippingFill className="text-3xl" />,
+      onClick: () => checkAccess(`/package`, ["admin", "user"]),
+      accessLevel: ["user", "admin"],
+    },
+  ];
+
+  // 발주-출고 관련 메뉴
+  const orderMenuItems = [
     {
       title: "패키지 출고 요청",
       icon: <FaTruckLoading className="text-3xl" />,
@@ -98,21 +110,19 @@ const MainMenuComponent = () => {
       accessLevel: ["supplier", "user", "admin"],
     },
     {
-      title: "패키지 관리",
-      icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/package`, ["admin", "user"]),
-      accessLevel: ["user", "admin"],
-    },
-    {
       title: "업체 관리",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () => checkAccess(`/supplier`, ["admin", "user"]),
       accessLevel: ["user", "admin"],
     },
+  ];
+
+  // 관리자 메뉴
+  const adminMenuItems = [
     {
       title: "관리 - 창고별 품목 관리",
       icon: <FaBox className="text-3xl" />,
-      onClick: () => checkAccess(`/items`, "admin"),
+      onClick: () => checkAccess(`/warehouse-items`, "admin"),
       accessLevel: ["admin"],
     },
     {
@@ -130,43 +140,73 @@ const MainMenuComponent = () => {
     },
   ];
 
+  // 메뉴 카드 렌더링 함수
+  const renderMenuCards = (items: any) => {
+    return items.map((item: any, index: number) => {
+      const hasAccess =
+        user?.accessLevel && item.accessLevel.includes(user.accessLevel);
+      return (
+        <div
+          key={index}
+          onClick={item.onClick}
+          className={`cursor-pointer flex flex-col items-center p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 ${
+            !hasAccess ? "opacity-70" : ""
+          }`}
+        >
+          <div className="flex items-center justify-center w-10 h-10 mb-2 text-white bg-blue-600 rounded-full">
+            {React.cloneElement(item.icon, { className: "text-xl" })}
+          </div>
+          <h3 className="text-sm font-bold text-center text-gray-900 mb-1">
+            {item.title}
+          </h3>
+          {item.subtitle && (
+            <p className="text-xs text-gray-600 text-center">{item.subtitle}</p>
+          )}
+          {item.accessLevel.length === 1 && item.accessLevel[0] === "admin" && (
+            <span className="mt-1 px-1.5 py-0.5 text-xs bg-red-100 text-red-800 rounded-full">
+              관리자 전용
+            </span>
+          )}
+        </div>
+      );
+    });
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Menu Body */}
-      <main className="flex flex-col items-center w-full p-4 space-y-4 pb-6">
-        {menuItems.map((item, index) => {
-          const hasAccess =
-            user?.accessLevel && item.accessLevel.includes(user.accessLevel);
-          return (
-            <button
-              key={index}
-              onClick={item.onClick}
-              className={`flex items-center w-full max-w-2xl px-8 py-4 transition-all duration-200 bg-white border border-gray-200 shadow-lg rounded-2xl hover:scale-105 hover:shadow-xl hover:-translate-y-1 ${
-                !hasAccess ? "opacity-70" : ""
-              }`}
-            >
-              <div className="flex-col w-full">
-                <div className="flex flex-row items-center">
-                  <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mr-8 text-white bg-blue-600 rounded-full">
-                    {item.icon}
-                  </div>
-                  <span className="text-xl font-semibold text-gray-900">
-                    {item.title}
-                  </span>
-                  {item.accessLevel.length === 1 &&
-                    item.accessLevel[0] === "admin" && (
-                      <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
-                        관리자 전용
-                      </span>
-                    )}
-                </div>
-                <span className="block mt-2 ml-20 text-base text-gray-600">
-                  {item.subtitle}
-                </span>
-              </div>
-            </button>
-          );
-        })}
+      <main className="container mx-auto p-3">
+        {/* 재고 섹션 */}
+        <div className="mb-6">
+          <h2 className="text-lg font-bold mb-3 px-2 py-1 bg-blue-50 rounded-md text-blue-800">
+            재고 관리
+          </h2>
+          <div className="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
+            {renderMenuCards(stockMenuItems)}
+          </div>
+        </div>
+
+        {/* 발주-출고 섹션 */}
+        <div className="mb-6">
+          <h2 className="text-lg font-bold mb-3 px-2 py-1 bg-green-50 rounded-md text-green-800">
+            발주 및 출고
+          </h2>
+          <div className="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
+            {renderMenuCards(orderMenuItems)}
+          </div>
+        </div>
+
+        {/* 관리자 섹션 */}
+        {user?.accessLevel === "admin" && (
+          <div className="mb-6">
+            <h2 className="text-lg font-bold mb-3 px-2 py-1 bg-red-50 rounded-md text-red-800">
+              시스템 관리
+            </h2>
+            <div className="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
+              {renderMenuCards(adminMenuItems)}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

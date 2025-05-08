@@ -78,24 +78,24 @@ const MainMenuComponent = () => {
     },
     {
       title: "패키지 출고 요청",
-      // subtitle: "공급자 계정",
       icon: <FaTruckLoading className="text-3xl" />,
-      onClick: () => checkAccess(`/orderRequest`, ["admin", "supplier"]),
-      accessLevel: ["supplier", "admin"],
+      onClick: () =>
+        checkAccess(`/packageOrder`, ["admin", "user", "supplier"]),
+      accessLevel: ["supplier", "user", "admin"],
     },
     {
       title: "개별 품목 출고 요청",
-      // subtitle: "공급자 계정",
       icon: <FaTruckLoading className="text-3xl" />,
-      onClick: () => checkAccess(`/orderRequest`, ["admin", "supplier"]),
-      accessLevel: ["supplier", "admin"],
+      onClick: () =>
+        checkAccess(`/orderRequest`, ["admin", "user", "supplier"]),
+      accessLevel: ["supplier", "user", "admin"],
     },
     {
       title: "발주 기록 확인",
       // subtitle: "공급자 계정",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/orderRecord`, ["admin", "supplier"]),
-      accessLevel: ["supplier", "admin"],
+      onClick: () => checkAccess(`/orderRecord`, ["admin", "user", "supplier"]),
+      accessLevel: ["supplier", "user", "admin"],
     },
     {
       title: "패키지 관리",

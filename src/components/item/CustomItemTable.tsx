@@ -14,7 +14,8 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 export default function CustomItemTable() {
   const router = useRouter();
   const { user } = useCurrentUser();
-  const { items, isLoading, isError } = useWarehouseItems();
+  const { items, isLoading, isError, invalidateInventory, refetchAll } =
+    useWarehouseItems();
   const { teamItems = [], isLoading: isTeamItemsLoading } =
     useTeamItems().useGetTeamItems();
   const { useAddItem, useDeleteItem } = useItems();
@@ -177,11 +178,15 @@ export default function CustomItemTable() {
 
     // React Query 뮤테이션 사용
     addItemMutation.mutate(newItemData, {
-      onSuccess: (response) => {
+      onSuccess: async (response) => {
         if (response.success) {
           // 아이템 추가 성공 메시지
           alert(`아이템 "${values.itemName}"이(가) 추가되었습니다.`);
           handleCloseModal();
+
+          // 데이터 리페치 및 캐시 무효화
+          await invalidateInventory();
+          await refetchAll();
         } else {
           alert(
             `오류 발생: ${
@@ -201,11 +206,18 @@ export default function CustomItemTable() {
   const handleDeleteItem = (itemId: number, itemName: string) => {
     if (window.confirm(`'${itemName}' 품목을 삭제하시겠습니까?`)) {
       deleteItemMutation.mutate(
-        { id: String(itemId), itemWarehouseId: "" },
         {
-          onSuccess: (response) => {
+          id: String(itemId),
+          itemWarehouseId: String(currentWarehouseId || ""),
+        },
+        {
+          onSuccess: async (response) => {
             if (response.success) {
               alert(`품목 "${itemName}"이(가) 삭제되었습니다.`);
+
+              // 데이터 리페치 및 캐시 무효화
+              await invalidateInventory();
+              await refetchAll();
             } else {
               alert(
                 `오류 발생: ${

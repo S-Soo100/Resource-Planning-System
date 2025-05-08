@@ -1,7 +1,9 @@
+import { OrderPackage } from "../(order)/order";
+
 export interface IOrderRecord {
   id: number; // 자동생성될 발주아이디
   orderer: string; // 보내는 사람, 보통 user name
-  package: string; // 패키지, 휠체어 혹은 휠리엑스 플레이 베이직 등등
+  package: OrderPackage; // 패키지, 휠체어 혹은 휠리엑스 플레이 베이직 등등
   quantity: number; // 갯수
   date: string; // 날짜 스트링으로 찍어서 보낼것(202x-xx-xx)
   address: string; // 주소, 상세주소까지 다 포함해서 1줄로 보낼 듯

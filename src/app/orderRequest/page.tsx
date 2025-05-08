@@ -1,12 +1,8 @@
 // app/page.tsx
 "use client";
-import OrderRequestFormComponent from "../../components/orderRequest/OrderRequestFormComponent";
+import OrderRequestForm from "@/components/orderRequest/OrderRequestForm";
 // import { sendOrderRequest } from "@/utils/orderRequest"; // 임시
 
 export default function OrderRequestPage() {
-  return (
-    <section className="m-2 p-1">
-      <OrderRequestFormComponent />
-    </section>
-  );
+  return <OrderRequestForm isPackageOrder={false} title="개별품목 출고 요청" />;
 }

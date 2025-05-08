@@ -92,9 +92,14 @@ const OrderRecordTabs = () => {
   // 검색 필터링 적용
   const filteredOrders = getActiveOrders().filter(
     (order: IOrderRecord) =>
-      order.orderer.includes(searchTerm) ||
-      order.package.includes(searchTerm) ||
-      order.recipient.includes(searchTerm)
+      order.orderer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      false ||
+      order.package?.packageName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      false ||
+      order.recipient?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      false
   );
 
   // 페이지네이션 계산
@@ -249,7 +254,9 @@ const OrderRecordTabs = () => {
                   <tr key={record.id} className="hover:bg-gray-100">
                     <TableCell isHeader={false}>{record.id}</TableCell>
                     <TableCell isHeader={false}>{record.orderer}</TableCell>
-                    <TableCell isHeader={false}>{record.package}</TableCell>
+                    <TableCell isHeader={false}>
+                      {record.package?.packageName}
+                    </TableCell>
                     <TableCell isHeader={false}>{record.quantity}</TableCell>
                     <TableCell isHeader={false}>{record.recipient}</TableCell>
                     <TableCell isHeader={false}>{record.date}</TableCell>

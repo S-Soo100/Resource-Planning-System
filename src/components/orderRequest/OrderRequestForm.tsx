@@ -1,22 +1,18 @@
-// components/orderRequest/OrderRequestForm.tsx
 "use client";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
-import { Paperclip, Plus, Minus } from "lucide-react";
+import { Paperclip, Plus, Minus, X } from "lucide-react";
 import { useOrder } from "@/hooks/useOrder";
-import { usePackages } from "@/hooks/usePackages";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { toast } from "react-hot-toast";
-import { CreateOrderDto, CreateOrderItemRequest } from "@/types/(order)/order";
-import { PackageApi } from "@/types/package";
+import { CreateOrderDto } from "@/types/(order)/order";
 import { TeamItem } from "@/types/team-item";
 
 type FormData = {
   requester: string;
-  phone: string;
   receiver: string;
-  manager: string;
+  phone: string;
   address: string;
   detailAddress: string;
   requestDate: string;
@@ -29,25 +25,28 @@ type OrderItemWithDetails = {
   quantity: number;
 };
 
-const OrderRequestFormComponent = () => {
+interface OrderRequestFormProps {
+  isPackageOrder?: boolean;
+  title?: string;
+}
+
+const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
+  isPackageOrder = false,
+  title = "발주 요청",
+}) => {
   const [requestDate, setRequestDate] = useState("");
   const [setupDate, setSetupDate] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const selectedFiles = useRef<HTMLInputElement>(null);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  // 선택한 패키지 및 아이템 관련 상태
-  const [selectedPackage, setSelectedPackage] = useState<PackageApi | null>(
-    null
-  );
+  // 아이템 관련 상태
   const [orderItems, setOrderItems] = useState<OrderItemWithDetails[]>([]);
 
   const [formData, setFormData] = useState<FormData>({
     requester: "",
-    phone: "",
     receiver: "",
-    manager: "",
+    phone: "",
     address: "",
     detailAddress: "",
     requestDate: "",
@@ -58,15 +57,8 @@ const OrderRequestFormComponent = () => {
   // 훅 호출
   const { useCreateOrder } = useOrder();
   const { mutate: createOrder } = useCreateOrder();
-
-  // 패키지 목록 가져오기
-  const packageHooks = usePackages();
-  const { packages, isLoading: isPackagesLoading } =
-    packageHooks.useGetPackages();
-
-  // 팀 아이템 목록 가져오기
-  const { teamItems, isLoading: isTeamItemsLoading } =
-    useTeamItems().useGetTeamItems();
+  const { useGetTeamItems } = useTeamItems();
+  const { data: teamItems } = useGetTeamItems();
 
   const handleFileSelection = () => {
     if (selectedFiles.current && selectedFiles.current.files) {
@@ -89,48 +81,49 @@ const OrderRequestFormComponent = () => {
     }));
   }, []);
 
-  // 패키지 선택 시 아이템 목록 업데이트
-  const handlePackageSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const packageId = parseInt(e.target.value);
-
-    if (packageId === 0) {
-      setSelectedPackage(null);
-      setOrderItems([]);
+  // 아이템 선택 핸들러
+  const handleItemSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const itemId = parseInt(e.target.value);
+    if (itemId === 0) {
+      return;
+    }
+    const selected = teamItems?.find((item) => item.id === itemId) || null;
+    if (!selected) {
       return;
     }
 
-    const selectedPkg = packages?.find((pkg) => pkg.id === packageId) || null;
-    setSelectedPackage(selectedPkg);
+    // 이미 추가된 아이템인지 확인
+    const isItemExists = orderItems.some(
+      (item) => item.teamItem.id === selected.id
+    );
 
-    if (selectedPkg && selectedPkg.itemlist) {
-      // 패키지의 아이템 목록 파싱 (쉼표로 구분된 문자열)
-      const itemCodes = selectedPkg.itemlist.split(", ");
-
-      // 각 아이템 코드에 해당하는 팀 아이템 찾기
-      const items: OrderItemWithDetails[] = [];
-
-      itemCodes.forEach((code) => {
-        const matchingItem = teamItems?.find((item) => item.itemCode === code);
-        if (matchingItem) {
-          items.push({
-            teamItem: matchingItem,
-            quantity: 1,
-          });
-        }
-      });
-
-      setOrderItems(items);
-    } else {
-      setOrderItems([]);
+    if (isItemExists) {
+      toast.error("이미 추가된 아이템입니다");
+      return;
     }
+
+    // 아이템 추가
+    setOrderItems((prev) => [
+      ...prev,
+      {
+        teamItem: selected,
+        quantity: 1,
+      },
+    ]);
+
+    // 선택 초기화
+    e.target.value = "0";
+  };
+
+  // 아이템 제거 핸들러
+  const handleRemoveItem = (itemId: number) => {
+    setOrderItems((prev) => prev.filter((item) => item.teamItem.id !== itemId));
   };
 
   // 아이템 수량 변경 핸들러
   const handleQuantityChange = (index: number, increment: boolean) => {
     setOrderItems((prev) => {
-      // 배열의 얕은 복사를 수행합니다
       const updated = prev.map((item, idx) => {
-        // 해당 인덱스의 아이템만 수정합니다
         if (idx === index) {
           return {
             ...item,
@@ -141,7 +134,6 @@ const OrderRequestFormComponent = () => {
               : item.quantity,
           };
         }
-        // 다른 아이템은 그대로 유지합니다
         return item;
       });
       return updated;
@@ -183,153 +175,118 @@ const OrderRequestFormComponent = () => {
   };
 
   const validateForm = (): boolean => {
-    if (!selectedPackage) {
-      toast.error("패키지를 선택해주세요");
-      return false;
-    }
     if (orderItems.length === 0) {
-      toast.error("패키지에 아이템이 없습니다");
+      toast.error("최소 하나 이상의 품목을 선택해주세요");
       return false;
     }
     if (!formData.requester) {
-      toast.error("요청자 정보를 입력해주세요");
+      toast.error("요청자를 입력해주세요");
+      return false;
+    }
+    if (!formData.receiver) {
+      toast.error("수령인을 입력해주세요");
       return false;
     }
     if (!formData.phone) {
-      toast.error("전화번호를 입력해주세요");
+      toast.error("수령인 연락처를 입력해주세요");
       return false;
     }
     if (!formData.address) {
-      toast.error("주소를 입력해주세요");
+      toast.error("배송지를 입력해주세요");
+      return false;
+    }
+    if (!formData.requestDate) {
+      toast.error("배송일을 선택해주세요");
       return false;
     }
     return true;
   };
 
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>
-  ): Promise<void> => {
-    event.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-
-    // CreateOrderDto 형식에 맞게 데이터 변환
-    const orderItemRequests: CreateOrderItemRequest[] = orderItems.map(
-      (item) => ({
-        itemId: item.teamItem.id,
-        quantity: item.quantity,
-        memo: formData.notes,
-      })
-    );
-
-    // 발주 요청 데이터 준비
-    const orderData: CreateOrderDto = {
-      userId: 1, // 현재 로그인한 사용자 ID (실제로는 인증 시스템에서 가져와야 함)
-      supplierId: 1, // 공급업체 ID (실제로는 선택된 패키지에 따라 결정될 수 있음)
-      packageId: selectedPackage?.id || 0,
-      requester: formData.requester,
-      receiver: formData.receiver,
-      receiverPhone: formData.phone,
-      receiverAddress: `${formData.address} ${formData.detailAddress}`.trim(),
-      purchaseDate: formData.requestDate,
-      outboundDate: formData.requestDate,
-      installationDate: formData.setupDate,
-      manager: formData.manager,
-      status: "요청", // 기본 상태
-      memo: formData.notes,
-      orderItems: orderItemRequests,
-    };
+    if (!validateForm()) {
+      return;
+    }
 
     try {
-      // useCreateOrder 훅의 mutate 함수 호출
+      const orderData: CreateOrderDto = {
+        userId: 1,
+        supplierId: 1,
+        packageId: 0,
+        requester: formData.requester,
+        receiver: formData.receiver,
+        receiverPhone: formData.phone,
+        receiverAddress: `${formData.address} ${formData.detailAddress}`.trim(),
+        purchaseDate: formData.requestDate,
+        outboundDate: formData.requestDate,
+        installationDate: formData.setupDate,
+        manager: "",
+        status: "요청",
+        memo: formData.notes,
+        orderItems: orderItems.map((item) => ({
+          itemId: item.teamItem.id,
+          quantity: item.quantity,
+          memo: formData.notes,
+        })),
+      };
+
       createOrder(orderData, {
         onSuccess: () => {
-          toast.success("발주 요청이 성공적으로 등록되었습니다");
+          toast.success("발주 요청이 완료되었습니다");
           // 폼 초기화
-          resetForm();
+          setFormData({
+            requester: "",
+            receiver: "",
+            phone: "",
+            address: "",
+            detailAddress: "",
+            requestDate: "",
+            setupDate: "",
+            notes: "",
+          });
+          setOrderItems([]);
         },
         onError: (error) => {
-          console.error("발주 요청 오류:", error);
-          toast.error("발주 요청 중 오류가 발생했습니다");
-        },
-        onSettled: () => {
-          setIsLoading(false);
+          console.error("발주 요청 실패:", error);
+          toast.error("발주 요청에 실패했습니다");
         },
       });
     } catch (error) {
-      console.error("발주 요청 처리 중 오류:", error);
-      toast.error("발주 요청 처리 중 오류가 발생했습니다");
-      setIsLoading(false);
+      console.error("발주 요청 실패:", error);
+      toast.error("발주 요청에 실패했습니다");
     }
   };
 
-  const resetForm = () => {
-    // 현재 날짜 가져오기
-    const now = new Date();
-    const formattedDate = now.toISOString().split("T")[0];
-
-    // 폼 데이터 초기화
-    setFormData({
-      requester: "",
-      phone: "",
-      receiver: "",
-      manager: "",
-      address: "",
-      detailAddress: "",
-      requestDate: formattedDate,
-      setupDate: formattedDate,
-      notes: "",
-    });
-
-    // 패키지 및 아이템 상태 초기화
-    setSelectedPackage(null);
-    setOrderItems([]);
-
-    // 날짜 상태 초기화
-    setRequestDate(formattedDate);
-    setSetupDate(formattedDate);
-
-    // 파일 상태 초기화
-    setFiles([]);
-  };
-
-  // 페이지가 로딩 중이면 로딩 표시
-  if (isPackagesLoading || isTeamItemsLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        로딩 중...
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-4">발주 요청</h1>
+      <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
-        <label htmlFor="package" className="block text-sm font-medium">
-          패키지 선택
-        </label>
-        <select
-          id="package"
-          name="package"
-          value={selectedPackage?.id || ""}
-          onChange={handlePackageSelect}
-          className="p-2 border rounded"
-          required
-        >
-          <option value="">선택하세요</option>
-          {packages?.map((pkg) => (
-            <option key={pkg.id} value={pkg.id}>
-              {pkg.packageName}
-            </option>
-          ))}
-        </select>
+        {/* 개별품목 선택 (개별품목 출고 요청인 경우에만 표시) */}
+        {!isPackageOrder && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              품목 선택
+            </label>
+            <select
+              name="item"
+              onChange={handleItemSelect}
+              className="w-full px-3 py-2 border rounded-md"
+              required={!isPackageOrder}
+            >
+              <option value="0">품목 선택</option>
+              {teamItems?.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.itemName} ({item.itemCode})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {orderItems.length > 0 && (
           <div className="mt-4">
-            <h3 className="font-medium mb-2">패키지 포함 아이템</h3>
+            <h3 className="font-medium mb-2">선택된 품목</h3>
             <div className="border rounded-md p-3">
               {orderItems.map((item, index) => (
                 <div
@@ -357,6 +314,13 @@ const OrderRequestFormComponent = () => {
                       className="p-1 rounded bg-gray-200 hover:bg-gray-300"
                     >
                       <Plus size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(item.teamItem.id)}
+                      className="p-1 rounded bg-red-100 hover:bg-red-200 text-red-600"
+                    >
+                      <X size={16} />
                     </button>
                   </div>
                 </div>
@@ -444,18 +408,6 @@ const OrderRequestFormComponent = () => {
           required
         />
 
-        <label htmlFor="manager" className="block text-sm font-medium">
-          담당자
-        </label>
-        <input
-          type="text"
-          id="manager"
-          name="manager"
-          value={formData.manager}
-          onChange={handleChange}
-          className="p-2 border rounded"
-        />
-
         <label htmlFor="address" className="block text-sm font-medium">
           주소
         </label>
@@ -523,12 +475,9 @@ const OrderRequestFormComponent = () => {
 
         <button
           type="submit"
-          disabled={isLoading}
-          className={`${
-            isLoading ? "bg-blue-300" : "bg-blue-500"
-          } text-white py-2 px-4 rounded mt-4`}
+          className="bg-blue-500 text-white py-2 px-4 rounded mt-4"
         >
-          {isLoading ? "처리 중..." : "발주 요청하기"}
+          발주 요청하기
         </button>
       </form>
       <div className="h-32 mb-12 flex flex-col text-white"> - </div>
@@ -538,4 +487,4 @@ const OrderRequestFormComponent = () => {
   );
 };
 
-export default OrderRequestFormComponent;
+export default OrderRequestForm;

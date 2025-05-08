@@ -63,8 +63,42 @@ export function useTeamItems() {
     };
   };
 
+  // 팀 아이템 수정 뮤테이션
+  const useUpdateTeamItem = () => {
+    const mutation = useMutation({
+      mutationFn: ({
+        id,
+        teamItemDto,
+      }: {
+        id: number;
+        teamItemDto: CreateTeamItemDto;
+      }) => teamItemsApi.updateTeamItem(id, teamItemDto),
+      onSuccess: (response) => {
+        if (response.success) {
+          // 캐시 무효화
+          queryClient.invalidateQueries({
+            queryKey: ["teamItems", selectedTeamId],
+          });
+          toast.success("팀 아이템이 수정되었습니다.");
+        } else {
+          toast.error(response.error || "팀 아이템 수정에 실패했습니다.");
+        }
+      },
+      onError: () => {
+        toast.error("팀 아이템 수정 중 오류가 발생했습니다.");
+      },
+    });
+
+    return {
+      updateTeamItem: mutation.mutate,
+      updateTeamItemAsync: mutation.mutateAsync,
+      ...mutation,
+    };
+  };
+
   return {
     useGetTeamItems,
     useCreateTeamItem,
+    useUpdateTeamItem,
   };
 }

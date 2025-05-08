@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Address } from "react-daum-postcode";
 import { CreateWarehouseDto, CreateWarehouseProps } from "@/types/warehouse";
@@ -7,9 +7,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { authService } from "@/services/authService";
 import { useTeamItems } from "@/hooks/useTeamItems";
-import { CreateTeamItemDto } from "@/types/team-item";
+import { CreateTeamItemDto, TeamItem } from "@/types/team-item";
 import { authStore } from "@/store/authStore";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+import { TeamWarehouse } from "@/types/warehouse";
 
 // SearchAddressModal을 동적으로 import
 const SearchAddressModal = dynamic(() => import("../SearchAddressModal"), {
@@ -17,8 +18,11 @@ const SearchAddressModal = dynamic(() => import("../SearchAddressModal"), {
 });
 
 interface WarehouseManagementProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  warehouses: any[];
+  warehouses: {
+    id: string;
+    warehouseName: string;
+    warehouseAddress: string;
+  }[];
 }
 
 const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
@@ -40,10 +44,13 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
   const { invalidateInventory, refetchAll } = useWarehouseItems();
 
   // 팀 아이템 관련 상태와 기능 추가
-  const { useGetTeamItems, useCreateTeamItem } = useTeamItems();
-  const { data: teamItems = [], isLoading: isItemsLoading } = useGetTeamItems();
-  const { createTeamItem, isPending: isItemSubmitting } = useCreateTeamItem();
+  const { useGetTeamItems, useCreateTeamItem, useUpdateTeamItem } =
+    useTeamItems();
+  const { data: teamItems = [] } = useGetTeamItems();
+  const { createTeamItem } = useCreateTeamItem();
+  const { updateTeamItem, isPending: isItemUpdating } = useUpdateTeamItem();
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [itemFormData, setItemFormData] = useState<
     Omit<CreateTeamItemDto, "teamId">
   >({
@@ -51,6 +58,7 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
     itemName: "",
     memo: "",
   });
+  const [editingItem, setEditingItem] = useState<TeamItem | null>(null);
   const [itemSubmitError, setItemSubmitError] = useState<string | null>(null);
   const selectedTeam = authStore((state) => state.selectedTeam);
 
@@ -200,6 +208,63 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
     }
   };
 
+  // 팀 아이템 수정 모달 열기
+  const handleOpenEditModal = (item: TeamItem) => {
+    setEditingItem(item);
+    setItemFormData({
+      itemCode: item.itemCode,
+      itemName: item.itemName,
+      memo: item.memo || "",
+    });
+    setIsEditModalOpen(true);
+  };
+
+  // 팀 아이템 수정 모달 닫기
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingItem(null);
+    setItemFormData({
+      itemCode: "",
+      itemName: "",
+      memo: "",
+    });
+  };
+
+  // 팀 아이템 수정 제출
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedTeam?.id || !editingItem) {
+      setItemSubmitError("선택된 팀이 없거나 수정할 아이템이 없습니다.");
+      return;
+    }
+
+    if (!itemFormData.itemCode || !itemFormData.itemName) {
+      setItemSubmitError("품목 코드와 품목명은 필수 입력값입니다.");
+      return;
+    }
+
+    setItemSubmitError(null);
+
+    try {
+      const teamIdNumber = Number(selectedTeam.id);
+      const teamItemDto: CreateTeamItemDto = {
+        ...itemFormData,
+        teamId: teamIdNumber,
+      };
+
+      await updateTeamItem({
+        id: editingItem.id,
+        teamItemDto,
+      });
+
+      handleCloseEditModal();
+    } catch (error) {
+      console.error("아이템 수정 오류:", error);
+      setItemSubmitError("아이템 수정 중 오류가 발생했습니다.");
+    }
+  };
+
   return (
     <div className="bg-white p-5 rounded-lg shadow-sm">
       <div className="flex justify-between items-center mb-4">
@@ -281,24 +346,22 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
           </p>
         </div>
 
-        {isItemsLoading ? (
-          <div className="p-4 text-center">로딩 중...</div>
-        ) : teamItems.length > 0 ? (
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        {teamItems.length > 0 ? (
+          <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    아이템 코드
+                    품목 코드
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    아이템명
+                    품목명
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     메모
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                    관리
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    작업
                   </th>
                 </tr>
               </thead>
@@ -316,15 +379,43 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm w-24 text-center">
                       <button
-                        className="text-blue-500 hover:text-blue-700 mr-2 opacity-50 cursor-not-allowed"
-                        disabled
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors duration-200"
+                        onClick={() => handleOpenEditModal(item)}
                       >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 mr-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
                         수정
                       </button>
                       <button
-                        className="text-red-500 hover:text-red-700 opacity-50 cursor-not-allowed"
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors duration-200 ml-2 opacity-50 cursor-not-allowed"
                         disabled
                       >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 mr-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
                         삭제
                       </button>
                     </td>
@@ -482,135 +573,65 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
         </div>
       )}
 
-      {/* 팀 아이템 추가 모달 */}
-      {isItemModalOpen && (
+      {/* 팀 아이템 수정 모달 */}
+      {isEditModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">새 팀 아이템 추가</h3>
-              <button
-                className="text-gray-500 hover:text-gray-700"
-                onClick={handleCloseItemModal}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <form onSubmit={handleItemSubmit}>
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">팀 아이템 수정</h2>
+            <form onSubmit={handleEditSubmit}>
               <div className="mb-4">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="itemCode"
-                >
-                  품목 코드 <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium mb-1">
+                  품목 코드
                 </label>
                 <input
-                  id="itemCode"
-                  name="itemCode"
                   type="text"
+                  name="itemCode"
                   value={itemFormData.itemCode}
                   onChange={handleItemInputChange}
-                  placeholder="예: ITEM001"
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
-
               <div className="mb-4">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="itemName"
-                >
-                  품목명 <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium mb-1">품목명</label>
                 <input
-                  id="itemName"
-                  name="itemName"
                   type="text"
+                  name="itemName"
                   value={itemFormData.itemName}
                   onChange={handleItemInputChange}
-                  placeholder="예: 노트북"
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
-
               <div className="mb-4">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="memo"
-                >
-                  메모
-                </label>
+                <label className="block text-sm font-medium mb-1">메모</label>
                 <textarea
-                  id="memo"
                   name="memo"
-                  value={itemFormData.memo || ""}
+                  value={itemFormData.memo}
                   onChange={handleItemInputChange}
-                  placeholder="예: 신형 모델"
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-24"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
                 />
               </div>
-
               {itemSubmitError && (
-                <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+                <div className="mb-4 text-red-500 text-sm">
                   {itemSubmitError}
                 </div>
               )}
-
-              <div className="mt-4 flex justify-end">
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md mr-2"
-                  onClick={handleCloseItemModal}
-                  disabled={isItemSubmitting}
+                  onClick={handleCloseEditModal}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center"
-                  disabled={isItemSubmitting}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                  disabled={isItemUpdating}
                 >
-                  {isItemSubmitting ? (
-                    <>
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      저장 중...
-                    </>
-                  ) : (
-                    "저장"
-                  )}
+                  {isItemUpdating ? "수정 중..." : "수정"}
                 </button>
               </div>
             </form>

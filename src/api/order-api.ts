@@ -2,6 +2,7 @@ import { api } from "./api";
 import { ApiResponse } from "../types/common";
 import {
   CreateOrderDto,
+  CreatOrderResponse,
   UpdateOrderDto,
   UpdateOrderStatusDto,
 } from "../types/(order)/order";
@@ -9,10 +10,10 @@ import {
 // 주문 생성
 export const createOrder = async (
   data: CreateOrderDto
-): Promise<ApiResponse> => {
+): Promise<ApiResponse<CreatOrderResponse>> => {
   try {
     const response = await api.post<ApiResponse>("/order", data);
-    return response.data;
+    return response.data as ApiResponse<CreatOrderResponse>;
   } catch {
     return { success: false, message: "주문 생성에 실패했습니다." };
   }

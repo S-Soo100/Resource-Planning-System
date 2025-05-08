@@ -101,7 +101,7 @@ export enum OrderStatus {
 
 export interface CreateOrderDto {
   userId: number;
-  supplierId: number;
+  supplierId: number | null;
   packageId: number | null;
   requester: string;
   receiver: string;
@@ -138,4 +138,90 @@ export interface UpdateOrderDto {
 
 export interface UpdateOrderStatusDto {
   status: string;
+}
+
+export interface CreatOrderResponse {
+  id: number;
+  userId: number;
+  supplierId: number;
+  packageId: number;
+  warehouseId: number;
+  countryCode: string;
+  requester: string;
+  receiver: string;
+  receiverPhone: string;
+  receiverAddress: string;
+  purchaseDate: string;
+  outboundDate: string;
+  installationDate: string;
+  manager: string;
+  status: string;
+  memo: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  user: {
+    id: number;
+    email: string;
+    name: string;
+  };
+  supplier: {
+    id: number;
+    supplierName: string;
+    supplierPhoneNumber: string;
+  };
+  package: {
+    id: number;
+    packageName: string;
+    itemlist: string;
+  };
+  warehouse: {
+    id: number;
+    warehouseName: string;
+    warehouseAddress: string;
+  };
+  orderItems: Array<{
+    id: number;
+    orderId: number;
+    itemId: number;
+    quantity: number;
+    memo: string;
+    createdAt: string;
+    updatedAt: string;
+    item: {
+      id: number;
+      itemCode: string;
+      itemName: string;
+      itemQuantity: number;
+    };
+  }>;
+  inventoryRecords: Array<{
+    id: number;
+    inboundDate: string;
+    outboundDate: string;
+    inboundLocation: string;
+    outboundLocation: string;
+    inboundQuantity: number;
+    outboundQuantity: number;
+    remarks: string;
+    supplierId: number;
+    packageId: number;
+    itemId: number;
+    userId: number;
+    orderId: number;
+    warehouseId: number;
+    countryCode: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+  }>;
+  files: Array<{
+    id: number;
+    fileName: string;
+    fileUrl: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    orderId: number;
+  }>;
 }

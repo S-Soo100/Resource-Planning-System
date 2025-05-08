@@ -13,4 +13,5 @@ export interface IOrderRecord {
   quote: string; // 견적서 보기 기능(string) 은 아닐 수 있음
   status: string; // number가 될 거 같기도 한데, 요청 -> 수락 -> 배송중 -> 완료 - 보류 등등??
   orderSheet: string; // 파일[] 로 될것이고, 필요한 파일들 첨부한 경우 여기에다 보관
+  userId: number; // 주문을 생성한 사용자의 ID
 }

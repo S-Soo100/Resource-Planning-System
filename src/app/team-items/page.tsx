@@ -22,6 +22,7 @@ export default function TeamItemsPage() {
   const { team } = useCurrentTeam();
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const isDebugMode = process.env.NODE_ENV === "development";
 
   useEffect(() => {
     if (team) {
@@ -41,7 +42,8 @@ export default function TeamItemsPage() {
     );
   }
 
-  if (!user || user.accessLevel !== "admin") {
+  // 디버그 모드가 아닐 때만 관리자 권한 체크
+  if (!isDebugMode && (!user || user.accessLevel !== "admin")) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-center">

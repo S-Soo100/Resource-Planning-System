@@ -24,4 +24,16 @@ export const teamItemsApi = {
       return { success: false, error: "팀 아이템 생성에 실패했습니다." };
     }
   },
+
+  updateTeamItem: async (
+    id: number,
+    teamItemDto: CreateTeamItemDto
+  ): Promise<ApiResponse<TeamItem>> => {
+    try {
+      const response = await api.patch(`/team-item/${id}`, teamItemDto);
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, error: "팀 아이템 수정에 실패했습니다." };
+    }
+  },
 };

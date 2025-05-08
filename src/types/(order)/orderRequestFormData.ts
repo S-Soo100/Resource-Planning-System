@@ -11,6 +11,7 @@ export type OrderRequestFormData = {
   requestDate: string;
   setupDate: string;
   notes: string;
+  manager: string;
 };
 
 export type OrderItemWithDetails = {

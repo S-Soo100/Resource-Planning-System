@@ -14,6 +14,9 @@ import {
   OrderRequestFormData,
   OrderRequestFormProps,
 } from "@/types/(order)/orderRequestFormData";
+import { usePackages } from "@/hooks/usePackages";
+import { PackageApi } from "@/types/package";
+import { authStore } from "@/store/authStore";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -24,11 +27,13 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const [files, setFiles] = useState<File[]>([]);
   const selectedFiles = useRef<HTMLInputElement>(null);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
+  const auth = authStore((state) => state.user);
 
   // 아이템 관련 상태
   const [orderItems, setOrderItems] = useState<OrderItemWithDetails[]>([]);
 
   const [formData, setFormData] = useState<OrderRequestFormData>({
+    manager: "",
     requester: "",
     receiver: "",
     receiverPhone: "",
@@ -41,8 +46,13 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   });
 
   // 훅 호출
+  const { useGetPackages } = usePackages();
+  const { packages } = useGetPackages();
   const { useCreateOrder } = useOrder();
-  const { mutate: createOrder } = useCreateOrder();
+  const {
+    mutate: createOrder,
+    // data: createOrderResponse
+  } = useCreateOrder();
   const { useGetTeamItems } = useTeamItems();
   const { data: teamItems } = useGetTeamItems();
   const { useGetSuppliers } = useSuppliers();
@@ -82,6 +92,38 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       setupDate: formattedDate,
     }));
   }, []);
+
+  // 패키지 선택 핸들러
+  const handlePackageSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const packageId = parseInt(e.target.value);
+    if (packageId === 0) {
+      setOrderItems([]);
+      return;
+    }
+
+    const selectedPackage = packages?.find(
+      (pkg: PackageApi) => pkg.id === packageId
+    );
+    if (!selectedPackage) return;
+
+    // 패키지의 아이템 목록을 파싱
+    const itemCodes = selectedPackage.itemlist.split(", ");
+
+    // 각 아이템 코드에 대해 teamItems에서 해당 아이템을 찾아 orderItems에 추가
+    const newOrderItems = itemCodes
+      .map((itemCode) => {
+        const teamItem = teamItems?.find((item) => item.itemCode === itemCode);
+        if (!teamItem) return null;
+
+        return {
+          teamItem,
+          quantity: 1,
+        };
+      })
+      .filter((item): item is OrderItemWithDetails => item !== null);
+
+    setOrderItems(newOrderItems);
+  };
 
   // 아이템 선택 핸들러
   const handleItemSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -240,9 +282,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
     try {
       const orderData: CreateOrderDto = {
-        userId: 1,
-        supplierId: 1,
-        packageId: 0,
+        userId: auth?.id ?? 0,
+        manager: formData.manager,
+        supplierId: formData.supplierId ?? null,
+        packageId: formData.packageId ?? null,
         requester: formData.requester,
         receiver: formData.receiver,
         receiverPhone: formData.receiverPhone,
@@ -250,7 +293,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         purchaseDate: formData.requestDate,
         outboundDate: formData.requestDate,
         installationDate: formData.setupDate,
-        manager: "",
         status: OrderStatus.requested,
         memo: formData.notes,
         orderItems: orderItems.map((item) => ({
@@ -261,20 +303,37 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       };
 
       createOrder(orderData, {
-        onSuccess: () => {
-          toast.success("발주 요청이 완료되었습니다");
-          // 폼 초기화
-          setFormData({
-            requester: "",
-            receiver: "",
-            receiverPhone: "",
-            address: "",
-            detailAddress: "",
-            requestDate: "",
-            setupDate: "",
-            notes: "",
-          });
-          setOrderItems([]);
+        onSuccess: (response) => {
+          if (response.success && response.data) {
+            // 파일이 첨부된 경우 추가 처리
+            if (files.length > 0) {
+              // TODO: 파일 업로드 처리
+              console.log("파일 업로드 필요:", files);
+
+              // 여기에 파일 업로드 로직 추가
+            }
+
+            // 폼 초기화
+            setFormData({
+              manager: "",
+              requester: "",
+              receiver: "",
+              receiverPhone: "",
+              address: "",
+              detailAddress: "",
+              requestDate: "",
+              setupDate: "",
+              notes: "",
+              supplierId: null,
+            });
+            toast.success("발주 요청이 완료되었습니다");
+            setOrderItems([]);
+            setFiles([]); // 파일 목록도 초기화
+            // 생성된 주문의 ID나 다른 데이터를 사용할 수 있습니다
+            console.log("생성된 주문:", response.data.id);
+          } else {
+            toast.error(response.message || "발주 요청에 실패했습니다");
+          }
         },
         onError: (error) => {
           console.error("발주 요청 실패:", error);
@@ -291,6 +350,28 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
+        {/* 패키지 선택 (패키지 출고 요청인 경우에만 표시) */}
+        {isPackageOrder && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              패키지 선택
+            </label>
+            <select
+              name="package"
+              onChange={handlePackageSelect}
+              className="w-full px-3 py-2 border rounded-md"
+              required={isPackageOrder}
+            >
+              <option value="0">패키지 선택</option>
+              {packages?.map((pkg: PackageApi) => (
+                <option key={pkg.id} value={pkg.id}>
+                  {pkg.packageName}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* 개별품목 선택 (개별품목 출고 요청인 경우에만 표시) */}
         {!isPackageOrder && (
           <div className="space-y-2">
@@ -377,6 +458,19 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           id="requester"
           name="requester"
           value={formData.requester}
+          onChange={handleChange}
+          className="p-2 border rounded"
+          required
+        />
+
+        <label htmlFor="manager" className="block text-sm font-medium">
+          담당자
+        </label>
+        <input
+          type="text"
+          id="manager"
+          name="manager"
+          value={formData.manager}
           onChange={handleChange}
           className="p-2 border rounded"
           required

@@ -9,13 +9,15 @@ import {
   CreateOrderDto,
   UpdateOrderDto,
   UpdateOrderStatusDto,
+  CreatOrderResponse,
 } from "../../types/(order)/order";
+import { ApiResponse } from "../../types/common";
 
 // 주문 생성
 export const useCreateOrder = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<ApiResponse<CreatOrderResponse>, Error, CreateOrderDto>({
     mutationFn: (data: CreateOrderDto) => createOrder(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });

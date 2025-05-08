@@ -2,7 +2,6 @@ import { warehouseApi } from "@/api/warehouse-api";
 import { TeamWarehouse } from "@/types/warehouse";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Warehouse } from "@/types/warehouse";
-import { getItemsByWarehouse } from "@/api/item-api";
 import { Item } from "@/types/item";
 import { authStore } from "@/store/authStore";
 import { teamApi } from "@/api/team-api";
@@ -54,7 +53,7 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
     queryFn: async () => {
       if (!hasWarehouses) return { warehouses: [], items: [] };
 
-      // 1. 모든 창고 정보 가져오기
+      // 모든 창고 정보 가져오기 (items 배열 포함)
       const warehousePromises = warehouseIds.map((id) =>
         warehouseApi.getWarehouse(id)
       );
@@ -63,12 +62,8 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
         .filter((response) => response.success && response.data)
         .map((response) => response.data!.data as Warehouse);
 
-      // 2. 모든 창고의 아이템 정보 가져오기
-      const itemPromises = warehouseIds.map((id) => getItemsByWarehouse(id));
-      const itemResponses = await Promise.all(itemPromises);
-      const items = itemResponses.flatMap((response) =>
-        response.success && response.data ? (response.data as Item[]) : []
-      );
+      // 창고 데이터에서 items 배열 추출
+      const items = warehouses.flatMap((warehouse) => warehouse.items || []);
 
       return { warehouses, items };
     },

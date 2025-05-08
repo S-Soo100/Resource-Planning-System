@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useRef, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
-import { Paperclip, Plus, Minus, X, AlertCircle } from "lucide-react";
+import { Paperclip, Plus, Minus, X, AlertCircle, Loader2 } from "lucide-react";
 import { useOrder } from "@/hooks/useOrder";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { useSuppliers } from "@/hooks/useSupplier";
@@ -21,7 +22,6 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
 import { useItems } from "@/hooks/useItems";
 import { Item } from "@/types/item";
-import { getItemsByWarehouse } from "@/api/item-api";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -30,6 +30,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   warehouseItems: propWarehouseItems,
   onWarehouseChange,
 }) => {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestDate, setRequestDate] = useState("");
   const [setupDate, setSetupDate] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -38,7 +40,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const auth = authStore((state) => state.user);
 
   // 아이템 관련 상태
-  const [orderItems, setOrderItems] = useState<OrderItemWithDetails[]>([]);
+  const [orderItems, setOrderItems] = useState<
+    (OrderItemWithDetails & { warehouseItemId: number })[]
+  >([]);
 
   const [formData, setFormData] = useState<OrderRequestFormData>({
     manager: "",
@@ -219,6 +223,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           quantity: 1,
           stockAvailable: stockItem ? stockItem.itemQuantity >= 1 : false,
           stockQuantity: stockItem?.itemQuantity || 0,
+          warehouseItemId: stockItem?.id || 0,
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -234,14 +239,16 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     if (itemId === 0) {
       return;
     }
-    const selected = teamItems?.find((item) => item.id === itemId) || null;
+
+    // 창고 아이템에서 선택된 아이템 찾기
+    const selected = currentWarehouseItems.find((item) => item.id === itemId);
     if (!selected) {
       return;
     }
 
     // 이미 추가된 아이템인지 확인
     const isItemExists = orderItems.some(
-      (item) => item.teamItem.id === selected.id
+      (item) => item.teamItem.itemCode === selected.itemCode
     );
 
     if (isItemExists) {
@@ -249,23 +256,24 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       return;
     }
 
-    // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
-    const stockItem =
-      warehouseItemsData && formData.warehouseId
-        ? (warehouseItemsData.data as Item[]).find(
-            (stockItem) => stockItem.itemCode === selected.itemCode
-          )
-        : null;
+    // 팀 아이템 정보 찾기 (itemCode로 매칭)
+    const teamItem =
+      teamItems?.find((item) => item.itemCode === selected.itemCode) || null;
+    if (!teamItem) {
+      toast.error("팀 품목 정보를 찾을 수 없습니다");
+      return;
+    }
 
-    // 아이템 추가
+    // 아이템 추가 - 창고 아이템 ID도 함께 저장
     setTimeout(() => {
       setOrderItems((prev) => [
         ...prev,
         {
-          teamItem: selected,
+          teamItem,
           quantity: 1,
-          stockAvailable: stockItem ? stockItem.itemQuantity >= 1 : false,
-          stockQuantity: stockItem?.itemQuantity || 0,
+          stockAvailable: selected.itemQuantity >= 1,
+          stockQuantity: selected.itemQuantity,
+          warehouseItemId: selected.id, // 창고 아이템 ID 저장
         },
       ]);
     }, 0);
@@ -278,7 +286,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const handleRemoveItem = (itemId: number) => {
     setTimeout(() => {
       setOrderItems((prev) =>
-        prev.filter((item) => item.teamItem.id !== itemId)
+        prev.filter((item) => item.warehouseItemId !== itemId)
       );
     }, 0);
   };
@@ -382,66 +390,18 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       warehouseId: warehouseId === 0 ? null : warehouseId,
     });
 
-    // 창고가 변경되면 현재 선택된 아이템의 재고 상태를 초기화
-    if (warehouseId === 0) {
-      setTimeout(() => {
-        setOrderItems((currentItems) =>
-          currentItems.map((item) => ({
-            ...item,
-            stockAvailable: undefined,
-            stockQuantity: undefined,
-          }))
-        );
-      }, 0);
-    } else if (onWarehouseChange) {
+    // 창고가 변경되면 선택된 아이템을 완전히 초기화
+    setTimeout(() => {
+      setOrderItems([]);
+    }, 0);
+
+    if (warehouseId !== 0 && onWarehouseChange) {
       // 부모 컴포넌트에서 제공한 onWarehouseChange 함수 사용
       try {
         await onWarehouseChange(warehouseId);
       } catch (error) {
         console.error("창고 아이템 조회 실패:", error);
       }
-    } else {
-      // 기존 로직: 직접 API 호출 (onWarehouseChange가 없을 때만)
-      setTimeout(async () => {
-        try {
-          // 창고 아이템 데이터를 직접 가져옴
-          const response = await getItemsByWarehouse(warehouseId.toString());
-          if (response.success && response.data) {
-            // API 응답 데이터를 Item[] 타입으로 안전하게 변환
-            const warehouseItemsData = Array.isArray(response.data)
-              ? (response.data as Item[])
-              : [];
-
-            // 현재 선택된 아이템들의 재고 상태 업데이트
-            if (orderItems.length > 0) {
-              const updatedItems = orderItems.map((item) => {
-                // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
-                const stockItem = warehouseItemsData.find(
-                  (stockItem) => stockItem.itemCode === item.teamItem.itemCode
-                );
-
-                // 재고 상태 계산
-                const stockAvailable = stockItem
-                  ? stockItem.itemQuantity >= item.quantity
-                  : false;
-                const stockQuantity = stockItem?.itemQuantity || 0;
-
-                // 새 객체 생성
-                return {
-                  ...item,
-                  stockAvailable,
-                  stockQuantity,
-                };
-              });
-
-              // 상태 업데이트
-              setOrderItems(updatedItems);
-            }
-          }
-        } catch (error) {
-          console.error("창고 아이템 조회 실패:", error);
-        }
-      }, 0);
     }
   };
 
@@ -484,6 +444,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       const orderData: CreateOrderDto = {
         userId: auth?.id ?? 0,
@@ -501,7 +463,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         status: OrderStatus.requested,
         memo: formData.notes,
         orderItems: orderItems.map((item) => ({
-          itemId: item.teamItem.id,
+          itemId: item.warehouseItemId, // 창고 아이템 ID 사용
           quantity: item.quantity,
           memo: formData.notes,
         })),
@@ -519,39 +481,25 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               // 여기에 파일 업로드 로직 추가
             }
 
-            // 폼 초기화
+            toast.success("발주 요청이 완료되었습니다");
+
+            // 2초 후 orderRecord 페이지로 이동
             setTimeout(() => {
-              setFormData({
-                manager: "",
-                requester: "",
-                receiver: "",
-                receiverPhone: "",
-                address: "",
-                detailAddress: "",
-                requestDate: "",
-                setupDate: "",
-                notes: "",
-                supplierId: null,
-                warehouseId: null,
-              });
-              toast.success("발주 요청이 완료되었습니다");
-              setOrderItems([]);
-              setFiles([]); // 파일 목록도 초기화
-              // 생성된 주문의 ID나 다른 데이터를 사용할 수 있습니다
-              if (response.data?.id) {
-                console.log("생성된 주문:", response.data.id);
-              }
-            }, 0);
+              router.push("/orderRecord");
+            }, 2000);
           } else {
+            setIsSubmitting(false);
             toast.error(response.message || "발주 요청에 실패했습니다");
           }
         },
         onError: (error) => {
+          setIsSubmitting(false);
           console.error("발주 요청 실패:", error);
           toast.error("발주 요청에 실패했습니다");
         },
       });
     } catch (error) {
+      setIsSubmitting(false);
       console.error("발주 요청 실패:", error);
       toast.error("발주 요청에 실패했습니다");
     }
@@ -618,9 +566,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               disabled={!formData.warehouseId}
             >
               <option value="0">품목 선택</option>
-              {teamItems?.map((item) => (
+              {currentWarehouseItems.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.itemName} ({item.itemCode})
+                  {item.itemName} ({item.itemCode}) - 재고: {item.itemQuantity}
+                  개
                 </option>
               ))}
             </select>
@@ -638,7 +587,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             <div className="border rounded-md p-3">
               {orderItems.map((item, index) => (
                 <div
-                  key={item.teamItem.id}
+                  key={item.warehouseItemId}
                   className="flex items-center justify-between py-2 border-b last:border-0"
                 >
                   <div className="flex-1">
@@ -680,7 +629,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleRemoveItem(item.teamItem.id)}
+                      onClick={() => handleRemoveItem(item.warehouseItemId)}
                       className="p-1 rounded bg-red-100 hover:bg-red-200 text-red-600"
                     >
                       <X size={16} />
@@ -800,7 +749,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         <input
           type="tel"
           id="phone"
-          name="phone"
+          name="receiverPhone"
           value={formData.receiverPhone}
           onChange={handleChange}
           placeholder="xxx-xxxx-xxxx"
@@ -878,9 +827,19 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
         <button
           type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded mt-4"
+          disabled={isSubmitting}
+          className={`bg-blue-500 text-white py-2 px-4 rounded mt-4 flex items-center justify-center ${
+            isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+          }`}
         >
-          발주 요청하기
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              처리 중...
+            </>
+          ) : (
+            "발주 요청하기"
+          )}
         </button>
       </form>
       <div className="h-32 mb-12 flex flex-col text-white"> - </div>

@@ -17,6 +17,8 @@ import {
 import { usePackages } from "@/hooks/usePackages";
 import { PackageApi } from "@/types/package";
 import { authStore } from "@/store/authStore";
+import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+import { Warehouse } from "@/types/warehouse";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -43,6 +45,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     setupDate: "",
     notes: "",
     supplierId: null,
+    warehouseId: null,
   });
 
   // 훅 호출
@@ -58,6 +61,16 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const { useGetSuppliers } = useSuppliers();
   const { suppliers: suppliersResponse } = useGetSuppliers();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
+  // 창고 관련 상태와 훅
+  const { warehouses } = useWarehouseItems();
+  const [warehousesList, setWarehousesList] = useState<Warehouse[]>([]);
+
+  useEffect(() => {
+    if (warehouses) {
+      setWarehousesList(warehouses);
+    }
+  }, [warehouses]);
 
   useEffect(() => {
     if (suppliersResponse) {
@@ -245,6 +258,15 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
   };
 
+  // 창고 선택 핸들러
+  const handleWarehouseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const warehouseId = parseInt(e.target.value);
+    setFormData({
+      ...formData,
+      warehouseId: warehouseId === 0 ? null : warehouseId,
+    });
+  };
+
   const validateForm = (): boolean => {
     if (orderItems.length === 0) {
       toast.error("최소 하나 이상의 품목을 선택해주세요");
@@ -270,6 +292,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       toast.error("배송일을 선택해주세요");
       return false;
     }
+    if (!formData.warehouseId) {
+      toast.error("출고할 창고를 선택해주세요");
+      return false;
+    }
     return true;
   };
 
@@ -286,6 +312,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         manager: formData.manager,
         supplierId: formData.supplierId ?? null,
         packageId: formData.packageId ?? null,
+        warehouseId: formData.warehouseId ?? 0,
         requester: formData.requester,
         receiver: formData.receiver,
         receiverPhone: formData.receiverPhone,
@@ -325,6 +352,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               setupDate: "",
               notes: "",
               supplierId: null,
+              warehouseId: null,
             });
             toast.success("발주 요청이 완료되었습니다");
             setOrderItems([]);
@@ -350,6 +378,27 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
+        {/* 창고 선택 */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            출고 창고 선택 <span className="text-red-500">*</span>
+          </label>
+          <select
+            name="warehouseId"
+            onChange={handleWarehouseChange}
+            value={formData.warehouseId || 0}
+            className="w-full px-3 py-2 border rounded-md"
+            required
+          >
+            <option value="0">창고 선택</option>
+            {warehousesList.map((warehouse) => (
+              <option key={warehouse.id} value={warehouse.id}>
+                {warehouse.warehouseName}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* 패키지 선택 (패키지 출고 요청인 경우에만 표시) */}
         {isPackageOrder && (
           <div className="space-y-2">

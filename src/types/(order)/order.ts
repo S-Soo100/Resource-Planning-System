@@ -103,6 +103,7 @@ export interface CreateOrderDto {
   userId: number;
   supplierId: number | null;
   packageId: number | null;
+  warehouseId: number;
   requester: string;
   receiver: string;
   receiverPhone: string;

@@ -3,6 +3,7 @@ import { TeamItem } from "../team-item";
 export type OrderRequestFormData = {
   supplierId?: number | null | undefined;
   packageId?: number | null | undefined;
+  warehouseId?: number | null | undefined;
   requester: string;
   receiver: string;
   receiverPhone: string;

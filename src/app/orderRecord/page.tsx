@@ -1,4 +1,4 @@
-import OrderRecordTabs from "@/components/order/OrderRecordTabs";
+import OrderRecordTabs from "@/components/orderRecord/OrderRecordTabs";
 // import OrderRecordTableComponent from "@/components/orderRecord/OrderRecordTableComponent";
 
 const OrderRecord = () => {

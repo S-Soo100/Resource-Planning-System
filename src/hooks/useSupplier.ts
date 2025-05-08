@@ -1,9 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supplierApi } from "@/api/supplier-api";
-import {
-  CreateSupplierRequest,
-  UpdateSupplierRequest,
-} from "@/types/(order)/supplier";
+import { CreateSupplierRequest, UpdateSupplierRequest } from "@/types/supplier";
 import toast from "react-hot-toast";
 import { authStore } from "@/store/authStore";
 

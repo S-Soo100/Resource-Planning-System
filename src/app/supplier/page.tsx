@@ -5,7 +5,7 @@ import {
   CreateSupplierRequest,
   Supplier,
   UpdateSupplierRequest,
-} from "@/types/(order)/supplier";
+} from "@/types/supplier";
 import dynamic from "next/dynamic";
 import { Address } from "react-daum-postcode";
 import { authStore } from "@/store/authStore";

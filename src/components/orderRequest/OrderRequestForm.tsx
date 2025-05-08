@@ -5,30 +5,15 @@ import { Address } from "react-daum-postcode";
 import { Paperclip, Plus, Minus, X } from "lucide-react";
 import { useOrder } from "@/hooks/useOrder";
 import { useTeamItems } from "@/hooks/useTeamItems";
+import { useSuppliers } from "@/hooks/useSupplier";
 import { toast } from "react-hot-toast";
-import { CreateOrderDto } from "@/types/(order)/order";
-import { TeamItem } from "@/types/team-item";
-
-type FormData = {
-  requester: string;
-  receiver: string;
-  phone: string;
-  address: string;
-  detailAddress: string;
-  requestDate: string;
-  setupDate: string;
-  notes: string;
-};
-
-type OrderItemWithDetails = {
-  teamItem: TeamItem;
-  quantity: number;
-};
-
-interface OrderRequestFormProps {
-  isPackageOrder?: boolean;
-  title?: string;
-}
+import { CreateOrderDto, OrderStatus } from "@/types/(order)/order";
+import { Supplier } from "@/types/supplier";
+import {
+  OrderItemWithDetails,
+  OrderRequestFormData,
+  OrderRequestFormProps,
+} from "@/types/(order)/orderRequestFormData";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -43,15 +28,16 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   // 아이템 관련 상태
   const [orderItems, setOrderItems] = useState<OrderItemWithDetails[]>([]);
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<OrderRequestFormData>({
     requester: "",
     receiver: "",
-    phone: "",
+    receiverPhone: "",
     address: "",
     detailAddress: "",
     requestDate: "",
     setupDate: "",
     notes: "",
+    supplierId: null,
   });
 
   // 훅 호출
@@ -59,6 +45,22 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const { mutate: createOrder } = useCreateOrder();
   const { useGetTeamItems } = useTeamItems();
   const { data: teamItems } = useGetTeamItems();
+  const { useGetSuppliers } = useSuppliers();
+  const { suppliers: suppliersResponse } = useGetSuppliers();
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
+  useEffect(() => {
+    if (suppliersResponse) {
+      if (
+        typeof suppliersResponse === "object" &&
+        "data" in suppliersResponse
+      ) {
+        setSuppliers(suppliersResponse.data as Supplier[]);
+      } else {
+        setSuppliers(suppliersResponse as Supplier[]);
+      }
+    }
+  }, [suppliersResponse]);
 
   const handleFileSelection = () => {
     if (selectedFiles.current && selectedFiles.current.files) {
@@ -174,6 +176,33 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     });
   };
 
+  const handleSupplierChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const supplierId = parseInt(e.target.value);
+    if (supplierId === 0) {
+      setFormData({
+        ...formData,
+        supplierId: null,
+        receiver: "",
+        receiverPhone: "",
+        address: "",
+      });
+      return;
+    }
+
+    const selectedSupplier = suppliers?.find(
+      (supplier: Supplier) => supplier.id === supplierId
+    );
+    if (selectedSupplier) {
+      setFormData({
+        ...formData,
+        supplierId,
+        receiver: selectedSupplier.supplierName,
+        receiverPhone: selectedSupplier.supplierPhoneNumber,
+        address: selectedSupplier.supplierAddress,
+      });
+    }
+  };
+
   const validateForm = (): boolean => {
     if (orderItems.length === 0) {
       toast.error("최소 하나 이상의 품목을 선택해주세요");
@@ -187,7 +216,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       toast.error("수령인을 입력해주세요");
       return false;
     }
-    if (!formData.phone) {
+    if (!formData.receiverPhone) {
       toast.error("수령인 연락처를 입력해주세요");
       return false;
     }
@@ -216,13 +245,13 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         packageId: 0,
         requester: formData.requester,
         receiver: formData.receiver,
-        receiverPhone: formData.phone,
+        receiverPhone: formData.receiverPhone,
         receiverAddress: `${formData.address} ${formData.detailAddress}`.trim(),
         purchaseDate: formData.requestDate,
         outboundDate: formData.requestDate,
         installationDate: formData.setupDate,
         manager: "",
-        status: "요청",
+        status: OrderStatus.requested,
         memo: formData.notes,
         orderItems: orderItems.map((item) => ({
           itemId: item.teamItem.id,
@@ -238,7 +267,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           setFormData({
             requester: "",
             receiver: "",
-            phone: "",
+            receiverPhone: "",
             address: "",
             detailAddress: "",
             requestDate: "",
@@ -353,20 +382,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           required
         />
 
-        <label htmlFor="phone" className="block text-sm font-medium">
-          전화번호
-        </label>
-        <input
-          type="tel"
-          id="phone"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          placeholder="xxx-xxxx-xxxx"
-          className="p-2 border rounded"
-          required
-        />
-
         <label htmlFor="requestDate" className="block text-sm font-medium">
           출고 요청일
         </label>
@@ -394,9 +409,29 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           className="p-2 border rounded"
           required
         />
-
+        {/* 공급업체 선택 */}
+        <div className="space-y-2">
+          <label className="flex gap-3 flex-row text-sm font-medium text-gray-700">
+            공급업체 선택
+            <p className="text-xs text-red-500">*업체 공급시에만</p>
+          </label>
+          <select
+            name="supplier"
+            onChange={handleSupplierChange}
+            className="w-full px-3 py-2 border rounded-md"
+          >
+            <option value="0">공급업체 선택</option>
+            {Array.isArray(suppliers) &&
+              suppliers.length > 0 &&
+              suppliers.map((supplier: Supplier) => (
+                <option key={supplier.id} value={supplier.id}>
+                  {supplier.supplierName}
+                </option>
+              ))}
+          </select>
+        </div>
         <label htmlFor="receiver" className="block text-sm font-medium">
-          받는사람
+          수령인
         </label>
         <input
           type="text"
@@ -408,8 +443,22 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           required
         />
 
+        <label htmlFor="phone" className="block text-sm font-medium">
+          수령인 연락처
+        </label>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          value={formData.receiverPhone}
+          onChange={handleChange}
+          placeholder="xxx-xxxx-xxxx"
+          className="p-2 border rounded"
+          required
+        />
+
         <label htmlFor="address" className="block text-sm font-medium">
-          주소
+          수령지 주소
         </label>
         <div className="flex flex-row">
           <input
@@ -451,6 +500,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         >
           <Paperclip className="w-4 h-4" />
           파일 업로드
+          <p className="text-xs text-red-600">
+            *현재는 하나의 파일만 올라갑니다.
+          </p>
         </div>
         <input
           ref={selectedFiles}

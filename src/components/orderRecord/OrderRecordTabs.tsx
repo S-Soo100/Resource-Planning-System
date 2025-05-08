@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useOrder } from "@/hooks/useOrder";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import TableCell from "./(tableBody)/TableCell";
@@ -9,6 +9,18 @@ import { useSuppliers } from "@/hooks/useSupplier";
 import { Supplier } from "@/types/supplier";
 import { ApiResponse } from "@/types/common";
 import { Order, OrderStatus } from "@/types/(order)/order";
+import React from "react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Filter,
+  RefreshCw,
+  Calendar,
+  User,
+  Package,
+  Truck,
+} from "lucide-react";
 
 type TabType = "all" | "user" | "supplier";
 
@@ -32,6 +44,7 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
     quote: "", // 견적서 정보가 없음
     status: order.status || OrderStatus.requested,
     orderSheet: "", // 주문서 정보가 없음
+    userId: order.userId, // 사용자 ID 추가
   };
 };
 
@@ -44,20 +57,20 @@ const OrderRecordTabs = () => {
   const recordsPerPage = 10;
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(false);
-  const [orderRecords, setOrderRecords] = useState<IOrderRecord[]>([]);
+  const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { useAllOrders, useUserOrders, useSupplierOrders } = useOrder();
+  const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
 
-  // 탭이 변경될 때 authStore에서 사용자 ID 가져오기
+  // 현재 로그인한 사용자 ID 가져오기
   useEffect(() => {
-    if (activeTab === "user") {
-      const user = authStore.getState().user;
-      if (user && user.id) {
-        setUserId(user.id.toString());
-      }
+    const user = authStore.getState().user;
+    if (user && user.id) {
+      setUserId(user.id.toString());
+      console.log("현재 사용자 ID:", user.id.toString());
     }
-  }, [activeTab]);
+  }, []);
 
   // 거래처 목록 조회 훅 사용
   const { suppliers: suppliersResponse, isLoading: suppliersLoading } =
@@ -91,64 +104,120 @@ const OrderRecordTabs = () => {
     }
   }, [suppliersResponse, suppliersLoading, isLoadingSuppliers]);
 
-  // 선택된 탭에 따라 적절한 데이터 불러오기
+  // 전체 주문 데이터와 공급업체별 주문 데이터만 API에서 가져오기
   const { data: allOrders, isLoading: allLoading } = useAllOrders();
-  const { data: userOrders, isLoading: userLoading } = useUserOrders(userId);
   const { data: supplierOrders, isLoading: supplierLoading } =
     useSupplierOrders(supplierId);
 
-  // API 응답 데이터를 IOrderRecord 형식으로 변환
-  useEffect(() => {
-    let ordersData: Order[] = [];
-    let apiResponse: OrderResponse | undefined;
-
+  // 현재 활성화된 탭에 따라 기본 데이터 선택
+  const baseApiResponse = useMemo(() => {
     switch (activeTab) {
-      case "user":
-        apiResponse = userOrders as OrderResponse;
-        break;
       case "supplier":
-        apiResponse = supplierOrders as OrderResponse;
-        break;
+        return supplierOrders as OrderResponse;
       case "all":
+      case "user": // 사용자별 데이터도 전체 데이터에서 필터링
       default:
-        apiResponse = allOrders as OrderResponse;
-        break;
+        return allOrders as OrderResponse;
     }
+  }, [activeTab, allOrders, supplierOrders]);
 
-    if (apiResponse && apiResponse.success && apiResponse.data) {
-      ordersData = apiResponse.data;
-      console.log("API 응답 데이터:", ordersData);
-
-      // 데이터 변환 및 설정
-      const convertedRecords = ordersData.map(convertToOrderRecord);
-      setOrderRecords(convertedRecords);
-      console.log("변환된 주문 기록:", convertedRecords);
-    } else {
-      setOrderRecords([]);
+  // API 응답 데이터를 IOrderRecord 형식으로 변환 (useMemo로 최적화)
+  const allOrderRecords = useMemo(() => {
+    if (baseApiResponse?.success && baseApiResponse?.data) {
+      console.log(
+        `기본 데이터 변환 중 - 데이터 개수: ${baseApiResponse.data.length}`
+      );
+      return baseApiResponse.data.map(convertToOrderRecord);
     }
-  }, [activeTab, allOrders, userOrders, supplierOrders]);
+    return [];
+  }, [baseApiResponse]);
 
-  // 검색 필터링 적용
-  const filteredOrders = orderRecords.filter(
-    (order: IOrderRecord) =>
-      order.orderer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.package?.packageName
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      order.recipient?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 현재 탭에 맞게 필터링된 주문 기록
+  const orderRecords = useMemo(() => {
+    if (activeTab === "user" && userId) {
+      // '내 발주 기록' 탭인 경우 전체 데이터에서 현재 사용자의 주문만 필터링
+      const userIdNum = parseInt(userId);
+      console.log(
+        `현재 사용자 ID(숫자): ${userIdNum}, 타입: ${typeof userIdNum}`
+      );
 
-  // 페이지네이션 계산
-  const totalPages = Math.ceil(filteredOrders.length / recordsPerPage);
-  const indexOfLastRecord = currentPage * recordsPerPage;
-  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredOrders.slice(
-    indexOfFirstRecord,
-    indexOfLastRecord
-  );
+      // 첫 번째 레코드의 userId 타입과 값 로깅 (디버깅용)
+      if (allOrderRecords.length > 0) {
+        const firstRecord = allOrderRecords[0];
+        console.log(
+          `첫 번째 레코드의 userId: ${
+            firstRecord.userId
+          }, 타입: ${typeof firstRecord.userId}`
+        );
+      }
+
+      const filtered = allOrderRecords.filter((record) => {
+        // userId가 null이나 undefined인 경우 처리
+        if (record.userId === null || record.userId === undefined) {
+          console.log(
+            `userId가 null 또는 undefined인 레코드 발견: ${record.id}`
+          );
+          return false;
+        }
+
+        // record.userId가 문자열인 경우를 대비해 양쪽 모두 숫자로 변환하여 비교
+        const recordUserId =
+          typeof record.userId === "string"
+            ? parseInt(record.userId)
+            : record.userId;
+
+        // 비교 결과 로깅 (디버깅용)
+        if (recordUserId === userIdNum) {
+          console.log(
+            `일치하는 레코드 발견: recordUserId=${recordUserId}, userIdNum=${userIdNum}`
+          );
+        }
+
+        return recordUserId === userIdNum;
+      });
+
+      console.log(`사용자 ID ${userId}로 필터링된 주문: ${filtered.length}개`);
+      console.log(`필터링 전 전체 주문: ${allOrderRecords.length}개`);
+      return filtered;
+    }
+    return allOrderRecords;
+  }, [activeTab, allOrderRecords, userId]);
+
+  // 검색 필터링 적용 (useMemo로 최적화)
+  const filteredOrders = useMemo(() => {
+    console.log(
+      `검색어 "${searchTerm}"로 ${orderRecords.length}개 항목 필터링`
+    );
+    return orderRecords.filter(
+      (order: IOrderRecord) =>
+        order.orderer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.package?.packageName
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        order.recipient?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [orderRecords, searchTerm]);
+
+  // 페이지네이션 계산 (useMemo로 최적화)
+  const { totalPages, currentRecords } = useMemo(() => {
+    const total = Math.ceil(filteredOrders.length / recordsPerPage);
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const records = filteredOrders.slice(indexOfFirstRecord, indexOfLastRecord);
+
+    console.log(
+      `페이지네이션: ${currentPage}/${total} 페이지, ${records.length}개 표시`
+    );
+
+    return {
+      totalPages: total,
+      currentRecords: records,
+    };
+  }, [filteredOrders, currentPage, recordsPerPage]);
 
   // 탭 변경 핸들러
   const handleTabChange = (tab: TabType) => {
+    console.log(`탭 변경: ${activeTab} -> ${tab}`);
     setActiveTab(tab);
     setCurrentPage(1); // 탭 변경 시 첫 페이지로 이동
   };
@@ -161,6 +230,7 @@ const OrderRecordTabs = () => {
 
   const handleSupplierChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSupplierId(e.target.value);
+    console.log(`거래처 변경: ${e.target.value}`);
   };
 
   // 페이지네이션 핸들러
@@ -175,11 +245,10 @@ const OrderRecordTabs = () => {
   // 로딩 상태 확인
   const isLoading = () => {
     switch (activeTab) {
-      case "user":
-        return userLoading;
       case "supplier":
-        return supplierLoading;
+        return supplierLoading && supplierId !== "";
       case "all":
+      case "user": // 사용자 탭은 전체 데이터를 사용하므로 전체 데이터 로딩 상태 확인
       default:
         return allLoading;
     }
@@ -205,156 +274,464 @@ const OrderRecordTabs = () => {
     }
   };
 
+  // 행 클릭 핸들러 추가
+  const handleRowClick = (recordId: number) => {
+    // 이미 확장된 행을 다시 클릭하면 접기
+    if (expandedRowId === recordId) {
+      setExpandedRowId(null);
+    } else {
+      // 다른 행을 클릭하면 해당 행 확장
+      setExpandedRowId(recordId);
+    }
+  };
+
+  // 데이터 새로고침 핸들러 추가
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    // 현재 탭에 따라 적절한 쿼리 다시 가져오기
+    setTimeout(() => {
+      setIsRefreshing(false);
+      setCurrentPage(1);
+    }, 800);
+  };
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">발주 기록 관리</h1>
+    <div className="container mx-auto p-4 max-w-7xl">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center">
+            <Package className="mr-2 text-blue-600" />
+            발주 기록 관리
+          </h1>
+          <button
+            onClick={handleRefresh}
+            className="mt-2 md:mt-0 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center text-sm transition-colors"
+          >
+            <RefreshCw
+              size={16}
+              className={`mr-1 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            새로고침
+          </button>
+        </div>
 
-      {/* 탭 버튼 */}
-      <div className="flex mb-4 border-b">
-        <button
-          onClick={() => handleTabChange("all")}
-          className={`py-2 px-4 ${
-            activeTab === "all"
-              ? "border-b-2 border-blue-500 text-blue-500"
-              : "text-gray-500"
-          }`}
-        >
-          전체 발주 기록
-        </button>
-        <button
-          onClick={() => handleTabChange("user")}
-          className={`py-2 px-4 ${
-            activeTab === "user"
-              ? "border-b-2 border-blue-500 text-blue-500"
-              : "text-gray-500"
-          }`}
-        >
-          내 발주 기록
-        </button>
-        <button
-          onClick={() => handleTabChange("supplier")}
-          className={`py-2 px-4 ${
-            activeTab === "supplier"
-              ? "border-b-2 border-blue-500 text-blue-500"
-              : "text-gray-500"
-          }`}
-        >
-          거래처별 발주 기록
-        </button>
-      </div>
+        {/* 탭 버튼 */}
+        <div className="flex mb-6 border-b">
+          <button
+            onClick={() => handleTabChange("all")}
+            className={`py-3 px-5 font-medium text-sm transition-colors ${
+              activeTab === "all"
+                ? "border-b-2 border-blue-500 text-blue-600"
+                : "text-gray-600 hover:text-blue-500"
+            }`}
+          >
+            <Package size={18} className="inline-block mr-1" />
+            전체 발주 기록
+          </button>
+          <button
+            onClick={() => handleTabChange("user")}
+            className={`py-3 px-5 font-medium text-sm transition-colors ${
+              activeTab === "user"
+                ? "border-b-2 border-blue-500 text-blue-600"
+                : "text-gray-600 hover:text-blue-500"
+            }`}
+          >
+            <User size={18} className="inline-block mr-1" />내 발주 기록
+          </button>
+          <button
+            onClick={() => handleTabChange("supplier")}
+            className={`py-3 px-5 font-medium text-sm transition-colors ${
+              activeTab === "supplier"
+                ? "border-b-2 border-blue-500 text-blue-600"
+                : "text-gray-600 hover:text-blue-500"
+            }`}
+          >
+            <Truck size={18} className="inline-block mr-1" />
+            거래처별 발주 기록
+          </button>
+        </div>
 
-      {/* 검색 및 필터 */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <input
-          type="text"
-          placeholder="발주자, 패키지, 수령자 검색..."
-          value={searchTerm}
-          onChange={handleSearch}
-          className="px-4 py-2 border rounded-md flex-grow"
-        />
+        {/* 검색 및 필터 */}
+        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <div className="relative flex-grow">
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type="text"
+                placeholder="발주자, 패키지, 수령자 검색..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              />
+            </div>
 
-        {activeTab === "user" && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">사용자 ID:</span>
-            <span className="px-3 py-1 bg-gray-100 rounded">
-              {userId || "로그인이 필요합니다"}
-            </span>
-          </div>
-        )}
+            {activeTab === "user" && (
+              <div className="flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-md">
+                <User size={16} className="mr-2 text-blue-500" />
+                <span className="text-sm font-medium text-blue-700">
+                  사용자 ID: {userId || "로그인이 필요합니다"}
+                </span>
+              </div>
+            )}
 
-        {activeTab === "supplier" && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">거래처:</span>
-            {isLoadingSuppliers ? (
-              <span className="text-sm text-gray-500">
-                거래처 목록 로딩 중...
-              </span>
-            ) : (
-              <select
-                value={supplierId}
-                onChange={handleSupplierChange}
-                className="px-4 py-2 border rounded-md"
-              >
-                <option value="">거래처 선택</option>
-                {suppliers.map((supplier) => (
-                  <option key={supplier.id} value={supplier.id.toString()}>
-                    {supplier.supplierName}
-                  </option>
-                ))}
-              </select>
+            {activeTab === "supplier" && (
+              <div className="flex items-center gap-2 min-w-[200px]">
+                <Filter size={16} className="text-gray-500" />
+                {isLoadingSuppliers ? (
+                  <div className="text-sm text-gray-500 flex items-center">
+                    <div className="w-4 h-4 border-2 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mr-2"></div>
+                    거래처 목록 로딩 중...
+                  </div>
+                ) : (
+                  <select
+                    value={supplierId}
+                    onChange={handleSupplierChange}
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  >
+                    <option value="">거래처 선택</option>
+                    {suppliers.map((supplier) => (
+                      <option key={supplier.id} value={supplier.id.toString()}>
+                        {supplier.supplierName}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* 데이터 테이블 */}
-      {isLoading() ? (
-        <div className="text-center py-4">데이터를 불러오는 중...</div>
-      ) : (
-        <>
-          <table className="table-auto w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-200">
-                <TableCell isHeader={true}>ID</TableCell>
-                <TableCell isHeader={true}>발주자</TableCell>
-                <TableCell isHeader={true}>패키지/품목</TableCell>
-                <TableCell isHeader={true}>수량</TableCell>
-                <TableCell isHeader={true}>수령자</TableCell>
-                <TableCell isHeader={true}>날짜</TableCell>
-                <TableCell isHeader={true}>현재상태</TableCell>
-              </tr>
-            </thead>
-            <tbody>
-              {currentRecords.length > 0 ? (
-                currentRecords.map((record: IOrderRecord) => (
-                  <tr key={record.id} className="hover:bg-gray-100">
-                    <TableCell isHeader={false}>{record.id}</TableCell>
-                    <TableCell isHeader={false}>{record.orderer}</TableCell>
-                    <TableCell isHeader={false}>
-                      {record.package?.packageName || "개별 품목"}
+        {/* 데이터 테이블 */}
+        {isLoading() ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-500">데이터를 불러오는 중...</p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto bg-white rounded-lg shadow">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gradient-to-r from-blue-50 to-blue-100 text-left border-b border-blue-200">
+                    <TableCell
+                      isHeader={true}
+                      className="font-semibold text-blue-700 py-3"
+                    >
+                      ID
                     </TableCell>
-                    <TableCell isHeader={false}>{record.quantity}</TableCell>
-                    <TableCell isHeader={false}>{record.recipient}</TableCell>
-                    <TableCell isHeader={false}>{record.date}</TableCell>
-                    <TableCell isHeader={false}>
-                      {getStatusText(record.status)}
+                    <TableCell
+                      isHeader={true}
+                      className="font-semibold text-blue-700 py-3"
+                    >
+                      발주자
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="font-semibold text-blue-700 py-3"
+                    >
+                      패키지/품목
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="font-semibold text-blue-700 py-3"
+                    >
+                      수량
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="font-semibold text-blue-700 py-3"
+                    >
+                      수령자
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="font-semibold text-blue-700 py-3"
+                    >
+                      날짜
+                    </TableCell>
+                    <TableCell
+                      isHeader={true}
+                      className="font-semibold text-blue-700 py-3"
+                    >
+                      현재상태
                     </TableCell>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="text-center py-4 border">
-                    표시할 데이터가 없습니다.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {currentRecords.length > 0 ? (
+                    currentRecords.map(
+                      (record: IOrderRecord, index: number) => (
+                        <React.Fragment key={record.id}>
+                          <tr
+                            className={`border-b hover:bg-blue-50 cursor-pointer transition-colors ${
+                              expandedRowId === record.id
+                                ? "bg-blue-50 border-blue-100"
+                                : index % 2 === 0
+                                ? "bg-white"
+                                : "bg-gray-50"
+                            }`}
+                            onClick={() => handleRowClick(record.id)}
+                          >
+                            <TableCell
+                              isHeader={false}
+                              className="font-medium text-gray-700"
+                            >
+                              {record.id}
+                            </TableCell>
+                            <TableCell
+                              isHeader={false}
+                              className="text-gray-700"
+                            >
+                              {record.orderer}
+                            </TableCell>
+                            <TableCell
+                              isHeader={false}
+                              className="max-w-[200px] truncate text-gray-700"
+                            >
+                              {record.package?.packageName || "개별 품목"}
+                            </TableCell>
+                            <TableCell
+                              isHeader={false}
+                              className="text-center text-gray-700"
+                            >
+                              {record.quantity}
+                            </TableCell>
+                            <TableCell
+                              isHeader={false}
+                              className="text-gray-700"
+                            >
+                              {record.recipient}
+                            </TableCell>
+                            <TableCell
+                              isHeader={false}
+                              className="whitespace-nowrap text-gray-700"
+                            >
+                              <Calendar
+                                size={14}
+                                className="inline-block mr-1 text-gray-500"
+                              />
+                              {record.date}
+                            </TableCell>
+                            <TableCell isHeader={false} className="relative">
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className={`px-2 py-1 text-xs rounded-full ${getStatusColorClass(
+                                    record.status
+                                  )}`}
+                                >
+                                  {getStatusText(record.status)}
+                                </span>
+                                <div className="ml-2 w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 group-hover:bg-blue-100 transition-colors">
+                                  {expandedRowId === record.id ? (
+                                    <ChevronUp
+                                      size={16}
+                                      className="text-blue-500"
+                                    />
+                                  ) : (
+                                    <ChevronDown
+                                      size={16}
+                                      className="text-gray-500"
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                          </tr>
+                          {expandedRowId === record.id && (
+                            <tr className="bg-gradient-to-r from-blue-50 to-blue-100 transition-all duration-300 ease-in-out">
+                              <td
+                                colSpan={7}
+                                className="p-4 border border-blue-100"
+                              >
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+                                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-50">
+                                    <h3 className="font-bold mb-3 text-blue-700 border-b pb-2">
+                                      발주 상세 정보
+                                    </h3>
+                                    <div className="space-y-2">
+                                      <p className="flex justify-between border-b border-gray-100 pb-1">
+                                        <span className="font-medium text-gray-600">
+                                          발주 ID:
+                                        </span>
+                                        <span className="text-gray-800">
+                                          {record.id}
+                                        </span>
+                                      </p>
+                                      <p className="flex justify-between border-b border-gray-100 pb-1">
+                                        <span className="font-medium text-gray-600">
+                                          발주자:
+                                        </span>
+                                        <span className="text-gray-800">
+                                          {record.orderer}
+                                        </span>
+                                      </p>
+                                      <p className="flex justify-between border-b border-gray-100 pb-1">
+                                        <span className="font-medium text-gray-600">
+                                          패키지/품목:
+                                        </span>
+                                        <span className="text-gray-800">
+                                          {record.package?.packageName ||
+                                            "개별 품목"}
+                                        </span>
+                                      </p>
+                                      <p className="flex justify-between border-b border-gray-100 pb-1">
+                                        <span className="font-medium text-gray-600">
+                                          수량:
+                                        </span>
+                                        <span className="text-gray-800">
+                                          {record.quantity}
+                                        </span>
+                                      </p>
+                                      <p className="flex justify-between border-b border-gray-100 pb-1">
+                                        <span className="font-medium text-gray-600">
+                                          날짜:
+                                        </span>
+                                        <span className="text-gray-800">
+                                          {record.date}
+                                        </span>
+                                      </p>
+                                      <p className="flex justify-between items-center">
+                                        <span className="font-medium text-gray-600">
+                                          상태:
+                                        </span>
+                                        <span
+                                          className={`px-2 py-1 text-xs rounded-full ${getStatusColorClass(
+                                            record.status
+                                          )}`}
+                                        >
+                                          {getStatusText(record.status)}
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-50">
+                                    <h3 className="font-bold mb-3 text-blue-700 border-b pb-2">
+                                      배송 정보
+                                    </h3>
+                                    <div className="space-y-2">
+                                      <p className="flex justify-between border-b border-gray-100 pb-1">
+                                        <span className="font-medium text-gray-600">
+                                          수령자:
+                                        </span>
+                                        <span className="text-gray-800">
+                                          {record.recipient}
+                                        </span>
+                                      </p>
+                                      <p className="flex justify-between border-b border-gray-100 pb-1">
+                                        <span className="font-medium text-gray-600">
+                                          연락처:
+                                        </span>
+                                        <span className="text-gray-800">
+                                          {record.recipientPhone}
+                                        </span>
+                                      </p>
+                                      <p className="flex justify-between border-b border-gray-100 pb-1">
+                                        <span className="font-medium text-gray-600">
+                                          주소:
+                                        </span>
+                                        <span className="text-gray-800 text-right flex-1 ml-4">
+                                          {record.address}
+                                        </span>
+                                      </p>
+                                      <p className="flex justify-between">
+                                        <span className="font-medium text-gray-600">
+                                          추가 요청사항:
+                                        </span>
+                                        <span className="text-gray-800 text-right flex-1 ml-4">
+                                          {record.additionalItems || "없음"}
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      )
+                    )
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="text-center py-8 text-gray-500"
+                      >
+                        <div className="flex flex-col items-center">
+                          <Package size={40} className="text-gray-300 mb-2" />
+                          <p>표시할 데이터가 없습니다.</p>
+                          <p className="text-sm text-gray-400 mt-1">
+                            다른 검색어나 필터를 시도해보세요.
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-          {/* 페이지네이션 */}
-          <div className="flex justify-between mt-4">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-            >
-              이전
-            </button>
-            <span>
-              페이지 {currentPage} / {totalPages || 1}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-            >
-              다음
-            </button>
-          </div>
-        </>
-      )}
+            {/* 페이지네이션 */}
+            <div className="flex justify-between items-center mt-6 bg-white p-4 rounded-lg shadow">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-md ${
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                } transition-colors`}
+              >
+                이전
+              </button>
+              <div className="flex items-center">
+                <span className="text-sm text-gray-600">
+                  페이지 <span className="font-medium">{currentPage}</span> /{" "}
+                  {totalPages || 1}
+                </span>
+                <span className="mx-4 text-sm text-gray-500">
+                  총 {filteredOrders.length}개 항목
+                </span>
+              </div>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className={`px-4 py-2 rounded-md ${
+                  currentPage === totalPages || totalPages === 0
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                } transition-colors`}
+              >
+                다음
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
+};
+
+// 상태에 따른 색상 클래스 반환 함수 추가
+const getStatusColorClass = (status: string): string => {
+  switch (status) {
+    case OrderStatus.requested:
+      return "bg-yellow-100 text-yellow-800";
+    case OrderStatus.approved:
+      return "bg-green-100 text-green-800";
+    case OrderStatus.rejected:
+      return "bg-red-100 text-red-800";
+    case OrderStatus.confirmedByShipper:
+      return "bg-blue-100 text-blue-800";
+    case OrderStatus.shipmentCompleted:
+      return "bg-purple-100 text-purple-800";
+    case OrderStatus.rejectedByShipper:
+      return "bg-orange-100 text-orange-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
 };
 
 export default OrderRecordTabs;

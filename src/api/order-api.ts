@@ -20,9 +20,11 @@ export const createOrder = async (
 };
 
 // 모든 주문 조회
-export const getAllOrders = async (): Promise<ApiResponse> => {
+export const getOrdersByTeamId = async (
+  teamId: number
+): Promise<ApiResponse> => {
   try {
-    const response = await api.get<ApiResponse>("/order");
+    const response = await api.get<ApiResponse>(`/order/team/${teamId}`);
     return response.data;
   } catch {
     return { success: false, message: "주문 목록 조회에 실패했습니다." };

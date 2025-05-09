@@ -105,7 +105,10 @@ const OrderRecordTabs = () => {
   }, [suppliersResponse, suppliersLoading, isLoadingSuppliers]);
 
   // 전체 주문 데이터와 공급업체별 주문 데이터만 API에서 가져오기
-  const { data: allOrders, isLoading: allLoading } = useAllOrders();
+  const currentTeamId =
+    Number(authStore((state) => state.selectedTeam?.id)) || 1;
+  const { data: allOrders, isLoading: allLoading } =
+    useAllOrders(currentTeamId);
   const { data: supplierOrders, isLoading: supplierLoading } =
     useSupplierOrders(supplierId);
 

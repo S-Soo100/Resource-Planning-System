@@ -9,6 +9,8 @@ import { authService } from "@/services/authService";
 import { adminTeamService } from "@/services/adminTeamService";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import Cookies from "js-cookie";
+import { LogOut } from "lucide-react";
 
 export default function TeamSelectPage() {
   const router = useRouter();
@@ -80,6 +82,18 @@ export default function TeamSelectPage() {
     }
   };
 
+  // 로그아웃 함수 추가
+  const handleLogout = () => {
+    // 로컬 스토리지의 토큰 제거
+    localStorage.removeItem("token");
+    // 쿠키의 토큰 제거
+    Cookies.remove("token");
+    // authStore의 상태 초기화
+    authStore.getState().logout();
+    // 메인 페이지로 리다이렉트
+    router.push("/");
+  };
+
   if (!mounted) {
     return null;
   }
@@ -129,6 +143,20 @@ export default function TeamSelectPage() {
   return (
     <Suspense>
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+        {/* 로그아웃 버튼 추가 */}
+        <div className="w-full bg-white p-3 shadow-sm sticky top-0 z-10">
+          <div className="max-w-5xl mx-auto flex justify-between items-center">
+            <h1 className="text-xl font-bold text-gray-800">팀 선택</h1>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-colors"
+            >
+              <LogOut size={18} />
+              <span>로그아웃</span>
+            </button>
+          </div>
+        </div>
+
         <div className="max-w-5xl mx-auto p-6">
           {/* 헤더 및 환영 메시지 */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">

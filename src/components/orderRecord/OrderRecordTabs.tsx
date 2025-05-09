@@ -31,21 +31,41 @@ interface OrderResponse extends ApiResponse {
 const convertToOrderRecord = (order: Order): IOrderRecord => {
   return {
     id: order.id,
-    orderer: order.user?.name || "알 수 없음",
-    package: order.package || { id: 0, packageName: "개별 품목", itemlist: "" },
-    quantity:
-      order.orderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0,
-    date: new Date(order.createdAt).toLocaleDateString("ko-KR"),
-    address: order.receiverAddress || "",
-    recipient: order.receiver || "",
-    recipientPhone: order.receiverPhone || "",
-    additionalItems: order.memo || "",
-    quote: "", // 견적서 정보가 없음
+    userId: order.userId,
+    supplierId: order.supplierId || 0,
+    packageId: order.packageId || 0,
+    requester: order.user?.name || "알 수 없음",
+    receiver: order.receiver || "",
+    receiverPhone: order.receiverPhone || "",
+    receiverAddress: order.receiverAddress || "",
+    purchaseDate: order.purchaseDate || new Date(order.createdAt).toISOString(),
+    outboundDate: order.outboundDate || "",
+    installationDate: order.installationDate || "",
+    manager: order.manager || "",
     status: order.status || OrderStatus.requested,
-    orderSheet: "", // 주문서 정보가 없음
-    userId: order.userId, // 사용자 ID 추가
-    orderItems: order.orderItems || [], // 주문 아이템 목록 추가
-    files: order.files || [], // 파일 목록 추가
+    memo: order.memo || "",
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt || order.createdAt,
+    deletedAt: order.deletedAt || null,
+    user: order.user
+      ? {
+          id: order.user.id,
+          email: order.user.email || "",
+          name: order.user.name || "",
+        }
+      : undefined,
+    supplier: order.supplier,
+    package: order.package
+      ? {
+          id: order.package.id,
+          packageName: order.package.packageName || "개별 품목",
+          itemlist: Array.isArray(order.package.itemlist)
+            ? order.package.itemlist
+            : [],
+        }
+      : undefined,
+    orderItems: order.orderItems || [],
+    files: order.files || [],
   };
 };
 
@@ -194,11 +214,11 @@ const OrderRecordTabs = () => {
     // );
     return orderRecords.filter(
       (order: IOrderRecord) =>
-        order.orderer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.requester?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.package?.packageName
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        order.recipient?.toLowerCase().includes(searchTerm.toLowerCase())
+        order.receiver?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [orderRecords, searchTerm]);
 
@@ -376,7 +396,7 @@ const OrderRecordTabs = () => {
               <div className="flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-md">
                 <User size={16} className="mr-2 text-blue-500" />
                 <span className="text-sm font-medium text-blue-700">
-                  사용자 ID: {userId || "로그인이 필요합니다"}
+                  {authStore.getState().user?.name || "사용자"}의 발주
                 </span>
               </div>
             )}
@@ -453,7 +473,7 @@ const OrderRecordTabs = () => {
                           onClick={() => handleRowClick(record.id)}
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                            {record.orderer}
+                            {record.requester}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-700 max-w-[200px] truncate">
                             {record.package?.packageName &&
@@ -474,17 +494,22 @@ const OrderRecordTabs = () => {
                               : "품목 없음"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
-                            {record.quantity}
+                            {record.orderItems?.reduce(
+                              (sum, item) => sum + item.quantity,
+                              0
+                            ) || 0}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                            {record.recipient}
+                            {record.receiver}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                             <Calendar
                               size={14}
                               className="inline-block mr-1 text-gray-500"
                             />
-                            {record.date}
+                            {new Date(record.createdAt).toLocaleDateString(
+                              "ko-KR"
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
                             <div className="flex items-center justify-between">
@@ -534,10 +559,48 @@ const OrderRecordTabs = () => {
                                   <div className="space-y-3">
                                     <div className="flex justify-between items-center border-b border-gray-100 py-2">
                                       <span className="font-medium text-gray-600">
-                                        날짜:
+                                        생성일:
                                       </span>
                                       <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
-                                        {record.date}
+                                        {new Date(
+                                          record.createdAt
+                                        ).toLocaleDateString("ko-KR")}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                      <span className="font-medium text-gray-600">
+                                        구매일:
+                                      </span>
+                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                        {record.purchaseDate
+                                          ? new Date(
+                                              record.purchaseDate
+                                            ).toLocaleDateString("ko-KR")
+                                          : "-"}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                      <span className="font-medium text-gray-600">
+                                        출고예정일:
+                                      </span>
+                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                        {record.outboundDate
+                                          ? new Date(
+                                              record.outboundDate
+                                            ).toLocaleDateString("ko-KR")
+                                          : "-"}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                      <span className="font-medium text-gray-600">
+                                        설치요청일:
+                                      </span>
+                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                        {record.installationDate
+                                          ? new Date(
+                                              record.installationDate
+                                            ).toLocaleDateString("ko-KR")
+                                          : "-"}
                                       </span>
                                     </div>
                                     <div className="flex justify-between items-center border-b border-gray-100 py-2">
@@ -545,7 +608,15 @@ const OrderRecordTabs = () => {
                                         발주자:
                                       </span>
                                       <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
-                                        {record.orderer}
+                                        {record.requester}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                      <span className="font-medium text-gray-600">
+                                        담당자:
+                                      </span>
+                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                        {record.manager || "-"}
                                       </span>
                                     </div>
                                     <div className="flex justify-between items-center border-b border-gray-100 py-2">
@@ -617,14 +688,14 @@ const OrderRecordTabs = () => {
                                                 </li>
                                               ))}
                                             </ul>
-                                            {record.additionalItems && (
+                                            {record.memo && (
                                               <div className="py-2 px-3 bg-gray-100">
                                                 <p className="flex justify-between items-center">
                                                   <span className="font-medium text-gray-600">
                                                     추가 요청사항:
                                                   </span>
                                                   <span className="text-gray-800 text-sm italic">
-                                                    {record.additionalItems}
+                                                    {record.memo}
                                                   </span>
                                                 </p>
                                               </div>
@@ -653,7 +724,7 @@ const OrderRecordTabs = () => {
                                         수령자:
                                       </span>
                                       <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
-                                        {record.recipient}
+                                        {record.receiver}
                                       </span>
                                     </div>
                                     <div className="flex justify-between items-center border-b border-gray-100 py-2">
@@ -661,7 +732,7 @@ const OrderRecordTabs = () => {
                                         연락처:
                                       </span>
                                       <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
-                                        {record.recipientPhone}
+                                        {record.receiverPhone}
                                       </span>
                                     </div>
                                     <div className="flex flex-col border-b border-gray-100 py-2">
@@ -669,7 +740,7 @@ const OrderRecordTabs = () => {
                                         주소:
                                       </span>
                                       <span className="text-gray-800 bg-gray-50 p-3 rounded-md text-sm break-words">
-                                        {record.address}
+                                        {record.receiverAddress}
                                       </span>
                                     </div>
 

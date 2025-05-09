@@ -33,7 +33,7 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
   return {
     id: order.id,
     orderer: order.user?.name || "알 수 없음",
-    package: order.package || { id: 0, packageName: "개별 품목", itemlist: "" },
+    package: order.package || { id: 0, packageName: "-", itemlist: "" },
     quantity:
       order.orderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0,
     date: new Date(order.createdAt).toLocaleDateString("ko-KR"),
@@ -129,9 +129,9 @@ const OrderRecordTabs = () => {
   // API 응답 데이터를 IOrderRecord 형식으로 변환 (useMemo로 최적화)
   const allOrderRecords = useMemo(() => {
     if (baseApiResponse?.success && baseApiResponse?.data) {
-      console.log(
-        `기본 데이터 변환 중 - 데이터 개수: ${baseApiResponse.data.length}`
-      );
+      // console.log(
+      //   `기본 데이터 변환 중 - 데이터 개수: ${baseApiResponse.data.length}`
+      // );
       return baseApiResponse.data.map(convertToOrderRecord);
     }
     return [];
@@ -142,26 +142,26 @@ const OrderRecordTabs = () => {
     if (activeTab === "user" && userId) {
       // '내 발주 기록' 탭인 경우 전체 데이터에서 현재 사용자의 주문만 필터링
       const userIdNum = parseInt(userId);
-      console.log(
-        `현재 사용자 ID(숫자): ${userIdNum}, 타입: ${typeof userIdNum}`
-      );
+      // console.log(
+      //   `현재 사용자 ID(숫자): ${userIdNum}, 타입: ${typeof userIdNum}`
+      // );
 
       // 첫 번째 레코드의 userId 타입과 값 로깅 (디버깅용)
-      if (allOrderRecords.length > 0) {
-        const firstRecord = allOrderRecords[0];
-        console.log(
-          `첫 번째 레코드의 userId: ${
-            firstRecord.userId
-          }, 타입: ${typeof firstRecord.userId}`
-        );
-      }
+      // if (allOrderRecords.length > 0) {
+      //   const firstRecord = allOrderRecords[0];
+      //   console.log(
+      //     `첫 번째 레코드의 userId: ${
+      //       firstRecord.userId
+      //     }, 타입: ${typeof firstRecord.userId}`
+      //   );
+      // }
 
       const filtered = allOrderRecords.filter((record) => {
         // userId가 null이나 undefined인 경우 처리
         if (record.userId === null || record.userId === undefined) {
-          console.log(
-            `userId가 null 또는 undefined인 레코드 발견: ${record.id}`
-          );
+          // console.log(
+          //   `userId가 null 또는 undefined인 레코드 발견: ${record.id}`
+          // );
           return false;
         }
 
@@ -181,8 +181,8 @@ const OrderRecordTabs = () => {
         return recordUserId === userIdNum;
       });
 
-      console.log(`사용자 ID ${userId}로 필터링된 주문: ${filtered.length}개`);
-      console.log(`필터링 전 전체 주문: ${allOrderRecords.length}개`);
+      // console.log(`사용자 ID ${userId}로 필터링된 주문: ${filtered.length}개`);
+      // console.log(`필터링 전 전체 주문: ${allOrderRecords.length}개`);
       return filtered;
     }
     return allOrderRecords;
@@ -190,9 +190,9 @@ const OrderRecordTabs = () => {
 
   // 검색 필터링 적용 (useMemo로 최적화)
   const filteredOrders = useMemo(() => {
-    console.log(
-      `검색어 "${searchTerm}"로 ${orderRecords.length}개 항목 필터링`
-    );
+    // console.log(
+    //   `검색어 "${searchTerm}"로 ${orderRecords.length}개 항목 필터링`
+    // );
     return orderRecords.filter(
       (order: IOrderRecord) =>
         order.orderer?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -559,12 +559,20 @@ const OrderRecordTabs = () => {
                                     <div className="space-y-2">
                                       <p className="flex justify-between border-b border-gray-100 pb-1">
                                         <span className="font-medium text-gray-600">
+                                          날짜:
+                                        </span>
+                                        <span className="text-gray-800">
+                                          {record.date}
+                                        </span>
+                                      </p>
+                                      {/* <p className="flex justify-between border-b border-gray-100 pb-1">
+                                        <span className="font-medium text-gray-600">
                                           발주 ID:
                                         </span>
                                         <span className="text-gray-800">
                                           {record.id}
                                         </span>
-                                      </p>
+                                      </p> */}
                                       <p className="flex justify-between border-b border-gray-100 pb-1">
                                         <span className="font-medium text-gray-600">
                                           발주자:
@@ -573,31 +581,15 @@ const OrderRecordTabs = () => {
                                           {record.orderer}
                                         </span>
                                       </p>
-                                      <p className="flex justify-between border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          패키지/품목:
-                                        </span>
-                                        <span className="text-gray-800">
-                                          {record.package?.packageName ||
-                                            "개별 품목"}
-                                        </span>
-                                      </p>
-                                      <p className="flex justify-between border-b border-gray-100 pb-1">
+                                      {/* <p className="flex justify-between border-b border-gray-100 pb-1">
                                         <span className="font-medium text-gray-600">
                                           수량:
                                         </span>
                                         <span className="text-gray-800">
                                           {record.quantity}
                                         </span>
-                                      </p>
-                                      <p className="flex justify-between border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          날짜:
-                                        </span>
-                                        <span className="text-gray-800">
-                                          {record.date}
-                                        </span>
-                                      </p>
+                                      </p> */}
+
                                       <p className="flex justify-between items-center border-b border-gray-100 pb-1">
                                         <span className="font-medium text-gray-600">
                                           상태:
@@ -618,6 +610,16 @@ const OrderRecordTabs = () => {
                                             <h4 className="font-medium text-gray-700 mb-2">
                                               주문 품목 목록:
                                             </h4>
+
+                                            <p className="flex justify-between border-b border-gray-100 pb-1 px-2">
+                                              <span className="font-mediu">
+                                                패키지:
+                                              </span>
+                                              <span className="text-gray-800">
+                                                {record.package?.packageName ||
+                                                  "-"}
+                                              </span>
+                                            </p>
                                             <ul className="divide-y divide-gray-100 max-h-48 overflow-y-auto">
                                               {record.orderItems.map((item) => (
                                                 <li
@@ -640,6 +642,17 @@ const OrderRecordTabs = () => {
                                                   )}
                                                 </li>
                                               ))}
+                                              <li className="py-1 px-2 hover:bg-gray-50 text-sm">
+                                                <p className="flex justify-between">
+                                                  <span className="font-medium">
+                                                    추가 요청사항:
+                                                  </span>
+                                                  <span className="text-gray-800 text-right flex-1 ml-4">
+                                                    {record.additionalItems ||
+                                                      "없음"}
+                                                  </span>
+                                                </p>
+                                              </li>
                                             </ul>
                                           </div>
                                         )}
@@ -672,14 +685,6 @@ const OrderRecordTabs = () => {
                                         </span>
                                         <span className="text-gray-800 text-right flex-1 ml-4">
                                           {record.address}
-                                        </span>
-                                      </p>
-                                      <p className="flex justify-between border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          추가 요청사항:
-                                        </span>
-                                        <span className="text-gray-800 text-right flex-1 ml-4">
-                                          {record.additionalItems || "없음"}
                                         </span>
                                       </p>
 

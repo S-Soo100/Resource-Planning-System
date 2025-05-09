@@ -22,6 +22,7 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
 import { useItems } from "@/hooks/useItems";
 import { Item } from "@/types/item";
+import { uploadOrderFileById } from "@/api/order-api";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -193,8 +194,19 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       setTimeout(() => {
         setOrderItems([]);
       }, 0);
+      // formData에서 packageId 제거
+      setFormData((prev) => ({
+        ...prev,
+        packageId: null,
+      }));
       return;
     }
+
+    // formData에 packageId 저장
+    setFormData((prev) => ({
+      ...prev,
+      packageId,
+    }));
 
     const selectedPackage = packages?.find(
       (pkg: PackageApi) => pkg.id === packageId
@@ -469,19 +481,92 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         })),
       };
       console.log(orderData);
-
       createOrder(orderData, {
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
           if (response.success && response.data) {
             //! 파일이 첨부된 경우 추가 처리
             if (files.length > 0) {
-              // TODO: 파일 업로드 처리
-              console.log("파일 업로드 필요:", files);
+              try {
+                // 첫 번째 파일만 업로드 (현재는 하나의 파일만 업로드됨)
+                const file = files[0];
 
-              //! 여기에 파일 업로드 로직 추가
+                if (!file || !(file instanceof File)) {
+                  console.error("유효하지 않은 파일 객체:", file);
+                  toast.error("유효하지 않은 파일 형식입니다");
+                  return;
+                }
+
+                const orderId = response.data.id;
+
+                if (!orderId) {
+                  console.error("주문 ID가 없습니다:", response.data);
+                  toast.error(
+                    "발주 요청은 성공했으나 주문 ID를 찾을 수 없어 파일 업로드를 진행할 수 없습니다"
+                  );
+                } else {
+                  // orderId가 string 타입일 가능성이 있으므로 명시적으로 숫자 변환
+                  const orderIdAsNumber =
+                    typeof orderId === "string"
+                      ? parseInt(orderId, 10)
+                      : orderId;
+
+                  if (isNaN(orderIdAsNumber)) {
+                    console.error("주문 ID가 유효한 숫자가 아닙니다:", orderId);
+                    toast.error(
+                      "발주 요청은 성공했으나 유효하지 않은 주문 ID로 인해 파일 업로드를 진행할 수 없습니다"
+                    );
+                    return;
+                  }
+
+                  // 파일 크기 검사 (10MB 제한)
+                  const maxFileSize = 10 * 1024 * 1024; // 10MB
+                  if (file.size > maxFileSize) {
+                    console.error("파일 크기가 너무 큽니다:", file.size);
+                    toast.error(
+                      "파일 크기가 10MB를 초과하여 업로드할 수 없습니다"
+                    );
+                    return;
+                  }
+
+                  // uploadOrderFileById API 호출
+                  try {
+                    toast.loading("파일 업로드 중...");
+                    const uploadResponse = await uploadOrderFileById(
+                      orderIdAsNumber,
+                      file
+                    );
+                    toast.dismiss();
+
+                    if (uploadResponse.success) {
+                      console.log("파일 업로드 성공:", uploadResponse.data);
+                      toast.success(
+                        `발주 요청 및 파일 '${uploadResponse.data?.fileName}' 업로드가 완료되었습니다`
+                      );
+                    } else {
+                      console.error("파일 업로드 실패:", uploadResponse.error);
+                      toast.error(
+                        `발주 요청은 성공했으나 파일 업로드에 실패했습니다: ${
+                          uploadResponse.error || "알 수 없는 오류"
+                        }`
+                      );
+                    }
+                  } catch (uploadApiError) {
+                    console.error(
+                      "파일 업로드 API 호출 중 오류:",
+                      uploadApiError
+                    );
+                    toast.error("파일 업로드 과정에서 오류가 발생했습니다");
+                  }
+                }
+              } catch (uploadError) {
+                console.error("파일 업로드 전체 과정 중 오류:", uploadError);
+                toast.error(
+                  "발주 요청은 성공했으나 파일 업로드 중 오류가 발생했습니다"
+                );
+              }
+            } else {
+              toast.success("발주 요청이 완료되었습니다");
             }
-
-            toast.success("발주 요청이 완료되었습니다");
 
             // 2초 후 orderRecord 페이지로 이동
             setTimeout(() => {
@@ -537,7 +622,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               패키지 선택
             </label>
             <select
-              name="package"
+              name="packageId"
               onChange={handlePackageSelect}
               className="w-full px-3 py-2 border rounded-md"
               required={isPackageOrder}

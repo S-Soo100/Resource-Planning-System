@@ -1,4 +1,4 @@
-import { OrderPackage } from "../(order)/order";
+import { OrderPackage, OrderItem, OrderFile } from "../(order)/order";
 
 export interface IOrderRecord {
   id: number; // 자동생성될 발주아이디
@@ -14,4 +14,6 @@ export interface IOrderRecord {
   status: string; // number가 될 거 같기도 한데, 요청 -> 수락 -> 배송중 -> 완료 - 보류 등등??
   orderSheet: string; // 파일[] 로 될것이고, 필요한 파일들 첨부한 경우 여기에다 보관
   userId: number; // 주문을 생성한 사용자의 ID
+  orderItems?: OrderItem[]; // 주문 아이템 목록
+  files?: OrderFile[]; // 첨부 파일 목록
 }

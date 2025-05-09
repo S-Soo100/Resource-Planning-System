@@ -45,6 +45,8 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
     status: order.status || OrderStatus.requested,
     orderSheet: "", // 주문서 정보가 없음
     userId: order.userId, // 사용자 ID 추가
+    orderItems: order.orderItems || [], // 주문 아이템 목록 추가
+    files: order.files || [], // 파일 목록 추가
   };
 };
 
@@ -596,7 +598,7 @@ const OrderRecordTabs = () => {
                                           {record.date}
                                         </span>
                                       </p>
-                                      <p className="flex justify-between items-center">
+                                      <p className="flex justify-between items-center border-b border-gray-100 pb-1">
                                         <span className="font-medium text-gray-600">
                                           상태:
                                         </span>
@@ -608,6 +610,39 @@ const OrderRecordTabs = () => {
                                           {getStatusText(record.status)}
                                         </span>
                                       </p>
+
+                                      {/* 주문 아이템 목록 추가 */}
+                                      {record.orderItems &&
+                                        record.orderItems.length > 0 && (
+                                          <div className="mt-4">
+                                            <h4 className="font-medium text-gray-700 mb-2">
+                                              주문 품목 목록:
+                                            </h4>
+                                            <ul className="divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                                              {record.orderItems.map((item) => (
+                                                <li
+                                                  key={item.id}
+                                                  className="py-1 px-2 hover:bg-gray-50 text-sm"
+                                                >
+                                                  <div className="flex justify-between">
+                                                    <span className="font-medium">
+                                                      {item.item?.itemName ||
+                                                        "알 수 없는 품목"}
+                                                    </span>
+                                                    <span className="text-gray-600">
+                                                      {item.quantity}개
+                                                    </span>
+                                                  </div>
+                                                  {item.memo && (
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                      메모: {item.memo}
+                                                    </p>
+                                                  )}
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          </div>
+                                        )}
                                     </div>
                                   </div>
                                   <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-50">
@@ -639,7 +674,7 @@ const OrderRecordTabs = () => {
                                           {record.address}
                                         </span>
                                       </p>
-                                      <p className="flex justify-between">
+                                      <p className="flex justify-between border-b border-gray-100 pb-1">
                                         <span className="font-medium text-gray-600">
                                           추가 요청사항:
                                         </span>
@@ -647,6 +682,55 @@ const OrderRecordTabs = () => {
                                           {record.additionalItems || "없음"}
                                         </span>
                                       </p>
+
+                                      {/* 첨부 파일 URL 표시 추가 */}
+                                      {record.files &&
+                                        record.files.length > 0 && (
+                                          <div className="mt-4">
+                                            <h4 className="font-medium text-gray-700 mb-2">
+                                              첨부 파일:
+                                            </h4>
+                                            <ul className="divide-y divide-gray-100">
+                                              {record.files.map((file) => (
+                                                <li
+                                                  key={file.id}
+                                                  className="py-1 px-2 hover:bg-gray-50"
+                                                >
+                                                  <a
+                                                    href={file.fileUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-500 hover:text-blue-700 hover:underline flex items-center"
+                                                  >
+                                                    <svg
+                                                      xmlns="http://www.w3.org/2000/svg"
+                                                      className="h-4 w-4 mr-1"
+                                                      fill="none"
+                                                      viewBox="0 0 24 24"
+                                                      stroke="currentColor"
+                                                    >
+                                                      <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                                      />
+                                                    </svg>
+                                                    {file.fileName}
+                                                  </a>
+                                                  <p className="text-xs text-gray-500 mt-1">
+                                                    업로드:{" "}
+                                                    {new Date(
+                                                      file.createdAt
+                                                    ).toLocaleDateString(
+                                                      "ko-KR"
+                                                    )}
+                                                  </p>
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          </div>
+                                        )}
                                     </div>
                                   </div>
                                 </div>

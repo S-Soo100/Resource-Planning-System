@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  getAllOrders,
+  getOrdersByTeamId,
   getOrdersByUserId,
   getOrdersBySupplierId,
   getOrder,
@@ -10,10 +10,10 @@ import {
 const CACHE_TIME = 30 * 60 * 1000;
 
 // 모든 주문 조회
-export const useAllOrders = () => {
+export const useAllOrders = (teamId: number) => {
   return useQuery({
-    queryKey: ["orders"],
-    queryFn: () => getAllOrders(),
+    queryKey: ["orders", "team", teamId],
+    queryFn: () => getOrdersByTeamId(teamId),
     staleTime: CACHE_TIME,
     gcTime: CACHE_TIME,
   });

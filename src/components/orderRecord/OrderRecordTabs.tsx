@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useOrder } from "@/hooks/useOrder";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
-import TableCell from "./(tableBody)/TableCell";
 import { authStore } from "@/store/authStore";
 import { useSuppliers } from "@/hooks/useSupplier";
 import { Supplier } from "@/types/supplier";
@@ -33,7 +32,7 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
   return {
     id: order.id,
     orderer: order.user?.name || "알 수 없음",
-    package: order.package || { id: 0, packageName: "-", itemlist: "" },
+    package: order.package || { id: 0, packageName: "개별 품목", itemlist: "" },
     quantity:
       order.orderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0,
     date: new Date(order.createdAt).toLocaleDateString("ko-KR"),
@@ -417,338 +416,333 @@ const OrderRecordTabs = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto bg-white rounded-lg shadow">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gradient-to-r from-blue-50 to-blue-100 text-left border-b border-blue-200">
-                    <TableCell
-                      isHeader={true}
-                      className="font-semibold text-blue-700 py-3"
-                    >
-                      ID
-                    </TableCell>
-                    <TableCell
-                      isHeader={true}
-                      className="font-semibold text-blue-700 py-3"
-                    >
+            <div className="overflow-x-auto">
+              <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
                       발주자
-                    </TableCell>
-                    <TableCell
-                      isHeader={true}
-                      className="font-semibold text-blue-700 py-3"
-                    >
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-3/12">
                       패키지/품목
-                    </TableCell>
-                    <TableCell
-                      isHeader={true}
-                      className="font-semibold text-blue-700 py-3"
-                    >
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
                       수량
-                    </TableCell>
-                    <TableCell
-                      isHeader={true}
-                      className="font-semibold text-blue-700 py-3"
-                    >
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
                       수령자
-                    </TableCell>
-                    <TableCell
-                      isHeader={true}
-                      className="font-semibold text-blue-700 py-3"
-                    >
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
                       날짜
-                    </TableCell>
-                    <TableCell
-                      isHeader={true}
-                      className="font-semibold text-blue-700 py-3"
-                    >
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
                       현재상태
-                    </TableCell>
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {currentRecords.length > 0 ? (
-                    currentRecords.map(
-                      (record: IOrderRecord, index: number) => (
-                        <React.Fragment key={record.id}>
-                          <tr
-                            className={`border-b hover:bg-blue-50 cursor-pointer transition-colors ${
-                              expandedRowId === record.id
-                                ? "bg-blue-50 border-blue-100"
-                                : index % 2 === 0
-                                ? "bg-white"
-                                : "bg-gray-50"
-                            }`}
-                            onClick={() => handleRowClick(record.id)}
-                          >
-                            <TableCell
-                              isHeader={false}
-                              className="font-medium text-gray-700"
-                            >
-                              {record.id}
-                            </TableCell>
-                            <TableCell
-                              isHeader={false}
-                              className="text-gray-700"
-                            >
-                              {record.orderer}
-                            </TableCell>
-                            <TableCell
-                              isHeader={false}
-                              className="max-w-[200px] truncate text-gray-700"
-                            >
-                              {record.package?.packageName || "개별 품목"}
-                            </TableCell>
-                            <TableCell
-                              isHeader={false}
-                              className="text-center text-gray-700"
-                            >
-                              {record.quantity}
-                            </TableCell>
-                            <TableCell
-                              isHeader={false}
-                              className="text-gray-700"
-                            >
-                              {record.recipient}
-                            </TableCell>
-                            <TableCell
-                              isHeader={false}
-                              className="whitespace-nowrap text-gray-700"
-                            >
-                              <Calendar
-                                size={14}
-                                className="inline-block mr-1 text-gray-500"
-                              />
-                              {record.date}
-                            </TableCell>
-                            <TableCell isHeader={false} className="relative">
-                              <div className="flex items-center justify-between">
-                                <span
-                                  className={`px-2 py-1 text-xs rounded-full ${getStatusColorClass(
-                                    record.status
-                                  )}`}
-                                >
-                                  {getStatusText(record.status)}
-                                </span>
-                                <div className="ml-2 w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 group-hover:bg-blue-100 transition-colors">
-                                  {expandedRowId === record.id ? (
-                                    <ChevronUp
-                                      size={16}
-                                      className="text-blue-500"
-                                    />
-                                  ) : (
-                                    <ChevronDown
-                                      size={16}
-                                      className="text-gray-500"
-                                    />
-                                  )}
-                                </div>
-                              </div>
-                            </TableCell>
-                          </tr>
-                          {expandedRowId === record.id && (
-                            <tr className="bg-gradient-to-r from-blue-50 to-blue-100 transition-all duration-300 ease-in-out">
-                              <td
-                                colSpan={7}
-                                className="p-4 border border-blue-100"
+                    currentRecords.map((record: IOrderRecord) => (
+                      <React.Fragment key={record.id}>
+                        <tr
+                          className={`hover:bg-gray-50 cursor-pointer transition-colors ${
+                            expandedRowId === record.id
+                              ? "bg-gray-50"
+                              : "bg-white"
+                          }`}
+                          onClick={() => handleRowClick(record.id)}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {record.orderer}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-700 max-w-[200px] truncate">
+                            {record.package?.packageName &&
+                            record.package.packageName !== "개별 품목"
+                              ? record.package.packageName
+                              : record.orderItems &&
+                                record.orderItems.length > 0
+                              ? record.orderItems
+                                  .slice(0, 2)
+                                  .map(
+                                    (item) =>
+                                      `${
+                                        item.item?.itemName || "알 수 없는 품목"
+                                      }${item.quantity}개`
+                                  )
+                                  .join(", ") +
+                                (record.orderItems.length > 2 ? " 외" : "")
+                              : "품목 없음"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
+                            {record.quantity}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {record.recipient}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <Calendar
+                              size={14}
+                              className="inline-block mr-1 text-gray-500"
+                            />
+                            {record.date}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <div className="flex items-center justify-between">
+                              <span
+                                className={`px-2.5 py-1 text-xs rounded-full ${getStatusColorClass(
+                                  record.status
+                                )}`}
                               >
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
-                                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-50">
-                                    <h3 className="font-bold mb-3 text-blue-700 border-b pb-2">
-                                      발주 상세 정보
-                                    </h3>
-                                    <div className="space-y-2">
-                                      <p className="flex justify-between border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          날짜:
-                                        </span>
-                                        <span className="text-gray-800">
-                                          {record.date}
-                                        </span>
-                                      </p>
-                                      {/* <p className="flex justify-between border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          발주 ID:
-                                        </span>
-                                        <span className="text-gray-800">
-                                          {record.id}
-                                        </span>
-                                      </p> */}
-                                      <p className="flex justify-between border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          발주자:
-                                        </span>
-                                        <span className="text-gray-800">
-                                          {record.orderer}
-                                        </span>
-                                      </p>
-                                      {/* <p className="flex justify-between border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          수량:
-                                        </span>
-                                        <span className="text-gray-800">
-                                          {record.quantity}
-                                        </span>
-                                      </p> */}
+                                {getStatusText(record.status)}
+                              </span>
+                              <div className="ml-2 w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors">
+                                {expandedRowId === record.id ? (
+                                  <ChevronUp
+                                    size={16}
+                                    className="text-gray-500"
+                                  />
+                                ) : (
+                                  <ChevronDown
+                                    size={16}
+                                    className="text-gray-500"
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        {expandedRowId === record.id && (
+                          <tr className="bg-gray-50 transition-all duration-200 ease-in-out">
+                            <td colSpan={6} className="p-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+                                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                                  <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-5 w-5 mr-2 text-gray-500"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    발주 상세 정보
+                                  </h3>
+                                  <div className="space-y-3">
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                      <span className="font-medium text-gray-600">
+                                        날짜:
+                                      </span>
+                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                        {record.date}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                      <span className="font-medium text-gray-600">
+                                        발주자:
+                                      </span>
+                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                        {record.orderer}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                      <span className="font-medium text-gray-600">
+                                        상태:
+                                      </span>
+                                      <span
+                                        className={`px-3 py-1 text-sm rounded-full ${getStatusColorClass(
+                                          record.status
+                                        )}`}
+                                      >
+                                        {getStatusText(record.status)}
+                                      </span>
+                                    </div>
 
-                                      <p className="flex justify-between items-center border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          상태:
-                                        </span>
-                                        <span
-                                          className={`px-2 py-1 text-xs rounded-full ${getStatusColorClass(
-                                            record.status
-                                          )}`}
-                                        >
-                                          {getStatusText(record.status)}
-                                        </span>
-                                      </p>
+                                    {/* 주문 아이템 목록 추가 */}
+                                    {record.orderItems &&
+                                      record.orderItems.length > 0 && (
+                                        <div className="mt-5">
+                                          <h4 className="font-medium text-gray-700 mb-3 flex items-center">
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              className="h-4 w-4 mr-2 text-gray-500"
+                                              viewBox="0 0 20 20"
+                                              fill="currentColor"
+                                            >
+                                              <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                                            </svg>
+                                            주문 품목 목록
+                                          </h4>
 
-                                      {/* 주문 아이템 목록 추가 */}
-                                      {record.orderItems &&
-                                        record.orderItems.length > 0 && (
-                                          <div className="mt-4">
-                                            <h4 className="font-medium text-gray-700 mb-2">
-                                              주문 품목 목록:
-                                            </h4>
-
-                                            <p className="flex justify-between border-b border-gray-100 pb-1 px-2">
-                                              <span className="font-mediu">
+                                          <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                                            <div className="flex justify-between items-center mb-2">
+                                              <span className="font-medium text-gray-600">
                                                 패키지:
                                               </span>
                                               <span className="text-gray-800">
                                                 {record.package?.packageName ||
                                                   "-"}
                                               </span>
-                                            </p>
-                                            <ul className="divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                                            </div>
+                                          </div>
+
+                                          <div className="bg-gray-50 rounded-lg overflow-hidden">
+                                            <div className="px-3 py-2 bg-gray-100 text-sm font-medium text-gray-600 flex justify-between">
+                                              <span>품목</span>
+                                              <span>수량</span>
+                                            </div>
+                                            <ul className="divide-y divide-gray-200 max-h-48 overflow-y-auto">
                                               {record.orderItems.map((item) => (
                                                 <li
                                                   key={item.id}
-                                                  className="py-1 px-2 hover:bg-gray-50 text-sm"
+                                                  className="py-2 px-3 hover:bg-gray-100 transition-colors"
                                                 >
-                                                  <div className="flex justify-between">
-                                                    <span className="font-medium">
+                                                  <div className="flex justify-between items-center">
+                                                    <span className="font-medium text-gray-700">
                                                       {item.item?.itemName ||
                                                         "알 수 없는 품목"}
                                                     </span>
-                                                    <span className="text-gray-600">
+                                                    <span className="text-gray-600 bg-white px-2 py-1 rounded-md text-sm">
                                                       {item.quantity}개
                                                     </span>
                                                   </div>
                                                   {item.memo && (
-                                                    <p className="text-xs text-gray-500 mt-1">
+                                                    <p className="text-xs text-gray-500 mt-1 italic">
                                                       메모: {item.memo}
                                                     </p>
                                                   )}
                                                 </li>
                                               ))}
-                                              <li className="py-1 px-2 hover:bg-gray-50 text-sm">
-                                                <p className="flex justify-between">
-                                                  <span className="font-medium">
+                                            </ul>
+                                            {record.additionalItems && (
+                                              <div className="py-2 px-3 bg-gray-100">
+                                                <p className="flex justify-between items-center">
+                                                  <span className="font-medium text-gray-600">
                                                     추가 요청사항:
                                                   </span>
-                                                  <span className="text-gray-800 text-right flex-1 ml-4">
-                                                    {record.additionalItems ||
-                                                      "없음"}
+                                                  <span className="text-gray-800 text-sm italic">
+                                                    {record.additionalItems}
                                                   </span>
                                                 </p>
-                                              </li>
-                                            </ul>
+                                              </div>
+                                            )}
                                           </div>
-                                        )}
-                                    </div>
-                                  </div>
-                                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-50">
-                                    <h3 className="font-bold mb-3 text-blue-700 border-b pb-2">
-                                      배송 정보
-                                    </h3>
-                                    <div className="space-y-2">
-                                      <p className="flex justify-between border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          수령자:
-                                        </span>
-                                        <span className="text-gray-800">
-                                          {record.recipient}
-                                        </span>
-                                      </p>
-                                      <p className="flex justify-between border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          연락처:
-                                        </span>
-                                        <span className="text-gray-800">
-                                          {record.recipientPhone}
-                                        </span>
-                                      </p>
-                                      <p className="flex justify-between border-b border-gray-100 pb-1">
-                                        <span className="font-medium text-gray-600">
-                                          주소:
-                                        </span>
-                                        <span className="text-gray-800 text-right flex-1 ml-4">
-                                          {record.address}
-                                        </span>
-                                      </p>
-
-                                      {/* 첨부 파일 URL 표시 추가 */}
-                                      {record.files &&
-                                        record.files.length > 0 && (
-                                          <div className="mt-4">
-                                            <h4 className="font-medium text-gray-700 mb-2">
-                                              첨부 파일:
-                                            </h4>
-                                            <ul className="divide-y divide-gray-100">
-                                              {record.files.map((file) => (
-                                                <li
-                                                  key={file.id}
-                                                  className="py-1 px-2 hover:bg-gray-50"
-                                                >
-                                                  <a
-                                                    href={file.fileUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-500 hover:text-blue-700 hover:underline flex items-center"
-                                                  >
-                                                    <svg
-                                                      xmlns="http://www.w3.org/2000/svg"
-                                                      className="h-4 w-4 mr-1"
-                                                      fill="none"
-                                                      viewBox="0 0 24 24"
-                                                      stroke="currentColor"
-                                                    >
-                                                      <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                                                      />
-                                                    </svg>
-                                                    {file.fileName}
-                                                  </a>
-                                                  <p className="text-xs text-gray-500 mt-1">
-                                                    업로드:{" "}
-                                                    {new Date(
-                                                      file.createdAt
-                                                    ).toLocaleDateString(
-                                                      "ko-KR"
-                                                    )}
-                                                  </p>
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                      )}
                                   </div>
                                 </div>
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      )
-                    )
+                                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                                  <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-5 w-5 mr-2 text-gray-500"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-5h2v5a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-9a1 1 0 00-.293-.707l-2-2A1 1 0 0017 3h-1c0-.552-.447-1-1-1H5a1 1 0 00-1 1H3z" />
+                                    </svg>
+                                    배송 정보
+                                  </h3>
+                                  <div className="space-y-3">
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                      <span className="font-medium text-gray-600">
+                                        수령자:
+                                      </span>
+                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                        {record.recipient}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                      <span className="font-medium text-gray-600">
+                                        연락처:
+                                      </span>
+                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                        {record.recipientPhone}
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-col border-b border-gray-100 py-2">
+                                      <span className="font-medium text-gray-600 mb-1">
+                                        주소:
+                                      </span>
+                                      <span className="text-gray-800 bg-gray-50 p-3 rounded-md text-sm break-words">
+                                        {record.address}
+                                      </span>
+                                    </div>
+
+                                    {/* 첨부 파일 URL 표시 추가 */}
+                                    {record.files &&
+                                      record.files.length > 0 && (
+                                        <div className="mt-5">
+                                          <h4 className="font-medium text-gray-700 mb-3 flex items-center">
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              className="h-4 w-4 mr-2 text-gray-500"
+                                              viewBox="0 0 20 20"
+                                              fill="currentColor"
+                                            >
+                                              <path
+                                                fillRule="evenodd"
+                                                d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
+                                                clipRule="evenodd"
+                                              />
+                                            </svg>
+                                            첨부 파일
+                                          </h4>
+                                          <ul className="bg-gray-50 rounded-lg divide-y divide-gray-200">
+                                            {record.files.map((file) => (
+                                              <li
+                                                key={file.id}
+                                                className="py-2 px-3 hover:bg-gray-100 transition-colors"
+                                              >
+                                                <a
+                                                  href={file.fileUrl}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="text-blue-500 hover:text-blue-700 hover:underline flex items-center"
+                                                >
+                                                  <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    className="h-4 w-4 mr-2"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                  >
+                                                    <path
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                      strokeWidth={2}
+                                                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                                    />
+                                                  </svg>
+                                                  {file.fileName}
+                                                </a>
+                                                <p className="text-xs text-gray-500 mt-1 ml-6">
+                                                  업로드:{" "}
+                                                  {new Date(
+                                                    file.createdAt
+                                                  ).toLocaleDateString("ko-KR")}
+                                                </p>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      )}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))
                   ) : (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={6}
                         className="text-center py-8 text-gray-500"
                       >
                         <div className="flex flex-col items-center">
@@ -766,14 +760,14 @@ const OrderRecordTabs = () => {
             </div>
 
             {/* 페이지네이션 */}
-            <div className="flex justify-between items-center mt-6 bg-white p-4 rounded-lg shadow">
+            <div className="flex justify-between items-center mt-6 bg-white p-4 rounded-xl shadow-sm">
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
-                className={`px-4 py-2 rounded-md ${
+                className={`px-4 py-2 rounded-full ${
                   currentPage === 1
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 } transition-colors`}
               >
                 이전
@@ -790,10 +784,10 @@ const OrderRecordTabs = () => {
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className={`px-4 py-2 rounded-md ${
+                className={`px-4 py-2 rounded-full ${
                   currentPage === totalPages || totalPages === 0
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 } transition-colors`}
               >
                 다음
@@ -810,19 +804,19 @@ const OrderRecordTabs = () => {
 const getStatusColorClass = (status: string): string => {
   switch (status) {
     case OrderStatus.requested:
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-yellow-50 text-yellow-600";
     case OrderStatus.approved:
-      return "bg-green-100 text-green-800";
+      return "bg-green-50 text-green-600";
     case OrderStatus.rejected:
-      return "bg-red-100 text-red-800";
+      return "bg-red-50 text-red-600";
     case OrderStatus.confirmedByShipper:
-      return "bg-blue-100 text-blue-800";
+      return "bg-blue-50 text-blue-600";
     case OrderStatus.shipmentCompleted:
-      return "bg-purple-100 text-purple-800";
+      return "bg-purple-50 text-purple-600";
     case OrderStatus.rejectedByShipper:
-      return "bg-orange-100 text-orange-800";
+      return "bg-orange-50 text-orange-600";
     default:
-      return "bg-gray-100 text-gray-800";
+      return "bg-gray-50 text-gray-600";
   }
 };
 

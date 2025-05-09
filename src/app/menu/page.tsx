@@ -39,27 +39,25 @@ export default function MenuPage() {
   if (isLoading || isTeamLoading) {
     return (
       <>
-        <div className="flex flex-col min-h-screen">
-          <main className="flex flex-col items-center w-full p-4 space-y-4 pb-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((item) => (
-              <div
-                key={item}
-                className="flex items-center w-full max-w-2xl px-8 py-4 bg-gray-100 border border-gray-200 rounded-2xl animate-pulse"
-              >
-                <div className="flex-col w-full">
-                  <div className="flex flex-row items-center">
-                    <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 mr-8 bg-gray-300 rounded-full"></div>
-                    <div className="h-6 bg-gray-300 rounded-lg w-48"></div>
-                  </div>
-                  <div className="h-4 mt-2 ml-20 bg-gray-200 rounded-lg w-32"></div>
-                </div>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+          <div className="flex flex-col items-center p-8 bg-white rounded-lg shadow-md">
+            <div className="relative w-24 h-24 mb-4">
+              <div className="absolute inset-0 border-4 border-t-transparent border-blue-500 border-solid rounded-full animate-spin"></div>
+              <div className="absolute inset-2 border-4 border-t-transparent border-purple-400 border-solid rounded-full animate-spin animation-delay-150 rotate-45"></div>
+              <div className="absolute inset-4 border-4 border-t-transparent border-teal-300 border-solid rounded-full animate-spin animation-delay-300 rotate-90"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
               </div>
-            ))}
-          </main>
+            </div>
+            <h2 className="mb-2 text-xl font-semibold text-gray-800">
+              로딩 중...
+            </h2>
+            <p className="text-gray-600">KARS 시스템에 연결 중입니다</p>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="w-full px-4 py-3 bg-white shadow-inner mb-2">
+        <div className="fixed bottom-0 w-full px-4 py-3 bg-white shadow-inner">
           <div className="max-w-2xl mx-auto">
             <div className="flex flex-col items-center justify-center text-center">
               <p className="text-sm text-gray-500">

@@ -14,3 +14,8 @@ export interface CreateTeamItemDto {
   teamId: number;
   memo?: string;
 }
+
+export interface DeleteTeamItemResponse {
+  id: number;
+  deleted: boolean;
+}

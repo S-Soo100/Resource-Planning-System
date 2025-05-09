@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { api, ApiResponse } from "./api";
-import { TeamItem, CreateTeamItemDto } from "@/types/team-item";
+import {
+  TeamItem,
+  CreateTeamItemDto,
+  DeleteTeamItemResponse,
+} from "@/types/team-item";
 
 export const teamItemsApi = {
   getTeamItemsByTeam: async (
@@ -34,6 +38,17 @@ export const teamItemsApi = {
       return { success: true, data: response.data.data };
     } catch (error) {
       return { success: false, error: "팀 아이템 수정에 실패했습니다." };
+    }
+  },
+
+  deleteTeamItem: async (
+    id: number
+  ): Promise<ApiResponse<DeleteTeamItemResponse>> => {
+    try {
+      const response = await api.delete(`/team-item/${id}`);
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      return { success: false, error: "팀 아이템 삭제에 실패했습니다." };
     }
   },
 };

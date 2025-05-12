@@ -277,6 +277,17 @@ export default function IoHistoryRecordListComponent() {
                   {expandedRecordId === record.id && (
                     <tr>
                       <td colSpan={5} className="px-4 py-3 bg-gray-50">
+                        <div className="mb-4">
+                          <h3 className="text-lg font-semibold text-gray-800">
+                            [{record.item?.itemName || record.itemId}]{" "}
+                            {record.inboundQuantity ? "입고" : "출고"}건 (
+                            {record.inboundQuantity || record.outboundQuantity}
+                            개) -{" "}
+                            {warehouses.find(
+                              (w) => w.id === record.item?.warehouseId
+                            )?.warehouseName || "알 수 없는 창고"}
+                          </h3>
+                        </div>
                         <InventoryRecordDetail record={record} />
                       </td>
                     </tr>

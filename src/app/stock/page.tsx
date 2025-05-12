@@ -1,5 +1,5 @@
 "use client";
-import StockTable from "@/components/stock/stockTable";
+import StockTable from "@/components/stock/StockTable";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";

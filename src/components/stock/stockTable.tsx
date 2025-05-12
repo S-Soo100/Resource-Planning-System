@@ -15,7 +15,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import WarehouseCard from "./components/WarehouseCard";
 import StockTableHeader from "./components/StockTableHeader";
 import StockTableDesktop from "./components/StockTableDesktop";
-import StockTableMobile from "./components/StockTableMobile";
+import StockItemCard from "./components/StockItemCard";
 import StockTableEmpty from "./components/StockTableEmpty";
 import {
   useCreateInventoryRecord,
@@ -623,6 +623,16 @@ export default function StockTable() {
 
   // 창고별로 아이템 필터링
   const getWarehouseItems = (warehouseId: number) => {
+    // API 응답에서 아이템에 warehouseId가 없는 경우를 처리
+    // 창고 ID가 일치하는 아이템만 필터링하거나,
+    // warehouseId가 없는 경우 창고 자체의 items 배열을 사용
+    const warehouseData = warehouses.find((w) => Number(w.id) === warehouseId);
+
+    if (warehouseData && warehouseData.items) {
+      return warehouseData.items;
+    }
+
+    // 기존 방식으로 필터링 시도 (items에 warehouseId가 있는 경우)
     return items.filter((item) => item.warehouseId === warehouseId);
   };
 
@@ -759,12 +769,9 @@ export default function StockTable() {
 
             {/* 모바일용 카드 뷰 */}
             <div className="md:hidden px-4">
-              <StockTableMobile
+              <StockItemCard
                 items={getFilteredItems(getWarehouseItems(selectedWarehouseId))}
-                records={[]}
                 onEditQuantity={handleOpenEditQuantityModal}
-                onInbound={handleSubmitInbound}
-                onOutbound={handleSubmitOutbound}
               />
             </div>
           </>

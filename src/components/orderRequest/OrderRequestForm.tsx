@@ -474,11 +474,13 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         installationDate: formData.setupDate,
         status: OrderStatus.requested,
         memo: formData.notes,
-        orderItems: orderItems.map((item) => ({
-          itemId: item.warehouseItemId, // 창고 아이템 ID 사용
-          quantity: item.quantity,
-          memo: formData.notes,
-        })),
+        orderItems: orderItems
+          .filter((item) => item.quantity > 0) // 수량이 0보다 큰 항목만 필터링
+          .map((item) => ({
+            itemId: item.warehouseItemId,
+            quantity: item.quantity,
+            memo: formData.notes,
+          })),
       };
       console.log(orderData);
       createOrder(orderData, {

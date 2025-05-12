@@ -22,6 +22,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 type TabType = "all" | "user" | "supplier";
 
@@ -96,6 +97,7 @@ const OrderRecordTabs = () => {
   const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // 현재 로그인한 사용자 ID 가져오기
   useEffect(() => {
@@ -322,13 +324,27 @@ const OrderRecordTabs = () => {
     }
   };
 
-  // 데이터 새로고침 핸들러 추가
+  // 데이터 새로고침 핸들러 수정
   const handleRefresh = () => {
     setIsRefreshing(true);
-    // 현재 탭에 따라 적절한 쿼리 다시 가져오기
+
+    // 현재 탭에 따라 적절한 쿼리 키를 무효화합니다
+    if (activeTab === "supplier" && supplierId) {
+      queryClient.invalidateQueries({
+        queryKey: ["orders", "supplier", supplierId],
+      });
+    } else if (activeTab === "user" && userId) {
+      queryClient.invalidateQueries({ queryKey: ["orders", "user", userId] });
+    } else {
+      queryClient.invalidateQueries({
+        queryKey: ["orders", "team", currentTeamId],
+      });
+    }
+
+    // 데이터가 다시 로드될 때까지 약간의 지연 후 로딩 상태 해제
     setTimeout(() => {
       setIsRefreshing(false);
-      setCurrentPage(1);
+      setCurrentPage(1); // 첫 페이지로 이동
     }, 800);
   };
 

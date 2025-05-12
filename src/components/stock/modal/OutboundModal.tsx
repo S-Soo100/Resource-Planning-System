@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { AttachedFile } from "../stockTable";
+import { AttachedFile } from "../StockTable";
 import SearchAddressModal from "./SearchAddressModal";
 
 interface OutboundModalProps {

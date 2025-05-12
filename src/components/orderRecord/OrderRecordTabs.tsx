@@ -23,6 +23,11 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUpdateOrderStatus } from "@/hooks/(useOrder)/useOrderMutations";
+import { userApi } from "@/api/user-api";
+
+// 사용자 접근 레벨 타입 추가
+type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
 
 type TabType = "all" | "user" | "supplier";
 
@@ -93,11 +98,16 @@ const OrderRecordTabs = () => {
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<number | null>(null);
+  const [userAccessLevel, setUserAccessLevel] =
+    useState<UserAccessLevel>("user");
 
   const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  // 주문 상태 업데이트 hook 추가
+  const updateOrderStatusMutation = useUpdateOrderStatus();
 
   // 현재 로그인한 사용자 ID 가져오기
   useEffect(() => {
@@ -105,6 +115,25 @@ const OrderRecordTabs = () => {
     if (user && user.id) {
       setUserId(user.id.toString());
       console.log("현재 사용자 ID:", user.id.toString());
+
+      // 사용자 접근 레벨 가져오기
+      const fetchUserInfo = async () => {
+        try {
+          const response = await userApi.getUser(user.id.toString());
+          if (response.success && response.data) {
+            setUserAccessLevel(response.data.accessLevel);
+            console.log("사용자 접근 레벨:", response.data.accessLevel);
+          } else {
+            // 기본값: 관리자인 경우 admin, 아닌 경우 user
+            setUserAccessLevel(user.isAdmin ? "admin" : "user");
+          }
+        } catch (error) {
+          console.error("사용자 정보 가져오기 실패:", error);
+          setUserAccessLevel(user.isAdmin ? "admin" : "user");
+        }
+      };
+
+      fetchUserInfo();
     }
   }, []);
 
@@ -353,22 +382,57 @@ const OrderRecordTabs = () => {
     orderId: number,
     newStatus: OrderStatus
   ) => {
+    // 사용자에게 확인 요청
+    if (
+      !window.confirm(
+        `정말 주문 상태를 '${getStatusText(newStatus)}'(으)로 변경하시겠습니까?`
+      )
+    ) {
+      return; // 취소한 경우 함수 종료
+    }
+
     try {
       setIsUpdatingStatus(orderId);
-      // TODO: API 호출 구현
-      // await updateOrderStatus(orderId, newStatus);
-      console.log(`주문 ID ${orderId}의 상태를 ${newStatus}로 변경합니다.`);
+
+      // useUpdateOrderStatus hook 호출
+      await updateOrderStatusMutation.mutateAsync({
+        id: orderId.toString(),
+        data: { status: newStatus },
+      });
+
+      console.log(`주문 ID ${orderId}의 상태를 ${newStatus}로 변경했습니다.`);
+
       // 상태 업데이트 후 데이터 새로고침
       handleRefresh();
     } catch (error) {
       console.error("상태 업데이트 실패:", error);
+      alert("주문 상태 업데이트에 실패했습니다.");
     } finally {
       setIsUpdatingStatus(null);
     }
   };
 
+  // 권한 확인 함수 추가
+  const hasPermissionToChangeStatus = () => {
+    return userAccessLevel === "admin" || userAccessLevel === "moderator";
+  };
+
   // 상태 변경 드롭다운 컴포넌트
   const StatusDropdown = ({ record }: { record: IOrderRecord }) => {
+    // 권한이 없는 경우 상태만 표시
+    if (!hasPermissionToChangeStatus()) {
+      return (
+        <div
+          className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
+            record.status
+          )}`}
+        >
+          {getStatusText(record.status)}
+        </div>
+      );
+    }
+
+    // 권한이 있는 경우 드롭다운 표시
     return (
       <div className="relative">
         <select

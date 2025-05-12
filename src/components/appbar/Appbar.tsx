@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { User, ChevronLeft, X, LogOut, RefreshCcw } from "lucide-react";
+import {
+  User,
+  ChevronLeft,
+  X,
+  LogOut,
+  RefreshCcw,
+  UserCircle,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { authStore } from "@/store/authStore";
@@ -101,6 +108,15 @@ const AppBarComponent = () => {
               <ul className="py-1">
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    router.push("/account");
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <UserCircle className="h-4 w-4 mr-2 text-blue-500" />내 계정
+                </li>
+                <li
+                  className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={handleTeamReset}
                 >
                   <RefreshCcw className="h-4 w-4 mr-2 text-blue-500" />팀 변경
@@ -129,6 +145,15 @@ const AppBarComponent = () => {
           {isMenuOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-xl z-50 overflow-hidden border border-gray-100">
               <ul className="py-1">
+                <li
+                  className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    router.push("/account");
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <UserCircle className="h-4 w-4 mr-2 text-blue-500" />내 계정
+                </li>
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={handleTeamReset}

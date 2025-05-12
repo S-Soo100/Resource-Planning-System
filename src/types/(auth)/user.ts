@@ -6,7 +6,7 @@ export interface IUser {
   email: string;
   name: string;
   restrictedWhs: string | number[];
-  accessLevel: "user" | "admin" | "supplier";
+  accessLevel: "user" | "admin" | "supplier" | "moderator";
   isAdmin: boolean;
   createdAt: string;
   updatedAt: string;
@@ -19,7 +19,7 @@ export interface CreateUserDto {
   password: string;
   name: string;
   restrictedWhs: string;
-  accessLevel: "user" | "admin" | "supplier";
+  accessLevel: "user" | "admin" | "supplier" | "moderator";
   isAdmin: false;
 }
 
@@ -28,7 +28,7 @@ export interface CreateUserResponse {
   email: string;
   name: string;
   restrictedWhs: string;
-  accessLevel: "user" | "admin" | "supplier";
+  accessLevel: "user" | "admin" | "supplier" | "moderator";
   isAdmin: boolean;
   createdAt: string;
   updatedAt: string;

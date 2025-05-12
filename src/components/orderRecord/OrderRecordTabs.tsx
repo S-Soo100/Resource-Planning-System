@@ -71,6 +71,15 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
   };
 };
 
+// 날짜 포맷팅 함수 추가
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const year = date.getFullYear().toString().slice(-2);
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}.${month}.${day}`;
+};
+
 const OrderRecordTabs = () => {
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [userId, setUserId] = useState<string>("");
@@ -286,17 +295,17 @@ const OrderRecordTabs = () => {
   const getStatusText = (status: string): string => {
     switch (status) {
       case OrderStatus.requested:
-        return "요청됨";
+        return "요청";
       case OrderStatus.approved:
-        return "승인됨";
+        return "승인";
       case OrderStatus.rejected:
-        return "반려됨";
+        return "반려";
       case OrderStatus.confirmedByShipper:
-        return "출고자 확인";
+        return "출확";
       case OrderStatus.shipmentCompleted:
-        return "출고 완료";
+        return "출고";
       case OrderStatus.rejectedByShipper:
-        return "출고자 반려";
+        return "출반";
       default:
         return status;
     }
@@ -378,109 +387,116 @@ const OrderRecordTabs = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-7xl">
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <div className="flex items-center gap-4">
+    <div className="container mx-auto px-1 sm:px-2 max-w-7xl">
+      <div className="bg-white rounded-lg shadow-md p-2 sm:p-4 mb-4 sm:mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={handleBack}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm transition-colors"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs sm:text-sm transition-colors"
             >
-              <ArrowLeft size={16} />
-              메인 메뉴로
+              <ArrowLeft size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">메인 메뉴로</span>
+              <span className="sm:hidden">메인</span>
             </button>
-            <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-              <Package className="mr-2 text-blue-600" />
-              발주 기록 관리
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
+              <Package className="mr-1 sm:mr-2 w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+              <span className="hidden sm:inline">발주 기록 관리</span>
+              <span className="sm:hidden">발주 기록</span>
             </h1>
           </div>
           <button
             onClick={handleRefresh}
-            className="mt-2 md:mt-0 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center text-sm transition-colors"
+            className="mt-2 md:mt-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center text-xs sm:text-sm transition-colors"
           >
             <RefreshCw
-              size={16}
+              size={14}
               className={`mr-1 ${isRefreshing ? "animate-spin" : ""}`}
             />
-            새로고침
+            <span className="hidden sm:inline">새로고침</span>
+            <span className="sm:hidden">새로고침</span>
           </button>
         </div>
 
         {/* 탭 버튼 */}
-        <div className="flex mb-6 border-b">
+        <div className="flex mb-4 sm:mb-6 border-b">
           <button
             onClick={() => handleTabChange("all")}
-            className={`py-3 px-5 font-medium text-sm transition-colors ${
+            className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
               activeTab === "all"
                 ? "border-b-2 border-blue-500 text-blue-600"
                 : "text-gray-600 hover:text-blue-500"
             }`}
           >
-            <Package size={18} className="inline-block mr-1" />
-            전체 발주 기록
+            <Package size={16} className="inline-block mr-1" />
+            <span className="hidden sm:inline">전체 발주 기록</span>
+            <span className="sm:hidden">전체</span>
           </button>
           <button
             onClick={() => handleTabChange("user")}
-            className={`py-3 px-5 font-medium text-sm transition-colors ${
+            className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
               activeTab === "user"
                 ? "border-b-2 border-blue-500 text-blue-600"
                 : "text-gray-600 hover:text-blue-500"
             }`}
           >
-            <User size={18} className="inline-block mr-1" />내 발주 기록
+            <User size={16} className="inline-block mr-1" />
+            <span className="hidden sm:inline">내 발주 기록</span>
+            <span className="sm:hidden">내 발주</span>
           </button>
           <button
             onClick={() => handleTabChange("supplier")}
-            className={`py-3 px-5 font-medium text-sm transition-colors ${
+            className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
               activeTab === "supplier"
                 ? "border-b-2 border-blue-500 text-blue-600"
                 : "text-gray-600 hover:text-blue-500"
             }`}
           >
-            <Truck size={18} className="inline-block mr-1" />
-            거래처별 발주 기록
+            <Truck size={16} className="inline-block mr-1" />
+            <span className="hidden sm:inline">거래처별 발주 기록</span>
+            <span className="sm:hidden">거래처</span>
           </button>
         </div>
 
         {/* 검색 및 필터 */}
-        <div className="bg-gray-50 p-4 rounded-lg mb-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+        <div className="bg-gray-50 p-2 sm:p-4 rounded-lg mb-4 sm:mb-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-2 sm:gap-4">
             <div className="relative flex-grow">
               <Search
-                size={18}
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={16}
+                className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               />
               <input
                 type="text"
-                placeholder="발주자, 패키지, 수령자 검색..."
+                placeholder="검색..."
                 value={searchTerm}
                 onChange={handleSearch}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
             </div>
 
             {activeTab === "user" && (
-              <div className="flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-md">
-                <User size={16} className="mr-2 text-blue-500" />
-                <span className="text-sm font-medium text-blue-700">
+              <div className="flex items-center px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-50 border border-blue-100 rounded-md">
+                <User size={14} className="mr-1 sm:mr-2 text-blue-500" />
+                <span className="text-xs sm:text-sm font-medium text-blue-700">
                   {authStore.getState().user?.name || "사용자"}의 발주
                 </span>
               </div>
             )}
 
             {activeTab === "supplier" && (
-              <div className="flex items-center gap-2 min-w-[200px]">
-                <Filter size={16} className="text-gray-500" />
+              <div className="flex items-center gap-1 sm:gap-2 min-w-[120px] sm:min-w-[200px]">
+                <Filter size={14} className="text-gray-500" />
                 {isLoadingSuppliers ? (
-                  <div className="text-sm text-gray-500 flex items-center">
-                    <div className="w-4 h-4 border-2 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mr-2"></div>
-                    거래처 목록 로딩 중...
+                  <div className="text-xs sm:text-sm text-gray-500 flex items-center">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mr-1 sm:mr-2"></div>
+                    로딩중...
                   </div>
                 ) : (
                   <select
                     value={supplierId}
                     onChange={handleSupplierChange}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   >
                     <option value="">거래처 선택</option>
                     {suppliers.map((supplier) => (
@@ -503,26 +519,26 @@ const OrderRecordTabs = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-3 sm:mx-0">
               <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       발주자
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-3/12">
+                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[30%] sm:w-3/12">
                       패키지/품목
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
+                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[10%] sm:w-1/12">
                       수량
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       수령자
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       날짜
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       현재상태
                     </th>
                   </tr>
@@ -539,10 +555,10 @@ const OrderRecordTabs = () => {
                           }`}
                           onClick={() => handleRowClick(record.id)}
                         >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 truncate max-w-[100px] sm:max-w-none">
                             {record.requester}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-700 max-w-[200px] truncate">
+                          <td className="px-3 sm:px-6 py-4 text-sm text-gray-700 truncate max-w-[150px] sm:max-w-[200px]">
                             {record.package?.packageName &&
                             record.package.packageName !== "개별 품목"
                               ? record.package.packageName
@@ -560,25 +576,23 @@ const OrderRecordTabs = () => {
                                 (record.orderItems.length > 2 ? " 외" : "")
                               : "품목 없음"}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
                             {record.orderItems?.reduce(
                               (sum, item) => sum + item.quantity,
                               0
                             ) || 0}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 truncate max-w-[100px] sm:max-w-none">
                             {record.receiver}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                             <Calendar
                               size={14}
                               className="inline-block mr-1 text-gray-500"
                             />
-                            {new Date(record.createdAt).toLocaleDateString(
-                              "ko-KR"
-                            )}
+                            {formatDate(record.createdAt)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
                             <div className="flex items-center justify-between">
                               <span
                                 className={`px-2.5 py-1 text-xs rounded-full ${getStatusColorClass(
@@ -605,14 +619,14 @@ const OrderRecordTabs = () => {
                         </tr>
                         {expandedRowId === record.id && (
                           <tr className="bg-gray-50 transition-all duration-200 ease-in-out">
-                            <td colSpan={6} className="p-4">
+                            <td colSpan={6} className="p-2 sm:p-4">
                               {/* 상태 변경 섹션 */}
-                              <div className="mb-6 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                              <div className="mb-4 sm:mb-6 bg-white p-3 sm:p-6 rounded-xl shadow-sm border border-gray-100">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
-                                      className="h-6 w-6 mr-3 text-gray-500"
+                                      className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 text-gray-500"
                                       viewBox="0 0 20 20"
                                       fill="currentColor"
                                     >
@@ -622,7 +636,7 @@ const OrderRecordTabs = () => {
                                         clipRule="evenodd"
                                       />
                                     </svg>
-                                    <h3 className="text-lg font-semibold text-gray-700">
+                                    <h3 className="text-base sm:text-lg font-semibold text-gray-700">
                                       발주 상태
                                     </h3>
                                   </div>
@@ -630,13 +644,13 @@ const OrderRecordTabs = () => {
                                 </div>
                               </div>
 
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fadeIn">
                                 {/* 왼쪽: 발주 상세 정보 */}
-                                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                                  <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center">
+                                <div className="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-gray-100">
+                                  <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center text-sm sm:text-base">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
-                                      className="h-5 w-5 mr-2 text-gray-500"
+                                      className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-500"
                                       viewBox="0 0 20 20"
                                       fill="currentColor"
                                     >
@@ -648,66 +662,58 @@ const OrderRecordTabs = () => {
                                     </svg>
                                     발주 상세 정보
                                   </h3>
-                                  <div className="space-y-3">
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                      <span className="font-medium text-gray-600">
+                                  <div className="space-y-2 sm:space-y-3">
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
                                         생성일:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
-                                        {new Date(
-                                          record.createdAt
-                                        ).toLocaleDateString("ko-KR")}
+                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
+                                        {formatDate(record.createdAt)}
                                       </span>
                                     </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                      <span className="font-medium text-gray-600">
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
                                         구매일:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
                                         {record.purchaseDate
-                                          ? new Date(
-                                              record.purchaseDate
-                                            ).toLocaleDateString("ko-KR")
+                                          ? formatDate(record.purchaseDate)
                                           : "-"}
                                       </span>
                                     </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                      <span className="font-medium text-gray-600">
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
                                         출고예정일:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
                                         {record.outboundDate
-                                          ? new Date(
-                                              record.outboundDate
-                                            ).toLocaleDateString("ko-KR")
+                                          ? formatDate(record.outboundDate)
                                           : "-"}
                                       </span>
                                     </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                      <span className="font-medium text-gray-600">
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
                                         설치요청일:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
                                         {record.installationDate
-                                          ? new Date(
-                                              record.installationDate
-                                            ).toLocaleDateString("ko-KR")
+                                          ? formatDate(record.installationDate)
                                           : "-"}
                                       </span>
                                     </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                      <span className="font-medium text-gray-600">
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
                                         발주자:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
                                         {record.requester}
                                       </span>
                                     </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                      <span className="font-medium text-gray-600">
+                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
                                         담당자:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
                                         {record.manager || "-"}
                                       </span>
                                     </div>
@@ -715,13 +721,13 @@ const OrderRecordTabs = () => {
                                 </div>
 
                                 {/* 오른쪽: 배송 정보와 주문품목목록 */}
-                                <div className="space-y-6">
+                                <div className="space-y-4 sm:space-y-6">
                                   {/* 배송 정보 */}
-                                  <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                                    <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center">
+                                  <div className="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-gray-100">
+                                    <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center text-sm sm:text-base">
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-5 w-5 mr-2 text-gray-500"
+                                        className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-500"
                                         viewBox="0 0 20 20"
                                         fill="currentColor"
                                       >
@@ -730,28 +736,28 @@ const OrderRecordTabs = () => {
                                       </svg>
                                       배송 정보
                                     </h3>
-                                    <div className="space-y-3">
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                        <span className="font-medium text-gray-600">
+                                    <div className="space-y-2 sm:space-y-3">
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="font-medium text-gray-600 text-xs sm:text-sm">
                                           수령자:
                                         </span>
-                                        <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                        <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
                                           {record.receiver}
                                         </span>
                                       </div>
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                        <span className="font-medium text-gray-600">
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="font-medium text-gray-600 text-xs sm:text-sm">
                                           연락처:
                                         </span>
-                                        <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                        <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
                                           {record.receiverPhone}
                                         </span>
                                       </div>
-                                      <div className="flex flex-col border-b border-gray-100 py-2">
-                                        <span className="font-medium text-gray-600 mb-1">
+                                      <div className="flex flex-col border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="font-medium text-gray-600 mb-1 text-xs sm:text-sm">
                                           주소:
                                         </span>
-                                        <span className="text-gray-800 bg-gray-50 p-3 rounded-md text-sm break-words">
+                                        <span className="text-gray-800 bg-gray-50 p-2 sm:p-3 rounded-md text-xs sm:text-sm break-words">
                                           {record.receiverAddress}
                                         </span>
                                       </div>
@@ -761,11 +767,11 @@ const OrderRecordTabs = () => {
                                   {/* 주문 품목 목록 */}
                                   {record.orderItems &&
                                     record.orderItems.length > 0 && (
-                                      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                                        <h4 className="font-medium text-gray-700 mb-3 flex items-center">
+                                      <div className="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-gray-100">
+                                        <h4 className="font-medium text-gray-700 mb-3 flex items-center text-xs sm:text-sm">
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
-                                            className="h-4 w-4 mr-2 text-gray-500"
+                                            className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-gray-500"
                                             viewBox="0 0 20 20"
                                             fill="currentColor"
                                           >
@@ -774,12 +780,12 @@ const OrderRecordTabs = () => {
                                           주문 품목 목록
                                         </h4>
 
-                                        <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3 mb-3">
                                           <div className="flex justify-between items-center mb-2">
-                                            <span className="font-medium text-gray-600">
+                                            <span className="font-medium text-gray-600 text-xs sm:text-sm">
                                               패키지:
                                             </span>
-                                            <span className="text-gray-800">
+                                            <span className="text-gray-800 text-xs sm:text-sm">
                                               {record.package?.packageName ||
                                                 "-"}
                                             </span>
@@ -787,7 +793,7 @@ const OrderRecordTabs = () => {
                                         </div>
 
                                         <div className="bg-gray-50 rounded-lg overflow-hidden">
-                                          <div className="px-3 py-2 bg-gray-100 text-sm font-medium text-gray-600 flex justify-between">
+                                          <div className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-100 text-xs sm:text-sm font-medium text-gray-600 flex justify-between">
                                             <span>품목</span>
                                             <span>수량</span>
                                           </div>
@@ -795,19 +801,19 @@ const OrderRecordTabs = () => {
                                             {record.orderItems.map((item) => (
                                               <li
                                                 key={item.id}
-                                                className="py-2 px-3 hover:bg-gray-100 transition-colors"
+                                                className="py-1.5 sm:py-2 px-2 sm:px-3 hover:bg-gray-100 transition-colors"
                                               >
                                                 <div className="flex justify-between items-center">
-                                                  <span className="font-medium text-gray-700">
+                                                  <span className="font-medium text-gray-700 text-xs sm:text-sm">
                                                     {item.item?.itemName ||
                                                       "알 수 없는 품목"}
                                                   </span>
-                                                  <span className="text-gray-600 bg-white px-2 py-1 rounded-md text-sm">
+                                                  <span className="text-gray-600 bg-white px-2 py-1 rounded-md text-xs sm:text-sm">
                                                     {item.quantity}개
                                                   </span>
                                                 </div>
                                                 {item.memo && (
-                                                  <p className="text-xs text-gray-500 mt-1 italic">
+                                                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1 italic">
                                                     메모: {item.memo}
                                                   </p>
                                                 )}
@@ -815,12 +821,12 @@ const OrderRecordTabs = () => {
                                             ))}
                                           </ul>
                                           {record.memo && (
-                                            <div className="py-2 px-3 bg-gray-100">
+                                            <div className="py-1.5 sm:py-2 px-2 sm:px-3 bg-gray-100">
                                               <p className="flex justify-between items-center">
-                                                <span className="font-medium text-gray-600">
+                                                <span className="font-medium text-gray-600 text-xs sm:text-sm">
                                                   추가 요청사항:
                                                 </span>
-                                                <span className="text-gray-800 text-sm italic">
+                                                <span className="text-gray-800 text-xs sm:text-sm italic">
                                                   {record.memo}
                                                 </span>
                                               </p>
@@ -832,11 +838,11 @@ const OrderRecordTabs = () => {
 
                                   {/* 첨부 파일 */}
                                   {record.files && record.files.length > 0 && (
-                                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                                      <h4 className="font-medium text-gray-700 mb-3 flex items-center">
+                                    <div className="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-gray-100">
+                                      <h4 className="font-medium text-gray-700 mb-3 flex items-center text-xs sm:text-sm">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
-                                          className="h-4 w-4 mr-2 text-gray-500"
+                                          className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-gray-500"
                                           viewBox="0 0 20 20"
                                           fill="currentColor"
                                         >
@@ -852,17 +858,17 @@ const OrderRecordTabs = () => {
                                         {record.files.map((file) => (
                                           <li
                                             key={file.id}
-                                            className="py-2 px-3 hover:bg-gray-100 transition-colors"
+                                            className="py-1.5 sm:py-2 px-2 sm:px-3 hover:bg-gray-100 transition-colors"
                                           >
                                             <a
                                               href={file.fileUrl}
                                               target="_blank"
                                               rel="noopener noreferrer"
-                                              className="text-blue-500 hover:text-blue-700 hover:underline flex items-center"
+                                              className="text-blue-500 hover:text-blue-700 hover:underline flex items-center text-xs sm:text-sm"
                                             >
                                               <svg
                                                 xmlns="http://www.w3.org/2000/svg"
-                                                className="h-4 w-4 mr-2"
+                                                className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2"
                                                 fill="none"
                                                 viewBox="0 0 24 24"
                                                 stroke="currentColor"
@@ -876,11 +882,9 @@ const OrderRecordTabs = () => {
                                               </svg>
                                               {file.fileName}
                                             </a>
-                                            <p className="text-xs text-gray-500 mt-1 ml-6">
+                                            <p className="text-[10px] sm:text-xs text-gray-500 mt-1 ml-4 sm:ml-6">
                                               업로드:{" "}
-                                              {new Date(
-                                                file.createdAt
-                                              ).toLocaleDateString("ko-KR")}
+                                              {formatDate(file.createdAt)}
                                             </p>
                                           </li>
                                         ))}

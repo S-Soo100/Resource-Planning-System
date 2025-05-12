@@ -25,12 +25,13 @@ const MainMenuComponent = () => {
       | "admin"
       | "user"
       | "supplier"
-      | ("admin" | "user" | "supplier")[]
+      | "moderator"
+      | ("admin" | "user" | "supplier" | "moderator")[]
   ) => {
     if (Array.isArray(requiredLevel)) {
       if (
         !requiredLevel.includes(
-          user?.accessLevel as "admin" | "user" | "supplier"
+          user?.accessLevel as "admin" | "user" | "supplier" | "moderator"
         )
       ) {
         const roles = requiredLevel
@@ -39,6 +40,7 @@ const MainMenuComponent = () => {
               admin: "관리자",
               user: "일반 사용자",
               supplier: "공급자",
+              moderator: "중재자",
             };
             return roleMap[level];
           })
@@ -54,6 +56,7 @@ const MainMenuComponent = () => {
           admin: "관리자",
           user: "일반 사용자",
           supplier: "공급자",
+          moderator: "중재자",
         };
         alert(
           `죄송합니다. ${roleMap[requiredLevel]} 권한이 필요한 기능입니다.\n\n현재 계정으로는 해당 기능을 사용할 수 없습니다.`
@@ -70,15 +73,15 @@ const MainMenuComponent = () => {
       title: "재고 조회",
       subtitle: "창고별, 상품별 재고 현황을 확인합니다",
       icon: <MdOutlineInventory className="text-3xl" />,
-      onClick: () => checkAccess(`/stock`, ["admin", "user"]),
-      accessLevel: ["user", "admin"],
+      onClick: () => checkAccess(`/stock`, ["admin", "user", "moderator"]),
+      accessLevel: ["user", "admin", "moderator"],
     },
     {
       title: "재고 입출고 기록 조회",
       subtitle: "재고 입/출고 이력을 날짜별로 확인합니다",
       icon: <FaClipboardList className="text-3xl" />,
-      onClick: () => checkAccess(`/ioHistory`, ["admin", "user"]),
-      accessLevel: ["user", "admin"],
+      onClick: () => checkAccess(`/ioHistory`, ["admin", "user", "moderator"]),
+      accessLevel: ["user", "admin", "moderator"],
     },
   ];
 
@@ -89,23 +92,34 @@ const MainMenuComponent = () => {
       subtitle: "미리 구성된 패키지로 출고를 요청합니다",
       icon: <FaTruckLoading className="text-3xl" />,
       onClick: () =>
-        checkAccess(`/packageOrder`, ["admin", "user", "supplier"]),
-      accessLevel: ["supplier", "user", "admin"],
+        checkAccess(`/packageOrder`, [
+          "admin",
+          "user",
+          "supplier",
+          "moderator",
+        ]),
+      accessLevel: ["supplier", "user", "admin", "moderator"],
     },
     {
       title: "개별 품목 출고 요청",
       subtitle: "개별 품목을 선택하여 출고를 요청합니다",
       icon: <FaTruckLoading className="text-3xl" />,
       onClick: () =>
-        checkAccess(`/orderRequest`, ["admin", "user", "supplier"]),
-      accessLevel: ["supplier", "user", "admin"],
+        checkAccess(`/orderRequest`, [
+          "admin",
+          "user",
+          "supplier",
+          "moderator",
+        ]),
+      accessLevel: ["supplier", "user", "admin", "moderator"],
     },
     {
       title: "발주 기록 확인",
       subtitle: "이전 출고 요청 및 처리 상태를 확인합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/orderRecord`, ["admin", "user", "supplier"]),
-      accessLevel: ["supplier", "user", "admin"],
+      onClick: () =>
+        checkAccess(`/orderRecord`, ["admin", "user", "supplier", "moderator"]),
+      accessLevel: ["supplier", "user", "admin", "moderator"],
     },
   ];
 
@@ -115,36 +129,36 @@ const MainMenuComponent = () => {
       title: "업체 관리",
       subtitle: "협력업체 정보를 등록하고 관리합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/supplier`, ["admin", "user"]),
-      accessLevel: ["user", "admin"],
+      onClick: () => checkAccess(`/supplier`, ["admin", "user", "moderator"]),
+      accessLevel: ["user", "admin", "moderator"],
     },
     {
       title: "패키지 관리",
       subtitle: "출고용 패키지를 구성하고 관리합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/package`, ["admin", "user"]),
-      accessLevel: ["user", "admin"],
+      onClick: () => checkAccess(`/package`, ["admin", "user", "moderator"]),
+      accessLevel: ["user", "admin", "moderator"],
     },
     {
       title: "관리 - 창고별 품목 관리",
       subtitle: "각 창고에 보관된 품목을 관리합니다",
       icon: <FaBox className="text-3xl" />,
-      onClick: () => checkAccess(`/warehouse-items`, "admin"),
-      accessLevel: ["admin"],
+      onClick: () => checkAccess(`/warehouse-items`, ["admin", "moderator"]),
+      accessLevel: ["admin", "moderator"],
     },
     {
       title: "관리 - 전체 품목 관리",
       subtitle: "팀에서 사용하는 모든 품목을 관리합니다",
       icon: <FaBox className="text-3xl" />,
-      onClick: () => checkAccess(`/team-items`, "admin"),
-      accessLevel: ["admin"],
+      onClick: () => checkAccess(`/team-items`, ["admin", "moderator"]),
+      accessLevel: ["admin", "moderator"],
     },
     {
       title: "관리 - 팀 관리",
       subtitle: "팀 구성원과 권한을 관리합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/admin`, "admin"),
-      accessLevel: ["admin"],
+      onClick: () => checkAccess(`/admin`, ["admin", "moderator"]),
+      accessLevel: ["admin", "moderator"],
     },
   ];
 

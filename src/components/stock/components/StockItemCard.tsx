@@ -15,6 +15,14 @@ export default function StockItemCard({
 }: StockItemCardProps) {
   const router = useRouter();
 
+  // 메모 텍스트를 최대 길이로 제한하는 함수
+  const truncateMemo = (memo: string | null, maxLength = 30) => {
+    if (!memo) return null;
+    return memo.length > maxLength
+      ? `${memo.substring(0, maxLength)}...`
+      : memo;
+  };
+
   if (items.length === 0) {
     return (
       <div className="text-center py-8">
@@ -42,6 +50,11 @@ export default function StockItemCard({
               <div className="text-xs text-gray-400 mt-1">
                 최종수정: {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
               </div>
+              {item.memo && (
+                <div className="text-xs text-gray-500">
+                  메모: {truncateMemo(item.memo)}
+                </div>
+              )}
             </div>
 
             <div className="text-right">

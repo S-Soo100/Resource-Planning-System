@@ -27,6 +27,14 @@ export default function StockTableDesktop({
     );
   }
 
+  // 메모 텍스트를 최대 길이로 제한하는 함수
+  const truncateMemo = (memo: string | null, maxLength = 30) => {
+    if (!memo) return "-";
+    return memo.length > maxLength
+      ? `${memo.substring(0, maxLength)}...`
+      : memo;
+  };
+
   return (
     <>
       {items.map((item, itemIndex) => (
@@ -34,9 +42,6 @@ export default function StockTableDesktop({
           key={`item-${item.id}-${itemIndex}`}
           className="hover:bg-gray-50 transition-colors duration-150"
         >
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-            {item.id}
-          </td>
           <td className="px-6 py-4 whitespace-nowrap">
             <a
               className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
@@ -58,6 +63,9 @@ export default function StockTableDesktop({
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
             {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
+          </td>
+          <td className="px-6 py-4 text-sm text-gray-600 truncate max-w-xs">
+            {truncateMemo(item.memo)}
           </td>
           {showEditButton && (
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">

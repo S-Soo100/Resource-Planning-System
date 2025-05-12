@@ -250,9 +250,6 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   이메일
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID
-                </th>
                 {!isReadOnly && (
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     관리
@@ -286,9 +283,6 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
                     <div className="text-sm text-gray-900">
                       {user.user?.email || "이메일 없음"}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.userId || "ID 없음"}
                   </td>
                   {!isReadOnly && (
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

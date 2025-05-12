@@ -12,7 +12,13 @@ interface NewUserForm {
   userId: number;
 }
 
-const TeamMembersManagement: React.FC = () => {
+interface TeamMembersManagementProps {
+  isReadOnly?: boolean;
+}
+
+const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
+  isReadOnly = false,
+}) => {
   const { team } = useCurrentTeam();
   const teamId = team?.id;
 
@@ -195,12 +201,19 @@ const TeamMembersManagement: React.FC = () => {
     <div className="bg-white p-5 rounded-lg shadow-sm">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">팀 멤버 관리</h2>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-        >
-          멤버 추가
-        </button>
+        {!isReadOnly && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+          >
+            멤버 추가
+          </button>
+        )}
+        {isReadOnly && (
+          <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+            읽기 전용 모드
+          </div>
+        )}
       </div>
 
       <div className="border-b pb-4 mb-4">
@@ -240,40 +253,54 @@ const TeamMembersManagement: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  관리
-                </th>
+                {!isReadOnly && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    관리
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {teamUsers.map((user: IMappingUser, index: number) => (
                 <tr
-                  key={
-                    user.userId ? `user-${user.userId}` : `user-index-${index}`
-                  }
+                  key={`user-${user.userId}-${index}`}
+                  className="hover:bg-gray-50"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      {user.user?.name || "이름 없음"}
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-500 font-medium">
+                          {user.user?.name
+                            ? user.user.name.charAt(0).toUpperCase()
+                            : "U"}
+                        </span>
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {user.user?.name || "이름 없음"}
+                        </div>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-900">
                       {user.user?.email || "이메일 없음"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.userId || "ID 없음"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => removeUser(user.userId)}
-                      disabled={isRemovingUser || !user.userId}
-                      className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      삭제
-                    </button>
-                  </td>
+                  {!isReadOnly && (
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => removeUser(user.userId)}
+                        disabled={isRemovingUser}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        {isRemovingUser ? "처리 중..." : "삭제"}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

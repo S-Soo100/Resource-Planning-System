@@ -1,21 +1,19 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Item } from "@/types/item";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface StockItemCardProps {
   items: Item[];
   onEditQuantity: (item: Item) => void;
+  showEditButton?: boolean;
 }
 
 export default function StockItemCard({
   items,
   onEditQuantity,
+  showEditButton = true,
 }: StockItemCardProps) {
   const router = useRouter();
-  const { user } = useCurrentUser();
-  const isAdmin =
-    user?.accessLevel === "admin" || user?.accessLevel === "moderator";
 
   if (items.length === 0) {
     return (
@@ -46,14 +44,19 @@ export default function StockItemCard({
               </div>
             </div>
 
-            <div
-              className={`text-right ${isAdmin ? "cursor-pointer" : ""}`}
-              onClick={isAdmin ? () => onEditQuantity(item) : undefined}
-            >
+            <div className="text-right">
               <div className="text-gray-500 text-sm mb-1">재고수량</div>
               <div className="text-2xl font-bold text-blue-600">
                 {item.itemQuantity}
               </div>
+              {showEditButton && (
+                <button
+                  className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors duration-150"
+                  onClick={() => onEditQuantity(item)}
+                >
+                  수정
+                </button>
+              )}
             </div>
           </div>
         </div>

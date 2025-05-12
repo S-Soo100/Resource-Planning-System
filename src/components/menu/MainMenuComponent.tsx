@@ -188,8 +188,8 @@ const MainMenuComponent = () => {
     },
   ];
 
-  // 관리자인 경우 관리자 탭 추가
-  if (user?.accessLevel === "admin") {
+  // 관리자 또는 중재자인 경우 관리자 탭 추가
+  if (user?.accessLevel === "admin" || user?.accessLevel === "moderator") {
     tabs.push({
       id: "admin",
       title: "시스템 관리",

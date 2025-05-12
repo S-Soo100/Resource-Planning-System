@@ -738,9 +738,6 @@ export default function StockTable() {
               <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
-                      ID
-                    </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
                       품목 코드
                     </th>
@@ -752,6 +749,9 @@ export default function StockTable() {
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
                       최종수정일
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                      메모
                     </th>
                     {user?.accessLevel === "admin" && (
                       <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">

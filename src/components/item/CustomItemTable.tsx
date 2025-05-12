@@ -9,11 +9,15 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { TeamItem } from "@/types/team-item";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-export default function CustomItemTable() {
+interface CustomItemTableProps {
+  isReadOnly?: boolean;
+}
+
+export default function CustomItemTable({
+  isReadOnly = false,
+}: CustomItemTableProps) {
   const router = useRouter();
-  const { user } = useCurrentUser();
   const { items, isLoading, isError, invalidateInventory, refetchAll } =
     useWarehouseItems();
   const { teamItems = [], isLoading: isTeamItemsLoading } =
@@ -94,6 +98,8 @@ export default function CustomItemTable() {
   };
 
   const handleOpenModal = (warehouseId: number) => {
+    if (isReadOnly) return;
+
     setCurrentWarehouseId(warehouseId);
     setSelectedTeamItem(null);
     setFormValues({
@@ -204,6 +210,8 @@ export default function CustomItemTable() {
 
   // 아이템 삭제 처리 함수
   const handleDeleteItem = (itemId: number, itemName: string) => {
+    if (isReadOnly) return;
+
     if (window.confirm(`'${itemName}' 품목을 삭제하시겠습니까?`)) {
       deleteItemMutation.mutate(
         {
@@ -279,98 +287,45 @@ export default function CustomItemTable() {
                 className="bg-white rounded-lg shadow overflow-hidden"
               >
                 {/* 창고 헤더 (토글 가능) */}
-                <div
-                  className="flex justify-between items-center p-4 bg-gray-50 cursor-pointer hover:bg-gray-100"
-                  onClick={() => toggleWarehouse(warehouse.id)}
-                >
-                  <div>
+                <div className="flex items-center justify-between p-4 bg-white rounded-t-lg border-b">
+                  <div
+                    className="flex items-center cursor-pointer"
+                    onClick={() => toggleWarehouse(warehouse.id)}
+                  >
+                    <div className="mr-2 transform transition-transform duration-200">
+                      {expandedWarehouses.includes(warehouse.id) ? "▼" : "▶"}
+                    </div>
                     <h3 className="text-lg font-medium">
                       {warehouse.warehouseName}
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      {warehouse.warehouseAddress}
-                    </p>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="mr-3 text-sm text-gray-600">
-                      {getWarehouseItems(warehouse.id).length}개 품목
+                    <span className="ml-2 text-sm text-gray-500">
+                      ({getWarehouseItems(warehouse.id).length}개 품목)
                     </span>
-                    <svg
-                      className={`h-6 w-6 transform transition-transform ${
-                        expandedWarehouses.includes(warehouse.id)
-                          ? "rotate-180"
-                          : ""
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      placeholder="품목 검색"
+                      className="px-3 py-1 border rounded-md text-sm"
+                      value={searchQueries[warehouse.id] || ""}
+                      onChange={(e) =>
+                        handleSearchChange(warehouse.id, e.target.value)
+                      }
+                    />
+                    {!isReadOnly && (
+                      <button
+                        onClick={() => handleOpenModal(warehouse.id)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
+                      >
+                        품목 추가
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 {/* 토글되면 보이는 내용 */}
                 {expandedWarehouses.includes(warehouse.id) && (
                   <div className="p-4">
-                    {/* 검색 바와 품목 추가 버튼 */}
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="relative w-64">
-                        <input
-                          type="text"
-                          placeholder="품목 검색..."
-                          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          value={searchQueries[warehouse.id] || ""}
-                          onChange={(e) =>
-                            handleSearchChange(warehouse.id, e.target.value)
-                          }
-                        />
-                        <svg
-                          className="absolute right-3 top-2.5 h-5 w-5 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          />
-                        </svg>
-                      </div>
-
-                      {user?.accessLevel === "admin" && (
-                        <button
-                          onClick={() => handleOpenModal(warehouse.id)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
-                        >
-                          <svg
-                            className="h-5 w-5 mr-2"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                          </svg>
-                          관리 품목 추가
-                        </button>
-                      )}
-                    </div>
-
                     {/* 품목 테이블 */}
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
@@ -396,7 +351,10 @@ export default function CustomItemTable() {
                         <tbody className="bg-white divide-y divide-gray-200">
                           {getWarehouseItems(warehouse.id).length > 0 ? (
                             getWarehouseItems(warehouse.id).map((item) => (
-                              <tr key={item.id} className="hover:bg-gray-50">
+                              <tr
+                                key={item.id}
+                                className="border-b hover:bg-gray-50"
+                              >
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   <a
                                     className="text-blue-500 hover:underline cursor-pointer"
@@ -426,7 +384,7 @@ export default function CustomItemTable() {
                                   ).toLocaleDateString("ko-KR")}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm flex space-x-2">
-                                  {user?.accessLevel === "admin" && (
+                                  {!isReadOnly && (
                                     <button
                                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs"
                                       onClick={() =>

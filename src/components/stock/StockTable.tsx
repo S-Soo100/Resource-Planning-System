@@ -208,6 +208,11 @@ export default function StockTable() {
   };
 
   const handleOpenEditQuantityModal = (item: any) => {
+    // moderator는 재고 수량을 직접 수정할 수 없도록 처리
+    if (user?.accessLevel !== "admin") {
+      return;
+    }
+
     setQuantityEditValues({
       itemId: item.id,
       itemCode: item.itemCode,
@@ -748,9 +753,11 @@ export default function StockTable() {
                     <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
                       최종수정일
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
-                      관리
-                    </th>
+                    {user?.accessLevel === "admin" && (
+                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
+                        관리
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -758,10 +765,8 @@ export default function StockTable() {
                     items={getFilteredItems(
                       getWarehouseItems(selectedWarehouseId)
                     )}
-                    records={[]}
                     onEditQuantity={handleOpenEditQuantityModal}
-                    onInbound={handleSubmitInbound}
-                    onOutbound={handleSubmitOutbound}
+                    showEditButton={user?.accessLevel === "admin"}
                   />
                 </tbody>
               </table>
@@ -772,6 +777,7 @@ export default function StockTable() {
               <StockItemCard
                 items={getFilteredItems(getWarehouseItems(selectedWarehouseId))}
                 onEditQuantity={handleOpenEditQuantityModal}
+                showEditButton={user?.accessLevel === "admin"}
               />
             </div>
           </>

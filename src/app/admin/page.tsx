@@ -38,15 +38,18 @@ export default function AdminPage() {
     );
   }
 
-  if (!user || user.accessLevel !== "admin") {
+  if (
+    !user ||
+    (user.accessLevel !== "admin" && user.accessLevel !== "moderator")
+  ) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            관리자 권한이 필요합니다
+            권한이 필요합니다
           </h2>
           <p className="text-gray-600 mb-6">
-            해당 페이지는 관리자만 접근할 수 있습니다.
+            해당 페이지는 관리자 또는 중재자만 접근할 수 있습니다.
           </p>
           <button
             onClick={() => router.back()}
@@ -60,11 +63,14 @@ export default function AdminPage() {
     );
   }
 
+  // moderator인 경우 읽기 전용 모드 설정
+  const isReadOnly = user.accessLevel === "moderator";
+
   // 탭에 따른 콘텐츠 렌더링
   const renderTabContent = () => {
     switch (activeTab) {
       case "team-members":
-        return <TeamMembersManagement />;
+        return <TeamMembersManagement isReadOnly={isReadOnly} />;
       case "warehouse":
         return (
           <WarehouseManagement
@@ -77,10 +83,11 @@ export default function AdminPage() {
                   }))
                 : []
             }
+            isReadOnly={isReadOnly}
           />
         );
       case "team":
-        return <TeamManagement />;
+        return <TeamManagement isReadOnly={isReadOnly} />;
       default:
         return null;
     }
@@ -93,8 +100,14 @@ export default function AdminPage() {
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h1 className="text-2xl font-bold mb-2">관리자 대시보드</h1>
             <p className="text-gray-600">
-              환영합니다, 관리자 {zustandAuth?.name} 님
+              환영합니다, {user.accessLevel === "admin" ? "관리자" : "중재자"}{" "}
+              {zustandAuth?.name} 님
             </p>
+            {isReadOnly && (
+              <div className="mt-2 p-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+                중재자 권한으로는 조회만 가능하며, 수정은 불가능합니다.
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

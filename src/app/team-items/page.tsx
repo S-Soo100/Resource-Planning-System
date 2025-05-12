@@ -152,15 +152,19 @@ export default function TeamItemsPage() {
   }
 
   // 디버그 모드가 아닐 때만 관리자 권한 체크
-  if (!isDebugMode && (!user || user.accessLevel !== "admin")) {
+  if (
+    !isDebugMode &&
+    (!user ||
+      (user.accessLevel !== "admin" && user.accessLevel !== "moderator"))
+  ) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            관리자 권한이 필요합니다
+            권한이 필요합니다
           </h2>
           <p className="text-gray-600 mb-6">
-            해당 페이지는 관리자만 접근할 수 있습니다.
+            해당 페이지는 관리자 또는 중재자만 접근할 수 있습니다.
           </p>
           <button
             onClick={() => router.back()}
@@ -173,6 +177,9 @@ export default function TeamItemsPage() {
       </div>
     );
   }
+
+  // moderator인 경우 읽기 전용 모드 설정
+  const isReadOnly = user?.accessLevel === "moderator";
 
   if (error) {
     return (
@@ -196,12 +203,19 @@ export default function TeamItemsPage() {
     <div className="p-4 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">팀 아이템 관리</h1>
-        <button
-          onClick={() => handleOpenModal()}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-md flex items-center shadow-sm transition-all duration-200 font-medium"
-        >
-          <span className="mr-2 text-xl">+</span> 아이템 추가
-        </button>
+        {!isReadOnly && (
+          <button
+            onClick={() => handleOpenModal()}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-md flex items-center shadow-sm transition-all duration-200 font-medium"
+          >
+            <span className="mr-2 text-xl">+</span> 아이템 추가
+          </button>
+        )}
+        {isReadOnly && (
+          <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+            중재자 권한으로는 조회만 가능합니다
+          </div>
+        )}
       </div>
 
       {teamItems.length > 0 ? (
@@ -244,32 +258,37 @@ export default function TeamItemsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                       <div className="flex justify-center space-x-2">
-                        <button
-                          className="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center"
-                          onClick={() => handleOpenModal(item)}
-                          disabled={
-                            updateLoading && currentEditItemId === item.id
-                          }
-                          title="아이템 수정"
-                        >
-                          {updateLoading && currentEditItemId === item.id ? (
-                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <Edit size={18} />
-                          )}
-                        </button>
-                        <button
-                          className="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-50 transition-colors flex items-center justify-center"
-                          onClick={() => handleDeleteItem(item.id)}
-                          disabled={deleteLoading || deletingItemId === item.id}
-                          title="아이템 삭제"
-                        >
-                          {deletingItemId === item.id ? (
-                            <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                            <Trash2 size={18} />
-                          )}
-                        </button>
+                        {!isReadOnly && (
+                          <>
+                            <button
+                              className="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center"
+                              onClick={() => handleOpenModal(item)}
+                              disabled={deleteLoading || updateLoading}
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              className="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-50 transition-colors flex items-center justify-center"
+                              onClick={() => handleDeleteItem(item.id)}
+                              disabled={
+                                deleteLoading ||
+                                updateLoading ||
+                                deletingItemId === item.id
+                              }
+                            >
+                              {deletingItemId === item.id ? (
+                                <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <Trash2 size={18} />
+                              )}
+                            </button>
+                          </>
+                        )}
+                        {isReadOnly && (
+                          <span className="text-gray-400 text-xs">
+                            읽기 전용
+                          </span>
+                        )}
                       </div>
                     </td>
                   </tr>

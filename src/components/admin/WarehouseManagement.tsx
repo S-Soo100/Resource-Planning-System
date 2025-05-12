@@ -23,10 +23,12 @@ interface WarehouseManagementProps {
     warehouseName: string;
     warehouseAddress: string;
   }[];
+  isReadOnly?: boolean;
 }
 
 const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
   warehouses = [],
+  isReadOnly = false,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
@@ -269,24 +271,33 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
     <div className="bg-white p-5 rounded-lg shadow-sm">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">창고 및 품목 관리</h2>
-        <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center"
-          onClick={handleOpenModal}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          창고 추가
-        </button>
+        <div className="flex items-center space-x-2">
+          {isReadOnly && (
+            <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+              읽기 전용 모드
+            </div>
+          )}
+          {!isReadOnly && (
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center"
+              onClick={handleOpenModal}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-1"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              창고 추가
+            </button>
+          )}
+        </div>
       </div>
       <div className="border-b pb-4 mb-4">
         <p className="text-gray-600">

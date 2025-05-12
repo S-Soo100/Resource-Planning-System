@@ -19,7 +19,9 @@ import {
   User,
   Package,
   Truck,
+  ArrowLeft,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type TabType = "all" | "user" | "supplier";
 
@@ -80,9 +82,11 @@ const OrderRecordTabs = () => {
   const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(false);
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState<number | null>(null);
 
   const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
+  const router = useRouter();
 
   // 현재 로그인한 사용자 ID 가져오기
   useEffect(() => {
@@ -319,14 +323,77 @@ const OrderRecordTabs = () => {
     }, 800);
   };
 
+  // 상태 변경 핸들러 추가
+  const handleStatusChange = async (
+    orderId: number,
+    newStatus: OrderStatus
+  ) => {
+    try {
+      setIsUpdatingStatus(orderId);
+      // TODO: API 호출 구현
+      // await updateOrderStatus(orderId, newStatus);
+      console.log(`주문 ID ${orderId}의 상태를 ${newStatus}로 변경합니다.`);
+      // 상태 업데이트 후 데이터 새로고침
+      handleRefresh();
+    } catch (error) {
+      console.error("상태 업데이트 실패:", error);
+    } finally {
+      setIsUpdatingStatus(null);
+    }
+  };
+
+  // 상태 변경 드롭다운 컴포넌트
+  const StatusDropdown = ({ record }: { record: IOrderRecord }) => {
+    return (
+      <div className="relative">
+        <select
+          value={record.status}
+          onChange={(e) =>
+            handleStatusChange(record.id, e.target.value as OrderStatus)
+          }
+          disabled={isUpdatingStatus === record.id}
+          className={`px-3 py-1.5 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColorClass(
+            record.status
+          )}`}
+        >
+          <option value={OrderStatus.requested}>요청됨</option>
+          <option value={OrderStatus.approved}>승인됨</option>
+          <option value={OrderStatus.rejected}>반려됨</option>
+          <option value={OrderStatus.confirmedByShipper}>출고자 확인</option>
+          <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+          <option value={OrderStatus.rejectedByShipper}>출고자 반려</option>
+        </select>
+        {isUpdatingStatus === record.id && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50 rounded-md">
+            <div className="w-4 h-4 border-2 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // 뒤로가기 핸들러 추가
+  const handleBack = () => {
+    router.push("/"); // 메인 메뉴로 이동
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-7xl">
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-            <Package className="mr-2 text-blue-600" />
-            발주 기록 관리
-          </h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm transition-colors"
+            >
+              <ArrowLeft size={16} />
+              메인 메뉴로
+            </button>
+            <h1 className="text-2xl font-bold text-gray-800 flex items-center">
+              <Package className="mr-2 text-blue-600" />
+              발주 기록 관리
+            </h1>
+          </div>
           <button
             onClick={handleRefresh}
             className="mt-2 md:mt-0 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center text-sm transition-colors"
@@ -539,7 +606,32 @@ const OrderRecordTabs = () => {
                         {expandedRowId === record.id && (
                           <tr className="bg-gray-50 transition-all duration-200 ease-in-out">
                             <td colSpan={6} className="p-4">
+                              {/* 상태 변경 섹션 */}
+                              <div className="mb-6 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-6 w-6 mr-3 text-gray-500"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    <h3 className="text-lg font-semibold text-gray-700">
+                                      발주 상태
+                                    </h3>
+                                  </div>
+                                  <StatusDropdown record={record} />
+                                </div>
+                              </div>
+
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+                                {/* 왼쪽: 발주 상세 정보 */}
                                 <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                                   <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center">
                                     <svg
@@ -619,190 +711,182 @@ const OrderRecordTabs = () => {
                                         {record.manager || "-"}
                                       </span>
                                     </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                      <span className="font-medium text-gray-600">
-                                        상태:
-                                      </span>
-                                      <span
-                                        className={`px-3 py-1 text-sm rounded-full ${getStatusColorClass(
-                                          record.status
-                                        )}`}
-                                      >
-                                        {getStatusText(record.status)}
-                                      </span>
-                                    </div>
-
-                                    {/* 주문 아이템 목록 추가 */}
-                                    {record.orderItems &&
-                                      record.orderItems.length > 0 && (
-                                        <div className="mt-5">
-                                          <h4 className="font-medium text-gray-700 mb-3 flex items-center">
-                                            <svg
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="h-4 w-4 mr-2 text-gray-500"
-                                              viewBox="0 0 20 20"
-                                              fill="currentColor"
-                                            >
-                                              <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                                            </svg>
-                                            주문 품목 목록
-                                          </h4>
-
-                                          <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                                            <div className="flex justify-between items-center mb-2">
-                                              <span className="font-medium text-gray-600">
-                                                패키지:
-                                              </span>
-                                              <span className="text-gray-800">
-                                                {record.package?.packageName ||
-                                                  "-"}
-                                              </span>
-                                            </div>
-                                          </div>
-
-                                          <div className="bg-gray-50 rounded-lg overflow-hidden">
-                                            <div className="px-3 py-2 bg-gray-100 text-sm font-medium text-gray-600 flex justify-between">
-                                              <span>품목</span>
-                                              <span>수량</span>
-                                            </div>
-                                            <ul className="divide-y divide-gray-200 max-h-48 overflow-y-auto">
-                                              {record.orderItems.map((item) => (
-                                                <li
-                                                  key={item.id}
-                                                  className="py-2 px-3 hover:bg-gray-100 transition-colors"
-                                                >
-                                                  <div className="flex justify-between items-center">
-                                                    <span className="font-medium text-gray-700">
-                                                      {item.item?.itemName ||
-                                                        "알 수 없는 품목"}
-                                                    </span>
-                                                    <span className="text-gray-600 bg-white px-2 py-1 rounded-md text-sm">
-                                                      {item.quantity}개
-                                                    </span>
-                                                  </div>
-                                                  {item.memo && (
-                                                    <p className="text-xs text-gray-500 mt-1 italic">
-                                                      메모: {item.memo}
-                                                    </p>
-                                                  )}
-                                                </li>
-                                              ))}
-                                            </ul>
-                                            {record.memo && (
-                                              <div className="py-2 px-3 bg-gray-100">
-                                                <p className="flex justify-between items-center">
-                                                  <span className="font-medium text-gray-600">
-                                                    추가 요청사항:
-                                                  </span>
-                                                  <span className="text-gray-800 text-sm italic">
-                                                    {record.memo}
-                                                  </span>
-                                                </p>
-                                              </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      )}
                                   </div>
                                 </div>
-                                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                                  <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="h-5 w-5 mr-2 text-gray-500"
-                                      viewBox="0 0 20 20"
-                                      fill="currentColor"
-                                    >
-                                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-5h2v5a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-9a1 1 0 00-.293-.707l-2-2A1 1 0 0017 3h-1c0-.552-.447-1-1-1H5a1 1 0 00-1 1H3z" />
-                                    </svg>
-                                    배송 정보
-                                  </h3>
-                                  <div className="space-y-3">
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                      <span className="font-medium text-gray-600">
-                                        수령자:
-                                      </span>
-                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
-                                        {record.receiver}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-2">
-                                      <span className="font-medium text-gray-600">
-                                        연락처:
-                                      </span>
-                                      <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
-                                        {record.receiverPhone}
-                                      </span>
-                                    </div>
-                                    <div className="flex flex-col border-b border-gray-100 py-2">
-                                      <span className="font-medium text-gray-600 mb-1">
-                                        주소:
-                                      </span>
-                                      <span className="text-gray-800 bg-gray-50 p-3 rounded-md text-sm break-words">
-                                        {record.receiverAddress}
-                                      </span>
-                                    </div>
 
-                                    {/* 첨부 파일 URL 표시 추가 */}
-                                    {record.files &&
-                                      record.files.length > 0 && (
-                                        <div className="mt-5">
-                                          <h4 className="font-medium text-gray-700 mb-3 flex items-center">
-                                            <svg
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="h-4 w-4 mr-2 text-gray-500"
-                                              viewBox="0 0 20 20"
-                                              fill="currentColor"
-                                            >
-                                              <path
-                                                fillRule="evenodd"
-                                                d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
-                                                clipRule="evenodd"
-                                              />
-                                            </svg>
-                                            첨부 파일
-                                          </h4>
-                                          <ul className="bg-gray-50 rounded-lg divide-y divide-gray-200">
-                                            {record.files.map((file) => (
+                                {/* 오른쪽: 배송 정보와 주문품목목록 */}
+                                <div className="space-y-6">
+                                  {/* 배송 정보 */}
+                                  <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                                    <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center">
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-5 w-5 mr-2 text-gray-500"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                      >
+                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-5h2v5a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-9a1 1 0 00-.293-.707l-2-2A1 1 0 0017 3h-1c0-.552-.447-1-1-1H5a1 1 0 00-1 1H3z" />
+                                      </svg>
+                                      배송 정보
+                                    </h3>
+                                    <div className="space-y-3">
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                        <span className="font-medium text-gray-600">
+                                          수령자:
+                                        </span>
+                                        <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                          {record.receiver}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-2">
+                                        <span className="font-medium text-gray-600">
+                                          연락처:
+                                        </span>
+                                        <span className="text-gray-800 bg-gray-50 px-3 py-1 rounded-md">
+                                          {record.receiverPhone}
+                                        </span>
+                                      </div>
+                                      <div className="flex flex-col border-b border-gray-100 py-2">
+                                        <span className="font-medium text-gray-600 mb-1">
+                                          주소:
+                                        </span>
+                                        <span className="text-gray-800 bg-gray-50 p-3 rounded-md text-sm break-words">
+                                          {record.receiverAddress}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* 주문 품목 목록 */}
+                                  {record.orderItems &&
+                                    record.orderItems.length > 0 && (
+                                      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                                        <h4 className="font-medium text-gray-700 mb-3 flex items-center">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-4 w-4 mr-2 text-gray-500"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                          >
+                                            <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                                          </svg>
+                                          주문 품목 목록
+                                        </h4>
+
+                                        <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                                          <div className="flex justify-between items-center mb-2">
+                                            <span className="font-medium text-gray-600">
+                                              패키지:
+                                            </span>
+                                            <span className="text-gray-800">
+                                              {record.package?.packageName ||
+                                                "-"}
+                                            </span>
+                                          </div>
+                                        </div>
+
+                                        <div className="bg-gray-50 rounded-lg overflow-hidden">
+                                          <div className="px-3 py-2 bg-gray-100 text-sm font-medium text-gray-600 flex justify-between">
+                                            <span>품목</span>
+                                            <span>수량</span>
+                                          </div>
+                                          <ul className="divide-y divide-gray-200 max-h-48 overflow-y-auto">
+                                            {record.orderItems.map((item) => (
                                               <li
-                                                key={file.id}
+                                                key={item.id}
                                                 className="py-2 px-3 hover:bg-gray-100 transition-colors"
                                               >
-                                                <a
-                                                  href={file.fileUrl}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  className="text-blue-500 hover:text-blue-700 hover:underline flex items-center"
-                                                >
-                                                  <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    className="h-4 w-4 mr-2"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                  >
-                                                    <path
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                      strokeWidth={2}
-                                                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                                                    />
-                                                  </svg>
-                                                  {file.fileName}
-                                                </a>
-                                                <p className="text-xs text-gray-500 mt-1 ml-6">
-                                                  업로드:{" "}
-                                                  {new Date(
-                                                    file.createdAt
-                                                  ).toLocaleDateString("ko-KR")}
-                                                </p>
+                                                <div className="flex justify-between items-center">
+                                                  <span className="font-medium text-gray-700">
+                                                    {item.item?.itemName ||
+                                                      "알 수 없는 품목"}
+                                                  </span>
+                                                  <span className="text-gray-600 bg-white px-2 py-1 rounded-md text-sm">
+                                                    {item.quantity}개
+                                                  </span>
+                                                </div>
+                                                {item.memo && (
+                                                  <p className="text-xs text-gray-500 mt-1 italic">
+                                                    메모: {item.memo}
+                                                  </p>
+                                                )}
                                               </li>
                                             ))}
                                           </ul>
+                                          {record.memo && (
+                                            <div className="py-2 px-3 bg-gray-100">
+                                              <p className="flex justify-between items-center">
+                                                <span className="font-medium text-gray-600">
+                                                  추가 요청사항:
+                                                </span>
+                                                <span className="text-gray-800 text-sm italic">
+                                                  {record.memo}
+                                                </span>
+                                              </p>
+                                            </div>
+                                          )}
                                         </div>
-                                      )}
-                                  </div>
+                                      </div>
+                                    )}
+
+                                  {/* 첨부 파일 */}
+                                  {record.files && record.files.length > 0 && (
+                                    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                                      <h4 className="font-medium text-gray-700 mb-3 flex items-center">
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="h-4 w-4 mr-2 text-gray-500"
+                                          viewBox="0 0 20 20"
+                                          fill="currentColor"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                        첨부 파일
+                                      </h4>
+                                      <ul className="bg-gray-50 rounded-lg divide-y divide-gray-200">
+                                        {record.files.map((file) => (
+                                          <li
+                                            key={file.id}
+                                            className="py-2 px-3 hover:bg-gray-100 transition-colors"
+                                          >
+                                            <a
+                                              href={file.fileUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-500 hover:text-blue-700 hover:underline flex items-center"
+                                            >
+                                              <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-4 w-4 mr-2"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                                />
+                                              </svg>
+                                              {file.fileName}
+                                            </a>
+                                            <p className="text-xs text-gray-500 mt-1 ml-6">
+                                              업로드:{" "}
+                                              {new Date(
+                                                file.createdAt
+                                              ).toLocaleDateString("ko-KR")}
+                                            </p>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </td>

@@ -19,9 +19,9 @@ import {
   User,
   Package,
   Truck,
-  ArrowLeft,
+  // ArrowLeft,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUpdateOrderStatus } from "@/hooks/(useOrder)/useOrderMutations";
 import { userApi } from "@/api/user-api";
@@ -103,7 +103,7 @@ const OrderRecordTabs = () => {
 
   const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
-  const router = useRouter();
+  // const router = useRouter();
   const queryClient = useQueryClient();
 
   // 주문 상태 업데이트 hook 추가
@@ -123,6 +123,11 @@ const OrderRecordTabs = () => {
           if (response.success && response.data) {
             setUserAccessLevel(response.data.accessLevel);
             console.log("사용자 접근 레벨:", response.data.accessLevel);
+
+            // supplier인 경우 자동으로 "user" 탭 선택
+            if (response.data.accessLevel === "supplier") {
+              setActiveTab("user");
+            }
           } else {
             // 기본값: 관리자인 경우 admin, 아닌 경우 user
             setUserAccessLevel(user.isAdmin ? "admin" : "user");
@@ -461,9 +466,67 @@ const OrderRecordTabs = () => {
     );
   };
 
-  // 뒤로가기 핸들러 추가
-  const handleBack = () => {
-    router.replace("/"); // 메인 메뉴로 이동하며 현재 페이지를 히스토리에서 대체
+  // // 뒤로가기 핸들러 추가
+  // const handleBack = () => {
+  //   router.replace("/"); // 메인 메뉴로 이동하며 현재 페이지를 히스토리에서 대체
+  // };
+
+  // 탭 버튼 렌더링
+  const renderTabs = () => {
+    // supplier인 경우 '내 발주 기록' 탭만 표시
+    if (userAccessLevel === "supplier") {
+      return (
+        <div className="flex mb-4 sm:mb-6 border-b">
+          <button className="py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors border-b-2 border-blue-500 text-blue-600">
+            <User size={16} className="inline-block mr-1" />
+            <span className="hidden sm:inline">내 발주 기록</span>
+            <span className="sm:hidden">내 발주</span>
+          </button>
+        </div>
+      );
+    }
+
+    // supplier가 아닌 경우 모든 탭 표시
+    return (
+      <div className="flex mb-4 sm:mb-6 border-b">
+        <button
+          onClick={() => handleTabChange("all")}
+          className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
+            activeTab === "all"
+              ? "border-b-2 border-blue-500 text-blue-600"
+              : "text-gray-600 hover:text-blue-500"
+          }`}
+        >
+          <Package size={16} className="inline-block mr-1" />
+          <span className="hidden sm:inline">전체 발주 기록</span>
+          <span className="sm:hidden">전체</span>
+        </button>
+        <button
+          onClick={() => handleTabChange("user")}
+          className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
+            activeTab === "user"
+              ? "border-b-2 border-blue-500 text-blue-600"
+              : "text-gray-600 hover:text-blue-500"
+          }`}
+        >
+          <User size={16} className="inline-block mr-1" />
+          <span className="hidden sm:inline">내 발주 기록</span>
+          <span className="sm:hidden">내 발주</span>
+        </button>
+        <button
+          onClick={() => handleTabChange("supplier")}
+          className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
+            activeTab === "supplier"
+              ? "border-b-2 border-blue-500 text-blue-600"
+              : "text-gray-600 hover:text-blue-500"
+          }`}
+        >
+          <Truck size={16} className="inline-block mr-1" />
+          <span className="hidden sm:inline">거래처별 발주 기록</span>
+          <span className="sm:hidden">거래처</span>
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -471,14 +534,14 @@ const OrderRecordTabs = () => {
       <div className="bg-white rounded-lg shadow-md p-2 sm:p-4 mb-4 sm:mb-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-4">
-            <button
+            {/* <button
               onClick={handleBack}
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs sm:text-sm transition-colors"
             >
               <ArrowLeft size={14} className="sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">메인 메뉴로</span>
               <span className="sm:hidden">메인</span>
-            </button>
+            </button> */}
             <h1 className="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
               <Package className="mr-1 sm:mr-2 w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               <span className="hidden sm:inline">발주 기록 관리</span>
@@ -499,44 +562,7 @@ const OrderRecordTabs = () => {
         </div>
 
         {/* 탭 버튼 */}
-        <div className="flex mb-4 sm:mb-6 border-b">
-          <button
-            onClick={() => handleTabChange("all")}
-            className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
-              activeTab === "all"
-                ? "border-b-2 border-blue-500 text-blue-600"
-                : "text-gray-600 hover:text-blue-500"
-            }`}
-          >
-            <Package size={16} className="inline-block mr-1" />
-            <span className="hidden sm:inline">전체 발주 기록</span>
-            <span className="sm:hidden">전체</span>
-          </button>
-          <button
-            onClick={() => handleTabChange("user")}
-            className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
-              activeTab === "user"
-                ? "border-b-2 border-blue-500 text-blue-600"
-                : "text-gray-600 hover:text-blue-500"
-            }`}
-          >
-            <User size={16} className="inline-block mr-1" />
-            <span className="hidden sm:inline">내 발주 기록</span>
-            <span className="sm:hidden">내 발주</span>
-          </button>
-          <button
-            onClick={() => handleTabChange("supplier")}
-            className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
-              activeTab === "supplier"
-                ? "border-b-2 border-blue-500 text-blue-600"
-                : "text-gray-600 hover:text-blue-500"
-            }`}
-          >
-            <Truck size={16} className="inline-block mr-1" />
-            <span className="hidden sm:inline">거래처별 발주 기록</span>
-            <span className="sm:hidden">거래처</span>
-          </button>
-        </div>
+        {renderTabs()}
 
         {/* 검색 및 필터 */}
         <div className="bg-gray-50 p-2 sm:p-4 rounded-lg mb-4 sm:mb-6">

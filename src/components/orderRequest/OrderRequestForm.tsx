@@ -97,30 +97,31 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   useEffect(() => {
     if (!propWarehousesList && warehouses) {
       setWarehousesList(warehouses);
-
-      // 창고 목록이 있으면 첫 번째 창고를 자동으로 선택
-      if (warehouses.length > 0 && !formData.warehouseId) {
-        setFormData((prev) => ({
-          ...prev,
-          warehouseId: warehouses[0].id,
-        }));
-      }
     }
-  }, [propWarehousesList, warehouses, formData.warehouseId]);
+  }, [propWarehousesList, warehouses]);
+  //     // 창고 목록이 있으면 첫 번째 창고를 자동으로 선택
+  //     if (warehouses.length > 0 && !formData.warehouseId) {
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         warehouseId: warehouses[0].id,
+  //       }));
+  //     }
+  //   }
+  // }, [propWarehousesList, warehouses, formData.warehouseId]);
 
-  // props로 전달된 창고 목록이 있으면 첫 번째 창고를 자동으로 선택
-  useEffect(() => {
-    if (
-      propWarehousesList &&
-      propWarehousesList.length > 0 &&
-      !formData.warehouseId
-    ) {
-      setFormData((prev) => ({
-        ...prev,
-        warehouseId: propWarehousesList[0].id,
-      }));
-    }
-  }, [propWarehousesList, formData.warehouseId]);
+  // // props로 전달된 창고 목록이 있으면 첫 번째 창고를 자동으로 선택
+  // useEffect(() => {
+  //   if (
+  //     propWarehousesList &&
+  //     propWarehousesList.length > 0 &&
+  //     !formData.warehouseId
+  //   ) {
+  //     setFormData((prev) => ({
+  //       ...prev,
+  //       warehouseId: propWarehousesList[0].id,
+  //     }));
+  //   }
+  // }, [propWarehousesList, formData.warehouseId]);
 
   // 거래처 목록 설정
   useEffect(() => {

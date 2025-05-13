@@ -723,6 +723,7 @@ export default function StockTable() {
               onOutboundClick={() =>
                 handleOpenOutboundModal(selectedWarehouseId)
               }
+              showButtons={user?.accessLevel !== "user"}
             />
 
             {/* 창고 주소 표시 */}

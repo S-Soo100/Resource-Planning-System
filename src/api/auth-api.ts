@@ -21,6 +21,6 @@ export const authApi = {
   logout: (): void => {
     localStorage.removeItem("token");
     authStore.getState().logout();
-    // window.location.href = "/login";
+    window.location.href = "/signin";
   },
 };

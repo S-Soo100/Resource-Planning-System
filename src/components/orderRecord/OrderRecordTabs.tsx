@@ -92,6 +92,7 @@ const OrderRecordTabs = () => {
   const [supplierId, setSupplierId] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const recordsPerPage = 10;
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(false);
@@ -261,15 +262,22 @@ const OrderRecordTabs = () => {
     // console.log(
     //   `검색어 "${searchTerm}"로 ${orderRecords.length}개 항목 필터링`
     // );
-    return orderRecords.filter(
-      (order: IOrderRecord) =>
+    return orderRecords.filter((order: IOrderRecord) => {
+      // 검색어 필터링
+      const matchesSearch =
         order.requester?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.package?.packageName
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        order.receiver?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [orderRecords, searchTerm]);
+        order.receiver?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // 상태 필터링
+      const matchesStatus =
+        statusFilter === "" || order.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [orderRecords, searchTerm, statusFilter]);
 
   // 페이지네이션 계산 (useMemo로 최적화)
   const { totalPages, currentRecords } = useMemo(() => {
@@ -299,6 +307,14 @@ const OrderRecordTabs = () => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1); // 검색 시 첫 페이지로 이동
+  };
+
+  // 상태 필터 핸들러 추가
+  const handleStatusFilterChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setStatusFilter(e.target.value);
+    setCurrentPage(1); // 필터 변경 시 첫 페이지로 이동
   };
 
   const handleSupplierChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -579,6 +595,28 @@ const OrderRecordTabs = () => {
                 onChange={handleSearch}
                 className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               />
+            </div>
+
+            {/* 상태 필터 추가 */}
+            <div className="flex items-center gap-1 sm:gap-2 min-w-[120px] sm:min-w-[150px]">
+              <Filter size={14} className="text-gray-500" />
+              <select
+                value={statusFilter}
+                onChange={handleStatusFilterChange}
+                className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                <option value="">모든 상태</option>
+                <option value={OrderStatus.requested}>요청됨</option>
+                <option value={OrderStatus.approved}>승인됨</option>
+                <option value={OrderStatus.rejected}>반려됨</option>
+                <option value={OrderStatus.confirmedByShipper}>
+                  출고자 확인
+                </option>
+                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+                <option value={OrderStatus.rejectedByShipper}>
+                  출고자 반려
+                </option>
+              </select>
             </div>
 
             {activeTab === "user" && (

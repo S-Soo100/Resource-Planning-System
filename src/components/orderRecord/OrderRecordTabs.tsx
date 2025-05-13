@@ -463,7 +463,7 @@ const OrderRecordTabs = () => {
 
   // 뒤로가기 핸들러 추가
   const handleBack = () => {
-    router.push("/"); // 메인 메뉴로 이동
+    router.replace("/"); // 메인 메뉴로 이동하며 현재 페이지를 히스토리에서 대체
   };
 
   return (

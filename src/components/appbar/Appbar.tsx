@@ -27,8 +27,8 @@ const AppBarComponent = () => {
     Cookies.remove("token");
     // authStore의 상태 초기화
     authStore.getState().logout();
-    // 메인 페이지로 리다이렉트
-    router.push("/");
+    // 로그인 페이지로 리다이렉트
+    router.push("/signin");
     // 메뉴 닫기
     setIsMenuOpen(false);
   };

@@ -30,7 +30,7 @@ export const useUserOrders = (userId: string) => {
   });
 };
 
-// 공급업체별 주문 조회
+// 거래처별 주문 조회
 export const useSupplierOrders = (supplierId: string) => {
   return useQuery({
     queryKey: ["orders", "supplier", supplierId],

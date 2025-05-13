@@ -97,10 +97,32 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   useEffect(() => {
     if (!propWarehousesList && warehouses) {
       setWarehousesList(warehouses);
-    }
-  }, [propWarehousesList, warehouses]);
 
-  // 공급업체 목록 설정
+      // 창고 목록이 있으면 첫 번째 창고를 자동으로 선택
+      if (warehouses.length > 0 && !formData.warehouseId) {
+        setFormData((prev) => ({
+          ...prev,
+          warehouseId: warehouses[0].id,
+        }));
+      }
+    }
+  }, [propWarehousesList, warehouses, formData.warehouseId]);
+
+  // props로 전달된 창고 목록이 있으면 첫 번째 창고를 자동으로 선택
+  useEffect(() => {
+    if (
+      propWarehousesList &&
+      propWarehousesList.length > 0 &&
+      !formData.warehouseId
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        warehouseId: propWarehousesList[0].id,
+      }));
+    }
+  }, [propWarehousesList, formData.warehouseId]);
+
+  // 거래처 목록 설정
   useEffect(() => {
     if (suppliersResponse) {
       if (
@@ -792,10 +814,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           className="p-2 border rounded"
           required
         />
-        {/* 공급업체 선택 */}
+        {/* 거래처 선택 */}
         <div className="space-y-2">
           <label className="flex gap-3 flex-row text-sm font-medium text-gray-700">
-            공급업체 선택
+            거래처 선택
             <p className="text-xs text-red-500">*업체 공급시에만</p>
           </label>
           <select
@@ -803,7 +825,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             onChange={handleSupplierChange}
             className="w-full px-3 py-2 border rounded-md"
           >
-            <option value="0">공급업체 선택</option>
+            <option value="0">거래처 선택</option>
             {Array.isArray(suppliers) && suppliers?.length > 0 ? (
               suppliers.map((supplier: Supplier) => (
                 <option key={supplier.id} value={supplier.id}>
@@ -812,7 +834,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               ))
             ) : (
               <option value="" disabled>
-                공급업체 목록을 불러올 수 없습니다
+                거래처 목록을 불러올 수 없습니다
               </option>
             )}
           </select>

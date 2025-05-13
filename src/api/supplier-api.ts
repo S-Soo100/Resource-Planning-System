@@ -7,7 +7,7 @@ import {
 } from "@/types/supplier";
 
 export const supplierApi = {
-  // 공급업체 생성
+  // 거래처 생성
   createSupplier: async (
     data: CreateSupplierRequest
   ): Promise<ApiResponse<Supplier>> => {
@@ -15,11 +15,11 @@ export const supplierApi = {
       const response = await api.post<Supplier>("/supplier", data);
       return { success: true, data: response.data };
     } catch (error) {
-      return { success: false, error: "공급업체 생성에 실패했습니다." };
+      return { success: false, error: "거래처 생성에 실패했습니다." };
     }
   },
 
-  // 모든 공급업체 조회
+  // 모든 거래처 조회
   getAllSuppliersByTeamId: async (
     teamId: number,
     name?: string
@@ -31,21 +31,21 @@ export const supplierApi = {
       });
       return { success: true, data: response.data };
     } catch (error) {
-      return { success: false, error: "공급업체 목록 조회에 실패했습니다." };
+      return { success: false, error: "거래처 목록 조회에 실패했습니다." };
     }
   },
 
-  // 단일 공급업체 조회
+  // 단일 거래처 조회
   getSupplier: async (id: string): Promise<ApiResponse<Supplier>> => {
     try {
       const response = await api.get<Supplier>(`/supplier/${id}`);
       return { success: true, data: response.data };
     } catch (error) {
-      return { success: false, error: "공급업체 조회에 실패했습니다." };
+      return { success: false, error: "거래처 조회에 실패했습니다." };
     }
   },
 
-  // 공급업체 정보 수정
+  // 거래처 정보 수정
   updateSupplier: async (
     id: string,
     data: UpdateSupplierRequest
@@ -54,17 +54,17 @@ export const supplierApi = {
       const response = await api.patch<Supplier>(`/supplier/${id}`, data);
       return { success: true, data: response.data };
     } catch (error) {
-      return { success: false, error: "공급업체 정보 수정에 실패했습니다." };
+      return { success: false, error: "거래처 정보 수정에 실패했습니다." };
     }
   },
 
-  // 공급업체 삭제
+  // 거래처 삭제
   deleteSupplier: async (id: string): Promise<ApiResponse<Supplier>> => {
     try {
       const response = await api.delete<Supplier>(`/supplier/${id}`);
       return { success: true, data: response.data };
     } catch (error) {
-      return { success: false, error: "공급업체 삭제에 실패했습니다." };
+      return { success: false, error: "거래처 삭제에 실패했습니다." };
     }
   },
 };

@@ -279,32 +279,50 @@ const MainMenuComponent = () => {
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Menu Body */}
       <main className="container mx-auto p-4">
-        {/* 탭 네비게이션 */}
-        <div className="flex justify-center mb-6 bg-white rounded-lg shadow-sm overflow-x-auto">
-          <div className="flex w-full">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 whitespace-nowrap px-5 py-3.5 font-medium transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? `${tab.bgColor} ${tab.textColor} border-b-3 ${tab.borderColor}`
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                {tab.title}
-              </button>
-            ))}
+        {/* 거래처 계정 환영 메시지 */}
+        {user?.accessLevel === "supplier" && (
+          <div className="bg-white rounded-lg shadow-sm p-4 mb-6 border-l-4 border-green-500">
+            <p className="text-gray-700">
+              안녕하세요 <span className="font-bold">{user.name}</span>님,{" "}
+              <span className="font-bold">
+                {user.teams && user.teams.length > 0
+                  ? user.teams[0].teamName
+                  : ""}
+              </span>
+              에게 발주를 요청할 수 있습니다.
+            </p>
           </div>
-        </div>
+        )}
+        {/* 탭 네비게이션 */}
+        {user?.accessLevel !== "supplier" && (
+          <div className="flex justify-center mb-6 bg-white rounded-lg shadow-sm overflow-x-auto">
+            <div className="flex w-full">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 whitespace-nowrap px-5 py-3.5 font-medium transition-all duration-200 ${
+                    activeTab === tab.id
+                      ? `${tab.bgColor} ${tab.textColor} border-b-3 ${tab.borderColor}`
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {tab.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 현재 선택된 탭의 메뉴 카드 */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2
-            className={`text-xl font-bold mb-6 pb-2 border-b ${activeTabConfig.borderColor} ${activeTabConfig.textColor}`}
-          >
-            {activeTabConfig.title}
-          </h2>
+          {user?.accessLevel !== "supplier" && (
+            <h2
+              className={`text-xl font-bold mb-6 pb-2 border-b ${activeTabConfig.borderColor} ${activeTabConfig.textColor}`}
+            >
+              {activeTabConfig.title}
+            </h2>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
             {renderMenuCards(activeTabConfig.items, activeTabConfig)}
           </div>

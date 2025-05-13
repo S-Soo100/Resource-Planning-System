@@ -9,7 +9,7 @@ export function useSuppliers() {
   const selectedTeam = authStore((state) => state.selectedTeam);
   const selectedTeamId = selectedTeam?.id;
 
-  // 모든 공급업체 조회 (이름으로 검색 가능)
+  // 모든 거래처 조회 (이름으로 검색 가능)
   const useGetSuppliers = (name?: string) => {
     const query = useQuery({
       queryKey: ["suppliers", { name, teamId: selectedTeamId }],
@@ -24,7 +24,7 @@ export function useSuppliers() {
         if (response.success && response.data) {
           return response.data;
         }
-        throw new Error(response.error || "공급업체 목록 조회에 실패했습니다");
+        throw new Error(response.error || "거래처 목록 조회에 실패했습니다");
       },
       enabled: !!selectedTeamId,
       staleTime: 5 * 60 * 1000, // 5분
@@ -36,7 +36,7 @@ export function useSuppliers() {
     };
   };
 
-  // 개별 공급업체 조회
+  // 개별 거래처 조회
   const useGetSupplier = (id: string) => {
     const query = useQuery({
       queryKey: ["supplier", id],
@@ -45,7 +45,7 @@ export function useSuppliers() {
         if (response.success && response.data) {
           return response.data;
         }
-        throw new Error(response.error || "공급업체 조회에 실패했습니다");
+        throw new Error(response.error || "거래처 조회에 실패했습니다");
       },
       enabled: !!id,
       staleTime: 5 * 60 * 1000, // 5분
@@ -57,7 +57,7 @@ export function useSuppliers() {
     };
   };
 
-  // 공급업체 생성 뮤테이션
+  // 거래처 생성 뮤테이션
   const useCreateSupplier = () => {
     const mutation = useMutation({
       mutationFn: (data: CreateSupplierRequest) =>
@@ -68,9 +68,9 @@ export function useSuppliers() {
           queryClient.invalidateQueries({
             queryKey: ["suppliers"],
           });
-          toast.success("공급업체가 생성되었습니다.");
+          toast.success("거래처가 생성되었습니다.");
         } else {
-          toast.error(response.error || "공급업체 생성에 실패했습니다.");
+          toast.error(response.error || "거래처 생성에 실패했습니다.");
         }
       },
     });
@@ -82,7 +82,7 @@ export function useSuppliers() {
     };
   };
 
-  // 공급업체 정보 수정 뮤테이션
+  // 거래처 정보 수정 뮤테이션
   const useUpdateSupplier = () => {
     const mutation = useMutation({
       mutationFn: ({ id, data }: { id: string; data: UpdateSupplierRequest }) =>
@@ -94,14 +94,14 @@ export function useSuppliers() {
             queryKey: ["suppliers"],
           });
 
-          // 개별 공급업체 캐시 무효화
+          // 개별 거래처 캐시 무효화
           queryClient.invalidateQueries({
             queryKey: ["supplier", variables.id],
           });
 
-          toast.success("공급업체 정보가 수정되었습니다.");
+          toast.success("거래처 정보가 수정되었습니다.");
         } else {
-          toast.error(response.error || "공급업체 정보 수정에 실패했습니다.");
+          toast.error(response.error || "거래처 정보 수정에 실패했습니다.");
         }
       },
     });
@@ -113,7 +113,7 @@ export function useSuppliers() {
     };
   };
 
-  // 공급업체 삭제 뮤테이션
+  // 거래처 삭제 뮤테이션
   const useDeleteSupplier = () => {
     const mutation = useMutation({
       mutationFn: (id: string) => supplierApi.deleteSupplier(id),
@@ -124,14 +124,14 @@ export function useSuppliers() {
             queryKey: ["suppliers"],
           });
 
-          // 개별 공급업체 캐시 무효화
+          // 개별 거래처 캐시 무효화
           queryClient.invalidateQueries({
             queryKey: ["supplier", id],
           });
 
-          toast.success("공급업체가 삭제되었습니다.");
+          toast.success("거래처가 삭제되었습니다.");
         } else {
-          toast.error(response.error || "공급업체 삭제에 실패했습니다.");
+          toast.error(response.error || "거래처 삭제에 실패했습니다.");
         }
       },
     });

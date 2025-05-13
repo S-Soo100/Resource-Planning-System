@@ -174,7 +174,7 @@ const OrderRecordTabs = () => {
     }
   }, [suppliersResponse, suppliersLoading, isLoadingSuppliers]);
 
-  // 전체 주문 데이터와 공급업체별 주문 데이터만 API에서 가져오기
+  // 전체 주문 데이터와 거래처별 주문 데이터만 API에서 가져오기
   const currentTeamId =
     Number(authStore((state) => state.selectedTeam?.id)) || 1;
   const { data: allOrders, isLoading: allLoading } =

@@ -16,7 +16,9 @@ const MainMenuComponent = () => {
   const router = useRouter();
   const { user } = useCurrentUser();
   // 활성화된 탭 상태 추가
-  const [activeTab, setActiveTab] = useState("stock");
+  const [activeTab, setActiveTab] = useState(
+    user?.accessLevel === "supplier" ? "order" : "stock"
+  );
 
   // 권한 체크 함수
   const checkAccess = (
@@ -163,30 +165,50 @@ const MainMenuComponent = () => {
   ];
 
   // 탭 설정
-  const tabs = [
-    {
-      id: "stock",
-      title: "재고 관리",
-      items: stockMenuItems,
-      bgColor: "bg-blue-50",
-      textColor: "text-blue-800",
-      borderColor: "border-blue-500",
-      iconBg: "bg-blue-600",
-      hoverBg: "hover:bg-blue-50",
-      hoverBorder: "hover:border-blue-200",
-    },
-    {
-      id: "order",
-      title: "발주 및 출고",
-      items: orderMenuItems,
-      bgColor: "bg-green-50",
-      textColor: "text-green-800",
-      borderColor: "border-green-500",
-      iconBg: "bg-green-600",
-      hoverBg: "hover:bg-green-50",
-      hoverBorder: "hover:border-green-200",
-    },
-  ];
+  let tabs = [];
+
+  // supplier인 경우 '발주 및 출고' 탭만 표시
+  if (user?.accessLevel === "supplier") {
+    tabs = [
+      {
+        id: "order",
+        title: "발주 및 출고",
+        items: orderMenuItems,
+        bgColor: "bg-green-50",
+        textColor: "text-green-800",
+        borderColor: "border-green-500",
+        iconBg: "bg-green-600",
+        hoverBg: "hover:bg-green-50",
+        hoverBorder: "hover:border-green-200",
+      },
+    ];
+  } else {
+    // supplier가 아닌 경우 기존 탭 설정
+    tabs = [
+      {
+        id: "stock",
+        title: "재고 관리",
+        items: stockMenuItems,
+        bgColor: "bg-blue-50",
+        textColor: "text-blue-800",
+        borderColor: "border-blue-500",
+        iconBg: "bg-blue-600",
+        hoverBg: "hover:bg-blue-50",
+        hoverBorder: "hover:border-blue-200",
+      },
+      {
+        id: "order",
+        title: "발주 및 출고",
+        items: orderMenuItems,
+        bgColor: "bg-green-50",
+        textColor: "text-green-800",
+        borderColor: "border-green-500",
+        iconBg: "bg-green-600",
+        hoverBg: "hover:bg-green-50",
+        hoverBorder: "hover:border-green-200",
+      },
+    ];
+  }
 
   // 관리자 또는 중재자인 경우 관리자 탭 추가
   if (user?.accessLevel === "admin" || user?.accessLevel === "moderator") {

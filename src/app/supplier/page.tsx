@@ -82,7 +82,7 @@ const Button: React.FC<ButtonProps> = ({
   );
 };
 
-// 공급업체 추가/수정 모달 컴포넌트
+// 거래처 추가/수정 모달 컴포넌트
 interface SupplierFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -171,7 +171,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       if (editingSupplier) {
-        // 수정 모드: 공급업체 데이터로 폼 초기화
+        // 수정 모드: 거래처 데이터로 폼 초기화
         const address = editingSupplier.supplierAddress || "";
         setBaseAddress(address);
         setDetailAddress("");
@@ -210,7 +210,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-900">
-              {editingSupplier ? "공급업체 정보 수정" : "신규 공급업체 추가"}
+              {editingSupplier ? "거래처 정보 수정" : "신규 거래처 추가"}
             </h2>
             <button
               type="button"
@@ -407,7 +407,7 @@ export default function SupplierManagePage() {
     useDeleteSupplier,
   } = useSuppliers();
 
-  // 공급업체 목록 조회
+  // 거래처 목록 조회
   const {
     suppliers: suppliersResponse,
     isLoading,
@@ -429,16 +429,16 @@ export default function SupplierManagePage() {
     }
   }, [suppliersResponse]);
 
-  // 공급업체 생성
+  // 거래처 생성
   const { createSupplier, isPending: isCreating } = useCreateSupplier();
 
-  // 공급업체 수정
+  // 거래처 수정
   const { updateSupplier, isPending: isUpdating } = useUpdateSupplier();
 
-  // 공급업체 삭제
+  // 거래처 삭제
   const { deleteSupplier, isPending: isDeleting } = useDeleteSupplier();
 
-  // 신규 업체 추가 모달 열기
+  // 신규 거래처 추가 모달 열기
   const handleAddNewClick = () => {
     setEditingSupplier(null);
     setIsFormModalOpen(true);
@@ -461,10 +461,10 @@ export default function SupplierManagePage() {
     data: CreateSupplierRequest | UpdateSupplierRequest
   ) => {
     if (!editingSupplier) {
-      // 새 공급업체 추가
+      // 새 거래처 추가
       createSupplier(data as CreateSupplierRequest);
     } else {
-      // 기존 공급업체 수정
+      // 기존 거래처 수정
       updateSupplier({
         id: String(editingSupplier.id),
         data: data as UpdateSupplierRequest,
@@ -478,7 +478,7 @@ export default function SupplierManagePage() {
 
   // 삭제 처리
   const handleDelete = (id: number) => {
-    if (window.confirm("정말로 이 공급업체를 삭제하시겠습니까?")) {
+    if (window.confirm("정말로 이 거래처를 삭제하시겠습니까?")) {
       deleteSupplier(String(id));
     }
   };
@@ -526,7 +526,7 @@ export default function SupplierManagePage() {
   return (
     <div className="p-6 w-full">
       <div className="mb-8 mt-4">
-        <h1 className="text-2xl font-bold text-gray-900">공급업체 관리</h1>
+        <h1 className="text-2xl font-bold text-gray-900">거래처 관리</h1>
       </div>
 
       {/* 검색 및 추가 버튼 */}
@@ -535,7 +535,7 @@ export default function SupplierManagePage() {
           <div className="flex-grow relative">
             <input
               type="text"
-              placeholder="공급업체 이름으로 검색"
+              placeholder="거래처 이름으로 검색"
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none transition-colors bg-gray-50"
@@ -576,7 +576,7 @@ export default function SupplierManagePage() {
         </div>
       </div>
 
-      {/* 공급업체 목록 */}
+      {/* 거래처 목록 */}
       <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full">
         {isLoading ? (
           <div className="p-8 flex justify-center">
@@ -681,12 +681,12 @@ export default function SupplierManagePage() {
           </div>
         ) : (
           <div className="p-8 text-center text-gray-500">
-            등록된 공급업체가 없습니다.
+            등록된 거래처가 없습니다.
           </div>
         )}
       </div>
 
-      {/* 공급업체 추가/수정 모달 */}
+      {/* 거래처 추가/수정 모달 */}
       <SupplierFormModal
         isOpen={isFormModalOpen}
         onClose={handleCloseModal}

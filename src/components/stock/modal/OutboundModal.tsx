@@ -249,7 +249,7 @@ export default function OutboundModal({
 
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-gray-700">
-                      공급업체 선택
+                      거래처 선택
                     </label>
                     <select
                       value={outboundValues.supplierId || ""}
@@ -261,7 +261,7 @@ export default function OutboundModal({
                       }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                     >
-                      <option value="">공급업체를 선택하세요</option>
+                      <option value="">거래처를 선택하세요</option>
                       {suppliers.map((supplier) => (
                         <option key={supplier.id} value={supplier.id}>
                           {supplier.supplierName}

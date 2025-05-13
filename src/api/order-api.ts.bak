@@ -45,7 +45,7 @@ export const getOrdersByUserId = async (
   }
 };
 
-// 공급업체별 주문 조회
+// 거래처별 주문 조회
 export const getOrdersBySupplierId = async (
   supplierId: string
 ): Promise<ApiResponse> => {
@@ -55,7 +55,7 @@ export const getOrdersBySupplierId = async (
     );
     return response.data;
   } catch {
-    return { success: false, message: "공급업체별 주문 조회에 실패했습니다." };
+    return { success: false, message: "거래처별 주문 조회에 실패했습니다." };
   }
 };
 

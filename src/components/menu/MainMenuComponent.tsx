@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaBox,
@@ -11,14 +11,22 @@ import {
 import { MdOutlineInventory } from "react-icons/md";
 import { PiNewspaperClippingFill } from "react-icons/pi";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { menuStore } from "@/store/menuStore";
 
 const MainMenuComponent = () => {
   const router = useRouter();
   const { user } = useCurrentUser();
-  // 활성화된 탭 상태 추가
-  const [activeTab, setActiveTab] = useState(
-    user?.accessLevel === "supplier" ? "order" : "stock"
-  );
+
+  // 메뉴 스토어에서 활성 탭 상태 가져오기
+  const activeTab = menuStore((state) => state.activeTab);
+  const setActiveTab = menuStore((state) => state.setActiveTab);
+
+  // 사용자 권한에 따라 기본 탭 설정
+  useEffect(() => {
+    if (user?.accessLevel === "supplier" && activeTab !== "order") {
+      setActiveTab("order");
+    }
+  }, [user, activeTab, setActiveTab]);
 
   // 권한 체크 함수
   const checkAccess = (

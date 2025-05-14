@@ -1,17 +1,36 @@
-import { ApiResponse } from "./common";
-
 // item(품목)
-//? 4월 23일
+
+import { ApiResponse } from "../common";
+import { Category } from "./category";
+
 export interface Item {
   id: number;
-  itemCode: string;
-  itemName: string;
   itemQuantity: number;
-  warehouseId: number;
+  teamItem: {
+    id: number;
+    itemCode: string;
+    itemName: string;
+    memo: string | null;
+    teamId: number;
+    category: Category;
+    createdAt: string;
+    updatedAt: string;
+  };
+  warehouse: {
+    id: number;
+    warehouseName: string;
+    warehouseLocation: string;
+  };
   createdAt: string;
   updatedAt: string;
-  memo: string | null;
   deletedAt: string | null;
+  inventoryRecords?: {
+    id: number;
+    inboundDate: string;
+    outboundDate: string;
+    inboundQuantity: number;
+    outboundQuantity: number;
+  }[];
 }
 
 // 프론트엔드에서 사용할 형식
@@ -29,21 +48,14 @@ export interface CreateItemRequest {
 
 // API 요청 시 사용할 형식
 export interface CreateItemApiRequest {
-  itemName: string;
-  itemCode: string;
   itemQuantity: number;
   warehouseId: number;
+  teamItemId: number;
 }
-
 export interface UpdateItemRequest {
-  name?: string;
-  description?: string;
-  sku?: string;
-  warehouseId?: string;
-  minimumQuantity?: number;
-  category?: string;
-  unit?: string;
-  price?: number;
+  itemQuantity: number;
+  warehouseId: number;
+  teamItemId: number;
 }
 
 export interface UpdateItemQuantityRequest {

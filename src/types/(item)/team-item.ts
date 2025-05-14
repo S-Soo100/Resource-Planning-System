@@ -19,6 +19,14 @@ export interface CreateTeamItemDto {
   categoryId: number;
 }
 
+export interface UpdateTeamItemDto {
+  itemCode: string;
+  itemName: string;
+  memo?: string;
+  teamId: number;
+  categoryId: number;
+}
+
 export interface DeleteTeamItemResponse {
   id: number;
   deleted: boolean;

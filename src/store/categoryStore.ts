@@ -39,6 +39,13 @@ export const useCategoryStore = create<CategoryState>()(
 
       // 액션
       fetchCategories: async (teamId?: number) => {
+        // 이미 로딩 중이면 중복 요청 방지
+        const state = useCategoryStore.getState();
+        if (state.isLoading) {
+          console.log("이미 카테고리 로딩 중, 중복 요청 방지");
+          return;
+        }
+
         set({ isLoading: true, error: null });
         try {
           // teamId가 제공되지 않은 경우 authStore에서 선택된 팀 ID 사용
@@ -46,21 +53,30 @@ export const useCategoryStore = create<CategoryState>()(
           const effectiveTeamId = teamId || selectedTeam?.id;
 
           if (!effectiveTeamId) {
-            set({ error: "팀 ID가 제공되지 않았습니다." });
+            set({ error: "팀 ID가 제공되지 않았습니다.", isLoading: false });
+            console.error("카테고리 로드 실패: 팀 ID가 제공되지 않음");
             return;
           }
 
+          console.log(`카테고리 데이터 요청 시작 - 팀 ID: ${effectiveTeamId}`);
           const response = await categoryApi.getCategories(effectiveTeamId);
+
           if (response.success && response.data) {
+            console.log(
+              `카테고리 데이터 로드 성공 - 항목 수: ${response.data.length}`
+            );
             set({ categories: response.data });
           } else {
-            set({
-              error: response.error || "카테고리를 불러오는데 실패했습니다.",
-            });
+            const errorMsg =
+              response.error || "카테고리를 불러오는데 실패했습니다.";
+            console.error(`카테고리 로드 실패: ${errorMsg}`);
+            set({ error: errorMsg });
           }
         } catch (error) {
+          const errorMsg =
+            error instanceof Error ? error.message : "알 수 없는 오류";
+          console.error(`카테고리 로드 중 예외 발생: ${errorMsg}`, error);
           set({ error: "카테고리를 불러오는 중 오류가 발생했습니다." });
-          console.error("카테고리 불러오기 오류:", error);
         } finally {
           set({ isLoading: false });
         }

@@ -4,7 +4,7 @@ import {
   TeamItem,
   CreateTeamItemDto,
   DeleteTeamItemResponse,
-} from "@/types/team-item";
+} from "@/types/(item)/team-item";
 
 export const teamItemsApi = {
   getTeamItemsByTeam: async (

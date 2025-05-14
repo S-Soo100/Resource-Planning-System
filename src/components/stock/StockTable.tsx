@@ -5,7 +5,7 @@ import { UpdateItemQuantityRequest } from "@/types/item";
 import React, { useState, useEffect } from "react";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
-import { CreateInventoryRecordDto } from "@/types/inventory-record";
+import { CreateInventoryRecordDto } from "@/types/(inventoryRecord)/inventory-record";
 import EditQuantityModal from "./modal/EditQuantityModal";
 import InboundModal from "./modal/InboundModal";
 import OutboundModal from "./modal/OutboundModal";

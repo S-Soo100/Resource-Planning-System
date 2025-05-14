@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { inventoryRecordApi } from "../api/inventory-record-api";
-import { InventoryRecordsResponse } from "../types/inventory-record";
+import { InventoryRecordsResponse } from "../types/(inventoryRecord)/inventory-record";
 import { authStore } from "@/store/authStore";
 
 export function useInventoryRecordsByTeamId() {

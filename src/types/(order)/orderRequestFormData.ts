@@ -1,4 +1,4 @@
-import { TeamItem } from "../team-item";
+import { TeamItem } from "../(item)/team-item";
 import { Warehouse } from "../warehouse";
 import { Item } from "../item";
 import { ApiResponse } from "../common";

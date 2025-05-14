@@ -1,4 +1,4 @@
-import { InventoryRecord } from "@/types/inventory-record";
+import { InventoryRecord } from "@/types/(inventoryRecord)/inventory-record";
 
 export function filterRecordsByDateRange(
   records: InventoryRecord[],

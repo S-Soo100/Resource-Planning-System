@@ -8,7 +8,7 @@ import { TeamWarehouse } from "@/types/warehouse";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
 import { useTeamItems } from "@/hooks/useTeamItems";
-import { TeamItem } from "@/types/team-item";
+import { TeamItem } from "@/types/(item)/team-item";
 
 interface CustomItemTableProps {
   isReadOnly?: boolean;

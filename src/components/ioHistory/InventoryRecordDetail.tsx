@@ -2,7 +2,7 @@ import React from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Download } from "lucide-react";
-import { InventoryRecord } from "@/types/inventory";
+import { InventoryRecord } from "@/types/(inventoryRecord)/inventory";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 
 interface FileInfo {

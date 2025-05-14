@@ -1,5 +1,5 @@
 import { ApiResponse } from "../common";
-import { InventoryRecord } from "../inventory-record";
+import { InventoryRecord } from "../(inventoryRecord)/inventory-record";
 
 export interface OrderResponse extends ApiResponse {
   data?: Order;

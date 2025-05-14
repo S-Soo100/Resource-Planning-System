@@ -4,7 +4,7 @@ import {
   CreateItemApiRequest,
   UpdateItemRequest,
   UpdateItemQuantityRequest,
-} from "../types/item";
+} from "../types/(item)/item";
 
 export const createItem = async (
   data: CreateItemApiRequest

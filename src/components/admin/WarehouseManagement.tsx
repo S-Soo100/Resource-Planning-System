@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { authService } from "@/services/authService";
 import { useTeamItems } from "@/hooks/useTeamItems";
-import { CreateTeamItemDto, TeamItem } from "@/types/team-item";
+import { CreateTeamItemDto, TeamItem } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { TeamWarehouse } from "@/types/warehouse";

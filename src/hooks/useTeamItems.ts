@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { teamItemsApi } from "@/api/team-items-api";
-import { TeamItem, CreateTeamItemDto } from "@/types/team-item";
+import { TeamItem, CreateTeamItemDto } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
 import toast from "react-hot-toast";
 

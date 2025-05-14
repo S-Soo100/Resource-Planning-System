@@ -1,5 +1,5 @@
 import { createInventoryRecord } from "@/api/inventory-record-api";
-import { CreateInventoryRecordDto } from "@/types/inventory-record";
+import { CreateInventoryRecordDto } from "@/types/(inventoryRecord)/inventory-record";
 
 export const inventoryRecordService = {
   createInventoryRecord: async (

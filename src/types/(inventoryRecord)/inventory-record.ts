@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ApiResponse } from "./common";
-import { Item } from "./item";
+import { Item } from "../(item)/item";
+import { ApiResponse } from "../common";
 
 export interface InventoryRecord {
   id: number;

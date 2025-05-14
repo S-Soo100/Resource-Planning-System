@@ -5,7 +5,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft, Edit, Trash2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTeamItems } from "@/hooks/useTeamItems";
-import { CreateTeamItemDto } from "@/types/team-item";
+import { CreateTeamItemDto } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
 
 export default function TeamItemsPage() {

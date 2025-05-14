@@ -1,0 +1,172 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import {
+  Category,
+  CreateCategoryDto,
+  UpdateCategoryDto,
+  UpdateCategoryPriorityDto,
+} from "@/types/(item)/category";
+import { categoryApi } from "@/api/category-api";
+import { authStore } from "@/store/authStore";
+
+interface CategoryState {
+  // 상태
+  categories: Category[];
+  isLoading: boolean;
+  error: string | null;
+
+  // 액션
+  fetchCategories: (teamId?: number) => Promise<void>;
+  createCategory: (category: CreateCategoryDto) => Promise<Category | null>;
+  updateCategory: (category: UpdateCategoryDto) => Promise<Category | null>;
+  updateCategoryPriority: (
+    category: UpdateCategoryPriorityDto
+  ) => Promise<Category | null>;
+  deleteCategory: (id: number) => Promise<boolean>;
+
+  // 내부 액션
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+}
+
+export const useCategoryStore = create<CategoryState>()(
+  persist(
+    (set) => ({
+      // 초기 상태
+      categories: [],
+      isLoading: false,
+      error: null,
+
+      // 액션
+      fetchCategories: async (teamId?: number) => {
+        set({ isLoading: true, error: null });
+        try {
+          // teamId가 제공되지 않은 경우 authStore에서 선택된 팀 ID 사용
+          const selectedTeam = authStore.getState().selectedTeam;
+          const effectiveTeamId = teamId || selectedTeam?.id;
+
+          if (!effectiveTeamId) {
+            set({ error: "팀 ID가 제공되지 않았습니다." });
+            return;
+          }
+
+          const response = await categoryApi.getCategories(effectiveTeamId);
+          if (response.success && response.data) {
+            set({ categories: response.data });
+          } else {
+            set({
+              error: response.error || "카테고리를 불러오는데 실패했습니다.",
+            });
+          }
+        } catch (error) {
+          set({ error: "카테고리를 불러오는 중 오류가 발생했습니다." });
+          console.error("카테고리 불러오기 오류:", error);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      createCategory: async (category: CreateCategoryDto) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await categoryApi.createCategory(category);
+          if (response.success && response.data) {
+            set((state) => ({
+              categories: [...state.categories, response.data!],
+            }));
+            return response.data;
+          } else {
+            set({ error: response.error || "카테고리 생성에 실패했습니다." });
+            return null;
+          }
+        } catch (error) {
+          set({ error: "카테고리 생성 중 오류가 발생했습니다." });
+          console.error("카테고리 생성 오류:", error);
+          return null;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      updateCategory: async (category: UpdateCategoryDto) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await categoryApi.updateCategory(category);
+          if (response.success && response.data) {
+            set((state) => ({
+              categories: state.categories.map((cat) =>
+                cat.id === response.data!.id ? response.data! : cat
+              ),
+            }));
+            return response.data;
+          } else {
+            set({ error: response.error || "카테고리 수정에 실패했습니다." });
+            return null;
+          }
+        } catch (error) {
+          set({ error: "카테고리 수정 중 오류가 발생했습니다." });
+          console.error("카테고리 수정 오류:", error);
+          return null;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      updateCategoryPriority: async (category: UpdateCategoryPriorityDto) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await categoryApi.updateCategoryPriority(category);
+          if (response.success && response.data) {
+            set((state) => ({
+              categories: state.categories.map((cat) =>
+                cat.id === response.data!.id ? response.data! : cat
+              ),
+            }));
+            return response.data;
+          } else {
+            set({
+              error: response.error || "카테고리 우선순위 수정에 실패했습니다.",
+            });
+            return null;
+          }
+        } catch (error) {
+          set({ error: "카테고리 우선순위 수정 중 오류가 발생했습니다." });
+          console.error("카테고리 우선순위 수정 오류:", error);
+          return null;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      deleteCategory: async (id: number) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await categoryApi.deleteCategory(id);
+          if (response.success && response.data) {
+            set((state) => ({
+              categories: state.categories.filter((cat) => cat.id !== id),
+            }));
+            return true;
+          } else {
+            set({ error: response.error || "카테고리 삭제에 실패했습니다." });
+            return false;
+          }
+        } catch (error) {
+          set({ error: "카테고리 삭제 중 오류가 발생했습니다." });
+          console.error("카테고리 삭제 오류:", error);
+          return false;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      // 내부 액션
+      setLoading: (loading: boolean) => set({ isLoading: loading }),
+      setError: (error: string | null) => set({ error }),
+    }),
+    {
+      name: "category-storage", // 로컬 스토리지에 저장될 키 이름
+      partialize: (state) => ({ categories: state.categories }), // 로컬 스토리지에 저장할 상태만 선택
+    }
+  )
+);

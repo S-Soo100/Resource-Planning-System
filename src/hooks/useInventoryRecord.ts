@@ -4,7 +4,7 @@ import { inventoryRecordApi } from "../api/inventory-record-api";
 import {
   CreateInventoryRecordDto,
   InventoryRecord,
-} from "../types/inventory-record";
+} from "../types/(inventoryRecord)/inventory-record";
 import { ApiResponse } from "../types/common";
 
 // 입출고 기록 생성 mutation 훅

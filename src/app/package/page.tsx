@@ -8,7 +8,7 @@ import {
   UpdatePackageDto,
   PackageApi,
 } from "@/types/package";
-import { TeamItem } from "@/types/team-item";
+import { TeamItem } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";

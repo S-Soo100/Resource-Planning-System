@@ -4,7 +4,7 @@ import {
   UpdateInventoryRecordRequest,
   InventoryRecord,
   InventoryRecordsResponse,
-} from "../types/inventory-record";
+} from "../types/(inventoryRecord)/inventory-record";
 import { AxiosError } from "axios";
 import { authStore } from "@/store/authStore";
 

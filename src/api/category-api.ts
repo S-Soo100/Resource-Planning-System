@@ -6,20 +6,32 @@ import {
 } from "@/types/(item)/category";
 import { ApiResponse } from "@/types/common";
 import { api } from "./api";
+import axios from "axios";
 
 export const categoryApi = {
   getCategories: async (teamId: number): Promise<ApiResponse<Category[]>> => {
-    const response = await api.get<ApiResponse<Category[]>>(
-      `/categories/team/${teamId}`
-    );
-    return response.data;
+    try {
+      const response = await api.get<ApiResponse<Category[]>>(
+        `/category/team/${teamId}`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      // 카테고리가 없는 경우 (404) 빈 배열 반환
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return {
+          success: true,
+          data: [],
+        };
+      }
+      throw error;
+    }
   },
 
   createCategory: async (
     category: CreateCategoryDto
   ): Promise<ApiResponse<Category>> => {
     const response = await api.post<ApiResponse<Category>>(
-      "/categories",
+      "/category",
       category
     );
     return response.data;
@@ -29,7 +41,7 @@ export const categoryApi = {
     category: UpdateCategoryDto
   ): Promise<ApiResponse<Category>> => {
     const response = await api.put<ApiResponse<Category>>(
-      `/categories/${category.id}`,
+      `/category/${category.id}`,
       category
     );
     return response.data;
@@ -39,16 +51,14 @@ export const categoryApi = {
     category: UpdateCategoryPriorityDto
   ): Promise<ApiResponse<Category>> => {
     const response = await api.put<ApiResponse<Category>>(
-      `/categories/${category.id}/priority`,
+      `/category/${category.id}/priority`,
       category
     );
     return response.data;
   },
 
   deleteCategory: async (id: number): Promise<ApiResponse<boolean>> => {
-    const response = await api.delete<ApiResponse<boolean>>(
-      `/categories/${id}`
-    );
+    const response = await api.delete<ApiResponse<boolean>>(`/category/${id}`);
     return response.data;
   },
 };

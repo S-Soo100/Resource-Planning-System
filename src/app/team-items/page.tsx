@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { CreateTeamItemDto } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
+import { useCategoryStore } from "@/store/categoryStore";
+import { CreateCategoryDto } from "@/types/(item)/category";
 
 export default function TeamItemsPage() {
   const { team } = useCurrentTeam();
@@ -33,15 +35,121 @@ export default function TeamItemsPage() {
     itemCode: "",
     itemName: "",
     memo: "",
+    categoryId: 1,
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
   const selectedTeam = authStore((state) => state.selectedTeam);
+
+  // 카테고리 스토어 접근
+  const {
+    categories,
+    fetchCategories,
+    isLoading: isCategoryLoading,
+    createCategory,
+  } = useCategoryStore();
+
+  // 카테고리 추가 관련 상태
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [categoryFormData, setCategoryFormData] = useState<
+    Omit<CreateCategoryDto, "teamId">
+  >({
+    name: "",
+    priority: 0,
+  });
+  const [categorySubmitError, setCategorySubmitError] = useState<string | null>(
+    null
+  );
+  const [categorySubmitLoading, setCategorySubmitLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedTeam?.id) {
+      fetchCategories(selectedTeam.id);
+    }
+  }, [selectedTeam?.id, fetchCategories]);
 
   useEffect(() => {
     if (team) {
       console.log("team.warehouses:", JSON.stringify(team.warehouses, null, 2));
     }
   }, [team]);
+
+  // 카테고리 모달 열기
+  const handleOpenCategoryModal = () => {
+    setIsCategoryModalOpen(true);
+    setCategorySubmitError(null);
+
+    // 우선순위 자동 설정: 가장 낮은(숫자가 큰) 우선순위 + 1, 없으면 1
+    const nextPriority =
+      categories.length > 0
+        ? Math.max(...categories.map((c) => c.priority)) + 1
+        : 1;
+
+    setCategoryFormData({
+      name: "",
+      priority: nextPriority,
+    });
+  };
+
+  // 카테고리 모달 닫기
+  const handleCloseCategoryModal = () => {
+    setIsCategoryModalOpen(false);
+    setCategorySubmitError(null);
+  };
+
+  // 카테고리 입력 변경 처리
+  const handleCategoryInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setCategoryFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // 카테고리 추가 제출 처리
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedTeam?.id) {
+      setCategorySubmitError("선택된 팀이 없습니다.");
+      return;
+    }
+
+    if (!categoryFormData.name.trim()) {
+      setCategorySubmitError("카테고리 이름은 필수 입력값입니다.");
+      return;
+    }
+
+    setCategorySubmitError(null);
+    setCategorySubmitLoading(true);
+
+    try {
+      const teamIdNumber = selectedTeam.id
+        ? parseInt(selectedTeam.id.toString(), 10)
+        : 0;
+
+      const categoryDto: CreateCategoryDto = {
+        ...categoryFormData,
+        teamId: teamIdNumber,
+      };
+
+      const result = await createCategory(categoryDto);
+
+      if (result) {
+        // 성공적으로 카테고리 추가 후 카테고리 목록 다시 불러오기
+        await fetchCategories(teamIdNumber);
+        handleCloseCategoryModal();
+      } else {
+        setCategorySubmitError("카테고리 생성에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("카테고리 생성 오류:", error);
+      setCategorySubmitError("카테고리 생성 중 오류가 발생했습니다.");
+    } finally {
+      setCategorySubmitLoading(false);
+    }
+  };
 
   const handleOpenModal = (item?: (typeof teamItems)[0]) => {
     setIsModalOpen(true);
@@ -55,6 +163,7 @@ export default function TeamItemsPage() {
         itemCode: item.itemCode,
         itemName: item.itemName,
         memo: item.memo || "",
+        categoryId: item.category?.id || 1,
       });
     } else {
       // 추가 모드
@@ -64,6 +173,7 @@ export default function TeamItemsPage() {
         itemCode: "",
         itemName: "",
         memo: "",
+        categoryId: categories.length > 0 ? categories[0].id : 1,
       });
     }
   };
@@ -75,13 +185,24 @@ export default function TeamItemsPage() {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    // 카테고리 ID는 숫자로 변환
+    if (name === "categoryId") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: parseInt(value, 10),
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,9 +230,12 @@ export default function TeamItemsPage() {
         teamId: teamIdNumber,
       };
 
+      console.log("제출 데이터:", teamItemDto); // 디버깅용 로그 추가
+
       if (isEditMode && currentEditItemId) {
         // 수정 모드
         await updateTeamItem({ id: currentEditItemId, teamItemDto });
+        console.log("아이템 수정 완료:", currentEditItemId, teamItemDto);
       } else {
         // 추가 모드
         await createTeamItem(teamItemDto);
@@ -140,7 +264,7 @@ export default function TeamItemsPage() {
     }
   };
 
-  if (isUserLoading || isLoading) {
+  if (isUserLoading || isLoading || isCategoryLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -203,6 +327,70 @@ export default function TeamItemsPage() {
     <div className="p-4 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">팀 아이템 관리</h1>
+        {isReadOnly && (
+          <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+            중재자 권한으로는 조회만 가능합니다
+          </div>
+        )}
+      </div>
+
+      {/* 팀 카테고리 테이블 */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-700">팀 카테고리</h2>
+          {!isReadOnly && (
+            <button
+              onClick={handleOpenCategoryModal}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center shadow-sm transition-all duration-200 font-medium"
+            >
+              <span className="mr-1 text-lg">+</span> 카테고리 추가
+            </button>
+          )}
+        </div>
+        {categories.length > 0 ? (
+          <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      카테고리명
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      우선순위
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {categories.map((category) => (
+                    <tr key={category.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {category.id}
+                      </td>
+                      <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {category.name}
+                      </td>
+                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {category.priority}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+            <p className="text-gray-500">등록된 팀 카테고리가 없습니다.</p>
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-gray-700">팀 아이템 목록</h2>
         {!isReadOnly && (
           <button
             onClick={() => handleOpenModal()}
@@ -211,13 +399,7 @@ export default function TeamItemsPage() {
             <span className="mr-2 text-xl">+</span> 아이템 추가
           </button>
         )}
-        {isReadOnly && (
-          <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
-            중재자 권한으로는 조회만 가능합니다
-          </div>
-        )}
       </div>
-
       {teamItems.length > 0 ? (
         <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
           <div className="overflow-x-auto">
@@ -231,7 +413,7 @@ export default function TeamItemsPage() {
                     아이템명
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    팀 ID
+                    카테고리
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     메모
@@ -251,7 +433,7 @@ export default function TeamItemsPage() {
                       {item.itemName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {item.teamId}
+                      {item.category?.name || "없음"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {item.memo || "-"}
@@ -327,6 +509,91 @@ export default function TeamItemsPage() {
         </div>
       )}
 
+      {/* 카테고리 추가 모달 */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">
+                새 카테고리 추가
+              </h2>
+              <button
+                onClick={handleCloseCategoryModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleCategorySubmit}>
+              <div className="mb-4">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="name"
+                >
+                  카테고리명 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={categoryFormData.name}
+                  onChange={handleCategoryInputChange}
+                  placeholder="예: 전자제품"
+                  className="shadow-sm border border-gray-300 rounded-md w-full py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                  required
+                />
+              </div>
+
+              {categorySubmitError && (
+                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md border border-red-200 flex items-start">
+                  <AlertCircle
+                    size={20}
+                    className="mr-2 mt-0.5 flex-shrink-0"
+                  />
+                  <p>{categorySubmitError}</p>
+                </div>
+              )}
+
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium px-5 py-2.5 rounded-md transition-colors"
+                  onClick={handleCloseCategoryModal}
+                  disabled={categorySubmitLoading}
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="bg-green-500 hover:bg-green-600 text-white font-medium px-5 py-2.5 rounded-md flex items-center justify-center min-w-[80px] transition-colors"
+                  disabled={categorySubmitLoading}
+                >
+                  {categorySubmitLoading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    "저장"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 아이템 추가/수정 모달 */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
@@ -391,6 +658,33 @@ export default function TeamItemsPage() {
                   className="shadow-sm border border-gray-300 rounded-md w-full py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   required
                 />
+              </div>
+
+              <div className="mb-4">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="categoryId"
+                >
+                  카테고리 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="categoryId"
+                  name="categoryId"
+                  value={formData.categoryId}
+                  onChange={handleInputChange}
+                  className="shadow-sm border border-gray-300 rounded-md w-full py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  required
+                >
+                  {categories.length > 0 ? (
+                    categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value={1}>카테고리 없음</option>
+                  )}
+                </select>
               </div>
 
               <div className="mb-4">

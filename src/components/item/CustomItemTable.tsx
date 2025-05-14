@@ -1,6 +1,6 @@
 "use client";
 
-import { CreateItemRequest, Item } from "@/types/item";
+import { CreateItemApiRequest, Item } from "@/types/(item)/item";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/authService";
@@ -170,12 +170,12 @@ export default function CustomItemTable({
 
   const handleAddItem = (values: AddItemFormValues) => {
     // API를 통한 아이템 추가 로직
-    const newItemData: CreateItemRequest = {
-      name: values.itemName,
-      description: "",
-      sku: values.itemCode,
+    const newItemData: CreateItemApiRequest = {
+      itemName: values.itemName,
+      itemCode: values.itemCode,
+      itemQuantity: values.itemQuantity || 0,
       warehouseId: values.warehouseId,
-      quantity: values.itemQuantity || 0,
+      description: "",
       minimumQuantity: 0,
       category: "",
       unit: "개",
@@ -362,7 +362,7 @@ export default function CustomItemTable({
                                       router.push(`/item/detail/${item.id}`)
                                     }
                                   >
-                                    {item.itemCode}
+                                    {item.teamItem.itemCode}
                                   </a>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -372,7 +372,7 @@ export default function CustomItemTable({
                                       router.push(`/item/detail/${item.id}`)
                                     }
                                   >
-                                    {item.itemName}
+                                    {item.teamItem.itemName}
                                   </a>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -390,7 +390,7 @@ export default function CustomItemTable({
                                       onClick={() =>
                                         handleDeleteItem(
                                           item.id,
-                                          item.itemName || ""
+                                          item.teamItem.itemName || ""
                                         )
                                       }
                                     >

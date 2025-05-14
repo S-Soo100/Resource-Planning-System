@@ -10,11 +10,10 @@ import {
 } from "@/api/item-api";
 import { warehouseApi } from "@/api/warehouse-api";
 import {
-  CreateItemRequest,
   CreateItemApiRequest,
   UpdateItemRequest,
   UpdateItemQuantityRequest,
-} from "@/types/item";
+} from "@/types/(item)/item";
 import toast from "react-hot-toast";
 
 export function useItems(warehouseId?: string) {
@@ -68,15 +67,8 @@ export function useItems(warehouseId?: string) {
   // 아이템 추가 뮤테이션
   const useAddItem = () => {
     return useMutation({
-      mutationFn: (item: CreateItemRequest) => {
-        // API 요구사항에 맞게 데이터 변환
-        const apiRequest: CreateItemApiRequest = {
-          itemName: item.name,
-          itemCode: item.sku,
-          itemQuantity: item.quantity,
-          warehouseId: item.warehouseId,
-        };
-        return createItem(apiRequest);
+      mutationFn: (item: CreateItemApiRequest) => {
+        return createItem(item);
       },
       onSuccess: (data, variables) => {
         if (data.success) {

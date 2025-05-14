@@ -4,12 +4,16 @@ import { authStore } from "@/store/authStore";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { useCategoryStore } from "@/store/categoryStore";
 
 export default function MenuPage() {
   const router = useRouter();
   const auth = authStore();
   const [isLoading, setIsLoading] = useState(true);
   const { isLoading: isTeamLoading } = useCurrentTeam();
+
+  // 카테고리 스토어 접근
+  const { categories, fetchCategories } = useCategoryStore();
 
   useEffect(() => {
     let isMounted = true;
@@ -25,6 +29,7 @@ export default function MenuPage() {
           router.push("/team-select");
           return;
         }
+
         setIsLoading(false);
       }
     };
@@ -35,6 +40,30 @@ export default function MenuPage() {
       isMounted = false;
     };
   }, [auth.selectedTeam, router, isTeamLoading, auth]);
+
+  // 팀 정보가 로드된 후 카테고리 데이터를 별도로 로드
+  useEffect(() => {
+    if (
+      !isLoading &&
+      !isTeamLoading &&
+      auth.selectedTeam &&
+      categories.length === 0
+    ) {
+      // 콘솔에 로그 추가
+      console.log("카테고리 데이터 로드 시작:", {
+        teamId: auth.selectedTeam.id,
+        categoriesLength: categories.length,
+      });
+
+      fetchCategories(auth.selectedTeam.id);
+    }
+  }, [
+    isLoading,
+    isTeamLoading,
+    auth.selectedTeam,
+    categories.length,
+    fetchCategories,
+  ]);
 
   if (isLoading || isTeamLoading) {
     return (

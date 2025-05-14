@@ -12,6 +12,8 @@ import { MdOutlineInventory } from "react-icons/md";
 import { PiNewspaperClippingFill } from "react-icons/pi";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { menuStore } from "@/store/menuStore";
+import { useCategoryStore } from "@/store/categoryStore";
+import { authStore } from "@/store/authStore";
 
 const MainMenuComponent = () => {
   const router = useRouter();
@@ -20,6 +22,26 @@ const MainMenuComponent = () => {
   // 메뉴 스토어에서 활성 탭 상태 가져오기
   const activeTab = menuStore((state) => state.activeTab);
   const setActiveTab = menuStore((state) => state.setActiveTab);
+
+  // 카테고리 스토어 접근
+  const { categories, fetchCategories } = useCategoryStore();
+
+  // 선택된 팀 정보 가져오기
+  const selectedTeam = authStore((state) => state.selectedTeam);
+
+  // 컴포넌트 마운트 시 카테고리 데이터 로드
+  useEffect(() => {
+    // 선택된 팀이 있고 카테고리가 비어있는 경우에만 불러오기
+    if (selectedTeam?.id && categories.length === 0) {
+      console.log("MainMenuComponent: 카테고리 데이터 로드 시작", {
+        teamId: selectedTeam.id,
+        categoriesLength: categories.length,
+      });
+      fetchCategories(selectedTeam.id).catch((error) => {
+        console.error("카테고리 데이터 로드 실패:", error);
+      });
+    }
+  }, [selectedTeam?.id, categories.length, fetchCategories]);
 
   // 사용자 권한에 따라 기본 탭 설정
   useEffect(() => {

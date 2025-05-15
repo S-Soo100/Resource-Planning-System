@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useInventoryRecordsByTeamId } from "@/hooks/useInventoryRecordsByTeamId";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { Item } from "@/types/item";
+import { Item } from "@/types/(item)/item";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 
 export default function ItemDetailPage() {
@@ -66,11 +66,11 @@ export default function ItemDetailPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-gray-600">품목 코드</p>
-              <p className="font-medium">{item.itemCode}</p>
+              <p className="font-medium">{item.teamItem.itemCode}</p>
             </div>
             <div>
               <p className="text-gray-600">품목명</p>
-              <p className="font-medium">{item.itemName}</p>
+              <p className="font-medium">{item.teamItem.itemName}</p>
             </div>
             <div>
               <p className="text-gray-600">현재 수량</p>

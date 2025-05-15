@@ -1,6 +1,6 @@
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Item } from "@/types/item";
+import { Item } from "@/types/(item)/item";
 
 interface StockItemCardProps {
   items: Item[];
@@ -44,15 +44,17 @@ export default function StockItemCard({
               onClick={() => router.push(`/item/detail/${item.id}`)}
             >
               <div className="text-blue-500 font-medium text-lg">
-                {item.itemName}
+                {item.teamItem.itemName}
               </div>
-              <div className="text-gray-500 text-sm">{item.itemCode}</div>
+              <div className="text-gray-500 text-sm">
+                {item.teamItem.itemCode}
+              </div>
               <div className="text-xs text-gray-400 mt-1">
                 최종수정: {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
               </div>
-              {item.memo && (
+              {item.teamItem.memo && (
                 <div className="text-xs text-gray-500">
-                  메모: {truncateMemo(item.memo)}
+                  메모: {truncateMemo(item.teamItem.memo)}
                 </div>
               )}
             </div>

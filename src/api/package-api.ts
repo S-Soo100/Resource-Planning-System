@@ -7,7 +7,7 @@ import {
   UpdatePackageDto,
   PackageResponse,
   PackagesResponse,
-} from "../types/package";
+} from "../types/(item)/package";
 
 const createPackage = async (
   data: CreateIPackageDto

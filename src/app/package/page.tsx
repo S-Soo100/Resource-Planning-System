@@ -7,7 +7,7 @@ import {
   CreateIPackageDto,
   UpdatePackageDto,
   PackageApi,
-} from "@/types/package";
+} from "@/types/(item)/package";
 import { TeamItem } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";

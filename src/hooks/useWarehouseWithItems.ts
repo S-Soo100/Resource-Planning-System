@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
-import { Item } from "@/types/item";
+import { Item } from "@/types/(item)/item";
 import { ApiResponse } from "@/types/common";
 import { warehouseApi } from "@/api/warehouse-api";
 

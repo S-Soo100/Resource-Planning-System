@@ -2,7 +2,7 @@ import { warehouseApi } from "@/api/warehouse-api";
 import { TeamWarehouse } from "@/types/warehouse";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Warehouse } from "@/types/warehouse";
-import { Item } from "@/types/item";
+import { Item } from "@/types/(item)/item";
 import { authStore } from "@/store/authStore";
 import { teamApi } from "@/api/team-api";
 

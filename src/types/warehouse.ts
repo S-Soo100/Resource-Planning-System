@@ -1,4 +1,4 @@
-import { Item } from "./item";
+import { Item } from "./(item)/item";
 
 // warehouse(창고)
 export interface TeamWarehouse {

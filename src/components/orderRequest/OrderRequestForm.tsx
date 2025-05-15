@@ -16,12 +16,12 @@ import {
   OrderRequestFormProps,
 } from "@/types/(order)/orderRequestFormData";
 import { usePackages } from "@/hooks/usePackages";
-import { PackageApi } from "@/types/package";
+import { PackageApi } from "@/types/(item)/package";
 import { authStore } from "@/store/authStore";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
 import { useItems } from "@/hooks/useItems";
-import { Item } from "@/types/item";
+import { Item } from "@/types/(item)/item";
 import { uploadOrderFileById } from "@/api/order-api";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({

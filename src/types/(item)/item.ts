@@ -29,16 +29,9 @@ export interface Item {
 
 // API 요청 시 사용할 형식
 export interface CreateItemApiRequest {
-  itemName: string; // 이전의 name
-  itemCode: string; // 이전의 sku
-  itemQuantity: number; // 이전의 quantity
+  itemQuantity: number;
   warehouseId: number;
-  description?: string;
-  minimumQuantity?: number;
-  category?: string;
-  unit?: string;
-  price?: number;
-  teamItemId?: number;
+  teamItemId: number;
 }
 
 export interface UpdateItemRequest {

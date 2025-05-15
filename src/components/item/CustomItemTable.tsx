@@ -1,58 +1,55 @@
 "use client";
 
-import { CreateItemApiRequest, Item } from "@/types/(item)/item";
-import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import React, { useRef, useState, useEffect } from "react";
+
 import { authService } from "@/services/authService";
 import { TeamWarehouse } from "@/types/warehouse";
-import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
 import { useTeamItems } from "@/hooks/useTeamItems";
-import { TeamItem } from "@/types/(item)/team-item";
 import { useCategoryStore } from "@/store/categoryStore";
+import { CreateItemApiRequest } from "@/types/(item)/item";
 
 interface CustomItemTableProps {
   isReadOnly?: boolean;
 }
 
+interface AddItemFormValues {
+  itemQuantity: number;
+  warehouseId: number;
+  teamItemId: number;
+}
+
 export default function CustomItemTable({
   isReadOnly = false,
 }: CustomItemTableProps) {
-  const router = useRouter();
-  const { items, isLoading, isError, invalidateInventory, refetchAll } =
-    useWarehouseItems();
-  const { teamItems = [], isLoading: isTeamItemsLoading } =
-    useTeamItems().useGetTeamItems();
-  const { useAddItem, useDeleteItem } = useItems();
-  const addItemMutation = useAddItem();
-  const deleteItemMutation = useDeleteItem();
+  const modalRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedWarehouses, setExpandedWarehouses] = useState<number[]>([]);
   const [searchQueries, setSearchQueries] = useState<{ [key: number]: string }>(
     {}
   );
-  const [currentWarehouseId, setCurrentWarehouseId] = useState<number | null>(
-    null
-  );
-  const [selectedTeamItem, setSelectedTeamItem] = useState<TeamItem | null>(
-    null
-  );
-  const modalRef = useRef<HTMLDivElement>(null);
+
+  // React Query 훅 사용
+  const { useGetTeamItems } = useTeamItems();
+  const { data: teamItems = [] } = useGetTeamItems();
+  const { useGetItems, useAddItem, useDeleteItem } = useItems();
+  const { data: itemsResponse, refetch: refetchItems } = useGetItems();
+  // API 응답에서 실제 아이템 배열 추출
+  const items =
+    itemsResponse?.success && itemsResponse?.data ? itemsResponse.data : [];
+  const addItemMutation = useAddItem();
+  const deleteItemMutation = useDeleteItem();
+
+  // 상태 관리
+  const [formValues, setFormValues] = useState<AddItemFormValues>({
+    itemQuantity: 0,
+    warehouseId: 0,
+    teamItemId: 0,
+  });
 
   // 카테고리 스토어 접근
   const { categories, fetchCategories } = useCategoryStore();
 
-  const [formValues, setFormValues] = useState<{
-    itemCode: string;
-    itemName: string;
-    itemQuantity: number;
-    warehouseId: number;
-  }>({
-    itemCode: "",
-    itemName: "",
-    itemQuantity: 0,
-    warehouseId: 0,
-  });
   const [warehouses, setWarehouses] = useState<TeamWarehouse[]>([]);
 
   // 팀의 창고 정보 및 카테고리 데이터 가져오기
@@ -92,106 +89,78 @@ export default function CustomItemTable({
     };
   }, [isModalOpen]);
 
-  // 창고 토글 처리
-  const toggleWarehouse = (warehouseId: number) => {
-    setExpandedWarehouses((prev) =>
-      prev.includes(warehouseId)
-        ? prev.filter((id) => id !== warehouseId)
-        : [...prev, warehouseId]
-    );
-  };
-
-  // 검색어 변경 처리
-  const handleSearchChange = (warehouseId: number, query: string) => {
-    setSearchQueries((prev) => ({
-      ...prev,
-      [warehouseId]: query,
-    }));
-  };
-
   const handleOpenModal = (warehouseId: number) => {
     if (isReadOnly) return;
 
-    setCurrentWarehouseId(warehouseId);
-    setSelectedTeamItem(null);
     setFormValues({
-      itemCode: "",
-      itemName: "",
       itemQuantity: 0,
       warehouseId: warehouseId,
+      teamItemId: 0,
     });
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setFormValues({
-      itemCode: "",
-      itemName: "",
       itemQuantity: 0,
       warehouseId: 0,
+      teamItemId: 0,
     });
-    setSelectedTeamItem(null);
-    setCurrentWarehouseId(null);
     setIsModalOpen(false);
   };
 
-  // 폼 입력값 변경 처리 함수
-  const handleFormChange = (field: string, value: string | number) => {
+  const handleTeamItemSelect = (teamItemId: string) => {
+    const teamItemId_num = parseInt(teamItemId);
+    setFormValues({
+      ...formValues,
+      teamItemId: teamItemId_num,
+    });
+  };
+
+  // 이미 창고에 존재하는 아이템인지 확인하는 함수
+  const isItemAlreadyInWarehouse = (
+    teamItemId: number,
+    warehouseId: number
+  ) => {
+    return (
+      Array.isArray(items) &&
+      items.some(
+        (item) =>
+          item.teamItem.id === teamItemId && item.warehouseId === warehouseId
+      )
+    );
+  };
+
+  const handleFormChange = (field: string, value: number) => {
     setFormValues({
       ...formValues,
       [field]: value,
     });
   };
 
-  // 팀 아이템 선택 처리
-  const handleTeamItemSelect = (teamItemId: string) => {
-    const teamItemId_num = parseInt(teamItemId);
-    if (teamItemId_num === 0) {
-      setSelectedTeamItem(null);
-      setFormValues({
-        ...formValues,
-        itemCode: "",
-        itemName: "",
-      });
+  const handleFormSubmit = () => {
+    if (formValues.teamItemId === 0) {
+      alert("팀 아이템을 선택해주세요.");
       return;
     }
 
-    const selected = teamItems.find((item) => item.id === teamItemId_num);
-    if (selected) {
-      setSelectedTeamItem(selected);
-      setFormValues({
-        ...formValues,
-        itemCode: selected.itemCode,
-        itemName: selected.itemName,
-      });
+    // 이미 창고에 존재하는 아이템인지 확인
+    if (
+      isItemAlreadyInWarehouse(formValues.teamItemId, formValues.warehouseId)
+    ) {
+      alert("이미 해당 창고에 존재하는 아이템입니다.");
+      return;
     }
-  };
 
-  // 폼 제출 처리 함수
-  const handleFormSubmit = () => {
     handleAddItem(formValues);
   };
 
-  // 새 아이템 추가를 위한 인터페이스 정의
-  interface AddItemFormValues {
-    itemCode: string;
-    itemName: string;
-    itemQuantity: number;
-    warehouseId: number;
-  }
-
   const handleAddItem = (values: AddItemFormValues) => {
-    // API를 통한 아이템 추가 로직
+    // CreateItemApiRequest 형식으로 데이터 구성
     const newItemData: CreateItemApiRequest = {
-      itemName: values.itemName,
-      itemCode: values.itemCode,
       itemQuantity: values.itemQuantity || 0,
       warehouseId: values.warehouseId,
-      description: "",
-      minimumQuantity: 0,
-      category: "",
-      unit: "개",
-      price: 0,
+      teamItemId: values.teamItemId,
     };
 
     // React Query 뮤테이션 사용
@@ -199,12 +168,11 @@ export default function CustomItemTable({
       onSuccess: async (response) => {
         if (response.success) {
           // 아이템 추가 성공 메시지
-          alert(`아이템 "${values.itemName}"이(가) 추가되었습니다.`);
+          alert(`아이템이 추가되었습니다.`);
           handleCloseModal();
 
-          // 데이터 리페치 및 캐시 무효화
-          await invalidateInventory();
-          await refetchAll();
+          // 데이터 리페치
+          await refetchItems();
         } else {
           alert(
             `오류 발생: ${
@@ -213,411 +181,224 @@ export default function CustomItemTable({
           );
         }
       },
-      onError: (error) => {
-        console.error("아이템 추가 중 오류 발생:", error);
+      onError: () => {
         alert("아이템 추가 중 오류가 발생했습니다.");
       },
     });
   };
 
-  // 아이템 삭제 처리 함수
-  const handleDeleteItem = (itemId: number, itemName: string) => {
-    if (isReadOnly) return;
+  const toggleWarehouse = (warehouseId: number) => {
+    setExpandedWarehouses((prev) =>
+      prev.includes(warehouseId)
+        ? prev.filter((id) => id !== warehouseId)
+        : [...prev, warehouseId]
+    );
+  };
 
-    if (window.confirm(`'${itemName}' 품목을 삭제하시겠습니까?`)) {
+  const handleSearchChange = (warehouseId: number, query: string) => {
+    setSearchQueries((prev) => ({
+      ...prev,
+      [warehouseId]: query,
+    }));
+  };
+
+  // 아이템 삭제 처리 함수
+  const handleDeleteItem = (itemId: number, warehouseId: number) => {
+    if (window.confirm("정말 이 아이템을 삭제하시겠습니까?")) {
       deleteItemMutation.mutate(
         {
-          id: String(itemId),
-          itemWarehouseId: String(currentWarehouseId || ""),
+          id: itemId.toString(),
+          itemWarehouseId: warehouseId.toString(),
         },
         {
           onSuccess: async (response) => {
             if (response.success) {
-              alert(`품목 "${itemName}"이(가) 삭제되었습니다.`);
-
-              // 데이터 리페치 및 캐시 무효화
-              await invalidateInventory();
-              await refetchAll();
+              await refetchItems();
             } else {
               alert(
-                `오류 발생: ${
+                `삭제 실패: ${
                   response.message || "알 수 없는 오류가 발생했습니다."
                 }`
               );
             }
-          },
-          onError: (error) => {
-            console.error("품목 삭제 중 오류 발생:", error);
-            alert("품목 삭제 중 오류가 발생했습니다.");
           },
         }
       );
     }
   };
 
-  // 창고별 아이템 필터링
-  const getWarehouseItems = (warehouseId: number) => {
-    // 디버깅을 위한 로그 추가
-    // console.log("Items 데이터:", items);
-    // console.log(
-    //   `창고 ID ${warehouseId}의 아이템:`,
-    //   items.filter((item) => item.warehouseId === warehouseId)
-    // );
-
-    const filteredItems = items
-      ? items.filter(
-          (item) =>
-            item.warehouseId === warehouseId &&
-            (!searchQueries[warehouseId] ||
-              (item.teamItem?.itemName &&
-                item.teamItem.itemName
-                  .toLowerCase()
-                  .includes(searchQueries[warehouseId]?.toLowerCase() || "")) ||
-              (item.teamItem?.itemCode &&
-                item.teamItem.itemCode
-                  .toLowerCase()
-                  .includes(searchQueries[warehouseId]?.toLowerCase() || "")))
-        )
-      : [];
-
-    // 디버깅을 위한 로그 추가
-    // console.log("필터링된 아이템:", filteredItems);
-    // filteredItems.forEach((item) => {
-    //   console.log("아이템 ID:", item.id, "teamItem:", item.teamItem);
-    // });
-
-    return filteredItems as Item[];
-  };
-
-  // 카테고리 이름 가져오기
-  const getCategoryName = (categoryId?: number) => {
-    if (!categoryId) return "없음";
+  // 카테고리 ID로 카테고리 이름을 찾는 함수
+  const getCategoryNameById = (categoryId: number | undefined): string => {
+    if (!categoryId) return "-";
     const category = categories.find((cat) => cat.id === categoryId);
-    return category ? category.name : "없음";
+    return category ? category.name : "-";
   };
-
-  if (isLoading)
-    return <div className="p-4 text-center">데이터를 불러오는 중...</div>;
-  if (isError)
-    return (
-      <div className="p-4 text-center text-red-500">
-        데이터를 불러오는 중 오류가 발생했습니다.
-      </div>
-    );
 
   return (
     <>
-      <div className="w-full p-4">
-        <h1 className="text-2xl font-bold mb-6">창고별 품목 관리</h1>
-
-        {/* 창고 카드 목록 */}
-        <div className="space-y-4">
-          {warehouses.length > 0 ? (
-            warehouses.map((warehouse) => (
-              <div
-                key={warehouse.id}
-                className="bg-white rounded-lg shadow overflow-hidden"
-              >
-                {/* 창고 헤더 (토글 가능) */}
-                <div className="flex items-center justify-between p-4 bg-white rounded-t-lg border-b">
-                  <div
-                    className="flex items-center cursor-pointer"
-                    onClick={() => toggleWarehouse(warehouse.id)}
+      <div className="space-y-4">
+        {warehouses.map((warehouse) => (
+          <div key={warehouse.id} className="bg-white rounded-lg shadow">
+            <div
+              className="p-4 flex justify-between items-center cursor-pointer"
+              onClick={() => toggleWarehouse(warehouse.id)}
+            >
+              <h3 className="text-lg font-medium">{warehouse.warehouseName}</h3>
+              <div className="flex items-center gap-2">
+                {!isReadOnly && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenModal(warehouse.id);
+                    }}
+                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                   >
-                    <div className="mr-2 transform transition-transform duration-200">
-                      {expandedWarehouses.includes(warehouse.id) ? "▼" : "▶"}
-                    </div>
-                    <h3 className="text-lg font-medium">
-                      {warehouse.warehouseName}
-                    </h3>
-                    <span className="ml-2 text-sm text-gray-500">
-                      ({getWarehouseItems(warehouse.id).length}개 품목)
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      placeholder="품목 검색"
-                      className="px-3 py-1 border rounded-md text-sm"
-                      value={searchQueries[warehouse.id] || ""}
-                      onChange={(e) =>
-                        handleSearchChange(warehouse.id, e.target.value)
-                      }
-                    />
-                    {!isReadOnly && (
-                      <button
-                        onClick={() => handleOpenModal(warehouse.id)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-sm"
-                      >
-                        품목 추가
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 토글되면 보이는 내용 */}
-                {expandedWarehouses.includes(warehouse.id) && (
-                  <div className="p-4">
-                    {/* 품목 테이블 */}
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              품목 코드
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              품목명
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              카테고리
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              수량
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              등록일
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              관리
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {getWarehouseItems(warehouse.id).length > 0 ? (
-                            getWarehouseItems(warehouse.id).map((item) => (
-                              <tr
-                                key={item.id}
-                                className="border-b hover:bg-gray-50"
-                              >
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <a
-                                    className="text-blue-500 hover:underline cursor-pointer"
-                                    onClick={() =>
-                                      router.push(`/item/detail/${item.id}`)
-                                    }
-                                  >
-                                    {item.teamItem?.itemCode || "-"}
-                                  </a>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <a
-                                    className="text-blue-500 hover:underline cursor-pointer"
-                                    onClick={() =>
-                                      router.push(`/item/detail/${item.id}`)
-                                    }
-                                  >
-                                    {item.teamItem?.itemName || "-"}
-                                  </a>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  {getCategoryName(
-                                    item.teamItem?.category?.id ??
-                                      item.teamItem?.categoryId
-                                  )}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  {item.itemQuantity || 0} 개
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  {new Date(
-                                    item.createdAt ?? ""
-                                  ).toLocaleDateString("ko-KR")}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm flex space-x-2">
-                                  {!isReadOnly && (
-                                    <button
-                                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs"
-                                      onClick={() =>
-                                        handleDeleteItem(
-                                          item.id,
-                                          item.teamItem?.itemName || ""
-                                        )
-                                      }
-                                    >
-                                      삭제
-                                    </button>
-                                  )}
-                                </td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td
-                                colSpan={6}
-                                className="px-6 py-8 text-center text-gray-500"
-                              >
-                                <div className="flex flex-col items-center justify-center">
-                                  <svg
-                                    className="h-10 w-10 text-gray-400 mb-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
-                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                    />
-                                  </svg>
-                                  <p>이 창고에 등록된 품목이 없습니다</p>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                    아이템 추가
+                  </button>
                 )}
-              </div>
-            ))
-          ) : (
-            <div className="bg-white rounded-lg shadow p-8 text-center">
-              <svg
-                className="h-12 w-12 text-gray-400 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                />
-              </svg>
-              <p className="text-lg font-medium mb-2">등록된 창고가 없습니다</p>
-              <p className="text-gray-500 mb-4">
-                관리자에게 창고 등록을 요청하세요
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 모달 */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            ref={modalRef}
-            className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4"
-          >
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-medium">
-                {warehouses.find((w) => w.id === currentWarehouseId)
-                  ?.warehouseName || ""}{" "}
-                - 새 품목 추가
-              </h3>
-              <button
-                onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-500 focus:outline-none"
-              >
                 <svg
-                  className="h-6 w-6"
+                  className={`w-5 h-5 transform transition-transform ${
+                    expandedWarehouses.includes(warehouse.id)
+                      ? "rotate-180"
+                      : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              </button>
+              </div>
             </div>
 
-            <div className="p-6">
-              {/* 팀 품목 선택 드롭다운 */}
+            {expandedWarehouses.includes(warehouse.id) && (
+              <div className="p-4 border-t">
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="아이템 검색..."
+                    value={searchQueries[warehouse.id] || ""}
+                    onChange={(e) =>
+                      handleSearchChange(warehouse.id, e.target.value)
+                    }
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead>
+                      <tr>
+                        <th className="px-4 py-2 text-left">품목 코드</th>
+                        <th className="px-4 py-2 text-left">품목명</th>
+                        <th className="px-4 py-2 text-left">카테고리</th>
+                        <th className="px-4 py-2 text-right">수량</th>
+                        {!isReadOnly && (
+                          <th className="px-4 py-2 text-right">관리</th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {Array.isArray(items) &&
+                        items
+                          .filter(
+                            (item) =>
+                              item.warehouseId === warehouse.id &&
+                              (!searchQueries[warehouse.id] ||
+                                item.teamItem.itemCode
+                                  .toLowerCase()
+                                  .includes(
+                                    searchQueries[warehouse.id].toLowerCase()
+                                  ) ||
+                                item.teamItem.itemName
+                                  .toLowerCase()
+                                  .includes(
+                                    searchQueries[warehouse.id].toLowerCase()
+                                  ))
+                          )
+                          .map((item) => (
+                            <tr key={item.id}>
+                              <td className="px-4 py-2">
+                                {item.teamItem.itemCode}
+                              </td>
+                              <td className="px-4 py-2">
+                                {item.teamItem.itemName}
+                              </td>
+                              <td className="px-4 py-2">
+                                {getCategoryNameById(item.teamItem.categoryId)}
+                              </td>
+                              <td className="px-4 py-2 text-right">
+                                {item.itemQuantity}
+                              </td>
+                              {!isReadOnly && (
+                                <td className="px-4 py-2 text-right">
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteItem(
+                                        item.id,
+                                        item.warehouseId
+                                      )
+                                    }
+                                    className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                                  >
+                                    삭제
+                                  </button>
+                                </td>
+                              )}
+                            </tr>
+                          ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            ref={modalRef}
+            className="bg-white rounded-xl p-6 w-full max-w-md"
+          >
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold">아이템 추가</h2>
+
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-1">
-                  팀 품목 선택
+                  팀 아이템 선택
                 </label>
                 <select
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={selectedTeamItem?.id || 0}
+                  value={formValues.teamItemId}
                   onChange={(e) => handleTeamItemSelect(e.target.value)}
                 >
-                  <option value={0}>직접 입력</option>
-                  {isTeamItemsLoading ? (
-                    <option disabled>로딩 중...</option>
-                  ) : teamItems.length > 0 ? (
-                    teamItems.map((item) => {
-                      // 현재 창고에 이미 있는 품목인지 확인
-                      const isExistingItem = items.some(
-                        (warehouseItem) =>
-                          warehouseItem.warehouseId === currentWarehouseId &&
-                          warehouseItem.teamItem?.itemCode === item.itemCode
-                      );
-
-                      const categoryName = getCategoryName(item.category?.id);
-
-                      return (
-                        <option
-                          key={item.id}
-                          value={item.id}
-                          disabled={isExistingItem}
-                        >
-                          {item.itemCode} - {item.itemName}
-                          {categoryName !== "없음" ? ` (${categoryName})` : ""}
-                          {isExistingItem ? " (이미 등록됨)" : ""}
-                        </option>
-                      );
-                    })
-                  ) : (
-                    <option disabled>등록된 팀 품목이 없습니다</option>
-                  )}
+                  <option value="0">팀 아이템을 선택하세요</option>
+                  {teamItems
+                    .filter(
+                      (item) =>
+                        !isItemAlreadyInWarehouse(
+                          item.id,
+                          formValues.warehouseId
+                        )
+                    )
+                    .map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.itemName} ({item.itemCode}) -{" "}
+                        {getCategoryNameById(item.categoryId)}
+                      </option>
+                    ))}
                 </select>
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  품목 코드
-                </label>
-                <input
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  type="text"
-                  placeholder="품목 선택시 자동 입력"
-                  value={formValues.itemCode}
-                  onChange={(e) => handleFormChange("itemCode", e.target.value)}
-                  required
-                  disabled={selectedTeamItem !== null}
-                />
-                {!formValues.itemCode && (
-                  <div className="text-red-500 text-sm mt-1">
-                    품목 선택시 자동 입력
-                  </div>
-                )}
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">품목명</label>
-                <input
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  type="text"
-                  placeholder="품목 선택시 자동 입력"
-                  value={formValues.itemName}
-                  onChange={(e) => handleFormChange("itemName", e.target.value)}
-                  required
-                  disabled={selectedTeamItem !== null}
-                />
-                {!formValues.itemName && (
-                  <div className="text-red-500 text-sm mt-1">
-                    품목 선택시 자동 입력
-                  </div>
-                )}
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  초기 수량
-                </label>
+                <label className="block text-sm font-medium mb-1">수량</label>
                 <input
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   type="number"
@@ -641,9 +422,9 @@ export default function CustomItemTable({
                 </button>
                 <button
                   onClick={handleFormSubmit}
-                  disabled={!formValues.itemCode || !formValues.itemName}
+                  disabled={formValues.teamItemId === 0}
                   className={`px-4 py-2 rounded-lg ${
-                    !formValues.itemCode || !formValues.itemName
+                    formValues.teamItemId === 0
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-blue-500 hover:bg-blue-600 text-white"
                   }`}

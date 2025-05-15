@@ -42,8 +42,8 @@ export default function StockPage() {
   }
 
   return (
-    <>
+    <div className="container mx-auto px-2 sm:px-4">
       <StockTable />
-    </>
+    </div>
   );
 }

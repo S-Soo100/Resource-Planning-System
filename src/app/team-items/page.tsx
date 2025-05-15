@@ -2,13 +2,29 @@
 import React, { useState, useEffect } from "react";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { ArrowLeft, Edit, Trash2, AlertCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  AlertCircle,
+  GripVertical,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { CreateTeamItemDto } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
 import { useCategoryStore } from "@/store/categoryStore";
-import { CreateCategoryDto } from "@/types/(item)/category";
+import {
+  CreateCategoryDto,
+  UpdateCategoryDto,
+  UpdateCategoryPriorityDto,
+} from "@/types/(item)/category";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
 
 export default function TeamItemsPage() {
   const { team } = useCurrentTeam();
@@ -46,6 +62,8 @@ export default function TeamItemsPage() {
     fetchCategories,
     isLoading: isCategoryLoading,
     createCategory,
+    updateCategory,
+    updateCategoryPriority,
   } = useCategoryStore();
 
   // 카테고리 추가 관련 상태
@@ -60,6 +78,12 @@ export default function TeamItemsPage() {
     null
   );
   const [categorySubmitLoading, setCategorySubmitLoading] = useState(false);
+
+  // 카테고리 수정 관련 상태
+  const [isCategoryEditMode, setIsCategoryEditMode] = useState(false);
+  const [currentEditCategoryId, setCurrentEditCategoryId] = useState<
+    number | null
+  >(null);
 
   useEffect(() => {
     if (selectedTeam?.id) {
@@ -78,6 +102,10 @@ export default function TeamItemsPage() {
     setIsCategoryModalOpen(true);
     setCategorySubmitError(null);
 
+    // 추가 모드
+    setIsCategoryEditMode(false);
+    setCurrentEditCategoryId(null);
+
     // 우선순위 자동 설정: 가장 낮은(숫자가 큰) 우선순위 + 1, 없으면 1
     const nextPriority =
       categories.length > 0
@@ -90,10 +118,26 @@ export default function TeamItemsPage() {
     });
   };
 
+  // 카테고리 수정 모달 열기
+  const handleEditCategoryModal = (category: (typeof categories)[0]) => {
+    setIsCategoryModalOpen(true);
+    setCategorySubmitError(null);
+
+    // 수정 모드
+    setIsCategoryEditMode(true);
+    setCurrentEditCategoryId(category.id);
+    setCategoryFormData({
+      name: category.name,
+      priority: category.priority,
+    });
+  };
+
   // 카테고리 모달 닫기
   const handleCloseCategoryModal = () => {
     setIsCategoryModalOpen(false);
     setCategorySubmitError(null);
+    setIsCategoryEditMode(false);
+    setCurrentEditCategoryId(null);
   };
 
   // 카테고리 입력 변경 처리
@@ -107,7 +151,7 @@ export default function TeamItemsPage() {
     }));
   };
 
-  // 카테고리 추가 제출 처리
+  // 카테고리 추가/수정 제출 처리
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -129,23 +173,50 @@ export default function TeamItemsPage() {
         ? parseInt(selectedTeam.id.toString(), 10)
         : 0;
 
-      const categoryDto: CreateCategoryDto = {
-        ...categoryFormData,
-        teamId: teamIdNumber,
-      };
+      if (isCategoryEditMode && currentEditCategoryId) {
+        // 수정 모드
+        const categoryDto: UpdateCategoryDto = {
+          id: currentEditCategoryId,
+          ...categoryFormData,
+          teamId: teamIdNumber,
+        };
 
-      const result = await createCategory(categoryDto);
+        const result = await updateCategory(categoryDto);
 
-      if (result) {
-        // 성공적으로 카테고리 추가 후 카테고리 목록 다시 불러오기
-        await fetchCategories(teamIdNumber);
-        handleCloseCategoryModal();
+        if (result) {
+          // 성공적으로 카테고리 수정 후 카테고리 목록 다시 불러오기
+          await fetchCategories(teamIdNumber);
+          handleCloseCategoryModal();
+        } else {
+          setCategorySubmitError("카테고리 수정에 실패했습니다.");
+        }
       } else {
-        setCategorySubmitError("카테고리 생성에 실패했습니다.");
+        // 추가 모드
+        const categoryDto: CreateCategoryDto = {
+          ...categoryFormData,
+          teamId: teamIdNumber,
+        };
+
+        const result = await createCategory(categoryDto);
+
+        if (result) {
+          // 성공적으로 카테고리 추가 후 카테고리 목록 다시 불러오기
+          await fetchCategories(teamIdNumber);
+          handleCloseCategoryModal();
+        } else {
+          setCategorySubmitError("카테고리 생성에 실패했습니다.");
+        }
       }
     } catch (error) {
-      console.error("카테고리 생성 오류:", error);
-      setCategorySubmitError("카테고리 생성 중 오류가 발생했습니다.");
+      console.error(
+        isCategoryEditMode ? "카테고리 수정 오류:" : "카테고리 생성 오류:",
+        error
+      );
+      setCategorySubmitError(
+        isCategoryEditMode
+          ? "카테고리 수정 중 오류가 발생했습니다."
+          : "카테고리 생성 중 오류가 발생했습니다."
+      );
     } finally {
       setCategorySubmitLoading(false);
     }
@@ -165,15 +236,22 @@ export default function TeamItemsPage() {
         memo: item.memo || "",
         categoryId: item.category?.id || 1,
       });
+      console.log("수정 모드 카테고리 ID:", item.category?.id);
     } else {
       // 추가 모드
       setIsEditMode(false);
       setCurrentEditItemId(null);
+
+      // 카테고리가 있을 경우 첫 번째 카테고리의 ID 사용
+      const defaultCategoryId = categories.length > 0 ? categories[0].id : 1;
+      console.log("추가 모드 기본 카테고리 ID:", defaultCategoryId);
+      console.log("사용 가능한 카테고리:", categories);
+
       setFormData({
         itemCode: "",
         itemName: "",
         memo: "",
-        categoryId: categories.length > 0 ? categories[0].id : 1,
+        categoryId: defaultCategoryId,
       });
     }
   };
@@ -193,9 +271,11 @@ export default function TeamItemsPage() {
 
     // 카테고리 ID는 숫자로 변환
     if (name === "categoryId") {
+      const numValue = parseInt(value, 10);
+      console.log(`카테고리 ID 변경: ${value} -> ${numValue}`);
       setFormData((prev) => ({
         ...prev,
-        [name]: parseInt(value, 10),
+        [name]: numValue,
       }));
     } else {
       setFormData((prev) => ({
@@ -261,6 +341,69 @@ export default function TeamItemsPage() {
       setDeletingItemId(null);
     } else {
       setDeletingItemId(null);
+    }
+  };
+
+  // 카테고리 드래그 앤 드롭 핸들러
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source } = result;
+
+    // 드롭 위치가 없거나 같은 위치에 드롭한 경우
+    if (
+      !destination ||
+      (destination.droppableId === source.droppableId &&
+        destination.index === source.index)
+    ) {
+      return;
+    }
+
+    // 정렬된 카테고리 배열 가져오기
+    const sortedCategories = [...categories].sort(
+      (a, b) => a.priority - b.priority
+    );
+
+    // 드래그한 카테고리
+    const movedCategory = sortedCategories[source.index];
+
+    // 배열에서 제거
+    sortedCategories.splice(source.index, 1);
+
+    // 새 위치에 삽입
+    sortedCategories.splice(destination.index, 0, movedCategory);
+
+    // 우선순위 재할당
+    const updatedCategories = sortedCategories.map((category, index) => ({
+      ...category,
+      priority: index + 1,
+    }));
+
+    // 변경된 카테고리 우선순위 업데이트
+    try {
+      if (!selectedTeam?.id) {
+        console.error("선택된 팀이 없습니다.");
+        return;
+      }
+
+      const teamIdNumber = selectedTeam.id
+        ? parseInt(selectedTeam.id.toString(), 10)
+        : 0;
+
+      // 이동된 카테고리의 우선순위만 업데이트
+      const categoryToUpdate: UpdateCategoryPriorityDto = {
+        id: movedCategory.id,
+        priority:
+          updatedCategories.find((c) => c.id === movedCategory.id)?.priority ||
+          0,
+        teamId: teamIdNumber,
+      };
+
+      console.log("카테고리 우선순위 업데이트:", categoryToUpdate);
+      await updateCategoryPriority(categoryToUpdate);
+
+      // 카테고리 목록 다시 불러오기
+      await fetchCategories(teamIdNumber);
+    } catch (error) {
+      console.error("카테고리 우선순위 업데이트 오류:", error);
     }
   };
 
@@ -350,36 +493,87 @@ export default function TeamItemsPage() {
         {categories.length > 0 ? (
           <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      카테고리명
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      우선순위
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {categories.map((category) => (
-                    <tr key={category.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                        {category.id}
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {category.name}
-                      </td>
-                      <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                        {category.priority}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="categories">
+                  {(provided) => (
+                    <table
+                      className="min-w-full divide-y divide-gray-200"
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                    >
+                      <thead className="bg-gray-50">
+                        <tr>
+                          {!isReadOnly && <th className="w-10 px-2"></th>}
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            순서
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            카테고리명
+                          </th>
+                          {!isReadOnly && (
+                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              관리
+                            </th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {[...categories]
+                          .sort((a, b) => a.priority - b.priority)
+                          .map((category, index) => (
+                            <Draggable
+                              key={category.id}
+                              draggableId={category.id.toString()}
+                              index={index}
+                              isDragDisabled={isReadOnly}
+                            >
+                              {(provided, snapshot) => (
+                                <tr
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  className={`hover:bg-gray-50 ${
+                                    snapshot.isDragging ? "bg-blue-50" : ""
+                                  }`}
+                                >
+                                  {!isReadOnly && (
+                                    <td
+                                      className="px-2 w-10 cursor-grab"
+                                      {...provided.dragHandleProps}
+                                    >
+                                      <GripVertical
+                                        size={18}
+                                        className="text-gray-400"
+                                      />
+                                    </td>
+                                  )}
+                                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                    {category.priority}
+                                  </td>
+                                  <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {category.name}
+                                  </td>
+                                  {!isReadOnly && (
+                                    <td className="px-6 py-3 whitespace-nowrap text-sm text-center">
+                                      <button
+                                        className="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
+                                        onClick={() =>
+                                          handleEditCategoryModal(category)
+                                        }
+                                      >
+                                        <Edit size={18} />
+                                      </button>
+                                    </td>
+                                  )}
+                                </tr>
+                              )}
+                            </Draggable>
+                          ))}
+                        {provided.placeholder}
+                      </tbody>
+                    </table>
+                  )}
+                </Droppable>
+              </DragDropContext>
             </div>
           </div>
         ) : (
@@ -509,13 +703,13 @@ export default function TeamItemsPage() {
         </div>
       )}
 
-      {/* 카테고리 추가 모달 */}
+      {/* 카테고리 추가/수정 모달 */}
       {isCategoryModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-800">
-                새 카테고리 추가
+                {isCategoryEditMode ? "카테고리 수정" : "새 카테고리 추가"}
               </h2>
               <button
                 onClick={handleCloseCategoryModal}
@@ -557,6 +751,25 @@ export default function TeamItemsPage() {
                 />
               </div>
 
+              <div className="mb-4">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="priority"
+                >
+                  순서 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="priority"
+                  name="priority"
+                  type="number"
+                  min="1"
+                  value={categoryFormData.priority}
+                  onChange={handleCategoryInputChange}
+                  className="shadow-sm border border-gray-300 rounded-md w-full py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                  required
+                />
+              </div>
+
               {categorySubmitError && (
                 <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md border border-red-200 flex items-start">
                   <AlertCircle
@@ -583,6 +796,8 @@ export default function TeamItemsPage() {
                 >
                   {categorySubmitLoading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : isCategoryEditMode ? (
+                    "수정"
                   ) : (
                     "저장"
                   )}

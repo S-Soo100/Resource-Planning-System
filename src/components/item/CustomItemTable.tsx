@@ -9,6 +9,7 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { TeamItem } from "@/types/(item)/team-item";
+import { useCategoryStore } from "@/store/categoryStore";
 
 interface CustomItemTableProps {
   isReadOnly?: boolean;
@@ -38,6 +39,9 @@ export default function CustomItemTable({
   );
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // 카테고리 스토어 접근
+  const { categories, fetchCategories } = useCategoryStore();
+
   const [formValues, setFormValues] = useState<{
     itemCode: string;
     itemName: string;
@@ -51,15 +55,23 @@ export default function CustomItemTable({
   });
   const [warehouses, setWarehouses] = useState<TeamWarehouse[]>([]);
 
-  // 팀의 창고 정보 가져오기
+  // 팀의 창고 정보 및 카테고리 데이터 가져오기
   useEffect(() => {
     const team = authService.getSelectedTeam();
-    if (team && team.warehouses) {
-      setWarehouses(team.warehouses);
+    if (team) {
+      if (team.id) {
+        const teamIdNumber = parseInt(team.id.toString(), 10);
+        fetchCategories(teamIdNumber);
+      }
+      if (team.warehouses) {
+        setWarehouses(team.warehouses);
+      } else {
+        setWarehouses([]);
+      }
     } else {
       setWarehouses([]);
     }
-  }, []);
+  }, [fetchCategories]);
 
   // 모달 외부 클릭 시 닫기
   useEffect(() => {
@@ -245,23 +257,43 @@ export default function CustomItemTable({
 
   // 창고별 아이템 필터링
   const getWarehouseItems = (warehouseId: number) => {
+    // 디버깅을 위한 로그 추가
+    // console.log("Items 데이터:", items);
+    // console.log(
+    //   `창고 ID ${warehouseId}의 아이템:`,
+    //   items.filter((item) => item.warehouseId === warehouseId)
+    // );
+
     const filteredItems = items
       ? items.filter(
           (item) =>
             item.warehouseId === warehouseId &&
             (!searchQueries[warehouseId] ||
-              (item.itemName &&
-                item.itemName
+              (item.teamItem?.itemName &&
+                item.teamItem.itemName
                   .toLowerCase()
                   .includes(searchQueries[warehouseId]?.toLowerCase() || "")) ||
-              (item.itemCode &&
-                item.itemCode
+              (item.teamItem?.itemCode &&
+                item.teamItem.itemCode
                   .toLowerCase()
                   .includes(searchQueries[warehouseId]?.toLowerCase() || "")))
         )
       : [];
 
+    // 디버깅을 위한 로그 추가
+    // console.log("필터링된 아이템:", filteredItems);
+    // filteredItems.forEach((item) => {
+    //   console.log("아이템 ID:", item.id, "teamItem:", item.teamItem);
+    // });
+
     return filteredItems as Item[];
+  };
+
+  // 카테고리 이름 가져오기
+  const getCategoryName = (categoryId?: number) => {
+    if (!categoryId) return "없음";
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category ? category.name : "없음";
   };
 
   if (isLoading)
@@ -338,6 +370,9 @@ export default function CustomItemTable({
                               품목명
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              카테고리
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               수량
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -362,7 +397,7 @@ export default function CustomItemTable({
                                       router.push(`/item/detail/${item.id}`)
                                     }
                                   >
-                                    {item.teamItem.itemCode}
+                                    {item.teamItem?.itemCode || "-"}
                                   </a>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -372,8 +407,11 @@ export default function CustomItemTable({
                                       router.push(`/item/detail/${item.id}`)
                                     }
                                   >
-                                    {item.teamItem.itemName}
+                                    {item.teamItem?.itemName || "-"}
                                   </a>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  {getCategoryName(item.teamItem?.category?.id)}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   {item.itemQuantity || 0} 개
@@ -390,7 +428,7 @@ export default function CustomItemTable({
                                       onClick={() =>
                                         handleDeleteItem(
                                           item.id,
-                                          item.teamItem.itemName || ""
+                                          item.teamItem?.itemName || ""
                                         )
                                       }
                                     >
@@ -403,7 +441,7 @@ export default function CustomItemTable({
                           ) : (
                             <tr>
                               <td
-                                colSpan={5}
+                                colSpan={6}
                                 className="px-6 py-8 text-center text-gray-500"
                               >
                                 <div className="flex flex-col items-center justify-center">
@@ -512,8 +550,10 @@ export default function CustomItemTable({
                       const isExistingItem = items.some(
                         (warehouseItem) =>
                           warehouseItem.warehouseId === currentWarehouseId &&
-                          warehouseItem.itemCode === item.itemCode
+                          warehouseItem.teamItem?.itemCode === item.itemCode
                       );
+
+                      const categoryName = getCategoryName(item.category?.id);
 
                       return (
                         <option
@@ -522,6 +562,7 @@ export default function CustomItemTable({
                           disabled={isExistingItem}
                         >
                           {item.itemCode} - {item.itemName}
+                          {categoryName !== "없음" ? ` (${categoryName})` : ""}
                           {isExistingItem ? " (이미 등록됨)" : ""}
                         </option>
                       );

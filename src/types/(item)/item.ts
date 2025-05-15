@@ -6,10 +6,12 @@ import { TeamItem } from "./team-item";
 export interface Item {
   id: number;
   itemQuantity: number;
+  itemCode: string;
+  itemName: string;
   teamItem: TeamItem;
   warehouseId: number;
-  createdAt?: string | null;
-  updatedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
   deletedAt?: string | null;
   // warehouse: {
   //   id: number;

@@ -1,7 +1,7 @@
 import { TeamItem } from "../(item)/team-item";
 import { Warehouse } from "../warehouse";
-import { Item } from "../item";
 import { ApiResponse } from "../common";
+import { Item } from "../(item)/item";
 
 export type OrderRequestFormData = {
   supplierId?: number | null | undefined;

@@ -1,4 +1,4 @@
-import { Item } from "../item";
+import { Item } from "../(item)/item";
 
 export interface InventoryRecord {
   id: string;

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { packageApi } from "@/api/package-api";
-import { CreateIPackageDto, UpdatePackageDto } from "@/types/package";
+import { CreateIPackageDto, UpdatePackageDto } from "@/types/(item)/package";
 import { authStore } from "@/store/authStore";
 import toast from "react-hot-toast";
 

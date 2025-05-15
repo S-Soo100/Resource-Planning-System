@@ -1,6 +1,6 @@
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Item } from "@/types/item";
+import { Item } from "@/types/(item)/item";
 
 interface StockTableDesktopProps {
   items: Item[];
@@ -47,7 +47,7 @@ export default function StockTableDesktop({
               className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
               onClick={() => router.push(`/item/detail/${item.id}`)}
             >
-              {item.itemCode}
+              {item.teamItem.itemCode}
             </a>
           </td>
           <td className="px-6 py-4 whitespace-nowrap">
@@ -55,7 +55,7 @@ export default function StockTableDesktop({
               className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
               onClick={() => router.push(`/item/detail/${item.id}`)}
             >
-              {item.itemName}
+              {item.teamItem.itemName}
             </a>
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
@@ -65,7 +65,7 @@ export default function StockTableDesktop({
             {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
           </td>
           <td className="px-6 py-4 text-sm text-gray-600 truncate max-w-xs">
-            {truncateMemo(item.memo)}
+            {truncateMemo(item.teamItem.memo)}
           </td>
           {showEditButton && (
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">

@@ -3,7 +3,7 @@ import axios from "axios";
 import { getToken } from "./cookie-api";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
-console.log("API Base URL:", baseURL);
+// console.log("API Base URL:", baseURL);
 
 export const api = axios.create({
   baseURL,

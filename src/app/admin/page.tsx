@@ -7,39 +7,49 @@ import TeamMembersManagement from "@/components/admin/TeamMembersManagement";
 import WarehouseManagement from "@/components/admin/WarehouseManagement";
 import TeamManagement from "@/components/admin/TeamManagement";
 import AdminMenuCard from "@/components/admin/AdminMenuCard";
-import { useCurrentTeam } from "@/hooks/useCurrentTeam";
-import { TeamWarehouse } from "@/types/warehouse";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { ArrowLeft } from "lucide-react";
 
 export default function AdminPage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { team, isLoading: isTeamLoading } = useCurrentTeam();
   const zustandAuth = authStore((state) => state.user);
   const [activeTab, setActiveTab] = useState("team-members");
-  const [localWarehouses, setLocalWarehouses] = useState<TeamWarehouse[]>([]);
-  const { team } = useCurrentTeam();
+  const [warehouses, setWarehouses] = useState<
+    Array<{
+      id: string;
+      warehouseName: string;
+      warehouseAddress: string;
+    }>
+  >([]);
+  const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(false);
 
+  // 팀 정보에서 창고 목록 추출
   useEffect(() => {
-    if (team) {
-      setLocalWarehouses(team.warehouses);
-      console.log("team.warehouses 원본:", team.warehouses);
-      console.log(
-        "team.warehouses JSON:",
-        JSON.stringify(team.warehouses, null, 2)
-      );
+    if (team && team.warehouses && Array.isArray(team.warehouses)) {
+      console.log("팀 정보에서 창고 목록 추출:", team.warehouses);
 
-      // 변환된 창고 데이터 확인
-      const transformedWarehouses = team.warehouses.map((warehouse) => ({
-        id: warehouse.id.toString(),
-        warehouseName: warehouse.warehouseName,
-        warehouseAddress: warehouse.warehouseAddress,
-      }));
-      console.log("변환된 창고 데이터:", transformedWarehouses);
+      // 0.2초 지연 후 창고 목록 설정
+      setIsLoadingWarehouses(true);
+      const timer = setTimeout(() => {
+        const transformedWarehouses = team.warehouses.map((warehouse) => ({
+          id: warehouse.id.toString(),
+          warehouseName: warehouse.warehouseName,
+          warehouseAddress: warehouse.warehouseAddress || "",
+        }));
+
+        setWarehouses(transformedWarehouses);
+        setIsLoadingWarehouses(false);
+        console.log("변환된 창고 데이터:", transformedWarehouses);
+      }, 200);
+
+      return () => clearTimeout(timer);
     }
   }, [team]);
 
-  if (isUserLoading) {
+  if (isUserLoading || isTeamLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -86,21 +96,7 @@ export default function AdminPage() {
       case "warehouse":
         return (
           <WarehouseManagement
-            warehouses={
-              localWarehouses
-                ? localWarehouses.map((warehouse) => {
-                    console.log(`Passing warehouse ${warehouse.id}:`, {
-                      name: warehouse.warehouseName,
-                      address: warehouse.warehouseAddress || "(주소 없음)",
-                    });
-                    return {
-                      id: warehouse.id.toString(),
-                      warehouseName: warehouse.warehouseName,
-                      warehouseAddress: warehouse.warehouseAddress || "",
-                    };
-                  })
-                : []
-            }
+            warehouses={warehouses}
             isReadOnly={isReadOnly}
           />
         );
@@ -155,7 +151,20 @@ export default function AdminPage() {
             />
           </div>
 
-          <div className="mt-6">{renderTabContent()}</div>
+          <div className="mt-6">
+            {activeTab === "warehouse" && isLoadingWarehouses ? (
+              <div className="flex items-center justify-center p-10">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+                  <p className="mt-2 text-gray-600">
+                    창고 정보를 불러오는 중...
+                  </p>
+                </div>
+              </div>
+            ) : (
+              renderTabContent()
+            )}
+          </div>
         </div>
       </div>
     </Suspense>

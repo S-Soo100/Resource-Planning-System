@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { UpdateItemQuantityRequest } from "@/types/item";
+import { UpdateItemQuantityRequest } from "@/types/(item)/item";
 import React, { useState, useEffect } from "react";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItems } from "@/hooks/useItems";
@@ -215,8 +215,8 @@ export default function StockTable() {
 
     setQuantityEditValues({
       itemId: item.id,
-      itemCode: item.itemCode,
-      itemName: item.itemName,
+      itemCode: item.itemCode || "",
+      itemName: item.itemName || "",
       currentQuantity: item.itemQuantity,
       newQuantity: item.itemQuantity,
       warehouseId: item.warehouseId,
@@ -287,8 +287,8 @@ export default function StockTable() {
         setInboundValues({
           ...inboundValues,
           itemId: selectedItem.id,
-          itemCode: selectedItem.itemCode,
-          itemName: selectedItem.itemName,
+          itemCode: selectedItem.itemCode || "",
+          itemName: selectedItem.itemName || "",
         });
       } else {
         setInboundValues({
@@ -328,8 +328,8 @@ export default function StockTable() {
         setOutboundValues({
           ...outboundValues,
           itemId: selectedItem.id,
-          itemCode: selectedItem.itemCode,
-          itemName: selectedItem.itemName,
+          itemCode: selectedItem.itemCode || "",
+          itemName: selectedItem.itemName || "",
           currentQuantity: selectedItem.itemQuantity,
         });
       } else {
@@ -649,9 +649,13 @@ export default function StockTable() {
   // 검색 기능
   const getFilteredItems = (warehouseItems: any[]) => {
     return warehouseItems.filter((item) => {
+      // itemCode나 itemName이 없을 경우 빈 문자열로 처리
+      const itemCode = item.itemCode || "";
+      const itemName = item.itemName || "";
+
       const matchesSearch =
-        item.itemCode.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.itemName.toLowerCase().includes(searchText.toLowerCase());
+        itemCode.toLowerCase().includes(searchText.toLowerCase()) ||
+        itemName.toLowerCase().includes(searchText.toLowerCase());
 
       const passesZeroFilter = hideZeroStock ? item.itemQuantity > 0 : true;
 

@@ -23,7 +23,19 @@ export default function AdminPage() {
   useEffect(() => {
     if (team) {
       setLocalWarehouses(team.warehouses);
-      console.log("team.warehouses:", JSON.stringify(team.warehouses, null, 2));
+      console.log("team.warehouses 원본:", team.warehouses);
+      console.log(
+        "team.warehouses JSON:",
+        JSON.stringify(team.warehouses, null, 2)
+      );
+
+      // 변환된 창고 데이터 확인
+      const transformedWarehouses = team.warehouses.map((warehouse) => ({
+        id: warehouse.id.toString(),
+        warehouseName: warehouse.warehouseName,
+        warehouseAddress: warehouse.warehouseAddress,
+      }));
+      console.log("변환된 창고 데이터:", transformedWarehouses);
     }
   }, [team]);
 
@@ -76,11 +88,17 @@ export default function AdminPage() {
           <WarehouseManagement
             warehouses={
               localWarehouses
-                ? localWarehouses.map((warehouse) => ({
-                    id: warehouse.id.toString(),
-                    warehouseName: warehouse.warehouseName,
-                    warehouseAddress: warehouse.warehouseAddress,
-                  }))
+                ? localWarehouses.map((warehouse) => {
+                    console.log(`Passing warehouse ${warehouse.id}:`, {
+                      name: warehouse.warehouseName,
+                      address: warehouse.warehouseAddress || "(주소 없음)",
+                    });
+                    return {
+                      id: warehouse.id.toString(),
+                      warehouseName: warehouse.warehouseName,
+                      warehouseAddress: warehouse.warehouseAddress || "",
+                    };
+                  })
                 : []
             }
             isReadOnly={isReadOnly}
@@ -120,10 +138,10 @@ export default function AdminPage() {
               onTabChange={setActiveTab}
             />
             <AdminMenuCard
-              title="창고 및 품목 관리"
+              title="창고 관리"
               icon={<FaWarehouse />}
               id="warehouse"
-              description="창고 정보 및 품목 관리"
+              description="창고 정보 및 위치 관리"
               activeTab={activeTab}
               onTabChange={setActiveTab}
             />

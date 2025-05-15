@@ -49,9 +49,18 @@ export const warehouseApi = {
     id: string | number
   ): Promise<ApiResponse<{ data: Warehouse }>> => {
     try {
+      console.log(`[API 단일 창고 조회 요청] id: ${id}`);
+
       const response = await api.get<{ data: Warehouse }>(`/warehouse/${id}`);
+
+      console.log("[API 단일 창고 조회 응답]", {
+        warehouseName: response.data.data.warehouseName,
+        warehouseAddress: response.data.data.warehouseAddress,
+      });
+
       return { success: true, data: response.data };
     } catch (error) {
+      console.error("[API 단일 창고 조회 오류]", error);
       return { success: false, error: "창고 조회에 실패했습니다." };
     }
   },
@@ -62,9 +71,19 @@ export const warehouseApi = {
     data: UpdateWarehouseRequest
   ): Promise<ApiResponse<Warehouse>> => {
     try {
+      console.log("[API 창고 수정 요청]", {
+        id,
+        url: `/warehouse/${id}`,
+        data,
+      });
+
       const response = await api.patch<Warehouse>(`/warehouse/${id}`, data);
+
+      console.log("[API 창고 수정 응답]", response.data);
+
       return { success: true, data: response.data };
     } catch (error) {
+      console.error("[API 창고 수정 오류]", error);
       return { success: false, error: "창고 정보 수정에 실패했습니다." };
     }
   },

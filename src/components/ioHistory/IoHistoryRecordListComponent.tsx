@@ -265,7 +265,7 @@ export default function IoHistoryRecordListComponent() {
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                      {record.item?.itemName || record.itemId}
+                      {record.item?.teamItem?.itemName || record.itemId || "-"}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                       {record.inboundQuantity || record.outboundQuantity}
@@ -279,8 +279,11 @@ export default function IoHistoryRecordListComponent() {
                       <td colSpan={5} className="px-4 py-3 bg-gray-50">
                         <div className="mb-4">
                           <h3 className="text-lg font-semibold text-gray-800">
-                            [{record.item?.itemName || record.itemId}]{" "}
-                            {record.inboundQuantity ? "입고" : "출고"}건 (
+                            [
+                            {record.item?.teamItem?.itemName ||
+                              record.itemId ||
+                              "-"}
+                            ] {record.inboundQuantity ? "입고" : "출고"}건 (
                             {record.inboundQuantity || record.outboundQuantity}
                             개) -{" "}
                             {warehouses.find(

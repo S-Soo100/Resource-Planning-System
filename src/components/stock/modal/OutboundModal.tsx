@@ -193,7 +193,8 @@ export default function OutboundModal({
                       <option value="">품목을 선택하세요</option>
                       {warehouseItems.map((item) => (
                         <option key={item.id} value={item.id}>
-                          {item.itemName} ({item.itemCode}) - 재고:{" "}
+                          {item.teamItem?.itemName || "-"} (
+                          {item.teamItem?.itemCode || "-"}) - 재고:{" "}
                           {item.itemQuantity}
                         </option>
                       ))}
@@ -206,9 +207,11 @@ export default function OutboundModal({
                         선택된 품목 정보
                       </label>
                       <div className="p-3 bg-gray-50 rounded-xl">
-                        <p className="font-medium">{selectedItem.itemName}</p>
+                        <p className="font-medium">
+                          {selectedItem.teamItem?.itemName}
+                        </p>
                         <p className="text-gray-600 text-sm">
-                          {selectedItem.itemCode}
+                          {selectedItem.teamItem?.itemCode}
                         </p>
                         <p className="text-gray-600 text-sm mt-1">
                           현재 재고: {selectedItem.itemQuantity}

@@ -411,7 +411,10 @@ export default function CustomItemTable({
                                   </a>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  {getCategoryName(item.teamItem?.category?.id)}
+                                  {getCategoryName(
+                                    item.teamItem?.category?.id ??
+                                      item.teamItem?.categoryId
+                                  )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   {item.itemQuantity || 0} 개

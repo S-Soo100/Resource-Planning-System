@@ -14,17 +14,7 @@ import { useTeamItems } from "@/hooks/useTeamItems";
 import { CreateTeamItemDto } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
 import { useCategoryStore } from "@/store/categoryStore";
-import {
-  CreateCategoryDto,
-  UpdateCategoryDto,
-  UpdateCategoryPriorityDto,
-} from "@/types/(item)/category";
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "react-beautiful-dnd";
+import { CreateCategoryDto, UpdateCategoryDto } from "@/types/(item)/category";
 
 export default function TeamItemsPage() {
   const { team } = useCurrentTeam();
@@ -63,7 +53,6 @@ export default function TeamItemsPage() {
     isLoading: isCategoryLoading,
     createCategory,
     updateCategory,
-    updateCategoryPriority,
   } = useCategoryStore();
 
   // 카테고리 추가 관련 상태
@@ -344,69 +333,6 @@ export default function TeamItemsPage() {
     }
   };
 
-  // 카테고리 드래그 앤 드롭 핸들러
-  const handleDragEnd = async (result: DropResult) => {
-    const { destination, source } = result;
-
-    // 드롭 위치가 없거나 같은 위치에 드롭한 경우
-    if (
-      !destination ||
-      (destination.droppableId === source.droppableId &&
-        destination.index === source.index)
-    ) {
-      return;
-    }
-
-    // 정렬된 카테고리 배열 가져오기
-    const sortedCategories = [...categories].sort(
-      (a, b) => a.priority - b.priority
-    );
-
-    // 드래그한 카테고리
-    const movedCategory = sortedCategories[source.index];
-
-    // 배열에서 제거
-    sortedCategories.splice(source.index, 1);
-
-    // 새 위치에 삽입
-    sortedCategories.splice(destination.index, 0, movedCategory);
-
-    // 우선순위 재할당
-    const updatedCategories = sortedCategories.map((category, index) => ({
-      ...category,
-      priority: index + 1,
-    }));
-
-    // 변경된 카테고리 우선순위 업데이트
-    try {
-      if (!selectedTeam?.id) {
-        console.error("선택된 팀이 없습니다.");
-        return;
-      }
-
-      const teamIdNumber = selectedTeam.id
-        ? parseInt(selectedTeam.id.toString(), 10)
-        : 0;
-
-      // 이동된 카테고리의 우선순위만 업데이트
-      const categoryToUpdate: UpdateCategoryPriorityDto = {
-        id: movedCategory.id,
-        priority:
-          updatedCategories.find((c) => c.id === movedCategory.id)?.priority ||
-          0,
-        teamId: teamIdNumber,
-      };
-
-      console.log("카테고리 우선순위 업데이트:", categoryToUpdate);
-      await updateCategoryPriority(categoryToUpdate);
-
-      // 카테고리 목록 다시 불러오기
-      await fetchCategories(teamIdNumber);
-    } catch (error) {
-      console.error("카테고리 우선순위 업데이트 오류:", error);
-    }
-  };
-
   if (isUserLoading || isLoading || isCategoryLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -493,87 +419,53 @@ export default function TeamItemsPage() {
         {categories.length > 0 ? (
           <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
             <div className="overflow-x-auto">
-              <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="categories">
-                  {(provided) => (
-                    <table
-                      className="min-w-full divide-y divide-gray-200"
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                    >
-                      <thead className="bg-gray-50">
-                        <tr>
-                          {!isReadOnly && <th className="w-10 px-2"></th>}
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            순서
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            카테고리명
-                          </th>
-                          {!isReadOnly && (
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              관리
-                            </th>
-                          )}
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {[...categories]
-                          .sort((a, b) => a.priority - b.priority)
-                          .map((category, index) => (
-                            <Draggable
-                              key={category.id}
-                              draggableId={category.id.toString()}
-                              index={index}
-                              isDragDisabled={isReadOnly}
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {!isReadOnly && <th className="w-10 px-2"></th>}
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      순서
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      카테고리명
+                    </th>
+                    {!isReadOnly && (
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        관리
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {[...categories]
+                    .sort((a, b) => a.priority - b.priority)
+                    .map((category) => (
+                      <tr key={category.id} className="hover:bg-gray-50">
+                        {!isReadOnly && (
+                          <td className="px-2 w-10 cursor-grab">
+                            <GripVertical size={18} className="text-gray-400" />
+                          </td>
+                        )}
+                        <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                          {category.priority}
+                        </td>
+                        <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {category.name}
+                        </td>
+                        {!isReadOnly && (
+                          <td className="px-6 py-3 whitespace-nowrap text-sm text-center">
+                            <button
+                              className="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
+                              onClick={() => handleEditCategoryModal(category)}
                             >
-                              {(provided, snapshot) => (
-                                <tr
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  className={`hover:bg-gray-50 ${
-                                    snapshot.isDragging ? "bg-blue-50" : ""
-                                  }`}
-                                >
-                                  {!isReadOnly && (
-                                    <td
-                                      className="px-2 w-10 cursor-grab"
-                                      {...provided.dragHandleProps}
-                                    >
-                                      <GripVertical
-                                        size={18}
-                                        className="text-gray-400"
-                                      />
-                                    </td>
-                                  )}
-                                  <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                    {category.priority}
-                                  </td>
-                                  <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {category.name}
-                                  </td>
-                                  {!isReadOnly && (
-                                    <td className="px-6 py-3 whitespace-nowrap text-sm text-center">
-                                      <button
-                                        className="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
-                                        onClick={() =>
-                                          handleEditCategoryModal(category)
-                                        }
-                                      >
-                                        <Edit size={18} />
-                                      </button>
-                                    </td>
-                                  )}
-                                </tr>
-                              )}
-                            </Draggable>
-                          ))}
-                        {provided.placeholder}
-                      </tbody>
-                    </table>
-                  )}
-                </Droppable>
-              </DragDropContext>
+                              <Edit size={18} />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
             </div>
           </div>
         ) : (

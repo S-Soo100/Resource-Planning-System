@@ -7,6 +7,7 @@ export interface TeamItem {
   teamId: number;
   memo: string;
   category: Category;
+  categoryId?: number;
   createdAt?: string | null;
   updatedAt?: string | null;
 }

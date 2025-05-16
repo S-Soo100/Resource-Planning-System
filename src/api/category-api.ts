@@ -50,9 +50,9 @@ export const categoryApi = {
   updateCategoryPriority: async (
     category: UpdateCategoryPriorityDto
   ): Promise<ApiResponse<Category>> => {
-    const response = await api.put<ApiResponse<Category>>(
-      `/category/${category.id}/priority`,
-      category
+    const response = await api.patch<ApiResponse<Category>>(
+      `/category/${category.id}/priority?teamId=${category.teamId}`,
+      { priority: category.priority }
     );
     return response.data;
   },

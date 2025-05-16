@@ -14,7 +14,11 @@ import { useTeamItems } from "@/hooks/useTeamItems";
 import { CreateTeamItemDto } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
 import { useCategoryStore } from "@/store/categoryStore";
-import { CreateCategoryDto, UpdateCategoryDto } from "@/types/(item)/category";
+import {
+  CreateCategoryDto,
+  UpdateCategoryDto,
+  UpdateCategoryPriorityDto,
+} from "@/types/(item)/category";
 
 export default function TeamItemsPage() {
   const { team } = useCurrentTeam();
@@ -53,6 +57,7 @@ export default function TeamItemsPage() {
     isLoading: isCategoryLoading,
     createCategory,
     updateCategory,
+    updateCategoryPriority,
   } = useCategoryStore();
 
   // 카테고리 추가 관련 상태
@@ -333,11 +338,99 @@ export default function TeamItemsPage() {
     }
   };
 
+  // 우선순위 증가 함수 (위로 이동)
+  const handlePriorityUp = async (category: (typeof categories)[0]) => {
+    if (!selectedTeam?.id) return;
+
+    // 현재 카테고리보다 우선순위가 하나 낮은(숫자가 작은) 카테고리 찾기
+    const sortedCategories = [...categories].sort(
+      (a, b) => a.priority - b.priority
+    );
+    const currentIndex = sortedCategories.findIndex(
+      (c) => c.id === category.id
+    );
+
+    // 이미 가장 위에 있는 경우
+    if (currentIndex <= 0) return;
+
+    const prevCategory = sortedCategories[currentIndex - 1];
+
+    // 카테고리 위치 변경
+    const teamIdNumber = selectedTeam.id
+      ? parseInt(selectedTeam.id.toString(), 10)
+      : 0;
+
+    // 현재 카테고리의 우선순위를 변경
+    const priorityDto: UpdateCategoryPriorityDto = {
+      id: category.id,
+      priority: prevCategory.priority,
+      teamId: teamIdNumber,
+    };
+
+    await updateCategoryPriority(priorityDto);
+
+    // 이전 카테고리의 우선순위도 변경
+    const prevPriorityDto: UpdateCategoryPriorityDto = {
+      id: prevCategory.id,
+      priority: category.priority,
+      teamId: teamIdNumber,
+    };
+
+    await updateCategoryPriority(prevPriorityDto);
+
+    // 카테고리 목록 새로고침
+    await fetchCategories(teamIdNumber);
+  };
+
+  // 우선순위 감소 함수 (아래로 이동)
+  const handlePriorityDown = async (category: (typeof categories)[0]) => {
+    if (!selectedTeam?.id) return;
+
+    // 현재 카테고리보다 우선순위가 하나 높은(숫자가 큰) 카테고리 찾기
+    const sortedCategories = [...categories].sort(
+      (a, b) => a.priority - b.priority
+    );
+    const currentIndex = sortedCategories.findIndex(
+      (c) => c.id === category.id
+    );
+
+    // 이미 가장 아래에 있는 경우
+    if (currentIndex >= sortedCategories.length - 1) return;
+
+    const nextCategory = sortedCategories[currentIndex + 1];
+
+    // 카테고리 위치 변경
+    const teamIdNumber = selectedTeam.id
+      ? parseInt(selectedTeam.id.toString(), 10)
+      : 0;
+
+    // 현재 카테고리의 우선순위를 변경
+    const priorityDto: UpdateCategoryPriorityDto = {
+      id: category.id,
+      priority: nextCategory.priority,
+      teamId: teamIdNumber,
+    };
+
+    await updateCategoryPriority(priorityDto);
+
+    // 다음 카테고리의 우선순위도 변경
+    const nextPriorityDto: UpdateCategoryPriorityDto = {
+      id: nextCategory.id,
+      priority: category.priority,
+      teamId: teamIdNumber,
+    };
+
+    await updateCategoryPriority(nextPriorityDto);
+
+    // 카테고리 목록 새로고침
+    await fetchCategories(teamIdNumber);
+  };
+
   if (isUserLoading || isLoading || isCategoryLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -353,15 +446,15 @@ export default function TeamItemsPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="mb-4 text-2xl font-bold text-gray-800">
             권한이 필요합니다
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="mb-6 text-gray-600">
             해당 페이지는 관리자 또는 중재자만 접근할 수 있습니다.
           </p>
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
           >
             <ArrowLeft size={20} />
             뒤로가기
@@ -383,7 +476,7 @@ export default function TeamItemsPage() {
         </p>
         <button
           onClick={() => router.back()}
-          className="mt-6 flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 mt-6 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
         >
           <ArrowLeft size={20} />
           뒤로가기
@@ -393,11 +486,13 @@ export default function TeamItemsPage() {
   }
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">팀 아이템 관리</h1>
+    <div className="max-w-6xl p-4 mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">
+          팀 카테고리, 품목 관리
+        </h1>
         {isReadOnly && (
-          <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+          <div className="px-4 py-2 text-sm text-yellow-700 rounded-md bg-yellow-50">
             중재자 권한으로는 조회만 가능합니다
           </div>
         )}
@@ -405,32 +500,32 @@ export default function TeamItemsPage() {
 
       {/* 팀 카테고리 테이블 */}
       <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-700">팀 카테고리</h2>
           {!isReadOnly && (
             <button
               onClick={handleOpenCategoryModal}
-              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md flex items-center shadow-sm transition-all duration-200 font-medium"
+              className="flex items-center px-4 py-2 font-medium text-white transition-all duration-200 bg-green-500 rounded-md shadow-sm hover:bg-green-600"
             >
               <span className="mr-1 text-lg">+</span> 카테고리 추가
             </button>
           )}
         </div>
         {categories.length > 0 ? (
-          <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
+          <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     {!isReadOnly && <th className="w-10 px-2"></th>}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       순서
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       카테고리명
                     </th>
                     {!isReadOnly && (
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
                         관리
                       </th>
                     )}
@@ -442,24 +537,68 @@ export default function TeamItemsPage() {
                     .map((category) => (
                       <tr key={category.id} className="hover:bg-gray-50">
                         {!isReadOnly && (
-                          <td className="px-2 w-10 cursor-grab">
+                          <td className="w-10 px-2 cursor-grab">
                             <GripVertical size={18} className="text-gray-400" />
                           </td>
                         )}
-                        <td className="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-3 text-sm text-gray-500 whitespace-nowrap">
                           {category.priority}
                         </td>
-                        <td className="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-6 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
                           {category.name}
                         </td>
                         {!isReadOnly && (
-                          <td className="px-6 py-3 whitespace-nowrap text-sm text-center">
-                            <button
-                              className="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
-                              onClick={() => handleEditCategoryModal(category)}
-                            >
-                              <Edit size={18} />
-                            </button>
+                          <td className="px-6 py-3 text-sm text-center whitespace-nowrap">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex flex-col">
+                                <button
+                                  className="p-1 text-gray-500 transition-colors rounded-full hover:text-gray-700 hover:bg-gray-100"
+                                  onClick={() => handlePriorityUp(category)}
+                                  title="위로 이동"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="m18 15-6-6-6 6" />
+                                  </svg>
+                                </button>
+                                <button
+                                  className="p-1 text-gray-500 transition-colors rounded-full hover:text-gray-700 hover:bg-gray-100"
+                                  onClick={() => handlePriorityDown(category)}
+                                  title="아래로 이동"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="m6 9 6 6 6-6" />
+                                  </svg>
+                                </button>
+                              </div>
+                              <button
+                                className="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
+                                onClick={() =>
+                                  handleEditCategoryModal(category)
+                                }
+                              >
+                                <Edit size={18} />
+                              </button>
+                            </div>
                           </td>
                         )}
                       </tr>
@@ -469,13 +608,13 @@ export default function TeamItemsPage() {
             </div>
           </div>
         ) : (
-          <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+          <div className="p-8 text-center border border-gray-200 rounded-lg shadow-sm bg-gray-50">
             <p className="text-gray-500">등록된 팀 카테고리가 없습니다.</p>
           </div>
         )}
       </div>
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-700">팀 아이템 목록</h2>
         {!isReadOnly && (
           <button
@@ -487,24 +626,24 @@ export default function TeamItemsPage() {
         )}
       </div>
       {teamItems.length > 0 ? (
-        <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-200">
+        <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                     아이템 코드
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                     아이템명
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                     카테고리
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                     메모
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
                     관리
                   </th>
                 </tr>
@@ -512,7 +651,7 @@ export default function TeamItemsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {teamItems.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap font-medium">
+                    <td className="px-6 py-4 font-medium whitespace-nowrap">
                       {item.itemCode || "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -524,7 +663,7 @@ export default function TeamItemsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {item.memo || "-"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                    <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
                       <div className="flex justify-center space-x-2">
                         {!isReadOnly && (
                           <>
@@ -545,7 +684,7 @@ export default function TeamItemsPage() {
                               }
                             >
                               {deletingItemId === item.id ? (
-                                <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                                <div className="w-4 h-4 border-2 border-red-500 rounded-full border-t-transparent animate-spin"></div>
                               ) : (
                                 <Trash2 size={18} />
                               )}
@@ -553,7 +692,7 @@ export default function TeamItemsPage() {
                           </>
                         )}
                         {isReadOnly && (
-                          <span className="text-gray-400 text-xs">
+                          <span className="text-xs text-gray-400">
                             읽기 전용
                           </span>
                         )}
@@ -566,11 +705,11 @@ export default function TeamItemsPage() {
           </div>
         </div>
       ) : (
-        <div className="text-center p-12 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-12 text-center border border-gray-200 rounded-lg shadow-sm bg-gray-50">
           <div className="mb-4 text-gray-400">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-16 w-16 mx-auto"
+              className="w-16 h-16 mx-auto"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -583,7 +722,7 @@ export default function TeamItemsPage() {
               />
             </svg>
           </div>
-          <p className="text-gray-500 mb-6 text-lg">
+          <p className="mb-6 text-lg text-gray-500">
             등록된 팀 아이템이 없습니다.
           </p>
           <button
@@ -597,9 +736,9 @@ export default function TeamItemsPage() {
 
       {/* 카테고리 추가/수정 모달 */}
       {isCategoryModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
-            <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-800">
                 {isCategoryEditMode ? "카테고리 수정" : "새 카테고리 추가"}
               </h2>
@@ -609,7 +748,7 @@ export default function TeamItemsPage() {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
+                  className="w-6 h-6"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -626,7 +765,7 @@ export default function TeamItemsPage() {
             <form onSubmit={handleCategorySubmit}>
               <div className="mb-4">
                 <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
+                  className="block mb-2 text-sm font-bold text-gray-700"
                   htmlFor="name"
                 >
                   카테고리명 <span className="text-red-500">*</span>
@@ -645,7 +784,7 @@ export default function TeamItemsPage() {
 
               <div className="mb-4">
                 <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
+                  className="block mb-2 text-sm font-bold text-gray-700"
                   htmlFor="priority"
                 >
                   순서 <span className="text-red-500">*</span>
@@ -663,7 +802,7 @@ export default function TeamItemsPage() {
               </div>
 
               {categorySubmitError && (
-                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md border border-red-200 flex items-start">
+                <div className="flex items-start p-3 mb-4 text-red-700 border border-red-200 rounded-md bg-red-50">
                   <AlertCircle
                     size={20}
                     className="mr-2 mt-0.5 flex-shrink-0"
@@ -672,7 +811,7 @@ export default function TeamItemsPage() {
                 </div>
               )}
 
-              <div className="mt-6 flex justify-end space-x-3">
+              <div className="flex justify-end mt-6 space-x-3">
                 <button
                   type="button"
                   className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium px-5 py-2.5 rounded-md transition-colors"
@@ -687,7 +826,7 @@ export default function TeamItemsPage() {
                   disabled={categorySubmitLoading}
                 >
                   {categorySubmitLoading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
                   ) : isCategoryEditMode ? (
                     "수정"
                   ) : (
@@ -702,9 +841,9 @@ export default function TeamItemsPage() {
 
       {/* 아이템 추가/수정 모달 */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
-            <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-xl">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-gray-800">
                 {isEditMode ? "팀 아이템 수정" : "새 팀 아이템 추가"}
               </h2>
@@ -714,7 +853,7 @@ export default function TeamItemsPage() {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
+                  className="w-6 h-6"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -731,7 +870,7 @@ export default function TeamItemsPage() {
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
+                  className="block mb-2 text-sm font-bold text-gray-700"
                   htmlFor="itemCode"
                 >
                   품목 코드 <span className="text-red-500">*</span>
@@ -750,7 +889,7 @@ export default function TeamItemsPage() {
 
               <div className="mb-4">
                 <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
+                  className="block mb-2 text-sm font-bold text-gray-700"
                   htmlFor="itemName"
                 >
                   품목명 <span className="text-red-500">*</span>
@@ -769,7 +908,7 @@ export default function TeamItemsPage() {
 
               <div className="mb-4">
                 <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
+                  className="block mb-2 text-sm font-bold text-gray-700"
                   htmlFor="categoryId"
                 >
                   카테고리 <span className="text-red-500">*</span>
@@ -796,7 +935,7 @@ export default function TeamItemsPage() {
 
               <div className="mb-4">
                 <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
+                  className="block mb-2 text-sm font-bold text-gray-700"
                   htmlFor="memo"
                 >
                   메모
@@ -812,7 +951,7 @@ export default function TeamItemsPage() {
               </div>
 
               {submitError && (
-                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md border border-red-200 flex items-start">
+                <div className="flex items-start p-3 mb-4 text-red-700 border border-red-200 rounded-md bg-red-50">
                   <AlertCircle
                     size={20}
                     className="mr-2 mt-0.5 flex-shrink-0"
@@ -821,7 +960,7 @@ export default function TeamItemsPage() {
                 </div>
               )}
 
-              <div className="mt-6 flex justify-end space-x-3">
+              <div className="flex justify-end mt-6 space-x-3">
                 <button
                   type="button"
                   className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium px-5 py-2.5 rounded-md transition-colors"
@@ -836,7 +975,7 @@ export default function TeamItemsPage() {
                   disabled={submitLoading || updateLoading}
                 >
                   {submitLoading || updateLoading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
                   ) : isEditMode ? (
                     "수정"
                   ) : (

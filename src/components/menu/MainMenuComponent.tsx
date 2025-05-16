@@ -179,8 +179,8 @@ const MainMenuComponent = () => {
       accessLevel: ["admin", "moderator"],
     },
     {
-      title: "관리 - 전체 품목 관리",
-      subtitle: "팀에서 사용하는 모든 품목을 관리합니다",
+      title: "관리 - 카테고리 및 품목 관리",
+      subtitle: "팀에서 사용하는 모든 카테고리와 품목을 관리합니다",
       icon: <FaBox className="text-3xl" />,
       onClick: () => checkAccess(`/team-items`, ["admin", "moderator"]),
       accessLevel: ["admin", "moderator"],
@@ -287,7 +287,7 @@ const MainMenuComponent = () => {
             <h3 className={`text-sm font-bold mb-1 ${tabConfig.textColor}`}>
               {item.title}
             </h3>
-            <p className="text-xs text-gray-600 mb-1 line-clamp-2">
+            <p className="mb-1 text-xs text-gray-600 line-clamp-2">
               {item.subtitle}
             </p>
 
@@ -308,10 +308,10 @@ const MainMenuComponent = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Menu Body */}
-      <main className="container mx-auto p-4">
+      <main className="container p-4 mx-auto">
         {/* 거래처 계정 환영 메시지 */}
         {user?.accessLevel === "supplier" && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6 border-l-4 border-green-500">
+          <div className="p-4 mb-6 bg-white border-l-4 border-green-500 rounded-lg shadow-sm">
             <p className="text-gray-700">
               안녕하세요 <span className="font-bold">{user.name}</span>님,{" "}
               <span className="font-bold">
@@ -325,7 +325,7 @@ const MainMenuComponent = () => {
         )}
         {/* 탭 네비게이션 */}
         {user?.accessLevel !== "supplier" && (
-          <div className="flex justify-center mb-6 bg-white rounded-lg shadow-sm overflow-x-auto">
+          <div className="flex justify-center mb-6 overflow-x-auto bg-white rounded-lg shadow-sm">
             <div className="flex w-full">
               {tabs.map((tab) => (
                 <button
@@ -345,7 +345,7 @@ const MainMenuComponent = () => {
         )}
 
         {/* 현재 선택된 탭의 메뉴 카드 */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="p-6 mb-6 bg-white rounded-lg shadow-sm">
           {user?.accessLevel !== "supplier" && (
             <h2
               className={`text-xl font-bold mb-6 pb-2 border-b ${activeTabConfig.borderColor} ${activeTabConfig.textColor}`}
@@ -353,7 +353,7 @@ const MainMenuComponent = () => {
               {activeTabConfig.title}
             </h2>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+          <div className="grid max-w-5xl grid-cols-1 gap-4 mx-auto sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {renderMenuCards(activeTabConfig.items, activeTabConfig)}
           </div>
         </div>

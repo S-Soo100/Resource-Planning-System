@@ -723,7 +723,8 @@ const OrderRecordTabs = () => {
                                   .map(
                                     (item) =>
                                       `${
-                                        item.item?.itemName || "알 수 없는 품목"
+                                        item.item?.teamItem?.itemName ||
+                                        "알 수 없는 품목"
                                       }${item.quantity}개`
                                   )
                                   .join(", ") +
@@ -959,7 +960,8 @@ const OrderRecordTabs = () => {
                                               >
                                                 <div className="flex justify-between items-center">
                                                   <span className="font-medium text-gray-700 text-xs sm:text-sm">
-                                                    {item.item?.itemName ||
+                                                    {item.item?.teamItem
+                                                      ?.itemName ||
                                                       "알 수 없는 품목"}
                                                   </span>
                                                   <span className="text-gray-600 bg-white px-2 py-1 rounded-md text-xs sm:text-sm">

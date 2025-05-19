@@ -45,7 +45,7 @@ export default function TeamItemsPage() {
     itemCode: "",
     itemName: "",
     memo: "",
-    categoryId: 1,
+    categoryId: null,
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
   const selectedTeam = authStore((state) => state.selectedTeam);
@@ -58,6 +58,7 @@ export default function TeamItemsPage() {
     createCategory,
     updateCategory,
     updateCategoryPriority,
+    isInitialized,
   } = useCategoryStore();
 
   // 카테고리 추가 관련 상태
@@ -80,10 +81,10 @@ export default function TeamItemsPage() {
   >(null);
 
   useEffect(() => {
-    if (selectedTeam?.id) {
+    if (selectedTeam?.id && !isInitialized) {
       fetchCategories(selectedTeam.id);
     }
-  }, [selectedTeam?.id, fetchCategories]);
+  }, [selectedTeam?.id, isInitialized, fetchCategories]);
 
   useEffect(() => {
     if (team) {
@@ -228,7 +229,7 @@ export default function TeamItemsPage() {
         itemCode: item.itemCode,
         itemName: item.itemName,
         memo: item.memo || "",
-        categoryId: item.category?.id || 1,
+        categoryId: item.category?.id || null,
       });
       console.log("수정 모드 카테고리 ID:", item.category?.id);
     } else {
@@ -236,8 +237,8 @@ export default function TeamItemsPage() {
       setIsEditMode(false);
       setCurrentEditItemId(null);
 
-      // 카테고리가 있을 경우 첫 번째 카테고리의 ID 사용
-      const defaultCategoryId = categories.length > 0 ? categories[0].id : 1;
+      // 카테고리가 있을 경우 첫 번째 카테고리의 ID 사용, 없으면 null
+      const defaultCategoryId = categories.length > 0 ? categories[0].id : null;
       console.log("추가 모드 기본 카테고리 ID:", defaultCategoryId);
       console.log("사용 가능한 카테고리:", categories);
 
@@ -263,13 +264,15 @@ export default function TeamItemsPage() {
   ) => {
     const { name, value } = e.target;
 
-    // 카테고리 ID는 숫자로 변환
+    // 카테고리 ID는 숫자로 변환하되, '0'인 경우 null로 설정
     if (name === "categoryId") {
       const numValue = parseInt(value, 10);
-      console.log(`카테고리 ID 변경: ${value} -> ${numValue}`);
+      console.log(
+        `카테고리 ID 변경: ${value} -> ${numValue === 0 ? null : numValue}`
+      );
       setFormData((prev) => ({
         ...prev,
-        [name]: numValue,
+        [name]: numValue === 0 ? null : numValue,
       }));
     } else {
       setFormData((prev) => ({
@@ -916,20 +919,19 @@ export default function TeamItemsPage() {
                 <select
                   id="categoryId"
                   name="categoryId"
-                  value={formData.categoryId}
+                  value={formData.categoryId || 0}
                   onChange={handleInputChange}
                   className="shadow-sm border border-gray-300 rounded-md w-full py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   required
                 >
-                  {categories.length > 0 ? (
-                    categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))
-                  ) : (
-                    <option value={1}>카테고리 없음</option>
-                  )}
+                  <option value={0}>없음</option>
+                  {categories.length > 0
+                    ? categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))
+                    : null}
                 </select>
               </div>
 

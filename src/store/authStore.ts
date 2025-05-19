@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { IAuth } from "@/types/(auth)/auth";
 import { Team } from "@/types/team";
+import { useCategoryStore } from "@/store/categoryStore";
 
 interface AuthState {
   user: IAuth | null;
@@ -31,7 +32,8 @@ export const authStore = create<AuthState>()(
 
       // Actions
       login: (user) => {
-        // console.log("authStore 로그인 데이터: ", user);
+        // 카테고리 스토어 초기화
+        useCategoryStore.getState().resetCategories();
         return set({
           user,
           selectedTeam: null,
@@ -40,17 +42,28 @@ export const authStore = create<AuthState>()(
         });
       },
 
-      logout: () =>
+      logout: () => {
+        // 카테고리 스토어 초기화
+        useCategoryStore.getState().resetCategories();
         set({
           user: null,
           selectedTeam: null,
           isAuthenticated: false,
           error: null,
-        }),
+        });
+      },
 
-      setTeam: (team: Team) => set({ selectedTeam: team }),
+      setTeam: (team: Team) => {
+        // 팀 변경 시 카테고리 데이터 새로 로드
+        useCategoryStore.getState().resetCategories();
+        set({ selectedTeam: team });
+      },
 
-      resetTeam: () => set({ selectedTeam: null }),
+      resetTeam: () => {
+        // 팀 초기화 시 카테고리 데이터 초기화
+        useCategoryStore.getState().resetCategories();
+        set({ selectedTeam: null });
+      },
 
       setLoading: (loading) =>
         set({

@@ -14,6 +14,8 @@ interface CategoryState {
   categories: Category[];
   isLoading: boolean;
   error: string | null;
+  lastFetched: number | null; // 마지막으로 데이터를 가져온 시간
+  isInitialized: boolean; // 초기 로딩 여부
 
   // 액션
   fetchCategories: (teamId?: number) => Promise<void>;
@@ -23,6 +25,7 @@ interface CategoryState {
     category: UpdateCategoryPriorityDto
   ) => Promise<Category | null>;
   deleteCategory: (id: number) => Promise<boolean>;
+  resetCategories: () => void; // 카테고리 상태 초기화
 
   // 내부 액션
   setLoading: (loading: boolean) => void;
@@ -31,18 +34,33 @@ interface CategoryState {
 
 export const useCategoryStore = create<CategoryState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // 초기 상태
       categories: [],
       isLoading: false,
       error: null,
+      lastFetched: null,
+      isInitialized: false,
 
       // 액션
       fetchCategories: async (teamId?: number) => {
+        const state = get();
+
         // 이미 로딩 중이면 중복 요청 방지
-        const state = useCategoryStore.getState();
         if (state.isLoading) {
           console.log("이미 카테고리 로딩 중, 중복 요청 방지");
+          return;
+        }
+
+        // 캐시 유효성 검사 (5분)
+        const CACHE_DURATION = 5 * 60 * 1000; // 5분
+        const now = Date.now();
+        if (
+          state.lastFetched &&
+          now - state.lastFetched < CACHE_DURATION &&
+          state.categories.length > 0
+        ) {
+          console.log("캐시된 카테고리 데이터 사용");
           return;
         }
 
@@ -65,7 +83,11 @@ export const useCategoryStore = create<CategoryState>()(
             console.log(
               `카테고리 데이터 로드 성공 - 항목 수: ${response.data.length}`
             );
-            set({ categories: response.data });
+            set({
+              categories: response.data,
+              lastFetched: now,
+              isInitialized: true,
+            });
           } else {
             const errorMsg =
               response.error || "카테고리를 불러오는데 실패했습니다.";
@@ -176,13 +198,28 @@ export const useCategoryStore = create<CategoryState>()(
         }
       },
 
+      // 카테고리 상태 초기화
+      resetCategories: () => {
+        set({
+          categories: [],
+          isLoading: false,
+          error: null,
+          lastFetched: null,
+          isInitialized: false,
+        });
+      },
+
       // 내부 액션
       setLoading: (loading: boolean) => set({ isLoading: loading }),
       setError: (error: string | null) => set({ error }),
     }),
     {
-      name: "category-storage", // 로컬 스토리지에 저장될 키 이름
-      partialize: (state) => ({ categories: state.categories }), // 로컬 스토리지에 저장할 상태만 선택
+      name: "category-storage",
+      partialize: (state) => ({
+        categories: state.categories,
+        lastFetched: state.lastFetched,
+        isInitialized: state.isInitialized,
+      }),
     }
   )
 );

@@ -5,7 +5,6 @@ import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
 import { Paperclip, Plus, Minus, X, AlertCircle, Loader2 } from "lucide-react";
 import { useOrder } from "@/hooks/useOrder";
-import { useTeamItems } from "@/hooks/useTeamItems";
 import { useSuppliers } from "@/hooks/useSupplier";
 import { toast } from "react-hot-toast";
 import { CreateOrderDto, OrderStatus } from "@/types/(order)/order";
@@ -67,8 +66,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     mutate: createOrder,
     // data: createOrderResponse
   } = useCreateOrder();
-  const { useGetTeamItems } = useTeamItems();
-  const { data: teamItems } = useGetTeamItems();
   const { useGetSuppliers } = useSuppliers();
   const { suppliers: suppliersResponse } = useGetSuppliers();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -150,7 +147,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     const updatedItems = orderItems.map((item) => {
       // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
       const stockItem = currentWarehouseItems.find(
-        (stockItem) => stockItem.itemCode === item.teamItem.itemCode
+        (stockItem) => stockItem.teamItem.itemCode === item.teamItem.itemCode
       );
 
       // 재고 상태 계산
@@ -177,13 +174,13 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
     // 변경된 항목이 있는 경우에만 상태 업데이트
     const hasChanges = updatedItems.some(
-      (item, index) => item !== orderItems[index]
+      (item, index) =>
+        item.stockAvailable !== orderItems[index].stockAvailable ||
+        item.stockQuantity !== orderItems[index].stockQuantity
     );
 
     if (hasChanges) {
-      setTimeout(() => {
-        setOrderItems(updatedItems);
-      }, 0);
+      setOrderItems(updatedItems);
     }
   }, [currentWarehouseItems, formData.warehouseId, orderItems]);
 
@@ -239,26 +236,20 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     // 패키지의 아이템 목록을 파싱
     const itemCodes = selectedPackage.itemlist.split(", ");
 
-    // 각 아이템 코드에 대해 teamItems에서 해당 아이템을 찾아 orderItems에 추가
+    // 각 아이템 코드에 대해 currentWarehouseItems에서 해당 아이템을 찾아 orderItems에 추가
     const newItems = itemCodes
       .map((itemCode) => {
-        const teamItem = teamItems?.find((item) => item.itemCode === itemCode);
-        if (!teamItem) return null;
-
-        // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
-        const stockItem =
-          warehouseItemsData && formData.warehouseId
-            ? (warehouseItemsData.data as Item[]).find(
-                (stockItem) => stockItem.itemCode === itemCode
-              )
-            : null;
+        const warehouseItem = currentWarehouseItems.find(
+          (item) => item.teamItem.itemCode === itemCode
+        );
+        if (!warehouseItem) return null;
 
         return {
-          teamItem,
+          teamItem: warehouseItem.teamItem,
           quantity: 1,
-          stockAvailable: stockItem ? stockItem.itemQuantity >= 1 : false,
-          stockQuantity: stockItem?.itemQuantity || 0,
-          warehouseItemId: stockItem?.id || 0,
+          stockAvailable: warehouseItem.itemQuantity >= 1,
+          stockQuantity: warehouseItem.itemQuantity,
+          warehouseItemId: warehouseItem.id,
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -283,19 +274,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
     // 이미 추가된 아이템인지 확인
     const isItemExists = orderItems.some(
-      (item) => item.teamItem.itemCode === selected.itemCode
+      (item) => item.teamItem.itemCode === selected.teamItem.itemCode
     );
 
     if (isItemExists) {
       toast.error("이미 추가된 아이템입니다");
-      return;
-    }
-
-    // 팀 아이템 정보 찾기 (itemCode로 매칭)
-    const teamItem =
-      teamItems?.find((item) => item.itemCode === selected.itemCode) || null;
-    if (!teamItem) {
-      toast.error("팀 품목 정보를 찾을 수 없습니다");
       return;
     }
 
@@ -304,11 +287,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       setOrderItems((prev) => [
         ...prev,
         {
-          teamItem,
+          teamItem: selected.teamItem,
           quantity: 1,
           stockAvailable: selected.itemQuantity >= 1,
           stockQuantity: selected.itemQuantity,
-          warehouseItemId: selected.id, // 창고 아이템 ID 저장
+          warehouseItemId: selected.id,
         },
       ]);
     }, 0);
@@ -328,30 +311,34 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
   // 아이템 수량 변경 핸들러
   const handleQuantityChange = (index: number, increment: boolean) => {
-    setTimeout(() => {
-      setOrderItems((prev) => {
-        const updated = prev.map((item, idx) => {
-          if (idx === index) {
-            const newQuantity = increment
-              ? item.quantity + 1
-              : item.quantity > 0
-              ? item.quantity - 1
-              : item.quantity;
+    setOrderItems((prev) => {
+      const updated = prev.map((item, idx) => {
+        if (idx === index) {
+          const newQuantity = increment
+            ? item.quantity + 1
+            : item.quantity > 0
+            ? item.quantity - 1
+            : item.quantity;
 
-            return {
-              ...item,
-              quantity: newQuantity,
-              stockAvailable:
-                item.stockQuantity !== undefined
-                  ? item.stockQuantity >= newQuantity
-                  : false,
-            };
-          }
-          return item;
-        });
-        return updated;
+          // 현재 창고의 아이템에서 재고 확인
+          const stockItem = currentWarehouseItems.find(
+            (stockItem) =>
+              stockItem.teamItem.itemCode === item.teamItem.itemCode
+          );
+
+          return {
+            ...item,
+            quantity: newQuantity,
+            stockAvailable: stockItem
+              ? stockItem.itemQuantity >= newQuantity
+              : false,
+            stockQuantity: stockItem?.itemQuantity || 0,
+          };
+        }
+        return item;
       });
-    }, 0);
+      return updated;
+    });
   };
 
   const handleChange = (
@@ -593,9 +580,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               toast.success("발주 요청이 완료되었습니다");
             }
 
-            // 2초 후 orderRecord 페이지로 이동
+            // 2초 후 orderRecord 페이지로 이동 (히스토리 대체)
             setTimeout(() => {
-              router.push("/orderRecord");
+              router.replace("/orderRecord");
             }, 2000);
           } else {
             setIsSubmitting(false);
@@ -678,8 +665,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               <option value="0">품목 선택</option>
               {currentWarehouseItems.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.itemName} ({item.itemCode}) - 재고: {item.itemQuantity}
-                  개
+                  {item.teamItem.itemName} ({item.teamItem.itemCode}) - 재고:{" "}
+                  {item.itemQuantity}개
                 </option>
               ))}
             </select>

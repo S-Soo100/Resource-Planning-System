@@ -183,6 +183,13 @@ const OrderRecordTabs = () => {
   const { data: supplierOrders, isLoading: supplierLoading } =
     useSupplierOrders(supplierId);
 
+  // 디버깅을 위한 로그 추가
+  useEffect(() => {
+    console.log("전체 주문 데이터:", allOrders);
+    console.log("로딩 상태:", allLoading);
+    console.log("현재 팀 ID:", currentTeamId);
+  }, [allOrders, allLoading, currentTeamId]);
+
   // 현재 활성화된 탭에 따라 기본 데이터 선택
   const baseApiResponse = useMemo(() => {
     switch (activeTab) {
@@ -198,11 +205,14 @@ const OrderRecordTabs = () => {
   // API 응답 데이터를 IOrderRecord 형식으로 변환 (useMemo로 최적화)
   const allOrderRecords = useMemo(() => {
     if (baseApiResponse?.success && baseApiResponse?.data) {
-      // console.log(
-      //   `기본 데이터 변환 중 - 데이터 개수: ${baseApiResponse.data.length}`
-      // );
+      console.log("API 응답 데이터:", baseApiResponse);
+      console.log(
+        "변환된 주문 기록:",
+        baseApiResponse.data.map(convertToOrderRecord)
+      );
       return baseApiResponse.data.map(convertToOrderRecord);
     }
+    console.log("API 응답이 없거나 실패:", baseApiResponse);
     return [];
   }, [baseApiResponse]);
 

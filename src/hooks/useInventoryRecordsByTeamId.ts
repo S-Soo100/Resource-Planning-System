@@ -25,5 +25,6 @@ export function useInventoryRecordsByTeamId() {
     records: query.data?.data || [],
     isLoading: query.isLoading,
     error: query.error,
+    refetch: query.refetch,
   };
 }

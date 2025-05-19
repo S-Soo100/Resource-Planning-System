@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Address } from "react-daum-postcode";
-import { CreateWarehouseDto, CreateWarehouseProps } from "@/types/warehouse";
+import {
+  CreateWarehouseDto,
+  CreateWarehouseProps,
+  Warehouse,
+} from "@/types/warehouse";
 import { adminService } from "@/services/adminService";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -14,11 +18,7 @@ const SearchAddressModal = dynamic(() => import("../SearchAddressModal"), {
 });
 
 interface WarehouseManagementProps {
-  warehouses: {
-    id: string;
-    warehouseName: string;
-    warehouseAddress: string;
-  }[];
+  warehouses: Warehouse[];
   isReadOnly?: boolean;
 }
 
@@ -42,18 +42,18 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
   const { invalidateInventory, refetchAll } = useWarehouseItems();
 
   const [editingWarehouse, setEditingWarehouse] = useState<{
-    id: string;
+    id: number;
     warehouseName: string;
     warehouseAddress: string;
   } | null>(null);
 
   // 컴포넌트 마운트 시 창고 목록 디버깅
   useEffect(() => {
-    console.log("[창고 목록 정본]", JSON.stringify(warehouses));
-    console.log(
-      "WarehouseManagement 렌더링, warehouses 개수:",
-      warehouses.length
-    );
+    // console.log("[창고 목록 정본]", JSON.stringify(warehouses));
+    // console.log(
+    //   "WarehouseManagement 렌더링, warehouses 개수:",
+    //   warehouses.length
+    // );
 
     // 각 창고의 주소 정보 상세 디버깅
     warehouses.forEach((warehouse) => {
@@ -213,29 +213,24 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
     setIsAddressModalOpen(false);
   };
 
-  const handleEditWarehouse = (warehouse: {
-    id: string;
-    warehouseName: string;
-    warehouseAddress: string;
-  }) => {
-    setEditingWarehouse(warehouse);
+  const handleEditWarehouse = (warehouse: Warehouse) => {
+    setEditingWarehouse({
+      id: warehouse.id,
+      warehouseName: warehouse.warehouseName,
+      warehouseAddress: warehouse.warehouseAddress || "",
+    });
 
     // 주소와 상세 주소 분리 시도
-    let mainAddress = warehouse.warehouseAddress;
+    let mainAddress = warehouse.warehouseAddress || "";
     let detailLocation = "";
 
     // 주소 데이터에서 상세 주소 추출 시도 (예: 마지막 공백 이후를 상세 주소로 간주)
-    const lastSpaceIndex = warehouse.warehouseAddress.lastIndexOf(" ");
-    if (
-      lastSpaceIndex !== -1 &&
-      lastSpaceIndex < warehouse.warehouseAddress.length - 1
-    ) {
-      const potentialDetail = warehouse.warehouseAddress.substring(
-        lastSpaceIndex + 1
-      );
+    const lastSpaceIndex = mainAddress.lastIndexOf(" ");
+    if (lastSpaceIndex !== -1 && lastSpaceIndex < mainAddress.length - 1) {
+      const potentialDetail = mainAddress.substring(lastSpaceIndex + 1);
       // 숫자로만 구성된 경우 상세 주소로 간주 (예: 아파트 호수 등)
       if (/^\d+$/.test(potentialDetail)) {
-        mainAddress = warehouse.warehouseAddress.substring(0, lastSpaceIndex);
+        mainAddress = mainAddress.substring(0, lastSpaceIndex);
         detailLocation = potentialDetail;
       }
     }

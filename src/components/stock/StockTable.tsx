@@ -21,6 +21,7 @@ import {
   useCreateInventoryRecord,
   useUploadInventoryRecordFile,
 } from "@/hooks/useInventoryRecord";
+import { useInventoryRecordsByTeamId } from "@/hooks/useInventoryRecordsByTeamId";
 // import { authService } from "@/services/authService";
 
 // 파일 타입 정의 추가
@@ -68,6 +69,7 @@ export default function StockTable() {
   const updateQuantityMutation = useUpdateItemQuantity();
   const { createInventoryRecordAsync } = useCreateInventoryRecord();
   const { uploadFileAsync } = useUploadInventoryRecordFile();
+  const { refetch: refetchInventoryRecords } = useInventoryRecordsByTeamId();
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
   const [isInboundModalOpen, setIsInboundModalOpen] = useState(false);
   const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
@@ -514,7 +516,7 @@ export default function StockTable() {
       const recordData: CreateInventoryRecordDto = {
         itemId: inboundValues.itemId!,
         inboundQuantity: inboundValues.quantity,
-        inboundDate: inboundValues.date,
+        inboundDate: new Date(inboundValues.date).toISOString(),
         inboundLocation: [
           inboundValues.inboundPlace,
           inboundValues.inboundAddress,
@@ -550,7 +552,25 @@ export default function StockTable() {
         }
 
         await invalidateInventory();
+        await refetchInventoryRecords();
         alert("입고가 성공적으로 처리되었습니다.");
+
+        // 입고 모달 데이터 초기화
+        setInboundValues({
+          itemId: null,
+          itemCode: "",
+          itemName: "",
+          quantity: 1,
+          date: new Date().toISOString().split("T")[0],
+          inboundPlace: "",
+          inboundAddress: "",
+          inboundAddressDetail: "",
+          remarks: "",
+          warehouseId: inboundValues.warehouseId,
+          attachedFiles: [],
+          supplierId: undefined,
+        });
+
         handleCloseInboundModal();
       } catch (error: any) {
         console.error("입고 기록 생성 실패:", error);
@@ -578,7 +598,7 @@ export default function StockTable() {
       const recordData: CreateInventoryRecordDto = {
         itemId: outboundValues.itemId!,
         outboundQuantity: outboundValues.quantity,
-        outboundDate: outboundValues.date,
+        outboundDate: new Date(outboundValues.date).toISOString(),
         outboundLocation: [
           outboundValues.outboundPlace,
           outboundValues.outboundAddress,
@@ -614,6 +634,7 @@ export default function StockTable() {
         }
 
         await invalidateInventory();
+        await refetchInventoryRecords();
         alert("출고가 성공적으로 처리되었습니다.");
         handleCloseOutboundModal();
       } catch (error: any) {

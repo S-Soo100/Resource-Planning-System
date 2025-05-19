@@ -186,8 +186,8 @@ const MainMenuComponent = () => {
       accessLevel: ["admin", "moderator"],
     },
     {
-      title: "관리 - 팀 관리",
-      subtitle: "팀 구성원과 권한을 관리합니다",
+      title: "관리 - 팀멤버, 창고 관리",
+      subtitle: "팀 구성원 추가, 창고 추가",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () => checkAccess(`/admin`, ["admin", "moderator"]),
       accessLevel: ["admin", "moderator"],

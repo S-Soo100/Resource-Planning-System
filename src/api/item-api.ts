@@ -17,16 +17,11 @@ export const createItem = async (
   }
 };
 
-export const getAllItems = async (
-  search?: string,
-  warehouseId?: string
+export const getAllItemsByTeamId = async (
+  teamId: string
 ): Promise<ApiResponse> => {
   try {
-    const params = new URLSearchParams();
-    if (search) params.append("search", search);
-    if (warehouseId) params.append("warehouseId", warehouseId);
-
-    const response = await api.get<ApiResponse>(`/item?${params.toString()}`);
+    const response = await api.get<ApiResponse>(`/item/team-item/${teamId}`);
     return response.data;
   } catch {
     return { success: false, message: "아이템 목록 조회에 실패했습니다." };

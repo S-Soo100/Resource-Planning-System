@@ -2,7 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createItem,
-  getAllItems,
+  getAllItemsByTeamId as getAllItemsByTeamId,
   getItem,
   updateItem as updateItemApi,
   deleteItem as deleteItemApi,
@@ -15,16 +15,18 @@ import {
   UpdateItemQuantityRequest,
 } from "@/types/(item)/item";
 import toast from "react-hot-toast";
+import { authStore } from "@/store/authStore";
 
 export function useItems(warehouseId?: string) {
   const queryClient = useQueryClient();
 
   // 모든 아이템 조회 (검색어와 창고ID 기반)
-  const useGetItems = (search?: string) => {
+  const useGetItemsByTeam = () => {
+    const currentTeamId = authStore((state) => state.selectedTeam?.id);
     return useQuery({
-      queryKey: ["items", { search, warehouseId }],
-      queryFn: () => getAllItems(search, warehouseId),
-      staleTime: 5 * 60 * 1000, // 5분
+      queryKey: ["items", { currentTeamId }],
+      queryFn: () => getAllItemsByTeamId(currentTeamId!.toString()),
+      staleTime: 30 * 60 * 1000, // 30분
     });
   };
 
@@ -196,7 +198,7 @@ export function useItems(warehouseId?: string) {
   };
 
   return {
-    useGetItems,
+    useGetItems: useGetItemsByTeam,
     useGetItemsByWarehouse,
     useGetItem,
     useAddItem,

@@ -64,20 +64,22 @@ export interface OrderWarehouse {
 
 export interface OrderItem {
   id: number;
-  orderId: number;
   itemId: number;
   quantity: number;
   memo: string;
-  createdAt: string;
-  updatedAt: string;
-  item: OrderItemDetail;
-}
-
-export interface OrderItemDetail {
-  id: number;
-  itemCode: string;
-  itemName: string;
-  itemQuantity: number;
+  item: {
+    id: number;
+    itemQuantity: number;
+    teamItem: {
+      id: number;
+      itemCode: string;
+      itemName: string;
+      memo: string;
+    };
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+  };
 }
 
 export interface OrderFile {

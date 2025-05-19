@@ -326,6 +326,22 @@ export default function CustomItemTable({
                                     searchQueries[warehouse.id].toLowerCase()
                                   ))
                           )
+                          .sort((a, b) => {
+                            // 먼저 카테고리로 정렬
+                            const categoryA = getCategoryNameById(
+                              a.teamItem.categoryId
+                            );
+                            const categoryB = getCategoryNameById(
+                              b.teamItem.categoryId
+                            );
+                            if (categoryA !== categoryB) {
+                              return categoryA.localeCompare(categoryB);
+                            }
+                            // 카테고리가 같으면 품목코드로 정렬
+                            return a.teamItem.itemCode.localeCompare(
+                              b.teamItem.itemCode
+                            );
+                          })
                           .map((item) => (
                             <tr key={item.id}>
                               <td className="px-4 py-2">

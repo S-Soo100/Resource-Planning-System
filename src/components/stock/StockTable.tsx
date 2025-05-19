@@ -649,14 +649,23 @@ export default function StockTable() {
   // 검색 기능
   const getFilteredItems = (warehouseItems: any[]) => {
     return warehouseItems.filter((item) => {
-      // itemCode나 itemName이 없을 경우 빈 문자열로 처리
-      const itemCode = item.itemCode || "";
-      const itemName = item.itemName || "";
+      // 검색 대상 필드들
+      const itemCode = item.teamItem?.itemCode || "";
+      const itemName = item.teamItem?.itemName || "";
+      const memo = item.teamItem?.memo || "";
+      const categoryName = item.teamItem?.category?.name || "";
 
+      // 검색어를 소문자로 변환
+      const searchLower = searchText.toLowerCase();
+
+      // 각 필드에서 검색어 포함 여부 확인
       const matchesSearch =
-        itemCode.toLowerCase().includes(searchText.toLowerCase()) ||
-        itemName.toLowerCase().includes(searchText.toLowerCase());
+        itemCode.toLowerCase().includes(searchLower) ||
+        itemName.toLowerCase().includes(searchLower) ||
+        memo.toLowerCase().includes(searchLower) ||
+        categoryName.toLowerCase().includes(searchLower);
 
+      // 재고가 0인 품목 필터링
       const passesZeroFilter = hideZeroStock ? item.itemQuantity > 0 : true;
 
       return matchesSearch && passesZeroFilter;

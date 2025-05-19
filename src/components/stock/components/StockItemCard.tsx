@@ -83,70 +83,92 @@ export default function StockItemCard({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4">
+    <div className="grid grid-cols-1 gap-1.5">
       {categories.map((cat) => (
         <React.Fragment key={cat.id}>
           <div
-            className="bg-gray-100 font-bold px-4 py-2 rounded text-base text-gray-700 mb-2 mt-4 cursor-pointer select-none"
+            className="bg-gray-100 font-bold px-2.5 py-1.5 rounded-lg text-base text-gray-700 mb-1 mt-1.5 cursor-pointer select-none flex items-center justify-between"
             onClick={() => handleToggle(String(cat.id))}
           >
-            <span>{openCategories[String(cat.id)] ? "▼" : "▶"} </span>
-            {cat.name}
+            <span className="flex items-center">
+              <span className="mr-1">
+                {openCategories[String(cat.id)] ? "▼" : "▶"}
+              </span>
+              {cat.name}
+            </span>
+            <span className="text-sm text-gray-500">
+              {grouped[cat.id].length}개 품목
+            </span>
           </div>
           {openCategories[String(cat.id)] &&
             (grouped[cat.id].length > 0 ? (
               grouped[cat.id].map((item, itemIndex) => (
                 <div
                   key={`item-card-${item.id}-${itemIndex}`}
-                  className="bg-white rounded-xl shadow-sm p-4"
+                  className="bg-white rounded-lg shadow-sm p-2 border border-gray-100"
                 >
-                  <div className="flex items-center">
+                  <div className="flex flex-col">
                     <div
-                      className="flex-1 cursor-pointer"
+                      className="cursor-pointer"
                       onClick={() => router.push(`/item/detail/${item.id}`)}
                     >
-                      <div className="text-gray-500 text-sm mb-1">
-                        카테고리:{" "}
-                        {getCategoryName(
-                          item.teamItem.category?.id ?? item.teamItem.categoryId
-                        )}
+                      <div className="flex justify-between items-start mb-0.5">
+                        <div className="flex-1">
+                          <div className="text-blue-500 font-medium text-base mb-0.5">
+                            {item.teamItem.itemName}
+                          </div>
+                          <div className="text-gray-500 text-sm">
+                            {item.teamItem.itemCode}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-gray-500 text-sm mb-0.5">
+                            재고수량
+                          </div>
+                          <div className="text-xl font-bold text-blue-600">
+                            {item.itemQuantity}
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-blue-500 font-medium text-lg">
-                        {item.teamItem.itemName}
+
+                      <div className="grid grid-cols-2 gap-1 text-sm mt-1.5">
+                        <div className="text-gray-500">
+                          카테고리:{" "}
+                          {getCategoryName(
+                            item.teamItem.category?.id ??
+                              item.teamItem.categoryId
+                          )}
+                        </div>
+                        <div className="text-gray-500 text-right">
+                          최종수정:{" "}
+                          {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
+                        </div>
                       </div>
-                      <div className="text-gray-500 text-sm">
-                        {item.teamItem.itemCode}
-                      </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        최종수정:{" "}
-                        {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
-                      </div>
+
                       {item.teamItem.memo && (
-                        <div className="text-xs text-gray-500">
-                          메모: {truncateMemo(item.teamItem.memo)}
+                        <div className="mt-1 p-1 bg-gray-50 rounded-lg">
+                          <div className="text-xs text-gray-500">
+                            메모: {truncateMemo(item.teamItem.memo)}
+                          </div>
                         </div>
                       )}
                     </div>
 
-                    <div className="text-right">
-                      <div className="text-gray-500 text-sm mb-1">재고수량</div>
-                      <div className="text-2xl font-bold text-blue-600">
-                        {item.itemQuantity}
-                      </div>
-                      {showEditButton && (
+                    {showEditButton && (
+                      <div className="mt-1.5 flex justify-end">
                         <button
-                          className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors duration-150"
+                          className="px-2.5 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors duration-150 shadow-sm"
                           onClick={() => onEditQuantity(item)}
                         >
-                          수정
+                          수량 수정
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-gray-400 text-sm px-4 py-2">
+              <div className="text-gray-400 text-sm px-2.5 py-1">
                 해당 카테고리 품목 없음
               </div>
             ))}
@@ -156,56 +178,74 @@ export default function StockItemCard({
       {grouped["none"].length > 0 && (
         <>
           <div
-            className="bg-gray-100 font-bold px-4 py-2 rounded text-base text-gray-700 mb-2 mt-4 cursor-pointer select-none"
+            className="bg-gray-100 font-bold px-2.5 py-1.5 rounded-lg text-base text-gray-700 mb-1 mt-1.5 cursor-pointer select-none flex items-center justify-between"
             onClick={() => handleToggle("none")}
           >
-            <span>{openCategories["none"] ? "▼" : "▶"} </span>카테고리 없음
+            <span className="flex items-center">
+              <span className="mr-1">{openCategories["none"] ? "▼" : "▶"}</span>
+              카테고리 없음
+            </span>
+            <span className="text-sm text-gray-500">
+              {grouped["none"].length}개 품목
+            </span>
           </div>
           {openCategories["none"] &&
             grouped["none"].map((item, itemIndex) => (
               <div
                 key={`item-card-none-${item.id}-${itemIndex}`}
-                className="bg-white rounded-xl shadow-sm p-4"
+                className="bg-white rounded-lg shadow-sm p-2 border border-gray-100"
               >
-                <div className="flex items-center">
+                <div className="flex flex-col">
                   <div
-                    className="flex-1 cursor-pointer"
+                    className="cursor-pointer"
                     onClick={() => router.push(`/item/detail/${item.id}`)}
                   >
-                    <div className="text-gray-500 text-sm mb-1">
-                      카테고리: -
+                    <div className="flex justify-between items-start mb-0.5">
+                      <div className="flex-1">
+                        <div className="text-blue-500 font-medium text-base mb-0.5">
+                          {item.teamItem.itemName}
+                        </div>
+                        <div className="text-gray-500 text-sm">
+                          {item.teamItem.itemCode}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-gray-500 text-sm mb-0.5">
+                          재고수량
+                        </div>
+                        <div className="text-xl font-bold text-blue-600">
+                          {item.itemQuantity}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-blue-500 font-medium text-lg">
-                      {item.teamItem.itemName}
+
+                    <div className="grid grid-cols-2 gap-1 text-sm mt-1.5">
+                      <div className="text-gray-500">카테고리: -</div>
+                      <div className="text-gray-500 text-right">
+                        최종수정:{" "}
+                        {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
+                      </div>
                     </div>
-                    <div className="text-gray-500 text-sm">
-                      {item.teamItem.itemCode}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      최종수정:{" "}
-                      {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
-                    </div>
+
                     {item.teamItem.memo && (
-                      <div className="text-xs text-gray-500">
-                        메모: {truncateMemo(item.teamItem.memo)}
+                      <div className="mt-1 p-1 bg-gray-50 rounded-lg">
+                        <div className="text-xs text-gray-500">
+                          메모: {truncateMemo(item.teamItem.memo)}
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  <div className="text-right">
-                    <div className="text-gray-500 text-sm mb-1">재고수량</div>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {item.itemQuantity}
-                    </div>
-                    {showEditButton && (
+                  {showEditButton && (
+                    <div className="mt-1.5 flex justify-end">
                       <button
-                        className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors duration-150"
+                        className="px-2.5 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors duration-150 shadow-sm"
                         onClick={() => onEditQuantity(item)}
                       >
-                        수정
+                        수량 수정
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

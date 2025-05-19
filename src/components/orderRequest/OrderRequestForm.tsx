@@ -409,7 +409,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     const warehouseId = parseInt(e.target.value);
     setFormData({
       ...formData,
-      warehouseId: warehouseId === 0 ? null : warehouseId,
+      warehouseId: warehouseId,
     });
 
     // 창고가 변경되면 선택된 아이템을 완전히 초기화

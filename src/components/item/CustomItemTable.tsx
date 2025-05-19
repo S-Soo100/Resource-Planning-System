@@ -243,7 +243,12 @@ export default function CustomItemTable({
               className="p-4 flex justify-between items-center cursor-pointer"
               onClick={() => toggleWarehouse(warehouse.id)}
             >
-              <h3 className="text-lg font-medium">{warehouse.warehouseName}</h3>
+              <div>
+                <h3 className="text-lg font-medium">
+                  {warehouse.warehouseName}
+                </h3>
+                <p className="text-sm text-gray-500">ID: {warehouse.id}</p>
+              </div>
               <div className="flex items-center gap-2">
                 {!isReadOnly && (
                   <button

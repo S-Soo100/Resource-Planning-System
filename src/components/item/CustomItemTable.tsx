@@ -48,7 +48,7 @@ export default function CustomItemTable({
   });
 
   // 카테고리 스토어 접근
-  const { categories, fetchCategories } = useCategoryStore();
+  const { categories, fetchCategories, isInitialized } = useCategoryStore();
 
   const [warehouses, setWarehouses] = useState<TeamWarehouse[]>([]);
 
@@ -56,7 +56,7 @@ export default function CustomItemTable({
   useEffect(() => {
     const team = authService.getSelectedTeam();
     if (team) {
-      if (team.id) {
+      if (team.id && !isInitialized) {
         const teamIdNumber = parseInt(team.id.toString(), 10);
         fetchCategories(teamIdNumber);
       }
@@ -68,7 +68,7 @@ export default function CustomItemTable({
     } else {
       setWarehouses([]);
     }
-  }, [fetchCategories]);
+  }, [fetchCategories, isInitialized]);
 
   // 모달 외부 클릭 시 닫기
   useEffect(() => {

@@ -24,24 +24,24 @@ const MainMenuComponent = () => {
   const setActiveTab = menuStore((state) => state.setActiveTab);
 
   // 카테고리 스토어 접근
-  const { categories, fetchCategories } = useCategoryStore();
+  const { fetchCategories, isInitialized } = useCategoryStore();
 
   // 선택된 팀 정보 가져오기
   const selectedTeam = authStore((state) => state.selectedTeam);
 
   // 컴포넌트 마운트 시 카테고리 데이터 로드
   useEffect(() => {
-    // 선택된 팀이 있고 카테고리가 비어있는 경우에만 불러오기
-    if (selectedTeam?.id && categories.length === 0) {
+    // 선택된 팀이 있고, 카테고리가 초기화되지 않은 경우에만 불러오기
+    if (selectedTeam?.id && !isInitialized) {
       console.log("MainMenuComponent: 카테고리 데이터 로드 시작", {
         teamId: selectedTeam.id,
-        categoriesLength: categories.length,
+        isInitialized,
       });
       fetchCategories(selectedTeam.id).catch((error) => {
         console.error("카테고리 데이터 로드 실패:", error);
       });
     }
-  }, [selectedTeam?.id, categories.length, fetchCategories]);
+  }, [selectedTeam?.id, isInitialized, fetchCategories]);
 
   // 사용자 권한에 따라 기본 탭 설정
   useEffect(() => {

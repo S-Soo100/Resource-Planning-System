@@ -17,7 +17,7 @@ export interface CreateTeamItemDto {
   itemName: string;
   memo?: string;
   teamId: number;
-  categoryId: number;
+  categoryId: number | null;
 }
 
 export interface UpdateTeamItemDto {
@@ -25,7 +25,7 @@ export interface UpdateTeamItemDto {
   itemName: string;
   memo?: string;
   teamId: number;
-  categoryId: number;
+  categoryId: number | null;
 }
 
 export interface DeleteTeamItemResponse {

@@ -51,7 +51,10 @@ export default function ItemsPage() {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">품목 관리</h1>
+        <div>
+          <h1 className="text-2xl font-bold">품목 관리</h1>
+          <p className="text-sm text-gray-500">창고 ID: {user.restrictedWhs}</p>
+        </div>
         {isReadOnly && (
           <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
             중재자 권한으로는 조회만 가능합니다

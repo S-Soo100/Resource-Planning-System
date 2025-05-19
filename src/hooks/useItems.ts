@@ -13,6 +13,7 @@ import {
   CreateItemApiRequest,
   UpdateItemRequest,
   UpdateItemQuantityRequest,
+  ItemsResponse,
 } from "@/types/(item)/item";
 import toast from "react-hot-toast";
 import { authStore } from "@/store/authStore";
@@ -30,30 +31,21 @@ export function useItems(warehouseId?: string) {
     });
   };
 
-  // 창고별 아이템 조회 (최적화: /warehouse/{id} API 사용)
+  // 창고별 아이템 조회 (팀 전체 아이템에서 필터링)
   const useGetItemsByWarehouse = (specificWarehouseId?: string) => {
     const targetWarehouseId = specificWarehouseId || warehouseId;
-    return useQuery({
-      queryKey: ["items", "warehouse", targetWarehouseId],
-      queryFn: async () => {
-        if (!targetWarehouseId) {
-          return { success: true, data: [] };
-        }
+    const { data: teamItems, ...rest } = useGetItemsByTeam();
 
-        // /warehouse/{id} API를 호출하여 창고 정보와 아이템 정보를 한 번에 가져옴
-        const response = await warehouseApi.getWarehouse(targetWarehouseId);
-        if (response.success && response.data) {
-          // 창고 데이터에서 items 배열 추출하여 반환
-          return { success: true, data: response.data.data.items || [] };
-        }
-        return {
-          success: false,
-          message: "창고별 아이템 조회에 실패했습니다.",
-        };
+    return {
+      ...rest,
+      data: {
+        success: true,
+        data:
+          (teamItems as ItemsResponse)?.data?.filter(
+            (item) => item.warehouseId === Number(targetWarehouseId)
+          ) || [],
       },
-      enabled: !!targetWarehouseId,
-      staleTime: 5 * 60 * 1000, // 5분
-    });
+    };
   };
 
   // 개별 아이템 조회

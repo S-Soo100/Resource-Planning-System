@@ -40,9 +40,20 @@ export const categoryApi = {
   updateCategory: async (
     category: UpdateCategoryDto
   ): Promise<ApiResponse<Category>> => {
-    const response = await api.put<ApiResponse<Category>>(
-      `/category/${category.id}`,
-      category
+    console.log("카테고리 수정 API 요청 데이터:", {
+      url: `/category/${category.id.toString()}`,
+      data: {
+        name: category.name,
+        // priority: category.priority,
+      },
+    });
+
+    const response = await api.patch<ApiResponse<Category>>(
+      `/category/${category.id.toString()}`,
+      {
+        name: category.name,
+        // priority: category.priority,
+      }
     );
     return response.data;
   },
@@ -51,7 +62,7 @@ export const categoryApi = {
     category: UpdateCategoryPriorityDto
   ): Promise<ApiResponse<Category>> => {
     const response = await api.patch<ApiResponse<Category>>(
-      `/category/${category.id}/priority?teamId=${category.teamId}`,
+      `/category/${category.id.toString()}/priority?teamId=${category.teamId.toString()}`,
       { priority: category.priority }
     );
     return response.data;

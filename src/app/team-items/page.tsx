@@ -170,20 +170,37 @@ export default function TeamItemsPage() {
 
       if (isCategoryEditMode && currentEditCategoryId) {
         // 수정 모드
-        const categoryDto: UpdateCategoryDto = {
-          id: currentEditCategoryId,
-          ...categoryFormData,
-          teamId: teamIdNumber,
-        };
+        const currentCategory = categories.find(
+          (c) => c.id === currentEditCategoryId
+        );
 
-        const result = await updateCategory(categoryDto);
+        if (currentCategory) {
+          // 이름이 변경된 경우
+          if (currentCategory.name !== categoryFormData.name) {
+            const categoryDto: UpdateCategoryDto = {
+              id: currentEditCategoryId,
+              name: categoryFormData.name,
+              priority: currentCategory.priority,
+              teamId: teamIdNumber,
+            };
+            await updateCategory(categoryDto);
+          }
 
-        if (result) {
+          // 우선순위가 변경된 경우
+          if (currentCategory.priority !== categoryFormData.priority) {
+            const priorityDto: UpdateCategoryPriorityDto = {
+              id: currentEditCategoryId,
+              priority: categoryFormData.priority,
+              teamId: teamIdNumber,
+            };
+            await updateCategoryPriority(priorityDto);
+          }
+
           // 성공적으로 카테고리 수정 후 카테고리 목록 다시 불러오기
           await fetchCategories(teamIdNumber);
           handleCloseCategoryModal();
         } else {
-          setCategorySubmitError("카테고리 수정에 실패했습니다.");
+          setCategorySubmitError("카테고리를 찾을 수 없습니다.");
         }
       } else {
         // 추가 모드
@@ -341,94 +358,6 @@ export default function TeamItemsPage() {
     }
   };
 
-  // 우선순위 증가 함수 (위로 이동)
-  const handlePriorityUp = async (category: (typeof categories)[0]) => {
-    if (!selectedTeam?.id) return;
-
-    // 현재 카테고리보다 우선순위가 하나 낮은(숫자가 작은) 카테고리 찾기
-    const sortedCategories = [...categories].sort(
-      (a, b) => a.priority - b.priority
-    );
-    const currentIndex = sortedCategories.findIndex(
-      (c) => c.id === category.id
-    );
-
-    // 이미 가장 위에 있는 경우
-    if (currentIndex <= 0) return;
-
-    const prevCategory = sortedCategories[currentIndex - 1];
-
-    // 카테고리 위치 변경
-    const teamIdNumber = selectedTeam.id
-      ? parseInt(selectedTeam.id.toString(), 10)
-      : 0;
-
-    // 현재 카테고리의 우선순위를 변경
-    const priorityDto: UpdateCategoryPriorityDto = {
-      id: category.id,
-      priority: prevCategory.priority,
-      teamId: teamIdNumber,
-    };
-
-    await updateCategoryPriority(priorityDto);
-
-    // 이전 카테고리의 우선순위도 변경
-    const prevPriorityDto: UpdateCategoryPriorityDto = {
-      id: prevCategory.id,
-      priority: category.priority,
-      teamId: teamIdNumber,
-    };
-
-    await updateCategoryPriority(prevPriorityDto);
-
-    // 카테고리 목록 새로고침
-    await fetchCategories(teamIdNumber);
-  };
-
-  // 우선순위 감소 함수 (아래로 이동)
-  const handlePriorityDown = async (category: (typeof categories)[0]) => {
-    if (!selectedTeam?.id) return;
-
-    // 현재 카테고리보다 우선순위가 하나 높은(숫자가 큰) 카테고리 찾기
-    const sortedCategories = [...categories].sort(
-      (a, b) => a.priority - b.priority
-    );
-    const currentIndex = sortedCategories.findIndex(
-      (c) => c.id === category.id
-    );
-
-    // 이미 가장 아래에 있는 경우
-    if (currentIndex >= sortedCategories.length - 1) return;
-
-    const nextCategory = sortedCategories[currentIndex + 1];
-
-    // 카테고리 위치 변경
-    const teamIdNumber = selectedTeam.id
-      ? parseInt(selectedTeam.id.toString(), 10)
-      : 0;
-
-    // 현재 카테고리의 우선순위를 변경
-    const priorityDto: UpdateCategoryPriorityDto = {
-      id: category.id,
-      priority: nextCategory.priority,
-      teamId: teamIdNumber,
-    };
-
-    await updateCategoryPriority(priorityDto);
-
-    // 다음 카테고리의 우선순위도 변경
-    const nextPriorityDto: UpdateCategoryPriorityDto = {
-      id: nextCategory.id,
-      priority: category.priority,
-      teamId: teamIdNumber,
-    };
-
-    await updateCategoryPriority(nextPriorityDto);
-
-    // 카테고리 목록 새로고침
-    await fetchCategories(teamIdNumber);
-  };
-
   if (isUserLoading || isLoading || isCategoryLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -520,7 +449,6 @@ export default function TeamItemsPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {!isReadOnly && <th className="w-10 px-2"></th>}
                     <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       순서
                     </th>
@@ -539,11 +467,6 @@ export default function TeamItemsPage() {
                     .sort((a, b) => a.priority - b.priority)
                     .map((category) => (
                       <tr key={category.id} className="hover:bg-gray-50">
-                        {!isReadOnly && (
-                          <td className="w-10 px-2 cursor-grab">
-                            <GripVertical size={18} className="text-gray-400" />
-                          </td>
-                        )}
                         <td className="px-6 py-3 text-sm text-gray-500 whitespace-nowrap">
                           {category.priority}
                         </td>
@@ -552,47 +475,7 @@ export default function TeamItemsPage() {
                         </td>
                         {!isReadOnly && (
                           <td className="px-6 py-3 text-sm text-center whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
-                              <div className="flex flex-col">
-                                <button
-                                  className="p-1 text-gray-500 transition-colors rounded-full hover:text-gray-700 hover:bg-gray-100"
-                                  onClick={() => handlePriorityUp(category)}
-                                  title="위로 이동"
-                                >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <path d="m18 15-6-6-6 6" />
-                                  </svg>
-                                </button>
-                                <button
-                                  className="p-1 text-gray-500 transition-colors rounded-full hover:text-gray-700 hover:bg-gray-100"
-                                  onClick={() => handlePriorityDown(category)}
-                                  title="아래로 이동"
-                                >
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <path d="m6 9 6 6 6-6" />
-                                  </svg>
-                                </button>
-                              </div>
+                            <div className="flex items-center justify-center">
                               <button
                                 className="text-blue-500 hover:text-blue-700 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
                                 onClick={() =>

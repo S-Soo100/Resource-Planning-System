@@ -2,13 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  AlertCircle,
-  GripVertical,
-} from "lucide-react";
+import { ArrowLeft, Edit, Trash2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { CreateTeamItemDto } from "@/types/(item)/team-item";

@@ -143,3 +143,44 @@ export const uploadOrderFileById = async (
     };
   }
 };
+
+// 파일 업로드 API
+export const uploadMultipleOrderFileById = async (
+  id: number,
+  files: File[],
+  expirationTimeMinutes: number = 30
+): Promise<ApiResponse<OrderFileResponse[]>> => {
+  try {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+    formData.append("expirationTimeMinutes", expirationTimeMinutes.toString());
+
+    const response = await api.post<ApiResponse<OrderFileResponse[]>>(
+      `/order/${id}/upload-multiple-with-signed-url`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return response.data as ApiResponse<OrderFileResponse[]>;
+  } catch (error) {
+    console.error("파일 업로드 실패:", error);
+    if (error instanceof AxiosError && error.response) {
+      return {
+        success: false,
+        error: error.response.data.message || "파일 업로드에 실패했습니다.",
+        data: undefined,
+      };
+    }
+    return {
+      success: false,
+      error: "파일 업로드에 실패했습니다.",
+      data: undefined,
+    };
+  }
+};

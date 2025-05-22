@@ -21,7 +21,7 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
 import { useItems } from "@/hooks/useItems";
 import { Item } from "@/types/(item)/item";
-import { uploadOrderFileById } from "@/api/order-api";
+import { uploadMultipleOrderFileById } from "@/api/order-api";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -499,15 +499,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             //! 파일이 첨부된 경우 추가 처리
             if (files.length > 0) {
               try {
-                // 첫 번째 파일만 업로드 (현재는 하나의 파일만 업로드됨)
-                const file = files[0];
-
-                if (!file || !(file instanceof File)) {
-                  console.error("유효하지 않은 파일 객체:", file);
-                  toast.error("유효하지 않은 파일 형식입니다");
-                  return;
-                }
-
                 const orderId = response.data.id;
 
                 if (!orderId) {
@@ -530,29 +521,39 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                     return;
                   }
 
-                  // 파일 크기 검사 (10MB 제한)
-                  const maxFileSize = 10 * 1024 * 1024; // 10MB
-                  if (file.size > maxFileSize) {
-                    console.error("파일 크기가 너무 큽니다:", file.size);
+                  // 파일 크기 검사 (50MB 제한)
+                  const maxFileSize = 50 * 1024 * 1024; // 50MB
+                  const oversizedFiles = files.filter(
+                    (file) => file.size > maxFileSize
+                  );
+
+                  if (oversizedFiles.length > 0) {
+                    console.error(
+                      "파일 크기가 너무 큰 파일이 있습니다:",
+                      oversizedFiles.map((f) => f.name)
+                    );
                     toast.error(
-                      "파일 크기가 10MB를 초과하여 업로드할 수 없습니다"
+                      "50MB를 초과하는 파일이 있어 업로드할 수 없습니다"
                     );
                     return;
                   }
 
-                  // uploadOrderFileById API 호출
+                  // uploadMultipleOrderFileById API 호출
                   try {
                     toast.loading("파일 업로드 중...");
-                    const uploadResponse = await uploadOrderFileById(
+                    const uploadResponse = await uploadMultipleOrderFileById(
                       orderIdAsNumber,
-                      file
+                      files
                     );
                     toast.dismiss();
 
                     if (uploadResponse.success) {
                       console.log("파일 업로드 성공:", uploadResponse.data);
+                      const uploadedFileNames = uploadResponse.data
+                        ?.map((file) => file.fileName)
+                        .join(", ");
                       toast.success(
-                        `발주 요청 및 파일 '${uploadResponse.data?.fileName}' 업로드가 완료되었습니다`
+                        `발주 요청 및 파일 '${uploadedFileNames}' 업로드가 완료되었습니다`
                       );
                     } else {
                       console.error("파일 업로드 실패:", uploadResponse.error);
@@ -891,15 +892,15 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         />
 
         <label htmlFor="file-upload">파일 업로드</label>
+        <div className="text-xs text-amber-600 mb-2">
+          * 파일 크기는 최대 50MB까지 업로드 가능합니다.
+        </div>
         <div
           onClick={() => selectedFiles.current?.click()}
           className="flex flex-row items-center gap-2 p-2 border rounded hover:bg-blue-100"
         >
           <Paperclip className="w-4 h-4" />
           파일 업로드
-          <p className="text-xs text-red-600">
-            *현재는 하나의 파일만 올라갑니다.
-          </p>
         </div>
         <input
           ref={selectedFiles}

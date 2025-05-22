@@ -217,8 +217,8 @@ export default function StockTable() {
 
     setQuantityEditValues({
       itemId: item.id,
-      itemCode: item.itemCode || "",
-      itemName: item.itemName || "",
+      itemCode: item.teamItem?.itemCode || "",
+      itemName: item.teamItem?.itemName || "",
       currentQuantity: item.itemQuantity,
       newQuantity: item.itemQuantity,
       warehouseId: item.warehouseId,
@@ -771,33 +771,6 @@ export default function StockTable() {
             {/* 선택된 창고의 재고 테이블 */}
             <div className="hidden md:block">
               <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                      카테고리
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                      품목 코드
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                      품목명
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                      재고수량
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                      최종수정일
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
-                      메모
-                    </th>
-                    {user?.accessLevel === "admin" && (
-                      <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
-                        관리
-                      </th>
-                    )}
-                  </tr>
-                </thead>
                 <tbody className="divide-y divide-gray-100">
                   <StockTableDesktop
                     items={getFilteredItems(

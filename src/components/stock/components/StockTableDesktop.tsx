@@ -21,9 +21,9 @@ export default function StockTableDesktop({
   }>(() => {
     const initial: { [key: string]: boolean } = {};
     categories.forEach((cat) => {
-      initial[cat.id] = true;
+      initial[cat.id] = false;
     });
-    initial["none"] = true;
+    initial["none"] = false;
     return initial;
   });
 
@@ -85,6 +85,11 @@ export default function StockTableDesktop({
 
   const grouped = groupItemsByCategory(items, categories);
 
+  // 카테고리별 총 재고 계산 함수
+  const calculateTotalQuantity = (items: Item[]) => {
+    return items.reduce((total, item) => total + item.itemQuantity, 0);
+  };
+
   return (
     <>
       {categories.map((cat) => (
@@ -97,15 +102,163 @@ export default function StockTableDesktop({
               colSpan={showEditButton ? 7 : 6}
               className="bg-gray-100 font-bold px-6 py-3 text-left text-base text-gray-700"
             >
-              <span>{openCategories[String(cat.id)] ? "▼" : "▶"} </span>
-              {cat.name}
+              <div className="flex justify-between items-center">
+                <span>
+                  {openCategories[String(cat.id)] ? "▼" : "▶"} {cat.name}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {grouped[cat.id].length}개 품목 / 총{" "}
+                  {calculateTotalQuantity(grouped[cat.id])}개
+                </span>
+              </div>
             </td>
           </tr>
-          {openCategories[String(cat.id)] &&
-            (grouped[cat.id].length > 0 ? (
-              grouped[cat.id].map((item, itemIndex) => (
+          {openCategories[String(cat.id)] && (
+            <>
+              <tr className="bg-gray-50">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  카테고리
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  품목 코드
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  품목명
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  재고수량
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  최종수정일
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  메모
+                </th>
+                {showEditButton && (
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
+                    관리
+                  </th>
+                )}
+              </tr>
+              {grouped[cat.id].length > 0 ? (
+                grouped[cat.id].map((item, itemIndex) => (
+                  <tr
+                    key={`item-${item.id}-${itemIndex}`}
+                    className="hover:bg-gray-50 transition-colors duration-150"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <a
+                        className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
+                        onClick={() => router.push(`/item/detail/${item.id}`)}
+                      >
+                        {getCategoryName(
+                          item.teamItem.category?.id ?? item.teamItem.categoryId
+                        )}
+                      </a>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <a
+                        className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
+                        onClick={() => router.push(`/item/detail/${item.id}`)}
+                      >
+                        {item.teamItem.itemCode}
+                      </a>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <a
+                        className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
+                        onClick={() => router.push(`/item/detail/${item.id}`)}
+                      >
+                        {item.teamItem.itemName}
+                      </a>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                      {item.itemQuantity}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 truncate max-w-xs">
+                      {truncateMemo(item.teamItem.memo)}
+                    </td>
+                    {showEditButton && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <div className="flex justify-center">
+                          <button
+                            className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-150 shadow-sm"
+                            onClick={() => onEditQuantity(item)}
+                          >
+                            수정
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={showEditButton ? 7 : 6}
+                    className="px-6 py-4 text-gray-400 text-sm"
+                  >
+                    해당 카테고리 품목 없음
+                  </td>
+                </tr>
+              )}
+            </>
+          )}
+        </React.Fragment>
+      ))}
+      {/* 카테고리 없는 아이템 */}
+      {grouped["none"].length > 0 && (
+        <>
+          <tr
+            onClick={() => handleToggle("none")}
+            className="cursor-pointer select-none"
+          >
+            <td
+              colSpan={showEditButton ? 7 : 6}
+              className="bg-gray-100 font-bold px-6 py-3 text-left text-base text-gray-700"
+            >
+              <div className="flex justify-between items-center">
+                <span>{openCategories["none"] ? "▼" : "▶"} 카테고리 없음</span>
+                <span className="text-sm text-gray-500">
+                  {grouped["none"].length}개 품목 / 총{" "}
+                  {calculateTotalQuantity(grouped["none"])}개
+                </span>
+              </div>
+            </td>
+          </tr>
+          {openCategories["none"] && (
+            <>
+              <tr className="bg-gray-50">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  카테고리
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  품목 코드
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  품목명
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  재고수량
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  최종수정일
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-2/12">
+                  메모
+                </th>
+                {showEditButton && (
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-1/12">
+                    관리
+                  </th>
+                )}
+              </tr>
+              {grouped["none"].map((item, itemIndex) => (
                 <tr
-                  key={`item-${item.id}-${itemIndex}`}
+                  key={`item-none-${item.id}-${itemIndex}`}
                   className="hover:bg-gray-50 transition-colors duration-150"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -113,9 +266,7 @@ export default function StockTableDesktop({
                       className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
                       onClick={() => router.push(`/item/detail/${item.id}`)}
                     >
-                      {getCategoryName(
-                        item.teamItem.category?.id ?? item.teamItem.categoryId
-                      )}
+                      -
                     </a>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -156,86 +307,9 @@ export default function StockTableDesktop({
                     </td>
                   )}
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={showEditButton ? 7 : 6}
-                  className="px-6 py-4 text-gray-400 text-sm"
-                >
-                  해당 카테고리 품목 없음
-                </td>
-              </tr>
-            ))}
-        </React.Fragment>
-      ))}
-      {/* 카테고리 없는 아이템 */}
-      {grouped["none"].length > 0 && (
-        <>
-          <tr
-            onClick={() => handleToggle("none")}
-            className="cursor-pointer select-none"
-          >
-            <td
-              colSpan={showEditButton ? 7 : 6}
-              className="bg-gray-100 font-bold px-6 py-3 text-left text-base text-gray-700"
-            >
-              <span>{openCategories["none"] ? "▼" : "▶"} </span>카테고리 없음
-            </td>
-          </tr>
-          {openCategories["none"] &&
-            grouped["none"].map((item, itemIndex) => (
-              <tr
-                key={`item-none-${item.id}-${itemIndex}`}
-                className="hover:bg-gray-50 transition-colors duration-150"
-              >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <a
-                    className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
-                    onClick={() => router.push(`/item/detail/${item.id}`)}
-                  >
-                    -
-                  </a>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <a
-                    className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
-                    onClick={() => router.push(`/item/detail/${item.id}`)}
-                  >
-                    {item.teamItem.itemCode}
-                  </a>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <a
-                    className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
-                    onClick={() => router.push(`/item/detail/${item.id}`)}
-                  >
-                    {item.teamItem.itemName}
-                  </a>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                  {item.itemQuantity}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600 truncate max-w-xs">
-                  {truncateMemo(item.teamItem.memo)}
-                </td>
-                {showEditButton && (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    <div className="flex justify-center">
-                      <button
-                        className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-150 shadow-sm"
-                        onClick={() => onEditQuantity(item)}
-                      >
-                        수정
-                      </button>
-                    </div>
-                  </td>
-                )}
-              </tr>
-            ))}
+              ))}
+            </>
+          )}
         </>
       )}
     </>

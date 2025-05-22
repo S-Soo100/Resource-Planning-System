@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Item } from "@/types/(item)/item";
 import { useCategoryStore } from "@/store/categoryStore";
 
@@ -14,7 +13,6 @@ export default function StockItemCard({
   onEditQuantity,
   showEditButton = true,
 }: StockItemCardProps) {
-  const router = useRouter();
   const { categories } = useCategoryStore();
 
   const [openCategories, setOpenCategories] = useState<{

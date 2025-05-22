@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { AttachedFile } from "../StockTable";
 import SearchAddressModal from "./SearchAddressModal";
+import { Category } from "@/types/(item)/category";
 
 interface InboundModalProps {
   isOpen: boolean;
@@ -22,20 +23,20 @@ interface InboundModalProps {
     attachedFiles: AttachedFile[];
     supplierId?: number;
   };
-  onFormChange: (
-    field: string,
-    value: string | number | null | AttachedFile[] | undefined
-  ) => void;
+  onFormChange: (field: string, value: any) => void;
   onSubmitInbound: () => void;
   warehouseItems: any[];
   selectedItem: any;
   onFileUpload: (files: FileList | null) => void;
   onFileDelete: (index: number) => void;
-  suppliers?: {
+  suppliers: {
     id: number;
     supplierName: string;
     supplierAddress: string;
   }[];
+  categories: Category[];
+  selectedCategoryId: number | null;
+  onCategoryChange: (categoryId: number | null) => void;
 }
 
 export default function InboundModal({
@@ -48,10 +49,21 @@ export default function InboundModal({
   selectedItem,
   onFileUpload,
   onFileDelete,
-  suppliers = [],
+  suppliers,
+  categories,
+  selectedCategoryId,
+  onCategoryChange,
 }: InboundModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+
+  useEffect(() => {
+    // console.log 제거
+  }, [isOpen, warehouseItems]);
+
+  useEffect(() => {
+    // console.log 제거
+  }, [selectedCategoryId, warehouseItems, isOpen]);
 
   if (!isOpen) return null;
 
@@ -177,25 +189,54 @@ export default function InboundModal({
 
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-gray-700">
+                      카테고리
+                    </label>
+                    <select
+                      value={selectedCategoryId || ""}
+                      onChange={(e) =>
+                        onCategoryChange(
+                          e.target.value ? Number(e.target.value) : null
+                        )
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                    >
+                      <option value="">카테고리를 선택하세요</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
                       품목 선택
                     </label>
                     <select
                       value={inboundValues.itemId || ""}
-                      onChange={(e) => {
-                        const selectedItemId = e.target.value
-                          ? parseInt(e.target.value)
-                          : null;
-                        onFormChange("itemId", selectedItemId);
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                      onChange={(e) =>
+                        onFormChange(
+                          "itemId",
+                          e.target.value ? Number(e.target.value) : null
+                        )
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm mt-2"
                     >
                       <option value="">품목을 선택하세요</option>
-                      {warehouseItems.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.teamItem?.itemName || "-"} (
-                          {item.teamItem?.itemCode || "-"})
-                        </option>
-                      ))}
+                      {warehouseItems
+                        .filter(
+                          (item) =>
+                            !selectedCategoryId ||
+                            String(item.teamItem?.categoryId) ===
+                              String(selectedCategoryId)
+                        )
+                        .map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.teamItem?.itemName || item.itemName} (재고:{" "}
+                            {item.itemQuantity})
+                          </option>
+                        ))}
                     </select>
                   </div>
 

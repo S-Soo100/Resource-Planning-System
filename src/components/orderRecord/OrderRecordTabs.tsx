@@ -25,6 +25,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useUpdateOrderStatus } from "@/hooks/(useOrder)/useOrderMutations";
 import { userApi } from "@/api/user-api";
+import { toast } from "react-hot-toast";
 
 // 사용자 접근 레벨 타입 추가
 type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
@@ -431,6 +432,60 @@ const OrderRecordTabs = () => {
         data: { status: newStatus },
       });
 
+      // 출고 완료 상태로 변경된 경우 추가 액션 수행
+      if (newStatus === OrderStatus.shipmentCompleted) {
+        try {
+          // 1. 재고 정보 최신화
+          await queryClient.invalidateQueries({ queryKey: ["inventory"] });
+
+          // 2. 입/출고 정보 최신화
+          await queryClient.invalidateQueries({ queryKey: ["shipments"] });
+
+          // 3. 주문 정보도 함께 최신화
+          await queryClient.invalidateQueries({ queryKey: ["orders"] });
+
+          alert("출고 완료, 재고에 반영 했습니다.");
+          toast.success(
+            "출고 완료 처리되었습니다. 재고가 업데이트되었습니다.",
+            {
+              duration: 4000,
+              position: "top-center",
+              style: {
+                background: "#4CAF50",
+                color: "#fff",
+                padding: "16px",
+                borderRadius: "8px",
+              },
+            }
+          );
+        } catch (error) {
+          console.error("데이터 최신화 실패:", error);
+          alert("출고 완료 처리 중 오류가 발생했습니다.");
+          toast.error("데이터 최신화 중 오류가 발생했습니다.", {
+            duration: 4000,
+            position: "top-center",
+            style: {
+              background: "#F44336",
+              color: "#fff",
+              padding: "16px",
+              borderRadius: "8px",
+            },
+          });
+        }
+      } else {
+        alert("주문 상태가 변경되었습니다.");
+        toast.success("주문 상태가 변경되었습니다.", {
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "#2196F3",
+            color: "#fff",
+            padding: "16px",
+            borderRadius: "8px",
+          },
+        });
+      }
+
       console.log(`주문 ID ${orderId}의 상태를 ${newStatus}로 변경했습니다.`);
 
       // 상태 업데이트 후 데이터 새로고침
@@ -457,6 +512,20 @@ const OrderRecordTabs = () => {
           className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
             record.status
           )}`}
+        >
+          {getStatusText(record.status)}
+        </div>
+      );
+    }
+
+    // 출고 완료 상태인 경우 상태만 표시하고 변경 불가
+    if (record.status === OrderStatus.shipmentCompleted) {
+      return (
+        <div
+          className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
+            record.status
+          )} cursor-not-allowed`}
+          title="출고 완료된 주문은 상태를 변경할 수 없습니다"
         >
           {getStatusText(record.status)}
         </div>

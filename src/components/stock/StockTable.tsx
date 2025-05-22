@@ -22,6 +22,7 @@ import {
   useUploadInventoryRecordFile,
 } from "@/hooks/useInventoryRecord";
 import { useInventoryRecordsByTeamId } from "@/hooks/useInventoryRecordsByTeamId";
+import { useCategory } from "@/hooks/useCategory";
 // import { authService } from "@/services/authService";
 
 // 파일 타입 정의 추가
@@ -70,6 +71,7 @@ export default function StockTable() {
   const { createInventoryRecordAsync } = useCreateInventoryRecord();
   const { uploadFileAsync } = useUploadInventoryRecordFile();
   const { refetch: refetchInventoryRecords } = useInventoryRecordsByTeamId();
+  const { categories } = useCategory();
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
   const [isInboundModalOpen, setIsInboundModalOpen] = useState(false);
   const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
@@ -82,6 +84,9 @@ export default function StockTable() {
     null
   );
   const [selectedOutboundItem, setSelectedOutboundItem] = useState<any | null>(
+    null
+  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
     null
   );
 
@@ -698,6 +703,31 @@ export default function StockTable() {
     setSelectedWarehouseId(warehouseId);
   };
 
+  // 입고 모달에서 카테고리 선택 핸들러
+  const handleInboundCategoryChange = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
+    setInboundValues({
+      ...inboundValues,
+      itemId: null,
+      itemCode: "",
+      itemName: "",
+    });
+    setSelectedInboundItem(null);
+  };
+
+  // 출고 모달에서 카테고리 선택 핸들러
+  const handleOutboundCategoryChange = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
+    setOutboundValues({
+      ...outboundValues,
+      itemId: null,
+      itemCode: "",
+      itemName: "",
+      currentQuantity: 0,
+    });
+    setSelectedOutboundItem(null);
+  };
+
   if (isUserLoading || isDataLoading)
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -809,13 +839,14 @@ export default function StockTable() {
           inboundValues={inboundValues}
           onFormChange={handleInboundFormChange}
           onSubmitInbound={handleSubmitInbound}
-          warehouseItems={
-            selectedWarehouseId ? getWarehouseItems(selectedWarehouseId) : []
-          }
+          warehouseItems={getWarehouseItems(selectedWarehouseId || 0)}
           selectedItem={selectedInboundItem}
           onFileUpload={handleInboundFileUpload}
           onFileDelete={handleInboundFileDelete}
           suppliers={suppliersList}
+          categories={categories}
+          selectedCategoryId={selectedCategoryId}
+          onCategoryChange={handleInboundCategoryChange}
         />
         <OutboundModal
           isOpen={isOutboundModalOpen}
@@ -823,13 +854,14 @@ export default function StockTable() {
           outboundValues={outboundValues}
           onFormChange={handleOutboundFormChange}
           onSubmitOutbound={handleSubmitOutbound}
-          warehouseItems={
-            selectedWarehouseId ? getWarehouseItems(selectedWarehouseId) : []
-          }
+          warehouseItems={getWarehouseItems(selectedWarehouseId || 0)}
           selectedItem={selectedOutboundItem}
           onFileUpload={handleOutboundFileUpload}
           onFileDelete={handleOutboundFileDelete}
           suppliers={suppliersList}
+          categories={categories}
+          selectedCategoryId={selectedCategoryId}
+          onCategoryChange={handleOutboundCategoryChange}
         />
       </div>
     </>

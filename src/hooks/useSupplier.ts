@@ -27,7 +27,10 @@ export function useSuppliers() {
         throw new Error(response.error || "거래처 목록 조회에 실패했습니다");
       },
       enabled: !!selectedTeamId,
-      staleTime: 5 * 60 * 1000, // 5분
+      staleTime: 30 * 60 * 1000, // 5분
+      refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
+      refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
+      refetchOnReconnect: false,
     });
 
     return {
@@ -48,7 +51,7 @@ export function useSuppliers() {
         throw new Error(response.error || "거래처 조회에 실패했습니다");
       },
       enabled: !!id,
-      staleTime: 5 * 60 * 1000, // 5분
+      staleTime: 30 * 60 * 1000, // 5분
     });
 
     return {

@@ -27,6 +27,7 @@ export function useTeamItems() {
       staleTime: 10 * 60 * 1000, // 10분
       refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
       refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
+      refetchOnReconnect: false,
     });
 
     return {

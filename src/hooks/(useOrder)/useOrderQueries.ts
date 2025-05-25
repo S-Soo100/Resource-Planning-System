@@ -16,6 +16,9 @@ export const useAllOrders = (teamId: number) => {
     queryFn: () => getOrdersByTeamId(teamId),
     staleTime: CACHE_TIME,
     gcTime: CACHE_TIME,
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
+    refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
+    refetchOnReconnect: false,
   });
 };
 
@@ -27,6 +30,9 @@ export const useUserOrders = (userId: string) => {
     enabled: !!userId,
     staleTime: CACHE_TIME, // 30분 동안 데이터를 신선한 상태로 유지
     gcTime: CACHE_TIME, // 30분 동안 캐시 유지 (v4에서는 cacheTime 대신 gcTime 사용)
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
+    refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
+    refetchOnReconnect: false,
   });
 };
 
@@ -38,6 +44,9 @@ export const useSupplierOrders = (supplierId: string) => {
     enabled: !!supplierId,
     staleTime: CACHE_TIME, // 30분 동안 데이터를 신선한 상태로 유지
     gcTime: CACHE_TIME, // 30분 동안 캐시 유지 (v4에서는 cacheTime 대신 gcTime 사용)
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
+    refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
+    refetchOnReconnect: false,
   });
 };
 
@@ -49,5 +58,8 @@ export const useSingleOrder = (orderId: string) => {
     enabled: !!orderId,
     staleTime: CACHE_TIME, // 30분 동안 데이터를 신선한 상태로 유지
     gcTime: CACHE_TIME, // 30분 동안 캐시 유지 (v4에서는 cacheTime 대신 gcTime 사용)
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
+    refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
+    refetchOnReconnect: false,
   });
 };

@@ -6,10 +6,12 @@ import {
   InventoryRecord,
 } from "../types/(inventoryRecord)/inventory-record";
 import { ApiResponse } from "../types/common";
+import { authStore } from "@/store/authStore";
 
 // 입출고 기록 생성 mutation 훅
 export function useCreateInventoryRecord() {
   const queryClient = useQueryClient();
+  const selectedTeamId = authStore((state) => state.selectedTeam?.id);
 
   const mutation = useMutation<
     ApiResponse<{ data: InventoryRecord } | InventoryRecord>,
@@ -28,7 +30,7 @@ export function useCreateInventoryRecord() {
 
         // 입출고 기록 캐시 무효화
         queryClient.invalidateQueries({
-          queryKey: ["warehouseInventoryRecords"],
+          queryKey: ["inventoryRecordsByTeam", selectedTeamId],
         });
       } else {
         toast.error(response.error || "처리 중 오류가 발생했습니다.");

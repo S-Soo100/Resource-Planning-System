@@ -12,6 +12,7 @@ import {
   CreatOrderResponse,
 } from "../../types/(order)/order";
 import { ApiResponse } from "../../types/common";
+import { OrderStatus } from "../../types/(order)/order";
 
 // 주문 생성
 export const useCreateOrder = () => {
@@ -58,9 +59,24 @@ export const useUpdateOrderStatus = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateOrderStatusDto }) =>
       updateOrderStatus(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["order", variables.id] });
+    onSuccess: async (response, variables) => {
+      if (response.success) {
+        // 주문 정보 캐시 무효화
+        await queryClient.invalidateQueries({ queryKey: ["orders"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["order", variables.id],
+        });
+
+        // 출고 완료 상태로 변경된 경우 추가 데이터 refetch
+        if (variables.data.status === OrderStatus.shipmentCompleted) {
+          // 1. 재고 정보 최신화
+          await queryClient.invalidateQueries({ queryKey: ["inventory"] });
+          // 2. 입/출고 정보 최신화
+          await queryClient.invalidateQueries({ queryKey: ["shipments"] });
+          // 3. 창고 아이템 정보 최신화
+          await queryClient.invalidateQueries({ queryKey: ["warehouseItems"] });
+        }
+      }
     },
   });
 };

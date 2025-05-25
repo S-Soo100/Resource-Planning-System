@@ -27,7 +27,10 @@ export function useItems(warehouseId?: string) {
     return useQuery({
       queryKey: ["items", { currentTeamId }],
       queryFn: () => getAllItemsByTeamId(currentTeamId!.toString()),
-      staleTime: 30 * 60 * 1000, // 30분
+      staleTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
     });
   };
 
@@ -54,7 +57,10 @@ export function useItems(warehouseId?: string) {
       queryKey: ["item", itemId],
       queryFn: () => getItem(itemId),
       enabled: !!itemId,
-      staleTime: 5 * 60 * 1000, // 5분
+      staleTime: 30 * 60 * 1000, // 5분
+      refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
+      refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
+      refetchOnReconnect: false,
     });
   };
 

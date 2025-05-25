@@ -44,9 +44,12 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
     },
     enabled: !!auth?.id,
     // 캐시 설정 추가
-    gcTime: 30 * 60 * 1000, // 30분
-    staleTime: 5 * 60 * 1000, // 5분
-    retry: 1, // 실패 시 1번만 재시도
+    gcTime: 30 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
+    retry: 3,
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
+    refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
+    refetchOnReconnect: false,
   });
 
   return {

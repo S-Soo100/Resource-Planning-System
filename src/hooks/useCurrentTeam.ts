@@ -21,10 +21,11 @@ export const useCurrentTeam = (): UseCurrentTeamReturn => {
     queryKey: ["currentTeam", currentTeamId],
     queryFn: () => teamApi.getTeam(currentTeamId!),
     enabled: !!currentTeamId,
-    staleTime: 5 * 60 * 1000, // 5분 동안 데이터를 신선한 상태로 유지
+    staleTime: 30 * 60 * 1000, // 5분 동안 데이터를 신선한 상태로 유지
     gcTime: 30 * 60 * 1000, // 30분 동안 캐시 유지
     refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
     refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
+    refetchOnReconnect: false,
   });
 
   return {

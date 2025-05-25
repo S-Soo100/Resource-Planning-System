@@ -36,7 +36,9 @@ export default function IoHistoryRecordListComponent() {
       .split("T")[0]
   );
   const [endDate, setEndDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    new Date(new Date().setDate(new Date().getDate() + 1))
+      .toISOString()
+      .split("T")[0]
   );
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
 
@@ -53,7 +55,11 @@ export default function IoHistoryRecordListComponent() {
         .toISOString()
         .split("T")[0]
     );
-    setEndDate(new Date().toISOString().split("T")[0]);
+    setEndDate(
+      new Date(new Date().setDate(new Date().getDate() + 1))
+        .toISOString()
+        .split("T")[0]
+    );
   };
 
   // 필터링된 기록

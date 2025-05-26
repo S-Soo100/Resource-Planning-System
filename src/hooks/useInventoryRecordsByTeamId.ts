@@ -18,10 +18,12 @@ export function useInventoryRecordsByTeamId() {
       return inventoryRecordApi.getInventoryRecordsByTeamId(selectedTeamId);
     },
     enabled: !!selectedTeamId,
-    staleTime: 30 * 60 * 1000, // 30분
-    refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 비활성화
-    refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 비활성화
+    staleTime: 5 * 60 * 1000, // 5분으로 감소
+    gcTime: 10 * 60 * 1000, // 10분으로 설정
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     refetchOnReconnect: false,
+    retry: 1, // 재시도 횟수 제한
   });
 
   return {

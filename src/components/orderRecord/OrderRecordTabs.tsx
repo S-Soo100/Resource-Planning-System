@@ -435,6 +435,10 @@ const OrderRecordTabs = () => {
       // 출고 완료 상태로 변경된 경우 추가 액션 수행
       if (newStatus === OrderStatus.shipmentCompleted) {
         try {
+          // 재고 데이터 갱신을 위해 쿼리 무효화
+          queryClient.invalidateQueries({ queryKey: ["warehouseItems"] });
+          queryClient.invalidateQueries({ queryKey: ["inventoryRecords"] });
+
           alert("출고 완료, 재고에 반영 했습니다.");
           toast.success(
             "출고 완료 처리되었습니다. 재고가 업데이트되었습니다.",

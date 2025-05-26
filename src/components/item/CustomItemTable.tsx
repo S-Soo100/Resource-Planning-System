@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 
 import { authService } from "@/services/authService";
 import { TeamWarehouse } from "@/types/warehouse";
-import { useItems } from "@/hooks/useItems";
+import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { useCategoryStore } from "@/store/categoryStore";
 import { CreateItemApiRequest } from "@/types/(item)/item";
@@ -32,7 +32,7 @@ export default function CustomItemTable({
   // React Query 훅 사용
   const { useGetTeamItems } = useTeamItems();
   const { data: teamItems = [] } = useGetTeamItems();
-  const { useGetItems, useAddItem, useDeleteItem } = useItems();
+  const { useGetItems, useAddItem, useDeleteItem } = useItemStockManagement();
   const { data: itemsResponse, refetch: refetchItems } = useGetItems();
   // API 응답에서 실제 아이템 배열 추출
   const items =

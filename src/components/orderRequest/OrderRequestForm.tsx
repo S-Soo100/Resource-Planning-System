@@ -19,7 +19,7 @@ import { PackageApi } from "@/types/(item)/package";
 import { authStore } from "@/store/authStore";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
-import { useItems } from "@/hooks/useItems";
+import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { Item } from "@/types/(item)/item";
 import { uploadMultipleOrderFileById } from "@/api/order-api";
 
@@ -75,7 +75,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const [warehousesList, setWarehousesList] = useState<Warehouse[]>([]);
 
   // 창고별 아이템 재고 조회 - props가 없을 경우에만 사용
-  const { useGetItemsByWarehouse } = useItems();
+  const { useGetItemsByWarehouse } = useItemStockManagement();
   const warehouseId = formData.warehouseId?.toString() || "";
   const { data: warehouseItemsData } = useGetItemsByWarehouse(warehouseId);
 

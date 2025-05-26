@@ -4,7 +4,7 @@
 import { UpdateItemQuantityRequest } from "@/types/(item)/item";
 import React, { useState, useEffect } from "react";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
-import { useItems } from "@/hooks/useItems";
+import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { CreateInventoryRecordDto } from "@/types/(inventoryRecord)/inventory-record";
 import EditQuantityModal from "./modal/EditQuantityModal";
 import InboundModal from "./modal/InboundModal";
@@ -23,6 +23,7 @@ import {
 } from "@/hooks/useInventoryRecord";
 import { useInventoryRecordsByTeamId } from "@/hooks/useInventoryRecordsByTeamId";
 import { useCategory } from "@/hooks/useCategory";
+import { useQueryClient } from "@tanstack/react-query";
 // import { authService } from "@/services/authService";
 
 // 파일 타입 정의 추가
@@ -66,12 +67,13 @@ export default function StockTable() {
     isError,
     invalidateInventory,
   } = useWarehouseItems();
-  const { useUpdateItemQuantity } = useItems();
+  const { useUpdateItemQuantity } = useItemStockManagement();
   const updateQuantityMutation = useUpdateItemQuantity();
   const { createInventoryRecordAsync } = useCreateInventoryRecord();
   const { uploadFileAsync } = useUploadInventoryRecordFile();
   const { refetch: refetchInventoryRecords } = useInventoryRecordsByTeamId();
   const { categories } = useCategory();
+  const queryClient = useQueryClient();
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
   const [isInboundModalOpen, setIsInboundModalOpen] = useState(false);
   const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
@@ -209,6 +211,20 @@ export default function StockTable() {
       setSelectedWarehouseId(firstWarehouseId);
     }
   }, [isDataLoading, warehouses, selectedWarehouseId]);
+
+  // 재고 데이터 자동 갱신을 위한 설정
+  useEffect(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+      if (queryClient.getQueryData(["warehouseItems"])) {
+        invalidateInventory();
+        refetchInventoryRecords();
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [queryClient, invalidateInventory, refetchInventoryRecords]);
 
   const handleSearch = (value: string) => {
     setSearchText(value);

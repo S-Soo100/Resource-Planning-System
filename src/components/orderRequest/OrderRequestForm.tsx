@@ -22,6 +22,7 @@ import { Warehouse } from "@/types/warehouse";
 import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { Item } from "@/types/(item)/item";
 import { uploadMultipleOrderFileById } from "@/api/order-api";
+import { useQueryClient } from "@tanstack/react-query";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -31,7 +32,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   onWarehouseChange,
 }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [requestDate, setRequestDate] = useState("");
   const [setupDate, setSetupDate] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -485,7 +488,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         status: OrderStatus.requested,
         memo: formData.notes,
         orderItems: orderItems
-          .filter((item) => item.quantity > 0) // 수량이 0보다 큰 항목만 필터링
+          .filter((item) => item.quantity > 0)
           .map((item) => ({
             itemId: item.warehouseItemId,
             quantity: item.quantity,
@@ -581,10 +584,30 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               toast.success("발주 요청이 완료되었습니다");
             }
 
-            // 2초 후 orderRecord 페이지로 이동 (히스토리 대체)
-            setTimeout(() => {
-              router.replace("/orderRecord");
-            }, 2000);
+            // 처리 중 상태로 변경
+            setIsProcessing(true);
+            toast.loading("처리 중... 잠시만 기다려주세요.");
+
+            // 1초 후 캐시 갱신 및 페이지 이동
+            setTimeout(async () => {
+              try {
+                // React Query 캐시 무효화
+                const currentTeamId =
+                  authStore.getState().selectedTeam?.id || 1;
+                await queryClient.invalidateQueries({
+                  queryKey: ["orders", "team", currentTeamId],
+                });
+
+                // 페이지 이동
+                router.replace("/orderRecord");
+              } catch (error) {
+                console.error("처리 중 오류 발생:", error);
+                toast.error("처리 중 오류가 발생했습니다");
+              } finally {
+                setIsProcessing(false);
+                toast.dismiss();
+              }
+            }, 1000);
           } else {
             setIsSubmitting(false);
             toast.error(response.message || "발주 요청에 실패했습니다");
@@ -925,15 +948,20 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isProcessing}
           className={`bg-blue-500 text-white py-2 px-4 rounded mt-4 flex items-center justify-center ${
-            isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+            isSubmitting || isProcessing ? "opacity-70 cursor-not-allowed" : ""
           }`}
         >
           {isSubmitting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               처리 중...
+            </>
+          ) : isProcessing ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              완료 처리 중...
             </>
           ) : (
             "발주 요청하기"

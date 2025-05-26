@@ -33,10 +33,12 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
       return response.success ? response.data : null;
     },
     enabled: !!selectedTeamId,
-    staleTime: 30 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5분으로 감소
+    gcTime: 10 * 60 * 1000, // 10분으로 설정
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
+    retry: 1,
   });
 
   // 팀 및 창고 데이터 준비
@@ -68,10 +70,12 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
       return { warehouses, items };
     },
     enabled: hasWarehouses,
-    staleTime: 30 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5분으로 감소
+    gcTime: 10 * 60 * 1000, // 10분으로 설정
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
+    retry: 1,
   });
 
   // 캐시 무효화 함수

@@ -26,6 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUpdateOrderStatus } from "@/hooks/(useOrder)/useOrderMutations";
 import { userApi } from "@/api/user-api";
 import { toast } from "react-hot-toast";
+import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 
 // 사용자 접근 레벨 타입 추가
 type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
@@ -105,6 +106,7 @@ const OrderRecordTabs = () => {
 
   const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
+  const { refetchAll: refetchWarehouseItems } = useWarehouseItems();
   // const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -435,9 +437,26 @@ const OrderRecordTabs = () => {
       // 출고 완료 상태로 변경된 경우 추가 액션 수행
       if (newStatus === OrderStatus.shipmentCompleted) {
         try {
-          // 재고 데이터 갱신을 위해 쿼리 무효화
-          queryClient.invalidateQueries({ queryKey: ["warehouseItems"] });
-          queryClient.invalidateQueries({ queryKey: ["inventoryRecords"] });
+          // 모든 관련 쿼리를 한 번에 무효화
+          queryClient.invalidateQueries({
+            queryKey: [
+              ["warehouseItems"],
+              ["inventoryRecords"],
+              ["items"],
+              ["warehouse"],
+            ],
+          });
+
+          // 데이터 리페칭 보장
+          await Promise.all([
+            queryClient.refetchQueries({ queryKey: ["warehouseItems"] }),
+            queryClient.refetchQueries({ queryKey: ["inventoryRecords"] }),
+          ]);
+
+          // 1초 대기 후 useWarehouseItems 리페칭
+          setTimeout(async () => {
+            await refetchWarehouseItems();
+          }, 1000);
 
           alert("출고 완료, 재고에 반영 했습니다.");
           toast.success(
@@ -620,10 +639,10 @@ const OrderRecordTabs = () => {
   };
 
   return (
-    <div className="container mx-auto px-1 sm:px-2 max-w-7xl">
-      <div className="bg-white rounded-lg shadow-md p-2 sm:p-4 mb-4 sm:mb-8">
+    <div className="container mx-auto px-0 sm:px-2 max-w-7xl">
+      <div className="bg-white rounded-lg shadow-md p-1 sm:p-4 mb-4 sm:mb-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 sm:mb-6">
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-4">
             {/* <button
               onClick={handleBack}
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs sm:text-sm transition-colors"
@@ -632,7 +651,7 @@ const OrderRecordTabs = () => {
               <span className="hidden sm:inline">메인 메뉴로</span>
               <span className="sm:hidden">메인</span>
             </button> */}
-            <h1 className="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
+            <h1 className="text-base sm:text-2xl font-bold text-gray-800 flex items-center">
               <Package className="mr-1 sm:mr-2 w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               <span className="hidden sm:inline">발주 기록 관리</span>
               <span className="sm:hidden">발주 기록</span>
@@ -655,8 +674,8 @@ const OrderRecordTabs = () => {
         {renderTabs()}
 
         {/* 검색 및 필터 */}
-        <div className="bg-gray-50 p-2 sm:p-4 rounded-lg mb-4 sm:mb-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-2 sm:gap-4">
+        <div className="bg-gray-50 p-1 sm:p-4 rounded-lg mb-4 sm:mb-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-1 sm:gap-4">
             <div className="relative flex-grow">
               <Search
                 size={16}
@@ -672,12 +691,12 @@ const OrderRecordTabs = () => {
             </div>
 
             {/* 상태 필터 추가 */}
-            <div className="flex items-center gap-1 sm:gap-2 min-w-[120px] sm:min-w-[150px]">
+            <div className="flex items-center gap-1 sm:gap-2 min-w-[100px] sm:min-w-[150px]">
               <Filter size={14} className="text-gray-500" />
               <select
                 value={statusFilter}
                 onChange={handleStatusFilterChange}
-                className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="px-1 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
                 <option value="">모든 상태</option>
                 <option value={OrderStatus.requested}>요청됨</option>
@@ -694,7 +713,7 @@ const OrderRecordTabs = () => {
             </div>
 
             {activeTab === "user" && (
-              <div className="flex items-center px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-50 border border-blue-100 rounded-md">
+              <div className="flex items-center px-1 sm:px-4 py-1.5 sm:py-2 bg-blue-50 border border-blue-100 rounded-md">
                 <User size={14} className="mr-1 sm:mr-2 text-blue-500" />
                 <span className="text-xs sm:text-sm font-medium text-blue-700">
                   {authStore.getState().user?.name || "사용자"}의 발주
@@ -703,7 +722,7 @@ const OrderRecordTabs = () => {
             )}
 
             {activeTab === "supplier" && (
-              <div className="flex items-center gap-1 sm:gap-2 min-w-[120px] sm:min-w-[200px]">
+              <div className="flex items-center gap-1 sm:gap-2 min-w-[100px] sm:min-w-[200px]">
                 <Filter size={14} className="text-gray-500" />
                 {isLoadingSuppliers ? (
                   <div className="text-xs sm:text-sm text-gray-500 flex items-center">
@@ -714,7 +733,7 @@ const OrderRecordTabs = () => {
                   <select
                     value={supplierId}
                     onChange={handleSupplierChange}
-                    className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="px-1 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   >
                     <option value="">거래처 선택</option>
                     {suppliers.map((supplier) => (
@@ -737,27 +756,30 @@ const OrderRecordTabs = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto -mx-3 sm:mx-0">
-              <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
+            <div className="overflow-x-auto -mx-1 sm:mx-0">
+              <table className="mx-1 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
+                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       발주자
                     </th>
-                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[30%] sm:w-3/12">
+                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[30%] sm:w-3/12">
                       패키지/품목
                     </th>
-                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[10%] sm:w-1/12">
+                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[10%] sm:w-1/12">
                       수량
                     </th>
-                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
+                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       수령자
                     </th>
-                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
+                    <th className="hidden sm:table-cell px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       날짜
                     </th>
-                    <th className="px-3 sm:px-6 py-4 text-left text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
+                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       현재상태
+                    </th>
+                    <th className="table-cell sm:hidden px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
+                      날짜
                     </th>
                   </tr>
                 </thead>
@@ -773,10 +795,10 @@ const OrderRecordTabs = () => {
                           }`}
                           onClick={() => handleRowClick(record.id)}
                         >
-                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 truncate max-w-[100px] sm:max-w-none">
+                          <td className="px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700 truncate max-w-[80px] sm:max-w-none">
                             {record.requester}
                           </td>
-                          <td className="px-3 sm:px-6 py-4 text-sm text-gray-700 truncate max-w-[150px] sm:max-w-[200px]">
+                          <td className="px-1 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-gray-700 truncate max-w-[120px] sm:max-w-[200px]">
                             {record.package?.packageName &&
                             record.package.packageName !== "개별 품목"
                               ? record.package.packageName
@@ -795,45 +817,52 @@ const OrderRecordTabs = () => {
                                 (record.orderItems.length > 2 ? " 외" : "")
                               : "품목 없음"}
                           </td>
-                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
+                          <td className="px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-center text-gray-700">
                             {record.orderItems?.reduce(
                               (sum, item) => sum + item.quantity,
                               0
                             ) || 0}
                           </td>
-                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700 truncate max-w-[100px] sm:max-w-none">
+                          <td className="px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700 truncate max-w-[80px] sm:max-w-none">
                             {record.receiver}
                           </td>
-                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700">
                             <Calendar
                               size={14}
                               className="inline-block mr-1 text-gray-500"
                             />
                             {formatDate(record.createdAt)}
                           </td>
-                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
+                          <td className="px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
                             <div className="flex items-center justify-between">
                               <span
-                                className={`px-2.5 py-1 text-xs rounded-full ${getStatusColorClass(
+                                className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-xs rounded-full ${getStatusColorClass(
                                   record.status
                                 )}`}
                               >
                                 {getStatusText(record.status)}
                               </span>
-                              <div className="ml-2 w-6 h-6 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors">
+                              <div className="ml-1 sm:ml-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors">
                                 {expandedRowId === record.id ? (
                                   <ChevronUp
-                                    size={16}
+                                    size={14}
                                     className="text-gray-500"
                                   />
                                 ) : (
                                   <ChevronDown
-                                    size={16}
+                                    size={14}
                                     className="text-gray-500"
                                   />
                                 )}
                               </div>
                             </div>
+                          </td>
+                          <td className="table-cell sm:hidden px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700">
+                            <Calendar
+                              size={14}
+                              className="inline-block mr-1 text-gray-500"
+                            />
+                            {formatDate(record.createdAt)}
                           </td>
                         </tr>
                         {expandedRowId === record.id && (

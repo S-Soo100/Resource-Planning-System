@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useItems } from "@/hooks/useItems";
+import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { useParams } from "next/navigation";
 import { useInventoryRecordsByTeamId } from "@/hooks/useInventoryRecordsByTeamId";
 import { format } from "date-fns";
@@ -12,7 +12,7 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 export default function ItemDetailPage() {
   const params = useParams();
   const itemId = params.id as string;
-  const { useGetItem } = useItems();
+  const { useGetItem } = useItemStockManagement();
   const { data: itemResponse, isLoading: isItemLoading } = useGetItem(itemId);
   const { records, isLoading: isRecordsLoading } =
     useInventoryRecordsByTeamId();

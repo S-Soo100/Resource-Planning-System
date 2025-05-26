@@ -18,7 +18,7 @@ import {
 import toast from "react-hot-toast";
 import { authStore } from "@/store/authStore";
 
-export function useItems(warehouseId?: string) {
+export function useItemStockManagement(warehouseId?: string) {
   const queryClient = useQueryClient();
 
   // 모든 아이템 조회 (검색어와 창고ID 기반)

@@ -129,7 +129,7 @@ export default function StockTableDesktop({
                     grouped[cat.id].map((item, itemIndex) => (
                       <tr key={`item-${item.id}-${itemIndex}`}>
                         <td colSpan={3} className="align-top py-2">
-                          <div className="bg-white rounded-xl shadow border border-gray-200 px-6 py-4 flex flex-col gap-0.5">
+                          <div className="bg-white rounded-xl shadow border border-gray-200 px-6 py-4 flex flex-col gap-0.5 hover:shadow-md transition-shadow duration-200">
                             <div className="flex flex-row items-center w-full">
                               <div className="w-1/3">
                                 <a
@@ -229,7 +229,7 @@ export default function StockTableDesktop({
               {grouped["none"].map((item, itemIndex) => (
                 <tr key={`item-none-${item.id}-${itemIndex}`}>
                   <td colSpan={3} className="align-top py-2">
-                    <div className="bg-white rounded-xl shadow border border-gray-200 px-6 py-4 flex flex-col gap-0.5">
+                    <div className="bg-white rounded-xl shadow border border-gray-200 px-6 py-4 flex flex-col gap-0.5 hover:shadow-md transition-shadow duration-200">
                       <div className="flex flex-row items-center w-full">
                         <div className="w-1/3">
                           <a

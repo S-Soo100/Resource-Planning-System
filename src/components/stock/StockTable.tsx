@@ -825,7 +825,7 @@ export default function StockTable() {
             <div className="hidden md:block">
               <div className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm">
                 <table className="w-full">
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody>
                     <StockTableDesktop
                       items={getFilteredItems(
                         getWarehouseItems(selectedWarehouseId)

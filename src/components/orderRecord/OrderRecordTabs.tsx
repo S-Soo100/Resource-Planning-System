@@ -27,6 +27,7 @@ import { useUpdateOrderStatus } from "@/hooks/(useOrder)/useOrderMutations";
 import { userApi } from "@/api/user-api";
 import { toast } from "react-hot-toast";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+import dynamic from "next/dynamic";
 
 // 사용자 접근 레벨 타입 추가
 type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
@@ -87,6 +88,24 @@ const formatDate = (dateString: string): string => {
   const day = date.getDate().toString().padStart(2, "0");
   return `${year}.${month}.${day}`;
 };
+
+const OrderRecordTabsMobile = dynamic(() => import("./OrderRecordTabsMobile"), {
+  ssr: false,
+});
+
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, [matches, query]);
+  return matches;
+}
 
 const OrderRecordTabs = () => {
   const [activeTab, setActiveTab] = useState<TabType>("all");
@@ -638,6 +657,8 @@ const OrderRecordTabs = () => {
     );
   };
 
+  const isMobile = useMediaQuery("(max-width: 759px)");
+
   return (
     <div className="container mx-auto px-0 sm:px-2 max-w-7xl">
       <div className="bg-white rounded-lg shadow-md p-1 sm:p-4 mb-4 sm:mb-8">
@@ -754,6 +775,15 @@ const OrderRecordTabs = () => {
             <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
             <p className="text-gray-500">데이터를 불러오는 중...</p>
           </div>
+        ) : isMobile ? (
+          <OrderRecordTabsMobile
+            records={currentRecords}
+            expandedRowId={expandedRowId}
+            onRowClick={handleRowClick}
+            formatDate={formatDate}
+            getStatusText={getStatusText}
+            getStatusColorClass={getStatusColorClass}
+          />
         ) : (
           <>
             <div className="overflow-x-auto -mx-1 sm:mx-0">
@@ -761,25 +791,19 @@ const OrderRecordTabs = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
+                      날짜
+                    </th>
+                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       발주자
                     </th>
                     <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[30%] sm:w-3/12">
                       패키지/품목
                     </th>
-                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[10%] sm:w-1/12">
-                      수량
-                    </th>
                     <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       수령자
                     </th>
-                    <th className="hidden sm:table-cell px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
-                      날짜
-                    </th>
                     <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
                       현재상태
-                    </th>
-                    <th className="table-cell sm:hidden px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
-                      날짜
                     </th>
                   </tr>
                 </thead>
@@ -795,10 +819,18 @@ const OrderRecordTabs = () => {
                           }`}
                           onClick={() => handleRowClick(record.id)}
                         >
-                          <td className="px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700 truncate max-w-[80px] sm:max-w-none">
+                          {/* 데스크톱 UI */}
+                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700">
+                            <Calendar
+                              size={14}
+                              className="inline-block mr-1 text-gray-500"
+                            />
+                            {formatDate(record.createdAt)}
+                          </td>
+                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700 truncate max-w-[80px] sm:max-w-none">
                             {record.requester}
                           </td>
-                          <td className="px-1 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-gray-700 truncate max-w-[120px] sm:max-w-[200px]">
+                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-gray-700 truncate max-w-[120px] sm:max-w-[200px]">
                             {record.package?.packageName &&
                             record.package.packageName !== "개별 품목"
                               ? record.package.packageName
@@ -817,23 +849,17 @@ const OrderRecordTabs = () => {
                                 (record.orderItems.length > 2 ? " 외" : "")
                               : "품목 없음"}
                           </td>
-                          <td className="px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-center text-gray-700">
-                            {record.orderItems?.reduce(
-                              (sum, item) => sum + item.quantity,
-                              0
-                            ) || 0}
-                          </td>
-                          <td className="px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700 truncate max-w-[80px] sm:max-w-none">
-                            {record.receiver}
-                          </td>
                           <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700">
-                            <Calendar
-                              size={14}
-                              className="inline-block mr-1 text-gray-500"
-                            />
-                            {formatDate(record.createdAt)}
+                            <div
+                              className="max-w-[60px] sm:max-w-[80px] truncate"
+                              title={record.receiver}
+                            >
+                              {record.receiver.length > 6
+                                ? `${record.receiver.slice(0, 6)}...`
+                                : record.receiver}
+                            </div>
                           </td>
-                          <td className="px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
+                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
                             <div className="flex items-center justify-between">
                               <span
                                 className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-xs rounded-full ${getStatusColorClass(
@@ -857,12 +883,77 @@ const OrderRecordTabs = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="table-cell sm:hidden px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700">
-                            <Calendar
-                              size={14}
-                              className="inline-block mr-1 text-gray-500"
-                            />
-                            {formatDate(record.createdAt)}
+
+                          {/* 모바일 UI */}
+                          <td className="sm:hidden px-3 py-3">
+                            <div className="flex flex-col gap-2">
+                              {/* 첫 번째 줄: 날짜, 품목, 수령자 */}
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center text-gray-500">
+                                  <Calendar size={14} className="mr-1" />
+                                  <span className="text-xs">
+                                    {formatDate(record.createdAt)}
+                                  </span>
+                                </div>
+                                <div className="flex-1 text-xs text-gray-700 truncate">
+                                  {record.package?.packageName &&
+                                  record.package.packageName !== "개별 품목"
+                                    ? record.package.packageName
+                                    : record.orderItems &&
+                                      record.orderItems.length > 0
+                                    ? record.orderItems
+                                        .slice(0, 1)
+                                        .map(
+                                          (item) =>
+                                            `${
+                                              item.item?.teamItem?.itemName ||
+                                              "알 수 없는 품목"
+                                            }${item.quantity}개`
+                                        )
+                                        .join(", ") +
+                                      (record.orderItems.length > 1
+                                        ? " 외"
+                                        : "")
+                                    : "품목 없음"}
+                                </div>
+                                <div
+                                  className="text-xs text-gray-700 truncate max-w-[60px]"
+                                  title={record.receiver}
+                                >
+                                  {record.receiver.length > 6
+                                    ? `${record.receiver.slice(0, 6)}...`
+                                    : record.receiver}
+                                </div>
+                              </div>
+                              {/* 두 번째 줄: 발주자, 현재상태 */}
+                              <div className="flex items-center justify-between">
+                                <div className="text-xs text-gray-600">
+                                  {record.requester}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span
+                                    className={`px-2 py-0.5 text-xs rounded-full ${getStatusColorClass(
+                                      record.status
+                                    )}`}
+                                  >
+                                    {getStatusText(record.status)}
+                                  </span>
+                                  <div className="w-5 h-5 rounded-full flex items-center justify-center bg-gray-100">
+                                    {expandedRowId === record.id ? (
+                                      <ChevronUp
+                                        size={14}
+                                        className="text-gray-500"
+                                      />
+                                    ) : (
+                                      <ChevronDown
+                                        size={14}
+                                        className="text-gray-500"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </td>
                         </tr>
                         {expandedRowId === record.id && (

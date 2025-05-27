@@ -823,17 +823,19 @@ export default function StockTable() {
 
             {/* 선택된 창고의 재고 테이블 */}
             <div className="hidden md:block">
-              <table className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
-                <tbody className="divide-y divide-gray-100">
-                  <StockTableDesktop
-                    items={getFilteredItems(
-                      getWarehouseItems(selectedWarehouseId)
-                    )}
-                    onEditQuantity={handleOpenEditQuantityModal}
-                    showEditButton={user?.accessLevel === "admin"}
-                  />
-                </tbody>
-              </table>
+              <div className="mx-3 my-2 bg-white rounded-2xl overflow-hidden shadow-sm">
+                <table className="w-full">
+                  <tbody className="divide-y divide-gray-100">
+                    <StockTableDesktop
+                      items={getFilteredItems(
+                        getWarehouseItems(selectedWarehouseId)
+                      )}
+                      onEditQuantity={handleOpenEditQuantityModal}
+                      showEditButton={user?.accessLevel === "admin"}
+                    />
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* 모바일용 카드 뷰 */}

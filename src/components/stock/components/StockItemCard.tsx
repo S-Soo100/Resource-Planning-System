@@ -87,81 +87,85 @@ export default function StockItemCard({
 
   return (
     <div className="grid grid-cols-1 gap-1.5">
-      {categories.map((cat) => (
-        <React.Fragment key={cat.id}>
-          <div
-            className="bg-gray-100 font-bold px-2.5 py-1.5 rounded-lg text-base text-gray-700 mb-1 mt-1.5 cursor-pointer select-none flex items-center justify-between"
-            onClick={() => handleToggle(String(cat.id))}
-          >
-            <span className="flex items-center">
-              <span className="mr-1">
-                {openCategories[String(cat.id)] ? "▼" : "▶"}
-              </span>
-              {cat.name}
-            </span>
-            <span className="text-sm text-gray-500">
-              {grouped[cat.id].length}개 품목 / 총{" "}
-              {calculateTotalQuantity(grouped[cat.id])}개
-            </span>
-          </div>
-          {openCategories[String(cat.id)] && (
-            <>
-              {grouped[cat.id].length > 0 ? (
-                grouped[cat.id].map((item, itemIndex) => (
-                  <div
-                    key={`item-card-${item.id}-${itemIndex}`}
-                    className="bg-white rounded-lg shadow-sm p-3 border border-gray-100 mb-2"
-                  >
-                    {/* 품목명 + 재고수량 */}
-                    <div className="flex justify-between items-center mb-1">
-                      <div className="text-base font-bold text-blue-700">
-                        {item.teamItem.itemName}
-                      </div>
+      {categories.map(
+        (cat) =>
+          grouped[cat.id].length > 0 && (
+            <React.Fragment key={cat.id}>
+              <div
+                className="bg-gray-100 font-bold px-2.5 py-1.5 rounded-lg text-base text-gray-700 mb-1 mt-1.5 cursor-pointer select-none flex items-center justify-between"
+                onClick={() => handleToggle(String(cat.id))}
+              >
+                <span className="flex items-center">
+                  <span className="mr-1">
+                    {openCategories[String(cat.id)] ? "▼" : "▶"}
+                  </span>
+                  {cat.name}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {grouped[cat.id].length}개 품목 / 총{" "}
+                  {calculateTotalQuantity(grouped[cat.id])}개
+                </span>
+              </div>
+              {openCategories[String(cat.id)] && (
+                <>
+                  {grouped[cat.id].length > 0 ? (
+                    grouped[cat.id].map((item, itemIndex) => (
                       <div
-                        className={`text-xl font-bold ${
-                          showEditButton
-                            ? "text-blue-600 cursor-pointer hover:underline"
-                            : "text-blue-600 cursor-default"
-                        }`}
-                        onClick={() => {
-                          if (showEditButton) onEditQuantity(item);
-                        }}
+                        key={`item-card-${item.id}-${itemIndex}`}
+                        className="bg-white rounded-lg shadow-sm p-3 border border-gray-100 mb-2"
                       >
-                        {item.itemQuantity}
-                      </div>
-                    </div>
-                    {/* 품목코드 + 카테고리 */}
-                    <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
-                      <div>코드: {item.teamItem.itemCode}</div>
-                      <div>
-                        카테고리:{" "}
-                        {getCategoryName(
-                          item.teamItem.category?.id ?? item.teamItem.categoryId
+                        {/* 품목명 + 재고수량 */}
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="text-base font-bold text-blue-700">
+                            {item.teamItem.itemName}
+                          </div>
+                          <div
+                            className={`text-xl font-bold ${
+                              showEditButton
+                                ? "text-blue-600 cursor-pointer hover:underline"
+                                : "text-blue-600 cursor-default"
+                            }`}
+                            onClick={() => {
+                              if (showEditButton) onEditQuantity(item);
+                            }}
+                          >
+                            {item.itemQuantity}
+                          </div>
+                        </div>
+                        {/* 품목코드 + 카테고리 */}
+                        <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
+                          <div>코드: {item.teamItem.itemCode}</div>
+                          <div>
+                            카테고리:{" "}
+                            {getCategoryName(
+                              item.teamItem.category?.id ??
+                                item.teamItem.categoryId
+                            )}
+                          </div>
+                        </div>
+                        {/* 메모 */}
+                        {item.teamItem.memo && (
+                          <div className="text-xs text-gray-600 mb-1">
+                            메모: {truncateMemo(item.teamItem.memo)}
+                          </div>
                         )}
+                        {/* 최종수정일 */}
+                        <div className="text-xs text-gray-400 text-right">
+                          최종수정:{" "}
+                          {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-gray-400 text-sm px-2.5 py-1">
+                      해당 카테고리 품목 없음
                     </div>
-                    {/* 메모 */}
-                    {item.teamItem.memo && (
-                      <div className="text-xs text-gray-600 mb-1">
-                        메모: {truncateMemo(item.teamItem.memo)}
-                      </div>
-                    )}
-                    {/* 최종수정일 */}
-                    <div className="text-xs text-gray-400 text-right">
-                      최종수정:{" "}
-                      {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-gray-400 text-sm px-2.5 py-1">
-                  해당 카테고리 품목 없음
-                </div>
+                  )}
+                </>
               )}
-            </>
-          )}
-        </React.Fragment>
-      ))}
+            </React.Fragment>
+          )
+      )}
       {/* 카테고리 없는 아이템 */}
       {grouped["none"].length > 0 && (
         <>

@@ -456,7 +456,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       return false;
     }
     if (!formData.warehouseId) {
-      toast.error("출고할 창고를 선택해주세요");
+      toast.error("발주할 창고를 선택해주세요");
       return false;
     }
     return true;
@@ -627,13 +627,13 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
+    <div className="container p-4 mx-auto">
+      <h1 className="mb-4 text-2xl font-bold text-center">{title}</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
         {/* 창고 선택 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">
-            출고 창고 선택 <span className="text-red-500">*</span>
+            발주 창고 선택 <span className="text-red-500">*</span>
           </label>
           <select
             name="warehouseId"
@@ -651,7 +651,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           </select>
         </div>
 
-        {/* 패키지 선택 (패키지 출고 요청인 경우에만 표시) */}
+        {/* 패키지 선택 (패키지 발주 요청인 경우에만 표시) */}
         {isPackageOrder && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -679,7 +679,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           </div>
         )}
 
-        {/* 개별품목 선택 (개별품목 출고 요청인 경우에만 표시) */}
+        {/* 개별품목 선택 (개별품목 발주 요청인 경우에만 표시) */}
         {!isPackageOrder && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
@@ -710,8 +710,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
         {orderItems.length > 0 && (
           <div className="mt-4">
-            <h3 className="font-medium mb-2">선택된 품목</h3>
-            <div className="border rounded-md p-3">
+            <h3 className="mb-2 font-medium">선택된 품목</h3>
+            <div className="p-3 border rounded-md">
               {orderItems.map((item, index) => (
                 <div
                   key={item.warehouseItemId}
@@ -722,7 +722,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                       <p className="font-medium">{item.teamItem.itemName}</p>
                       {formData.warehouseId &&
                         item.stockAvailable === false && (
-                          <div className="flex items-center text-red-500 text-xs">
+                          <div className="flex items-center text-xs text-red-500">
                             <AlertCircle size={14} className="mr-1" />
                             재고 부족
                           </div>
@@ -742,7 +742,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                     <button
                       type="button"
                       onClick={() => handleQuantityChange(index, false)}
-                      className="p-1 rounded bg-gray-200 hover:bg-gray-300"
+                      className="p-1 bg-gray-200 rounded hover:bg-gray-300"
                     >
                       <Minus size={16} />
                     </button>
@@ -750,14 +750,14 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                     <button
                       type="button"
                       onClick={() => handleQuantityChange(index, true)}
-                      className="p-1 rounded bg-gray-200 hover:bg-gray-300"
+                      className="p-1 bg-gray-200 rounded hover:bg-gray-300"
                     >
                       <Plus size={16} />
                     </button>
                     <button
                       type="button"
                       onClick={() => handleRemoveItem(item.warehouseItemId)}
-                      className="p-1 rounded bg-red-100 hover:bg-red-200 text-red-600"
+                      className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
                     >
                       <X size={16} />
                     </button>
@@ -806,7 +806,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         />
 
         <label htmlFor="requestDate" className="block text-sm font-medium">
-          출고 요청일
+          발주 요청일
         </label>
         <input
           type="date"
@@ -834,7 +834,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         />
         {/* 거래처 선택 */}
         <div className="space-y-2">
-          <label className="flex gap-3 flex-row text-sm font-medium text-gray-700">
+          <label className="flex flex-row gap-3 text-sm font-medium text-gray-700">
             거래처 선택
             <p className="text-xs text-red-500">*업체 공급시에만</p>
           </label>
@@ -900,7 +900,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           />
           <button
             type="button"
-            className="ml-3 p-2 border rounded text-black hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+            className="p-2 ml-3 text-black transition-colors duration-200 border rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             onClick={() => setIsAddressOpen(!isAddressOpen)}
           >
             주소 검색
@@ -921,7 +921,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         />
 
         <label htmlFor="file-upload">파일 업로드</label>
-        <div className="text-xs text-amber-600 mb-2">
+        <div className="mb-2 text-xs text-amber-600">
           * 파일 크기는 최대 50MB까지 업로드 가능합니다.
         </div>
         <div
@@ -938,11 +938,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           multiple={true}
           onChange={handleFileSelection}
         />
-        <div className="border p-2 rounded-md">
+        <div className="p-2 border rounded-md">
           <div className="mb-2">업로드된 파일</div>
-          <ul className="p-2 border rounded text-black ">
+          <ul className="p-2 text-black border rounded ">
             {files.length == 0 ? (
-              <div className="text-gray-400 text-sm">
+              <div className="text-sm text-gray-400">
                 업로드 항목이 없습니다.
               </div>
             ) : null}
@@ -974,9 +974,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           )}
         </button>
       </form>
-      <div className="h-32 mb-12 flex flex-col text-white"> - </div>
-      <div className="h-32 mb-12 flex flex-col text-white"> - </div>
-      <div className="h-32 mb-12 flex flex-col text-white"> - </div>
+      <div className="flex flex-col h-32 mb-12 text-white"> - </div>
+      <div className="flex flex-col h-32 mb-12 text-white"> - </div>
+      <div className="flex flex-col h-32 mb-12 text-white"> - </div>
     </div>
   );
 };

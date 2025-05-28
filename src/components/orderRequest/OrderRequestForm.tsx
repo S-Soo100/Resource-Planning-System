@@ -49,7 +49,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
   const [formData, setFormData] = useState<OrderRequestFormData>({
     manager: "",
-    requester: "",
+    requester: auth?.name || "",
     receiver: "",
     receiverPhone: "",
     address: "",
@@ -662,6 +662,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               onChange={handlePackageSelect}
               className="w-full px-3 py-2 border rounded-md"
               required={isPackageOrder}
+              disabled={!formData.warehouseId}
             >
               <option value="0">패키지 선택</option>
               {packages?.map((pkg: PackageApi) => (
@@ -670,6 +671,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                 </option>
               ))}
             </select>
+            {!formData.warehouseId && (
+              <p className="text-xs text-amber-600">
+                창고를 먼저 선택해주세요.
+              </p>
+            )}
           </div>
         )}
 

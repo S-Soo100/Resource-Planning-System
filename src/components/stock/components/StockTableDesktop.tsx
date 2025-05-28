@@ -133,9 +133,9 @@ export default function StockTableDesktop({
                             <div className="flex flex-row items-center w-full">
                               <div className="w-1/3">
                                 <a
-                                  className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
+                                  className="text-blue-500 hover:text-blue-700 hover:underline font-medium transition-colors duration-150 cursor-pointer"
                                   onClick={() =>
-                                    router.push(`/item/detail/${item.id}`)
+                                    router.push(`/item/${item.id}`)
                                   }
                                 >
                                   {item.teamItem.itemName}
@@ -233,10 +233,8 @@ export default function StockTableDesktop({
                       <div className="flex flex-row items-center w-full">
                         <div className="w-1/3">
                           <a
-                            className="text-blue-500 hover:text-blue-600 font-medium transition-colors duration-150"
-                            onClick={() =>
-                              router.push(`/item/detail/${item.id}`)
-                            }
+                            className="text-blue-500 hover:text-blue-700 hover:underline font-medium transition-colors duration-150 cursor-pointer"
+                            onClick={() => router.push(`/item/${item.id}`)}
                           >
                             {item.teamItem.itemName}
                           </a>

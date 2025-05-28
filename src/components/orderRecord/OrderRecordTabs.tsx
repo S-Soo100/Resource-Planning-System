@@ -385,11 +385,11 @@ const OrderRecordTabs = () => {
       case OrderStatus.rejected:
         return "반려";
       case OrderStatus.confirmedByShipper:
-        return "출확";
+        return "발주자 확인";
       case OrderStatus.shipmentCompleted:
-        return "출고";
+        return "발주 완료";
       case OrderStatus.rejectedByShipper:
-        return "출반";
+        return "발주자 반려";
       default:
         return status;
     }
@@ -453,7 +453,7 @@ const OrderRecordTabs = () => {
         data: { status: newStatus },
       });
 
-      // 출고 완료 상태로 변경된 경우 추가 액션 수행
+      // 발주 완료 상태로 변경된 경우 추가 액션 수행
       if (newStatus === OrderStatus.shipmentCompleted) {
         try {
           // 모든 관련 쿼리를 한 번에 무효화
@@ -477,9 +477,9 @@ const OrderRecordTabs = () => {
             await refetchWarehouseItems();
           }, 1000);
 
-          alert("출고 완료, 재고에 반영 했습니다.");
+          alert("발주 완료, 재고에 반영 했습니다.");
           toast.success(
-            "출고 완료 처리되었습니다. 재고가 업데이트되었습니다.",
+            "발주 완료 처리되었습니다. 재고가 업데이트되었습니다.",
             {
               duration: 4000,
               position: "top-center",
@@ -493,7 +493,7 @@ const OrderRecordTabs = () => {
           );
         } catch (error) {
           console.error("데이터 최신화 실패:", error);
-          alert("출고 완료 처리 중 오류가 발생했습니다.");
+          alert("발주 완료 처리 중 오류가 발생했습니다.");
           toast.error("데이터 최신화 중 오류가 발생했습니다.", {
             duration: 4000,
             position: "top-center",
@@ -551,14 +551,14 @@ const OrderRecordTabs = () => {
       );
     }
 
-    // 출고 완료 상태인 경우 상태만 표시하고 변경 불가
+    // 발주 완료 상태인 경우 상태만 표시하고 변경 불가
     if (record.status === OrderStatus.shipmentCompleted) {
       return (
         <div
           className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
             record.status
           )} cursor-not-allowed`}
-          title="출고 완료된 주문은 상태를 변경할 수 없습니다"
+          title="발주 완료된 주문은 상태를 변경할 수 없습니다"
         >
           {getStatusText(record.status)}
         </div>
@@ -581,9 +581,9 @@ const OrderRecordTabs = () => {
           <option value={OrderStatus.requested}>요청됨</option>
           <option value={OrderStatus.approved}>승인됨</option>
           <option value={OrderStatus.rejected}>반려됨</option>
-          <option value={OrderStatus.confirmedByShipper}>출고자 확인</option>
-          <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
-          <option value={OrderStatus.rejectedByShipper}>출고자 반려</option>
+          <option value={OrderStatus.confirmedByShipper}>발주자 확인</option>
+          <option value={OrderStatus.shipmentCompleted}>발주 완료</option>
+          <option value={OrderStatus.rejectedByShipper}>발주자 반려</option>
         </select>
         {isUpdatingStatus === record.id && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50 rounded-md">
@@ -724,11 +724,11 @@ const OrderRecordTabs = () => {
                 <option value={OrderStatus.approved}>승인됨</option>
                 <option value={OrderStatus.rejected}>반려됨</option>
                 <option value={OrderStatus.confirmedByShipper}>
-                  출고자 확인
+                  발주자 확인
                 </option>
-                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+                <option value={OrderStatus.shipmentCompleted}>발주 완료</option>
                 <option value={OrderStatus.rejectedByShipper}>
-                  출고자 반려
+                  발주자 반려
                 </option>
               </select>
             </div>

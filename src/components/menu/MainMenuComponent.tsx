@@ -120,8 +120,8 @@ const MainMenuComponent = () => {
   // 발주-출고 관련 메뉴
   const orderMenuItems = [
     {
-      title: "패키지 출고 요청",
-      subtitle: "미리 구성된 패키지로 출고를 요청합니다",
+      title: "패키지 발주 요청",
+      subtitle: "미리 구성된 패키지로 발주를 요청합니다",
       icon: <FaTruckLoading className="text-3xl" />,
       onClick: () =>
         checkAccess(`/packageOrder`, [
@@ -133,8 +133,8 @@ const MainMenuComponent = () => {
       accessLevel: ["supplier", "user", "admin", "moderator"],
     },
     {
-      title: "개별 품목 출고 요청",
-      subtitle: "개별 품목을 선택하여 출고를 요청합니다",
+      title: "개별 품목 발주 요청",
+      subtitle: "개별 품목을 선택하여 발주를 요청합니다",
       icon: <FaTruckLoading className="text-3xl" />,
       onClick: () =>
         checkAccess(`/orderRequest`, [
@@ -147,7 +147,7 @@ const MainMenuComponent = () => {
     },
     {
       title: "발주 기록 확인",
-      subtitle: "이전 출고 요청 및 처리 상태를 확인합니다",
+      subtitle: "이전 발주 요청 및 처리 상태를 확인합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () =>
         checkAccess(`/orderRecord`, ["admin", "user", "supplier", "moderator"]),
@@ -166,7 +166,7 @@ const MainMenuComponent = () => {
     },
     {
       title: "패키지 관리",
-      subtitle: "출고용 패키지를 구성하고 관리합니다",
+      subtitle: "발주용 패키지를 구성하고 관리합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () => checkAccess(`/package`, ["admin", "user", "moderator"]),
       accessLevel: ["user", "admin", "moderator"],
@@ -197,12 +197,12 @@ const MainMenuComponent = () => {
   // 탭 설정
   let tabs = [];
 
-  // supplier인 경우 '발주 및 출고' 탭만 표시
+  // supplier인 경우 '발주' 탭만 표시
   if (user?.accessLevel === "supplier") {
     tabs = [
       {
         id: "order",
-        title: "발주 및 출고",
+        title: "발주",
         items: orderMenuItems,
         bgColor: "bg-green-50",
         textColor: "text-green-800",
@@ -228,7 +228,7 @@ const MainMenuComponent = () => {
       },
       {
         id: "order",
-        title: "발주 및 출고",
+        title: "발주",
         items: orderMenuItems,
         bgColor: "bg-green-50",
         textColor: "text-green-800",

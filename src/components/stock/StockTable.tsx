@@ -413,7 +413,7 @@ export default function StockTable() {
     });
   };
 
-  // 파일 업로드 처리 함수 (출고)
+  // 파일 업로드 처리 함수 (발주)
   const handleOutboundFileUpload = (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
@@ -452,7 +452,7 @@ export default function StockTable() {
     });
   };
 
-  // 파일 삭제 처리 함수 (출고)
+  // 파일 삭제 처리 함수 (발주)
   const handleOutboundFileDelete = (index: number) => {
     const updatedFiles = [...outboundValues.attachedFiles];
 
@@ -617,11 +617,11 @@ export default function StockTable() {
         getItemById(outboundValues.itemId)?.itemQuantity || 0;
 
       if (outboundValues.quantity > currentQuantity) {
-        alert("출고 수량이 현재 재고보다 많습니다.");
+        alert("발주 수량이 현재 재고보다 많습니다.");
         return;
       }
 
-      // 출고 기록 데이터 준비
+      // 발주 기록 데이터 준비
       const recordData: CreateInventoryRecordDto = {
         itemId: outboundValues.itemId!,
         outboundQuantity: outboundValues.quantity,
@@ -641,7 +641,7 @@ export default function StockTable() {
 
       try {
         const recordId = await createInventoryRecordAsync(recordData);
-        console.log("출고 기록 생성 성공, recordId:", recordId);
+        console.log("발주 기록 생성 성공, recordId:", recordId);
 
         // 파일 업로드와 캐시 업데이트를 병렬로 처리
         const uploadPromises = outboundValues.attachedFiles.map(
@@ -663,15 +663,15 @@ export default function StockTable() {
 
         await Promise.all([...uploadPromises, invalidateInventory()]);
 
-        alert("출고가 성공적으로 처리되었습니다.");
+        alert("발주가 성공적으로 처리되었습니다.");
         handleCloseOutboundModal();
       } catch (error: any) {
-        console.error("출고 기록 생성 실패:", error);
-        alert(error.error || "출고 처리 중 오류가 발생했습니다.");
+        console.error("발주 기록 생성 실패:", error);
+        alert(error.error || "발주 처리 중 오류가 발생했습니다.");
       }
     } catch (error) {
-      console.error("출고 처리 중 오류 발생:", error);
-      alert("출고 처리 중 오류가 발생했습니다.");
+      console.error("발주 처리 중 오류 발생:", error);
+      alert("발주 처리 중 오류가 발생했습니다.");
     }
   };
 
@@ -738,7 +738,7 @@ export default function StockTable() {
     setSelectedInboundItem(null);
   };
 
-  // 출고 모달에서 카테고리 선택 핸들러
+  // 발주 모달에서 카테고리 선택 핸들러
   const handleOutboundCategoryChange = (categoryId: number | null) => {
     setSelectedCategoryId(categoryId);
     setOutboundValues({

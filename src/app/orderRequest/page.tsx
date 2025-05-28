@@ -11,7 +11,7 @@ export default function OrderRequestPage() {
   return (
     <OrderRequestForm
       isPackageOrder={false}
-      title="개별품목 출고 요청"
+      title="개별품목 발주 요청"
       warehousesList={warehousesList}
       warehouseItems={warehouseItems}
       onWarehouseChange={handleWarehouseChange}

@@ -10,7 +10,7 @@ export default function PackageOrderPage() {
   return (
     <OrderRequestForm
       isPackageOrder={true}
-      title="패키지 출고 요청"
+      title="패키지 발주 요청"
       warehousesList={warehousesList}
       warehouseItems={warehouseItems}
       onWarehouseChange={handleWarehouseChange}

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Item } from "@/types/(item)/item";
 import { useCategoryStore } from "@/store/categoryStore";
+import { useRouter } from "next/navigation";
 
 interface StockItemCardProps {
   items: Item[];
@@ -14,6 +15,7 @@ export default function StockItemCard({
   showEditButton = true,
 }: StockItemCardProps) {
   const { categories } = useCategoryStore();
+  const router = useRouter();
 
   const [openCategories, setOpenCategories] = useState<{
     [key: string]: boolean;
@@ -116,7 +118,10 @@ export default function StockItemCard({
                       >
                         {/* 품목명 + 재고수량 */}
                         <div className="flex justify-between items-center mb-1">
-                          <div className="text-base font-bold text-blue-700">
+                          <div
+                            className="text-base font-bold text-blue-700 cursor-pointer hover:underline hover:text-blue-700"
+                            onClick={() => router.push(`/item/${item.id}`)}
+                          >
                             {item.teamItem.itemName}
                           </div>
                           <div
@@ -191,7 +196,10 @@ export default function StockItemCard({
                 >
                   {/* 품목명 + 재고수량 */}
                   <div className="flex justify-between items-center mb-1">
-                    <div className="text-base font-bold text-blue-700">
+                    <div
+                      className="text-base font-bold text-blue-700 cursor-pointer hover:underline hover:text-blue-700"
+                      onClick={() => router.push(`/item/${item.id}`)}
+                    >
                       {item.teamItem.itemName}
                     </div>
                     <div

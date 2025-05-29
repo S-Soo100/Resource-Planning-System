@@ -150,7 +150,7 @@ export default function AccountPage() {
       admin: "관리자",
       user: "일반 사용자",
       supplier: "공급자",
-      moderator: "중재자",
+      moderator: "1차승인권자",
     };
     return levelMap[level];
   };

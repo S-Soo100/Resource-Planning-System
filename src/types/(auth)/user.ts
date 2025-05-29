@@ -19,7 +19,7 @@ export interface CreateUserDto {
   password: string;
   name: string;
   restrictedWhs: string;
-  accessLevel: "user" | "admin" | "supplier" | "moderator";
+  accessLevel: "user" | "supplier" | "moderator";
   isAdmin: false;
 }
 

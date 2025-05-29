@@ -12,13 +12,25 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { authStore } from "@/store/authStore";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const AppBarComponent = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const user = authStore((state) => state.user);
+  const { user } = useCurrentUser();
   const selectedTeam = authStore((state) => state.selectedTeam);
+
+  // 권한 레벨 한글화 함수 추가
+  const getAccessLevelKorean = (level: string): string => {
+    const levelMap: Record<string, string> = {
+      admin: "관리자",
+      user: "일반 사용자",
+      supplier: "외부업체",
+      moderator: "1차승인권자",
+    };
+    return levelMap[level] || level;
+  };
 
   const logout = () => {
     // 로컬 스토리지의 토큰 제거
@@ -54,7 +66,7 @@ const AppBarComponent = () => {
           onClick={() => router.back()}
           className="flex items-center text-blue-500 focus:outline-none"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="w-5 h-5" />
           <span className="text-sm">뒤로</span>
         </button>
       );
@@ -64,15 +76,22 @@ const AppBarComponent = () => {
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2">
           <div className="bg-gray-100 rounded-full p-1.5 shadow-sm">
-            <User className="h-5 w-5 text-blue-500" />
+            <User className="w-5 h-5 text-blue-500" />
           </div>
-          <span className="text-sm font-medium text-gray-800">
-            {user?.name || "사용자"}
-          </span>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-800">
+              {user?.name || "사용자"}
+            </span>
+            {user?.accessLevel && (
+              <span className="text-xs text-gray-500">
+                {getAccessLevelKorean(user.accessLevel)}
+              </span>
+            )}
+          </div>
         </div>
         {selectedTeam && (
           <div className="flex items-center space-x-1.5">
-            <span className="text-gray-400 text-xs">•</span>
+            <span className="text-xs text-gray-400">•</span>
             <span className="text-xs text-gray-500">팀:</span>
             <span className="text-xs font-medium text-gray-800">
               {selectedTeam.teamName}
@@ -81,7 +100,7 @@ const AppBarComponent = () => {
               onClick={handleTeamReset}
               className="ml-1 rounded-full p-0.5 bg-gray-100 hover:bg-gray-200 focus:outline-none"
             >
-              <X className="h-3 w-3 text-gray-500" />
+              <X className="w-3 h-3 text-gray-500" />
             </button>
           </div>
         )}
@@ -101,10 +120,10 @@ const AppBarComponent = () => {
             className="flex items-center justify-center bg-gray-100 rounded-full p-1.5 shadow-sm focus:outline-none"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <User className="h-5 w-5 text-blue-500" />
+            <User className="w-5 h-5 text-blue-500" />
           </button>
           {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-xl z-50 overflow-hidden border border-gray-100">
+            <div className="absolute right-0 z-50 w-48 mt-2 overflow-hidden bg-white border border-gray-100 shadow-lg rounded-xl">
               <ul className="py-1">
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
@@ -113,19 +132,19 @@ const AppBarComponent = () => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  <UserCircle className="h-4 w-4 mr-2 text-blue-500" />내 계정
+                  <UserCircle className="w-4 h-4 mr-2 text-blue-500" />내 계정
                 </li>
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={handleTeamReset}
                 >
-                  <RefreshCcw className="h-4 w-4 mr-2 text-blue-500" />팀 변경
+                  <RefreshCcw className="w-4 h-4 mr-2 text-blue-500" />팀 변경
                 </li>
                 <li
                   className="flex items-center text-sm text-red-500 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={logout}
                 >
-                  <LogOut className="h-4 w-4 mr-2 text-red-500" />
+                  <LogOut className="w-4 h-4 mr-2 text-red-500" />
                   로그아웃
                 </li>
               </ul>
@@ -140,10 +159,10 @@ const AppBarComponent = () => {
             className="flex items-center justify-center bg-gray-100 rounded-full p-1.5 shadow-sm focus:outline-none"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <User className="h-5 w-5 text-blue-500" />
+            <User className="w-5 h-5 text-blue-500" />
           </button>
           {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-xl z-50 overflow-hidden border border-gray-100">
+            <div className="absolute right-0 z-50 w-48 mt-2 overflow-hidden bg-white border border-gray-100 shadow-lg rounded-xl">
               <ul className="py-1">
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
@@ -152,19 +171,19 @@ const AppBarComponent = () => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  <UserCircle className="h-4 w-4 mr-2 text-blue-500" />내 계정
+                  <UserCircle className="w-4 h-4 mr-2 text-blue-500" />내 계정
                 </li>
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={handleTeamReset}
                 >
-                  <RefreshCcw className="h-4 w-4 mr-2 text-blue-500" />팀 변경
+                  <RefreshCcw className="w-4 h-4 mr-2 text-blue-500" />팀 변경
                 </li>
                 <li
                   className="flex items-center text-sm text-red-500 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={logout}
                 >
-                  <LogOut className="h-4 w-4 mr-2 text-red-500" />
+                  <LogOut className="w-4 h-4 mr-2 text-red-500" />
                   로그아웃
                 </li>
               </ul>
@@ -176,7 +195,7 @@ const AppBarComponent = () => {
   };
 
   return (
-    <div className="flex items-center justify-between bg-white text-gray-800 px-4 py-3 shadow-sm border-b border-gray-100 sticky top-0 z-50">
+    <div className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 text-gray-800 bg-white border-b border-gray-100 shadow-sm">
       {renderLeftContent()}
       {renderRightContent()}
     </div>

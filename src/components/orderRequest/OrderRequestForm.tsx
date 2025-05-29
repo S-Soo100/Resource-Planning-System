@@ -210,14 +210,38 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }));
   }, []);
 
-  // 패키지 선택 핸들러
+  const [packageQuantity, setPackageQuantity] = useState(1);
+
+  // 패키지 수량 변경 핸들러
+  const handlePackageQuantityChange = (increment: boolean) => {
+    setPackageQuantity((prev) => {
+      const newQuantity = increment ? prev + 1 : prev > 1 ? prev - 1 : prev;
+
+      // 패키지 아이템들의 수량도 함께 업데이트
+      setOrderItems((prevItems) =>
+        prevItems.map((item) => ({
+          ...item,
+          quantity: newQuantity,
+          stockAvailable:
+            currentWarehouseItems.find(
+              (stockItem) =>
+                stockItem.teamItem.itemCode === item.teamItem.itemCode
+            )?.itemQuantity >= newQuantity,
+        }))
+      );
+
+      return newQuantity;
+    });
+  };
+
+  // 패키지 선택 핸들러 수정
   const handlePackageSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const packageId = parseInt(e.target.value);
     if (packageId === 0) {
       setTimeout(() => {
         setOrderItems([]);
+        setPackageQuantity(1);
       }, 0);
-      // formData에서 packageId 제거
       setFormData((prev) => ({
         ...prev,
         packageId: null,
@@ -225,7 +249,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       return;
     }
 
-    // formData에 packageId 저장
     setFormData((prev) => ({
       ...prev,
       packageId,
@@ -236,10 +259,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     );
     if (!selectedPackage) return;
 
-    // 패키지의 아이템 목록을 파싱
     const itemCodes = selectedPackage.itemlist.split(", ");
-
-    // 각 아이템 코드에 대해 currentWarehouseItems에서 해당 아이템을 찾아 orderItems에 추가
     const newItems = itemCodes
       .map((itemCode) => {
         const warehouseItem = currentWarehouseItems.find(
@@ -249,8 +269,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
         return {
           teamItem: warehouseItem.teamItem,
-          quantity: 1,
-          stockAvailable: warehouseItem.itemQuantity >= 1,
+          quantity: packageQuantity,
+          stockAvailable: warehouseItem.itemQuantity >= packageQuantity,
           stockQuantity: warehouseItem.itemQuantity,
           warehouseItemId: warehouseItem.id,
         };
@@ -657,20 +677,41 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             <label className="block text-sm font-medium text-gray-700">
               패키지 선택
             </label>
-            <select
-              name="packageId"
-              onChange={handlePackageSelect}
-              className="w-full px-3 py-2 border rounded-md"
-              required={isPackageOrder}
-              disabled={!formData.warehouseId}
-            >
-              <option value="0">패키지 선택</option>
-              {packages?.map((pkg: PackageApi) => (
-                <option key={pkg.id} value={pkg.id}>
-                  {pkg.packageName}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <select
+                name="packageId"
+                onChange={handlePackageSelect}
+                className="flex-1 px-3 py-2 border rounded-md"
+                required={isPackageOrder}
+                disabled={!formData.warehouseId}
+              >
+                <option value="0">패키지 선택</option>
+                {packages?.map((pkg: PackageApi) => (
+                  <option key={pkg.id} value={pkg.id}>
+                    {pkg.packageName}
+                  </option>
+                ))}
+              </select>
+              {formData.packageId && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePackageQuantityChange(false)}
+                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <span className="w-8 text-center">{packageQuantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => handlePackageQuantityChange(true)}
+                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
             {!formData.warehouseId && (
               <p className="text-xs text-amber-600">
                 창고를 먼저 선택해주세요.

@@ -24,7 +24,12 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
   const teamId = team?.id;
 
   useEffect(() => {
-    console.log("현재 팀 정보:", team);
+    if (team) {
+      console.log("팀 정보:", {
+        id: team.id,
+        userCount: team.teamUserMap?.length || 0,
+      });
+    }
   }, [team]);
 
   const {
@@ -33,8 +38,8 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
     error,
     addUser,
     isAddingUser,
-    addUserWithCreation,
-    isProcessingUser,
+    createUser,
+    isCreatingUser,
     removeUser,
     isRemovingUser,
   } = useTeamAdmin(teamId || 0);
@@ -54,6 +59,17 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [detailMessage, setDetailMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (
+      formSuccess === "새 사용자가 성공적으로 생성되고 팀에 추가되었습니다."
+    ) {
+      alert("새 사용자가 성공적으로 생성되고 팀에 추가되었습니다.");
+      setIsModalOpen(false);
+      setFormSuccess(null);
+      setDetailMessage(null);
+    }
+  }, [formSuccess]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -149,18 +165,18 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
       };
 
       setDetailMessage("새 사용자 생성 및 팀 추가 시도 중...");
-      const result = await addUserWithCreation(userData);
-
-      if (!result.success) {
-        setFormError(result.error || "사용자 추가에 실패했습니다.");
-        setDetailMessage(JSON.stringify(result, null, 2));
+      try {
+        await createUser(userData);
+        setFormSuccess("새 사용자가 성공적으로 생성되고 팀에 추가되었습니다.");
+        setDetailMessage(`추가된 사용자 이름: ${userData.name}`);
+      } catch (error) {
+        if (error instanceof Error) {
+          setFormError(error.message);
+        } else {
+          setFormError("사용자 생성 중 오류가 발생했습니다.");
+        }
         return;
       }
-
-      setFormSuccess("새 사용자가 성공적으로 생성되고 팀에 추가되었습니다.");
-      setDetailMessage(
-        `추가된 사용자 ID: ${result.data?.id}, 이름: ${result.data?.name}`
-      );
     }
 
     // 성공 시 폼 초기화
@@ -173,13 +189,13 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
       accessLevel: "user",
     });
 
-    // 성공 시 3초 후 모달 닫기
-    if (!formError) {
+    // 성공 시 1.2초 후 모달 닫기
+    if (!formError && (isCreatingUser || isAddingUser)) {
       setTimeout(() => {
         setIsModalOpen(false);
         setFormSuccess(null);
         setDetailMessage(null);
-      }, 3000);
+      }, 1200);
     }
   };
 
@@ -354,6 +370,32 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
                 {detailMessage}
               </div>
             )}
+
+            {isCreatingUser || isAddingUser ? (
+              <div className="flex items-center justify-center mb-4">
+                <svg
+                  className="animate-spin h-5 w-5 text-blue-500 mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  ></path>
+                </svg>
+                <span className="text-blue-500 text-sm">처리 중입니다...</span>
+              </div>
+            ) : null}
 
             <div className="space-y-4">
               {isExistingUser ? (
@@ -566,15 +608,16 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
               <button
                 onClick={handleCloseModal}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded"
+                disabled={isCreatingUser || isAddingUser}
               >
                 취소
               </button>
               <button
                 onClick={handleAddUser}
-                disabled={isProcessingUser || isAddingUser}
+                disabled={isCreatingUser || isAddingUser}
                 className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isProcessingUser || isAddingUser ? "처리 중..." : "추가"}
+                {isCreatingUser || isAddingUser ? "처리 중..." : "추가"}
               </button>
             </div>
           </div>

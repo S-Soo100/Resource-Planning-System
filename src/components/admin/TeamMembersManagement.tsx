@@ -10,6 +10,7 @@ interface NewUserForm {
   confirmPassword: string;
   name: string;
   userId: number;
+  accessLevel: "user" | "supplier" | "moderator";
 }
 
 interface TeamMembersManagementProps {
@@ -48,6 +49,7 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
     confirmPassword: "",
     name: "",
     userId: 0,
+    accessLevel: "user",
   });
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
@@ -142,7 +144,7 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
         password: newUserForm.password,
         name: newUserForm.name,
         restrictedWhs: "",
-        accessLevel: "user",
+        accessLevel: newUserForm.accessLevel,
         isAdmin: false,
       };
 
@@ -168,6 +170,7 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
       confirmPassword: "",
       name: "",
       userId: 0,
+      accessLevel: "user",
     });
 
     // 성공 시 3초 후 모달 닫기
@@ -194,6 +197,7 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
       confirmPassword: "",
       name: "",
       userId: 0,
+      accessLevel: "user",
     });
   };
 
@@ -530,6 +534,29 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
                         )}
                       </button>
                     </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      권한 레벨
+                    </label>
+                    <select
+                      value={newUserForm.accessLevel}
+                      onChange={(e) =>
+                        setNewUserForm({
+                          ...newUserForm,
+                          accessLevel: e.target.value as
+                            | "user"
+                            | "supplier"
+                            | "moderator",
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="user">일반 사용자</option>
+                      <option value="supplier">공급자</option>
+                      <option value="moderator">1차승인권자</option>
+                    </select>
                   </div>
                 </>
               )}

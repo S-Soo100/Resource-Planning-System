@@ -71,8 +71,8 @@ const MainMenuComponent = () => {
             const roleMap = {
               admin: "관리자",
               user: "일반 사용자",
-              supplier: "공급자",
-              moderator: "중재자",
+              supplier: "외부업체",
+              moderator: "1차승인권자",
             };
             return roleMap[level];
           })
@@ -87,8 +87,8 @@ const MainMenuComponent = () => {
         const roleMap = {
           admin: "관리자",
           user: "일반 사용자",
-          supplier: "공급자",
-          moderator: "중재자",
+          supplier: "외부업체",
+          moderator: "1차승인권자",
         };
         alert(
           `죄송합니다. ${roleMap[requiredLevel]} 권한이 필요한 기능입니다.\n\n현재 계정으로는 해당 기능을 사용할 수 없습니다.`

@@ -3,4 +3,5 @@ export type IAuth = {
   email: string;
   name: string;
   isAdmin: boolean;
+  accessLevel: "user" | "admin" | "supplier" | "moderator";
 };

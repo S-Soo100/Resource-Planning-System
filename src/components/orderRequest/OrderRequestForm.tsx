@@ -504,6 +504,15 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       return;
     }
 
+    // 확인 메시지 표시
+    const isConfirmed = window.confirm(
+      "발주서, 견적서 등 필요한 증빙을 모두 업로드 하셨나요?"
+    );
+
+    if (!isConfirmed) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -623,13 +632,18 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             setIsProcessing(true);
             toast.loading("처리 중... 잠시만 기다려주세요.");
 
-            // 1초 후 캐시 갱신 및 페이지 이동
+            // 2초 후 캐시 갱신 및 페이지 이동
             setTimeout(async () => {
               try {
                 // React Query 캐시 무효화
                 const currentTeamId =
                   authStore.getState().selectedTeam?.id || 1;
                 await queryClient.invalidateQueries({
+                  queryKey: ["orders", "team", currentTeamId],
+                });
+
+                // 발주 목록 데이터 다시 가져오기
+                await queryClient.refetchQueries({
                   queryKey: ["orders", "team", currentTeamId],
                 });
 
@@ -642,7 +656,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                 setIsProcessing(false);
                 toast.dismiss();
               }
-            }, 1000);
+            }, 2000);
           } else {
             setIsSubmitting(false);
             toast.error(response.message || "발주 요청에 실패했습니다");

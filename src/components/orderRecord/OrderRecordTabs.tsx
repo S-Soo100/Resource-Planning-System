@@ -833,7 +833,9 @@ const OrderRecordTabs = () => {
                           <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-gray-700 truncate max-w-[120px] sm:max-w-[200px]">
                             {record.package?.packageName &&
                             record.package.packageName !== "개별 품목"
-                              ? record.package.packageName
+                              ? `${record.package.packageName} ${
+                                  record.orderItems?.[0]?.quantity || 1
+                                }개`
                               : record.orderItems &&
                                 record.orderItems.length > 0
                               ? record.orderItems
@@ -898,7 +900,9 @@ const OrderRecordTabs = () => {
                                 <div className="flex-1 text-xs text-gray-700 truncate">
                                   {record.package?.packageName &&
                                   record.package.packageName !== "개별 품목"
-                                    ? record.package.packageName
+                                    ? `${record.package.packageName} ${
+                                        record.orderItems?.[0]?.quantity || 1
+                                      }개`
                                     : record.orderItems &&
                                       record.orderItems.length > 0
                                     ? record.orderItems

@@ -61,6 +61,16 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     warehouseId: null,
   });
 
+  // auth가 변경될 때 requester 업데이트
+  useEffect(() => {
+    if (auth?.name && !formData.requester) {
+      setFormData((prev) => ({
+        ...prev,
+        requester: auth.name,
+      }));
+    }
+  }, [auth, formData.requester]);
+
   // 훅 호출
   const { useGetPackages } = usePackages();
   const { packages } = useGetPackages();
@@ -219,15 +229,20 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
       // 패키지 아이템들의 수량도 함께 업데이트
       setOrderItems((prevItems) =>
-        prevItems.map((item) => ({
-          ...item,
-          quantity: newQuantity,
-          stockAvailable:
-            currentWarehouseItems.find(
-              (stockItem) =>
-                stockItem.teamItem.itemCode === item.teamItem.itemCode
-            )?.itemQuantity >= newQuantity,
-        }))
+        prevItems.map((item) => {
+          const stockItem = currentWarehouseItems?.find(
+            (stockItem) =>
+              stockItem.teamItem.itemCode === item.teamItem.itemCode
+          );
+
+          return {
+            ...item,
+            quantity: newQuantity,
+            stockAvailable: stockItem
+              ? stockItem.itemQuantity >= newQuantity
+              : false,
+          };
+        })
       );
 
       return newQuantity;

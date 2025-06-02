@@ -98,16 +98,16 @@ export default function StockItemCard({
           grouped[cat.id].length > 0 && (
             <React.Fragment key={cat.id}>
               <div
-                className="bg-gray-100 font-bold px-2.5 py-1.5 rounded-lg text-base text-gray-700 mb-1 mt-1.5 cursor-pointer select-none flex items-center justify-between"
+                className="bg-gray-200 font-semibold px-3 py-2 text-sm text-gray-800 mb-1 mt-2 cursor-pointer select-none flex items-center justify-between border-b-2 border-gray-400"
                 onClick={() => handleToggle(String(cat.id))}
               >
-                <span className="flex items-center">
+                <span className="flex items-center uppercase tracking-wide">
                   <span className="mr-1">
                     {openCategories[String(cat.id)] ? "▼" : "▶"}
                   </span>
                   {cat.name}
                 </span>
-                <span className="text-sm text-gray-500">
+                <span className="text-xs text-gray-600 font-normal">
                   {grouped[cat.id].length}개 품목 / 총{" "}
                   {calculateTotalQuantity(grouped[cat.id])}개
                 </span>
@@ -118,21 +118,21 @@ export default function StockItemCard({
                     grouped[cat.id].map((item, itemIndex) => (
                       <div
                         key={`item-card-${item.id}-${itemIndex}`}
-                        className="bg-white rounded-lg shadow-sm p-3 border border-gray-100 mb-2"
+                        className="bg-white border border-gray-300 p-3 mb-2 hover:bg-gray-50"
                       >
                         {/* 품목명 + 재고수량 */}
-                        <div className="flex justify-between items-center mb-1">
+                        <div className="flex justify-between items-center mb-2">
                           <div
-                            className="text-base font-bold text-blue-700 cursor-pointer hover:underline hover:text-blue-700"
+                            className="text-base font-semibold text-gray-900 cursor-pointer hover:text-black hover:underline"
                             onClick={() => router.push(`/item/${item.id}`)}
                           >
                             {item.teamItem.itemName}
                           </div>
                           <div
-                            className={`text-xl font-bold ${
+                            className={`text-lg font-semibold ${
                               showEditButton
-                                ? "text-blue-600 cursor-pointer hover:underline"
-                                : "text-blue-600 cursor-default"
+                                ? "text-gray-900 cursor-pointer hover:bg-gray-100 border border-gray-300 px-2 py-1"
+                                : "text-gray-900 cursor-default"
                             }`}
                             onClick={() => {
                               if (showEditButton) onEditQuantity(item);
@@ -142,8 +142,10 @@ export default function StockItemCard({
                           </div>
                         </div>
                         {/* 품목코드 + 카테고리 */}
-                        <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
-                          <div>코드: {item.teamItem.itemCode}</div>
+                        <div className="flex justify-between items-center text-xs text-gray-600 mb-2 border-t border-gray-100 pt-2">
+                          <div className="font-mono">
+                            코드: {item.teamItem.itemCode}
+                          </div>
                           <div>
                             카테고리:{" "}
                             {getCategoryName(
@@ -154,7 +156,7 @@ export default function StockItemCard({
                         </div>
                         {/* 메모 */}
                         {item.teamItem.memo && (
-                          <div className="text-xs text-gray-600 mb-1">
+                          <div className="text-xs text-gray-500 mb-2">
                             메모: {truncateMemo(item.teamItem.memo)}
                           </div>
                         )}
@@ -179,14 +181,14 @@ export default function StockItemCard({
       {grouped["none"].length > 0 && (
         <>
           <div
-            className="bg-gray-100 font-bold px-2.5 py-1.5 rounded-lg text-base text-gray-700 mb-1 mt-1.5 cursor-pointer select-none flex items-center justify-between"
+            className="bg-gray-200 font-semibold px-3 py-2 text-sm text-gray-800 mb-1 mt-2 cursor-pointer select-none flex items-center justify-between border-b-2 border-gray-400"
             onClick={() => handleToggle("none")}
           >
-            <span className="flex items-center">
+            <span className="flex items-center uppercase tracking-wide">
               <span className="mr-1">{openCategories["none"] ? "▼" : "▶"}</span>
               카테고리 없음
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-xs text-gray-600 font-normal">
               {grouped["none"].length}개 품목 / 총{" "}
               {calculateTotalQuantity(grouped["none"])}개
             </span>
@@ -196,21 +198,21 @@ export default function StockItemCard({
               {grouped["none"].map((item, itemIndex) => (
                 <div
                   key={`item-card-none-${item.id}-${itemIndex}`}
-                  className="bg-white rounded-lg shadow-sm p-3 border border-gray-100 mb-2"
+                  className="bg-white border border-gray-300 p-3 mb-2 hover:bg-gray-50"
                 >
                   {/* 품목명 + 재고수량 */}
-                  <div className="flex justify-between items-center mb-1">
+                  <div className="flex justify-between items-center mb-2">
                     <div
-                      className="text-base font-bold text-blue-700 cursor-pointer hover:underline hover:text-blue-700"
+                      className="text-base font-semibold text-gray-900 cursor-pointer hover:text-black hover:underline"
                       onClick={() => router.push(`/item/${item.id}`)}
                     >
                       {item.teamItem.itemName}
                     </div>
                     <div
-                      className={`text-xl font-bold ${
+                      className={`text-lg font-semibold ${
                         showEditButton
-                          ? "text-blue-600 cursor-pointer hover:underline"
-                          : "text-blue-600 cursor-default"
+                          ? "text-gray-900 cursor-pointer hover:bg-gray-100 border border-gray-300 px-2 py-1"
+                          : "text-gray-900 cursor-default"
                       }`}
                       onClick={() => {
                         if (showEditButton) onEditQuantity(item);
@@ -220,13 +222,15 @@ export default function StockItemCard({
                     </div>
                   </div>
                   {/* 품목코드 + 카테고리 */}
-                  <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
-                    <div>코드: {item.teamItem.itemCode}</div>
+                  <div className="flex justify-between items-center text-xs text-gray-600 mb-2 border-t border-gray-100 pt-2">
+                    <div className="font-mono">
+                      코드: {item.teamItem.itemCode}
+                    </div>
                     <div>카테고리: -</div>
                   </div>
                   {/* 메모 */}
                   {item.teamItem.memo && (
-                    <div className="text-xs text-gray-600 mb-1">
+                    <div className="text-xs text-gray-500 mb-2">
                       메모: {truncateMemo(item.teamItem.memo)}
                     </div>
                   )}

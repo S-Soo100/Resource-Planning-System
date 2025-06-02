@@ -93,17 +93,17 @@ export default function StockTableDesktop({
             <React.Fragment key={cat.id}>
               <tr
                 onClick={() => handleToggle(String(cat.id))}
-                className="cursor-pointer select-none"
+                className="cursor-pointer select-none border-b-2 border-gray-400"
               >
                 <td
                   colSpan={showEditButton ? 7 : 6}
-                  className="bg-gray-100 font-bold px-6 py-3 text-left text-base text-gray-700"
+                  className="bg-gray-200 font-semibold px-4 py-3 text-left text-sm text-gray-800"
                 >
                   <div className="flex justify-between items-center">
-                    <span>
+                    <span className="uppercase tracking-wide">
                       {openCategories[String(cat.id)] ? "▼" : "▶"} {cat.name}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-xs text-gray-600 font-normal">
                       {grouped[cat.id].length}개 품목 / 총{" "}
                       {calculateTotalQuantity(grouped[cat.id])}개
                     </span>
@@ -114,14 +114,14 @@ export default function StockTableDesktop({
                 <>
                   <tr>
                     <td colSpan={3} className="align-top pb-0">
-                      <div className="bg-white rounded-xl shadow border border-gray-200 px-6 py-3 flex flex-row items-center w-full mb-1">
-                        <div className="w-1/3 text-left text-sm font-medium text-gray-500">
+                      <div className="bg-gray-50 border-b border-gray-300 px-4 py-2 flex flex-row items-center w-full">
+                        <div className="w-1/3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
                           품목명
                         </div>
-                        <div className="w-1/3 text-left text-sm font-medium text-gray-500">
+                        <div className="w-1/3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
                           품목코드
                         </div>
-                        <div className="w-1/3 text-right text-sm font-medium text-gray-500">
+                        <div className="w-1/3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wide">
                           재고수량
                         </div>
                       </div>
@@ -129,13 +129,16 @@ export default function StockTableDesktop({
                   </tr>
                   {grouped[cat.id].length > 0 ? (
                     grouped[cat.id].map((item, itemIndex) => (
-                      <tr key={`item-${item.id}-${itemIndex}`}>
-                        <td colSpan={3} className="align-top py-2">
-                          <div className="bg-white rounded-xl shadow border border-gray-200 px-6 py-4 flex flex-col gap-0.5 hover:shadow-md transition-shadow duration-200">
+                      <tr
+                        key={`item-${item.id}-${itemIndex}`}
+                        className="border-b border-gray-200 hover:bg-gray-50"
+                      >
+                        <td colSpan={3} className="align-top py-0">
+                          <div className="bg-white px-4 py-3 flex flex-col">
                             <div className="flex flex-row items-center w-full">
                               <div className="w-1/3">
                                 <a
-                                  className="text-blue-500 hover:text-blue-700 hover:underline font-medium transition-colors duration-150 cursor-pointer"
+                                  className="text-gray-900 hover:text-black hover:underline font-medium cursor-pointer"
                                   onClick={() =>
                                     router.push(`/item/${item.id}`)
                                   }
@@ -143,32 +146,32 @@ export default function StockTableDesktop({
                                   {item.teamItem.itemName}
                                 </a>
                               </div>
-                              <div className="w-1/3 text-left text-sm text-gray-600">
+                              <div className="w-1/3 text-left text-sm text-gray-600 font-mono">
                                 {item.teamItem.itemCode}
                               </div>
                               <div className="w-1/3 text-right">
                                 {showEditButton ? (
                                   <button
-                                    className="text-blue-600 font-bold text-lg px-2 py-1 rounded hover:bg-blue-50 border border-transparent hover:border-blue-300 transition-colors duration-150"
+                                    className="text-gray-900 font-semibold text-base px-2 py-1 hover:bg-gray-100 border border-gray-300 hover:border-gray-400"
                                     onClick={() => onEditQuantity(item)}
                                   >
                                     {item.itemQuantity}
                                   </button>
                                 ) : (
-                                  <span className="text-blue-600 font-bold text-lg">
+                                  <span className="text-gray-900 font-semibold text-base">
                                     {item.itemQuantity}
                                   </span>
                                 )}
                               </div>
                             </div>
-                            <div className="flex flex-row items-center w-full bg-gray-50/50 rounded-b-xl mt-2">
-                              <div className="w-1/2 text-sm text-gray-500">
-                                최종수정일:{" "}
+                            <div className="flex flex-row items-center w-full mt-2 pt-2 border-t border-gray-100">
+                              <div className="w-1/2 text-xs text-gray-500">
+                                최종수정:{" "}
                                 {new Date(item.updatedAt).toLocaleDateString(
                                   "ko-KR"
                                 )}
                               </div>
-                              <div className="w-1/2 text-sm text-gray-500 text-right">
+                              <div className="w-1/2 text-xs text-gray-500 text-right">
                                 메모: {truncateMemo(item.teamItem.memo)}
                               </div>
                             </div>
@@ -180,7 +183,7 @@ export default function StockTableDesktop({
                     <tr>
                       <td
                         colSpan={3}
-                        className="px-6 py-4 text-gray-400 text-sm"
+                        className="px-4 py-4 text-gray-400 text-sm border-b border-gray-200"
                       >
                         해당 카테고리 품목 없음
                       </td>
@@ -196,15 +199,17 @@ export default function StockTableDesktop({
         <>
           <tr
             onClick={() => handleToggle("none")}
-            className="cursor-pointer select-none"
+            className="cursor-pointer select-none border-b-2 border-gray-400"
           >
             <td
               colSpan={showEditButton ? 7 : 6}
-              className="bg-gray-100 font-bold px-6 py-3 text-left text-base text-gray-700"
+              className="bg-gray-200 font-semibold px-4 py-3 text-left text-sm text-gray-800"
             >
               <div className="flex justify-between items-center">
-                <span>{openCategories["none"] ? "▼" : "▶"} 카테고리 없음</span>
-                <span className="text-sm text-gray-500">
+                <span className="uppercase tracking-wide">
+                  {openCategories["none"] ? "▼" : "▶"} 카테고리 없음
+                </span>
+                <span className="text-xs text-gray-600 font-normal">
                   {grouped["none"].length}개 품목 / 총{" "}
                   {calculateTotalQuantity(grouped["none"])}개
                 </span>
@@ -215,56 +220,59 @@ export default function StockTableDesktop({
             <>
               <tr>
                 <td colSpan={3} className="align-top pb-0">
-                  <div className="bg-white rounded-xl shadow border border-gray-200 px-6 py-3 flex flex-row items-center w-full mb-1">
-                    <div className="w-1/3 text-left text-sm font-medium text-gray-500">
+                  <div className="bg-gray-50 border-b border-gray-300 px-4 py-2 flex flex-row items-center w-full">
+                    <div className="w-1/3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
                       품목명
                     </div>
-                    <div className="w-1/3 text-left text-sm font-medium text-gray-500">
+                    <div className="w-1/3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
                       품목코드
                     </div>
-                    <div className="w-1/3 text-right text-sm font-medium text-gray-500">
+                    <div className="w-1/3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wide">
                       재고수량
                     </div>
                   </div>
                 </td>
               </tr>
               {grouped["none"].map((item, itemIndex) => (
-                <tr key={`item-none-${item.id}-${itemIndex}`}>
-                  <td colSpan={3} className="align-top py-2">
-                    <div className="bg-white rounded-xl shadow border border-gray-200 px-6 py-4 flex flex-col gap-0.5 hover:shadow-md transition-shadow duration-200">
+                <tr
+                  key={`item-none-${item.id}-${itemIndex}`}
+                  className="border-b border-gray-200 hover:bg-gray-50"
+                >
+                  <td colSpan={3} className="align-top py-0">
+                    <div className="bg-white px-4 py-3 flex flex-col">
                       <div className="flex flex-row items-center w-full">
                         <div className="w-1/3">
                           <a
-                            className="text-blue-500 hover:text-blue-700 hover:underline font-medium transition-colors duration-150 cursor-pointer"
+                            className="text-gray-900 hover:text-black hover:underline font-medium cursor-pointer"
                             onClick={() => router.push(`/item/${item.id}`)}
                           >
                             {item.teamItem.itemName}
                           </a>
                         </div>
-                        <div className="w-1/3 text-left text-sm text-gray-600">
+                        <div className="w-1/3 text-left text-sm text-gray-600 font-mono">
                           {item.teamItem.itemCode}
                         </div>
                         <div className="w-1/3 text-right">
                           {showEditButton ? (
                             <button
-                              className="text-blue-600 font-bold text-lg px-2 py-1 rounded hover:bg-blue-50 border border-transparent hover:border-blue-300 transition-colors duration-150"
+                              className="text-gray-900 font-semibold text-base px-2 py-1 hover:bg-gray-100 border border-gray-300 hover:border-gray-400"
                               onClick={() => onEditQuantity(item)}
                             >
                               {item.itemQuantity}
                             </button>
                           ) : (
-                            <span className="text-blue-600 font-bold text-lg">
+                            <span className="text-gray-900 font-semibold text-base">
                               {item.itemQuantity}
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="flex flex-row items-center w-full bg-gray-50/50 rounded-b-xl mt-2">
-                        <div className="w-1/2 text-sm text-gray-500">
-                          최종수정일:{" "}
+                      <div className="flex flex-row items-center w-full mt-2 pt-2 border-t border-gray-100">
+                        <div className="w-1/2 text-xs text-gray-500">
+                          최종수정:{" "}
                           {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
                         </div>
-                        <div className="w-1/2 text-sm text-gray-500 text-right">
+                        <div className="w-1/2 text-xs text-gray-500 text-right">
                           메모: {truncateMemo(item.teamItem.memo)}
                         </div>
                       </div>

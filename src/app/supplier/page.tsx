@@ -12,75 +12,13 @@ import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui";
 
 // Daum 주소 검색 모달 동적 임포트
 const SearchAddressModal = dynamic(
   () => import("@/components/SearchAddressModal"),
   { ssr: false }
 );
-
-// iOS 스타일 버튼 컴포넌트
-interface ButtonProps {
-  onClick?: () => void;
-  type?: "button" | "submit" | "reset";
-  disabled?: boolean;
-  children: React.ReactNode;
-  color?: "primary" | "secondary" | "danger" | "success" | "default";
-  size?: "sm" | "md" | "lg";
-  className?: string;
-}
-
-const Button: React.FC<ButtonProps> = ({
-  onClick,
-  type = "button",
-  disabled = false,
-  children,
-  color = "default",
-  size = "md",
-  className = "",
-}) => {
-  // iOS 스타일 색상 맵
-  const colorClasses = {
-    primary: "bg-blue-500 hover:bg-blue-600 text-white",
-    secondary: "bg-gray-500 hover:bg-gray-600 text-white",
-    danger: "bg-red-500 hover:bg-red-600 text-white",
-    success: "bg-green-500 hover:bg-green-600 text-white",
-    default: "bg-gray-200 hover:bg-gray-300 text-gray-800",
-  };
-
-  // iOS 스타일 크기 맵
-  const sizeClasses = {
-    sm: "py-1 px-3 text-sm",
-    md: "py-2 px-4 text-base",
-    lg: "py-3 px-6 text-lg",
-  };
-
-  return (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      className={`
-        ${colorClasses[color]} 
-        ${sizeClasses[size]} 
-        rounded-full 
-        font-medium 
-        transition-all 
-        duration-200 
-        focus:outline-none 
-        focus:ring-2 
-        focus:ring-offset-2 
-        focus:ring-blue-300 
-        transform 
-        active:scale-[0.98]
-        ${disabled ? "opacity-60 cursor-not-allowed" : ""}
-        ${className}
-      `}
-    >
-      {children}
-    </button>
-  );
-};
 
 // 거래처 추가/수정 모달 컴포넌트
 interface SupplierFormModalProps {
@@ -205,21 +143,21 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl mx-4 transform transition-all animate-modal-slide-up">
         <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">
               {editingSupplier ? "거래처 정보 수정" : "신규 거래처 추가"}
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-gray-500 transition-colors hover:text-gray-700"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
+                className="w-6 h-6"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -236,7 +174,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700">
                 업체명
@@ -246,7 +184,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
                 name="supplierName"
                 value={formData.supplierName}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none transition-colors bg-white"
+                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
                 required
               />
             </div>
@@ -259,7 +197,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none transition-colors bg-white"
+                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
                 required
               />
             </div>
@@ -273,7 +211,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
                 <input
                   type="text"
                   value={baseAddress}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none transition-colors bg-white"
+                  className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
                   readOnly
                   placeholder="주소 검색 버튼을 클릭하세요"
                 />
@@ -294,7 +232,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
                 type="text"
                 value={detailAddress}
                 onChange={handleDetailAddressChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none transition-colors bg-white"
+                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
                 placeholder="상세 주소를 입력하세요"
               />
             </div>
@@ -308,7 +246,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
                 name="supplierPhoneNumber"
                 value={formData.supplierPhoneNumber}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none transition-colors bg-white"
+                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
                 required
               />
             </div>
@@ -321,7 +259,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
                 name="registrationNumber"
                 value={formData.registrationNumber}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none transition-colors bg-white"
+                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
                 required
               />
             </div>
@@ -333,38 +271,43 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
                 name="memo"
                 value={formData.memo || ""}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none transition-colors bg-white"
+                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
                 rows={3}
               ></textarea>
             </div>
           </div>
-          <div className="mt-8 flex justify-end gap-3">
-            <Button onClick={onClose} color="default">
+          <div className="flex justify-end gap-3 mt-8">
+            <Button onClick={onClose} variant="default">
               취소
             </Button>
-            <Button type="submit" color="primary" disabled={isProcessing}>
-              {isProcessing ? "처리 중..." : "저장"}
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isProcessing}
+              loading={isProcessing}
+            >
+              저장
             </Button>
           </div>
         </form>
 
         {/* 주소 검색 모달 */}
         {showAddressModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl mx-4 transform transition-all animate-modal-slide-up">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="w-full max-w-lg mx-4 transition-all transform bg-white shadow-2xl rounded-2xl animate-modal-slide-up">
               <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium text-gray-900">
                     주소 검색
                   </h3>
                   <button
                     type="button"
                     onClick={() => setShowAddressModal(false)}
-                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                    className="text-gray-500 transition-colors hover:text-gray-700"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
+                      className="w-6 h-6"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -494,7 +437,7 @@ export default function SupplierManagePage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -505,15 +448,15 @@ export default function SupplierManagePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="mb-4 text-2xl font-bold text-gray-800">
             열람 권한이 없습니다
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="mb-6 text-gray-600">
             해당 페이지에 접근할 수 있는 권한이 없습니다.
           </p>
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
           >
             <ArrowLeft size={20} />
             뒤로가기
@@ -524,26 +467,26 @@ export default function SupplierManagePage() {
   }
 
   return (
-    <div className="p-6 w-full">
-      <div className="mb-8 mt-4">
+    <div className="w-full p-6">
+      <div className="mt-4 mb-8">
         <h1 className="text-2xl font-bold text-gray-900">거래처 관리</h1>
       </div>
 
       {/* 검색 및 추가 버튼 */}
-      <div className="bg-white rounded-2xl p-4 shadow-md mb-8 w-full">
-        <div className="flex flex-col sm:flex-row items-stretch gap-4">
-          <div className="flex-grow relative">
+      <div className="w-full p-4 mb-8 bg-white shadow-md rounded-2xl">
+        <div className="flex flex-col items-stretch gap-4 sm:flex-row">
+          <div className="relative flex-grow">
             <input
               type="text"
               placeholder="거래처 이름으로 검색"
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none transition-colors bg-gray-50"
+              className="w-full py-3 pl-10 pr-4 transition-colors border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none bg-gray-50"
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <div className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
+                className="w-5 h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -577,55 +520,55 @@ export default function SupplierManagePage() {
       </div>
 
       {/* 거래처 목록 */}
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full">
+      <div className="w-full overflow-hidden bg-white shadow-md rounded-2xl">
         {isLoading ? (
-          <div className="p-8 flex justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="flex justify-center p-8">
+            <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
           </div>
         ) : suppliersList && suppliersList.length > 0 ? (
-          <div className="overflow-x-auto w-full">
+          <div className="w-full overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
                     업체명
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
                     이메일
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
                     주소
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
                     전화번호
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
                     사업자등록번호
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
                     메모
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
                     작업
                   </th>
@@ -635,27 +578,27 @@ export default function SupplierManagePage() {
                 {suppliersList.map((supplier) => (
                   <tr
                     key={supplier.id}
-                    className="hover:bg-gray-50 transition-colors"
+                    className="transition-colors hover:bg-gray-50"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
                       {supplier.supplierName}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                       {supplier.email}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                       {supplier.supplierAddress}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                       {supplier.supplierPhoneNumber}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                       {supplier.registrationNumber}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                       {supplier.memo}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-6 py-4 text-sm whitespace-nowrap">
                       <div className="flex gap-2">
                         <Button
                           onClick={() => handleEditClick(supplier)}

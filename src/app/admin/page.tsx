@@ -6,7 +6,7 @@ import { FaUsers, FaWarehouse, FaBuilding } from "react-icons/fa";
 import TeamMembersManagement from "@/components/admin/TeamMembersManagement";
 import WarehouseManagement from "@/components/admin/WarehouseManagement";
 import TeamManagement from "@/components/admin/TeamManagement";
-import AdminMenuCard from "@/components/admin/AdminMenuCard";
+import { MenuCard } from "@/components/ui";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { ArrowLeft } from "lucide-react";
@@ -102,29 +102,29 @@ export default function AdminPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <AdminMenuCard
+            <MenuCard
               title="팀 멤버 관리"
               icon={<FaUsers />}
               id="team-members"
               description="팀원 초대 및 권한 관리"
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
+              isActive={activeTab === "team-members"}
+              onClick={setActiveTab}
             />
-            <AdminMenuCard
+            <MenuCard
               title="창고 관리"
               icon={<FaWarehouse />}
               id="warehouse"
               description="창고 정보 및 위치 관리"
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
+              isActive={activeTab === "warehouse"}
+              onClick={setActiveTab}
             />
-            <AdminMenuCard
+            <MenuCard
               title="팀 관리"
               icon={<FaBuilding />}
               id="team"
               description="팀 생성 및 설정 관리"
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
+              isActive={activeTab === "team"}
+              onClick={setActiveTab}
             />
           </div>
 

@@ -45,28 +45,60 @@ export default function InventoryRecordDetail({
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="max-w-xl mx-auto divide-y divide-gray-200">
           <div className="p-3">
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="text-gray-600">ID</div>
-              <div className="font-medium truncate">{record.id}</div>
-              <div className="text-gray-600">구분</div>
-              <div className="font-medium">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs ${
-                    record.inboundQuantity !== null
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {record.inboundQuantity !== null ? "입고" : "출고"}
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between items-start">
+                <span className="text-gray-600 min-w-0 flex-shrink-0">ID</span>
+                <span className="font-medium ml-4">{record.id}</span>
+              </div>
+              <div className="flex justify-between items-start">
+                <span className="text-gray-600 min-w-0 flex-shrink-0">
+                  구분
+                </span>
+                <span className="font-medium ml-4">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      record.inboundQuantity !== null
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {record.inboundQuantity !== null ? "입고" : "출고"}
+                  </span>
                 </span>
               </div>
-              <div className="text-gray-600">품목</div>
-              <div className="font-medium truncate">
-                {record.item?.itemName || record.itemId}
+              <div className="flex justify-between items-start">
+                <span className="text-gray-600 min-w-0 flex-shrink-0">
+                  품목
+                </span>
+                <div className="font-medium ml-4 min-w-0 flex-1">
+                  {record.item?.teamItem ? (
+                    <div className="space-y-1">
+                      <div className="text-blue-700 font-medium">
+                        {record.item.teamItem.itemName}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        코드: {record.item.teamItem.itemCode}
+                      </div>
+                      {record.item.teamItem.category?.name && (
+                        <div className="text-xs text-gray-400">
+                          카테고리: {record.item.teamItem.category.name}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-red-500">
+                      품목 정보 없음 (ID: {record.itemId})
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="text-gray-600">수량</div>
-              <div className="font-medium">
-                {record.inboundQuantity ?? record.outboundQuantity ?? "-"}
+              <div className="flex justify-between items-start">
+                <span className="text-gray-600 min-w-0 flex-shrink-0">
+                  수량
+                </span>
+                <span className="font-medium ml-4">
+                  {record.inboundQuantity ?? record.outboundQuantity ?? "-"}
+                </span>
               </div>
             </div>
           </div>

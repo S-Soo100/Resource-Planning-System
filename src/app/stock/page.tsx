@@ -13,7 +13,7 @@ export default function StockPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -24,10 +24,10 @@ export default function StockPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="mb-4 text-2xl font-bold text-gray-800">
             로그인이 필요합니다
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="mb-6 text-gray-600">
             해당 페이지는 로그인한 사용자만 접근할 수 있습니다.
           </p>
           <Button
@@ -44,7 +44,7 @@ export default function StockPage() {
   }
 
   return (
-    <div className="container mx-auto px-2 sm:px-4">
+    <div className="container px-2 mx-auto sm:px-4">
       <StockTable />
     </div>
   );

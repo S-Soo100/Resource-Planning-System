@@ -26,9 +26,9 @@ export default function StockItemCard({
     Object.values(categories)
       .flat()
       .forEach((cat) => {
-        initial[cat.id] = false;
+        initial[cat.id] = true;
       });
-    initial["none"] = false;
+    initial["none"] = true;
     return initial;
   });
 

@@ -91,7 +91,7 @@ export default function IoHistoryRecordListComponent() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -102,15 +102,15 @@ export default function IoHistoryRecordListComponent() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="mb-4 text-2xl font-bold text-gray-800">
             열람 권한이 없습니다
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="mb-6 text-gray-600">
             해당 페이지에 접근할 수 있는 권한이 없습니다.
           </p>
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
           >
             <ArrowLeft size={20} />
             뒤로가기
@@ -130,8 +130,8 @@ export default function IoHistoryRecordListComponent() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+    <div className="container p-4 mx-auto">
+      <div className="grid grid-cols-1 gap-4 mb-8 md:grid-cols-3 lg:grid-cols-4">
         {warehouses.map((warehouse: Warehouse) => (
           <div
             key={warehouse.id}
@@ -169,9 +169,9 @@ export default function IoHistoryRecordListComponent() {
       {/* 필터 섹션 */}
       <div className="mb-6 space-y-4">
         {/* 날짜 필터 */}
-        <div className="flex gap-4 items-end">
+        <div className="flex items-end gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               조회 시작일
             </label>
             <input
@@ -182,7 +182,7 @@ export default function IoHistoryRecordListComponent() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               조회 종료일
             </label>
             <input
@@ -194,11 +194,11 @@ export default function IoHistoryRecordListComponent() {
           </div>
           <button
             onClick={resetDateFilter}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-md hover:bg-gray-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="w-5 h-5"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -215,15 +215,15 @@ export default function IoHistoryRecordListComponent() {
 
       {/* 기록 목록 테이블 */}
       {filteredRecords.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <p className="text-gray-500 text-lg">데이터가 없습니다</p>
-          <p className="text-gray-400 text-sm mt-2">
+        <div className="py-8 text-center rounded-lg bg-gray-50">
+          <p className="text-lg text-gray-500">데이터가 없습니다</p>
+          <p className="mt-2 text-sm text-gray-400">
             선택한 기간에 입출고 기록이 없습니다
           </p>
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
+          <table className="min-w-full overflow-hidden bg-white rounded-lg shadow-md">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
@@ -252,9 +252,9 @@ export default function IoHistoryRecordListComponent() {
                         expandedRecordId === record.id ? null : record.id
                       )
                     }
-                    className="hover:bg-gray-50 cursor-pointer"
+                    className="cursor-pointer hover:bg-gray-50"
                   >
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                       {record.inboundQuantity
                         ? formatDate(record.inboundDate)
                         : formatDate(record.outboundDate)}
@@ -270,13 +270,13 @@ export default function IoHistoryRecordListComponent() {
                         {record.inboundQuantity ? "입고" : "출고"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
                       {record.item?.teamItem?.itemName || record.itemId || "-"}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                       {record.inboundQuantity || record.outboundQuantity}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                       {record.remarks}
                     </td>
                   </tr>

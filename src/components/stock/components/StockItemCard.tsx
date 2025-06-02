@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Item } from "@/types/(item)/item";
-import { useCategoryStore } from "@/store/categoryStore";
+import { useCategory } from "@/hooks/useCategory";
 import { useRouter } from "next/navigation";
+import { authStore } from "@/store/authStore";
 
 interface StockItemCardProps {
   items: Item[];
@@ -14,16 +15,19 @@ export default function StockItemCard({
   onEditQuantity,
   showEditButton = true,
 }: StockItemCardProps) {
-  const { categories } = useCategoryStore();
+  const selectedTeam = authStore((state) => state.selectedTeam);
+  const { categories } = useCategory(selectedTeam?.id);
   const router = useRouter();
 
   const [openCategories, setOpenCategories] = useState<{
     [key: string]: boolean;
   }>(() => {
     const initial: { [key: string]: boolean } = {};
-    categories.forEach((cat) => {
-      initial[cat.id] = false;
-    });
+    Object.values(categories)
+      .flat()
+      .forEach((cat) => {
+        initial[cat.id] = false;
+      });
     initial["none"] = false;
     return initial;
   });

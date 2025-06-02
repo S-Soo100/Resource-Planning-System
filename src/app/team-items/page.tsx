@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { CreateTeamItemDto } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
-import { useCategoryStore } from "@/store/categoryStore";
+import { useCategory } from "@/hooks/useCategory";
 import {
   CreateCategoryDto,
   UpdateCategoryDto,
@@ -44,16 +44,15 @@ export default function TeamItemsPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const selectedTeam = authStore((state) => state.selectedTeam);
 
-  // 카테고리 스토어 접근
+  // 새로운 useCategory 훅 사용
   const {
     categories,
-    fetchCategories,
     isLoading: isCategoryLoading,
     createCategory,
     updateCategory,
     updateCategoryPriority,
-    isInitialized,
-  } = useCategoryStore();
+    getCategoriesSorted,
+  } = useCategory(selectedTeam?.id);
 
   // 카테고리 추가 관련 상태
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -75,10 +74,10 @@ export default function TeamItemsPage() {
   >(null);
 
   useEffect(() => {
-    if (selectedTeam?.id && !isInitialized) {
-      fetchCategories(selectedTeam.id);
+    if (selectedTeam?.id && !isCategoryLoading) {
+      getCategoriesSorted();
     }
-  }, [selectedTeam?.id, isInitialized, fetchCategories]);
+  }, [selectedTeam?.id, isCategoryLoading, getCategoriesSorted]);
 
   useEffect(() => {
     if (team) {
@@ -191,7 +190,7 @@ export default function TeamItemsPage() {
           }
 
           // 성공적으로 카테고리 수정 후 카테고리 목록 다시 불러오기
-          await fetchCategories(teamIdNumber);
+          getCategoriesSorted();
           handleCloseCategoryModal();
         } else {
           setCategorySubmitError("카테고리를 찾을 수 없습니다.");
@@ -207,7 +206,7 @@ export default function TeamItemsPage() {
 
         if (result) {
           // 성공적으로 카테고리 추가 후 카테고리 목록 다시 불러오기
-          await fetchCategories(teamIdNumber);
+          getCategoriesSorted();
           handleCloseCategoryModal();
         } else {
           setCategorySubmitError("카테고리 생성에 실패했습니다.");

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -10,7 +10,7 @@ import {
   PiShoppingCartFill,
   PiPackageFill,
 } from "react-icons/pi";
-import { useCategoryStore } from "@/store/categoryStore";
+import { useCategory } from "@/hooks/useCategory";
 
 const MainMenu = () => {
   const router = useRouter();
@@ -18,19 +18,8 @@ const MainMenu = () => {
   const { user, isLoading: userLoading } = useCurrentUser();
   const selectedTeam = authStore((state) => state.selectedTeam);
 
-  // 카테고리 스토어 접근
-  const { fetchCategories, isLoading: categoriesLoading } = useCategoryStore();
-
-  // 컴포넌트 마운트 시 카테고리 데이터 로드
-  useEffect(() => {
-    if (selectedTeam?.id && user) {
-      console.log("MainMenu: 카테고리 데이터 로드 시작", {
-        teamId: selectedTeam.id,
-        user: user.name,
-      });
-      fetchCategories(selectedTeam.id);
-    }
-  }, [selectedTeam?.id, user, fetchCategories]);
+  // 새로운 useCategory 훅 사용
+  const { isLoading: categoriesLoading } = useCategory(selectedTeam?.id);
 
   // 권한 체크 함수
   const checkAccess = (

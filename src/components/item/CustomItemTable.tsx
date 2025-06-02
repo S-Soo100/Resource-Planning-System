@@ -6,8 +6,8 @@ import { authService } from "@/services/authService";
 import { TeamWarehouse } from "@/types/warehouse";
 import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { useTeamItems } from "@/hooks/useTeamItems";
-import { useCategoryStore } from "@/store/categoryStore";
 import { CreateItemApiRequest } from "@/types/(item)/item";
+import { useCategory } from "@/hooks/useCategory";
 
 interface CustomItemTableProps {
   isReadOnly?: boolean;
@@ -47,8 +47,8 @@ export default function CustomItemTable({
     teamItemId: 0,
   });
 
-  // 카테고리 스토어 접근
-  const { categories, fetchCategories, isInitialized } = useCategoryStore();
+  // 새로운 useCategory 훅 사용
+  const { categories } = useCategory();
 
   const [warehouses, setWarehouses] = useState<TeamWarehouse[]>([]);
 
@@ -56,10 +56,6 @@ export default function CustomItemTable({
   useEffect(() => {
     const team = authService.getSelectedTeam();
     if (team) {
-      if (team.id && !isInitialized) {
-        const teamIdNumber = parseInt(team.id.toString(), 10);
-        fetchCategories(teamIdNumber);
-      }
       if (team.warehouses) {
         setWarehouses(team.warehouses);
       } else {
@@ -68,7 +64,7 @@ export default function CustomItemTable({
     } else {
       setWarehouses([]);
     }
-  }, [fetchCategories, isInitialized]);
+  }, []);
 
   // 모달 외부 클릭 시 닫기
   useEffect(() => {

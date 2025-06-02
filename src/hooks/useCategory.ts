@@ -1,55 +1,210 @@
-import { useEffect } from "react";
-import { useCategoryStore } from "@/store/categoryStore";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { categoryApi } from "@/api/category-api";
 import {
+  Category,
   CreateCategoryDto,
   UpdateCategoryDto,
   UpdateCategoryPriorityDto,
 } from "@/types/(item)/category";
-import { authStore } from "@/store/authStore";
+import { useCategoryStore } from "@/store/categoryStore";
+import { useSelectedTeam } from "@/store/authStore";
 
+/**
+ * React Query 기반 카테고리 훅
+ * 서버 상태는 React Query로, 클라이언트 상태는 Zustand로 관리
+ */
 export const useCategory = (teamId?: number) => {
-  const {
-    categories,
-    isLoading,
-    error,
-    fetchCategories,
-    createCategory,
-    updateCategory,
-    updateCategoryPriority,
-    deleteCategory,
-  } = useCategoryStore();
-
-  // 선택된 팀 정보 가져오기
-  const selectedTeam = authStore((state) => state.selectedTeam);
+  const queryClient = useQueryClient();
+  const { selectedTeam } = useSelectedTeam();
   const effectiveTeamId = teamId || selectedTeam?.id;
 
-  // 컴포넌트 마운트 시 카테고리 데이터 로드
-  useEffect(() => {
-    if (effectiveTeamId) {
-      fetchCategories(effectiveTeamId);
-    }
-  }, [fetchCategories, effectiveTeamId]);
+  const {
+    setCategories,
+    addCategory,
+    updateCategory: updateCategoryInStore,
+    removeCategory,
+    setError,
+    clearError,
+  } = useCategoryStore();
 
-  return {
-    // 상태
-    categories,
+  // 카테고리 조회
+  const {
+    data: categories = [],
     isLoading,
     error,
+    refetch,
+  } = useQuery({
+    queryKey: ["categories", effectiveTeamId],
+    queryFn: async () => {
+      if (!effectiveTeamId) {
+        throw new Error("팀 ID가 필요합니다");
+      }
+
+      const response = await categoryApi.getCategories(effectiveTeamId);
+      if (!response.success) {
+        throw new Error(response.error || "카테고리를 불러오는데 실패했습니다");
+      }
+
+      // Zustand store에도 업데이트
+      setCategories(effectiveTeamId, response.data || []);
+
+      return response.data || [];
+    },
+    enabled: !!effectiveTeamId,
+    staleTime: 5 * 60 * 1000, // 5분
+    gcTime: 10 * 60 * 1000, // 10분
+  });
+
+  // 카테고리 생성
+  const createCategoryMutation = useMutation({
+    mutationFn: async (categoryData: CreateCategoryDto) => {
+      const response = await categoryApi.createCategory(categoryData);
+      if (!response.success) {
+        throw new Error(response.error || "카테고리 생성에 실패했습니다");
+      }
+      return response.data!;
+    },
+    onSuccess: (newCategory) => {
+      if (effectiveTeamId) {
+        // 캐시 업데이트
+        queryClient.setQueryData(
+          ["categories", effectiveTeamId],
+          (old: Category[] = []) => [...old, newCategory]
+        );
+
+        // Zustand store 업데이트
+        addCategory(effectiveTeamId, newCategory);
+      }
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+    },
+  });
+
+  // 카테고리 수정
+  const updateCategoryMutation = useMutation({
+    mutationFn: async (categoryData: UpdateCategoryDto) => {
+      const response = await categoryApi.updateCategory(categoryData);
+      if (!response.success) {
+        throw new Error(response.error || "카테고리 수정에 실패했습니다");
+      }
+      return response.data!;
+    },
+    onSuccess: (updatedCategory) => {
+      if (effectiveTeamId) {
+        // 캐시 업데이트
+        queryClient.setQueryData(
+          ["categories", effectiveTeamId],
+          (old: Category[] = []) =>
+            old.map((cat) =>
+              cat.id === updatedCategory.id ? updatedCategory : cat
+            )
+        );
+
+        // Zustand store 업데이트
+        updateCategoryInStore(
+          effectiveTeamId,
+          updatedCategory.id,
+          updatedCategory
+        );
+      }
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+    },
+  });
+
+  // 카테고리 우선순위 수정
+  const updateCategoryPriorityMutation = useMutation({
+    mutationFn: async (categoryData: UpdateCategoryPriorityDto) => {
+      const response = await categoryApi.updateCategoryPriority(categoryData);
+      if (!response.success) {
+        throw new Error(
+          response.error || "카테고리 우선순위 수정에 실패했습니다"
+        );
+      }
+      return response.data!;
+    },
+    onSuccess: (updatedCategory) => {
+      if (effectiveTeamId) {
+        // 캐시 업데이트
+        queryClient.setQueryData(
+          ["categories", effectiveTeamId],
+          (old: Category[] = []) =>
+            old.map((cat) =>
+              cat.id === updatedCategory.id ? updatedCategory : cat
+            )
+        );
+
+        // Zustand store 업데이트
+        updateCategoryInStore(
+          effectiveTeamId,
+          updatedCategory.id,
+          updatedCategory
+        );
+      }
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+    },
+  });
+
+  // 카테고리 삭제
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (categoryId: number) => {
+      const response = await categoryApi.deleteCategory(categoryId);
+      if (!response.success) {
+        throw new Error(response.error || "카테고리 삭제에 실패했습니다");
+      }
+      return categoryId;
+    },
+    onSuccess: (deletedCategoryId) => {
+      if (effectiveTeamId) {
+        // 캐시 업데이트
+        queryClient.setQueryData(
+          ["categories", effectiveTeamId],
+          (old: Category[] = []) =>
+            old.filter((cat) => cat.id !== deletedCategoryId)
+        );
+
+        // Zustand store 업데이트
+        removeCategory(effectiveTeamId, deletedCategoryId);
+      }
+    },
+    onError: (error: Error) => {
+      setError(error.message);
+    },
+  });
+
+  // 우선순위 순으로 정렬된 카테고리 반환
+  const getCategoriesSorted = () => {
+    return [...categories].sort((a, b) => a.priority - b.priority);
+  };
+
+  return {
+    // 데이터
+    categories,
+    isLoading:
+      isLoading ||
+      createCategoryMutation.isPending ||
+      updateCategoryMutation.isPending ||
+      deleteCategoryMutation.isPending,
+    error: error?.message || null,
 
     // 액션
-    fetchCategories: (id?: number) => fetchCategories(id || effectiveTeamId),
-    createCategory: (categoryData: CreateCategoryDto) =>
-      createCategory(categoryData),
-    updateCategory: (categoryData: UpdateCategoryDto) =>
-      updateCategory(categoryData),
-    updateCategoryPriority: (categoryData: UpdateCategoryPriorityDto) =>
-      updateCategoryPriority(categoryData),
-    deleteCategory: (id: number) => deleteCategory(id),
+    createCategory: createCategoryMutation.mutateAsync,
+    updateCategory: updateCategoryMutation.mutateAsync,
+    updateCategoryPriority: updateCategoryPriorityMutation.mutateAsync,
+    deleteCategory: deleteCategoryMutation.mutateAsync,
+    refetch,
+    clearError,
 
-    // 유틸리티 함수
-    getCategoryById: (id: number) =>
-      categories.find((category) => category.id === id),
-    getCategoriesSorted: () =>
-      [...categories].sort((a, b) => a.priority - b.priority),
+    // 유틸리티
+    getCategoriesSorted,
+
+    // 뮤테이션 상태
+    isCreating: createCategoryMutation.isPending,
+    isUpdating: updateCategoryMutation.isPending,
+    isDeleting: deleteCategoryMutation.isPending,
   };
 };

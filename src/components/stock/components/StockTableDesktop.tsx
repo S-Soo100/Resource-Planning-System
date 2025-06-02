@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Item } from "@/types/(item)/item";
-import { useCategoryStore } from "@/store/categoryStore";
+import { useCategory } from "@/hooks/useCategory";
+import { authStore } from "@/store/authStore";
 
 interface StockTableDesktopProps {
   items: Item[];
@@ -15,7 +16,8 @@ export default function StockTableDesktop({
   showEditButton = true,
 }: StockTableDesktopProps) {
   const router = useRouter();
-  const { categories } = useCategoryStore();
+  const selectedTeam = authStore((state) => state.selectedTeam);
+  const { categories } = useCategory(selectedTeam?.id);
   const [openCategories, setOpenCategories] = useState<{
     [key: string]: boolean;
   }>(() => {

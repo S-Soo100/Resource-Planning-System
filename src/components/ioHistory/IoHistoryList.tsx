@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useInventoryRecordsByTeamId } from "@/hooks/useInventoryRecordsByTeamId";
-import { format } from "date-fns";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
-import { ko } from "date-fns/locale";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -14,16 +12,15 @@ import InventoryRecordDetail from "./InventoryRecordDetail";
 
 // 날짜 포맷팅 유틸리티 함수
 const formatDate = (dateString: string | null) => {
-  if (!dateString) return "-";
-  try {
-    return format(new Date(dateString), "yyyy-MM-dd HH:mm", { locale: ko });
-  } catch (error) {
-    console.error("날짜 포맷팅 에러:", error);
-    return dateString;
-  }
+  if (!dateString) return "N/A";
+  return new Date(dateString).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 };
 
-export default function IoHistoryRecordListComponent() {
+export default function IoHistoryList() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const { warehouses = [] } = useWarehouseItems();

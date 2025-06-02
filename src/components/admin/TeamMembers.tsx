@@ -13,13 +13,11 @@ interface NewUserForm {
   accessLevel: "user" | "supplier" | "moderator";
 }
 
-interface TeamMembersManagementProps {
-  isReadOnly?: boolean;
-}
-
-const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
+export default function TeamMembers({
   isReadOnly = false,
-}) => {
+}: {
+  isReadOnly?: boolean;
+}) {
   const { team } = useCurrentTeam();
   const teamId = team?.id;
 
@@ -625,6 +623,4 @@ const TeamMembersManagement: React.FC<TeamMembersManagementProps> = ({
       )}
     </div>
   );
-};
-
-export default TeamMembersManagement;
+}

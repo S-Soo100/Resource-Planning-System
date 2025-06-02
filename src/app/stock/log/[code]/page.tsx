@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getToken } from "@/api/cookie-api";
 
 interface LogItem {
   date: string;
@@ -13,7 +14,7 @@ interface LogItem {
   remark: string;
 }
 
-export default function Log() {
+export default function ItemLogPage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const [logData, setLogData] = useState<LogItem[]>([
@@ -37,7 +38,13 @@ export default function Log() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch(`/api/logs/${code}`);
+      const token = getToken();
+      const response = await fetch(`/api/logs/${code}`, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+          "Content-Type": "application/json",
+        },
+      });
       const data: LogItem[] = await response.json();
       setLogData(data);
     };
@@ -49,7 +56,7 @@ export default function Log() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -60,15 +67,15 @@ export default function Log() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="mb-4 text-2xl font-bold text-gray-800">
             로그인이 필요합니다
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="mb-6 text-gray-600">
             해당 페이지는 로그인한 사용자만 접근할 수 있습니다.
           </p>
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
           >
             <ArrowLeft size={20} />
             뒤로가기
@@ -79,28 +86,28 @@ export default function Log() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-2xl text-center mb-4 font-bold">
+    <div className="max-w-4xl p-8 mx-auto">
+      <h1 className="mb-4 text-2xl font-bold text-center">
         물품 {code} 입/출고 로그
       </h1>
-      <table className="w-full border-collapse border border-gray-300">
+      <table className="w-full border border-collapse border-gray-300">
         <thead>
           <tr>
-            <th className="border border-gray-300 p-2 bg-gray-100">날짜</th>
-            <th className="border border-gray-300 p-2 bg-gray-100">입고</th>
-            <th className="border border-gray-300 p-2 bg-gray-100">출고</th>
-            <th className="border border-gray-300 p-2 bg-gray-100">수량</th>
-            <th className="border border-gray-300 p-2 bg-gray-100">비고</th>
+            <th className="p-2 bg-gray-100 border border-gray-300">날짜</th>
+            <th className="p-2 bg-gray-100 border border-gray-300">입고</th>
+            <th className="p-2 bg-gray-100 border border-gray-300">출고</th>
+            <th className="p-2 bg-gray-100 border border-gray-300">수량</th>
+            <th className="p-2 bg-gray-100 border border-gray-300">비고</th>
           </tr>
         </thead>
         <tbody>
           {logData.map((log, index) => (
             <tr key={index}>
-              <td className="border border-gray-300 p-2">{log.date}</td>
-              <td className="border border-gray-300 p-2">{log.incomming}</td>
-              <td className="border border-gray-300 p-2">{log.outcomming}</td>
-              <td className="border border-gray-300 p-2">{log.quantity}</td>
-              <td className="border border-gray-300 p-2">{log.remark}</td>
+              <td className="p-2 border border-gray-300">{log.date}</td>
+              <td className="p-2 border border-gray-300">{log.incomming}</td>
+              <td className="p-2 border border-gray-300">{log.outcomming}</td>
+              <td className="p-2 border border-gray-300">{log.quantity}</td>
+              <td className="p-2 border border-gray-300">{log.remark}</td>
             </tr>
           ))}
         </tbody>

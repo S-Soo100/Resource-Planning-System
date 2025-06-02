@@ -14,7 +14,7 @@ import Cookies from "js-cookie";
 import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-const AppBarComponent = () => {
+const Appbar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -203,4 +203,4 @@ const AppBarComponent = () => {
   );
 };
 
-export default AppBarComponent;
+export default Appbar;

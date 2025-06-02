@@ -44,18 +44,18 @@ export default function LoginBoxComponent() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 min-w-96 relative">
-      <div className="w-full max-w-md mx-4 bg-white rounded-xl shadow-lg p-8">
+    <div className="relative flex items-center justify-center w-full min-h-screen bg-gray-50 min-w-96">
+      <div className="w-full max-w-md p-8 mx-4 bg-white shadow-lg rounded-xl">
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <User className="h-12 w-12 text-blue-600" />
+            <User className="w-12 h-12 text-blue-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">KARS</h1>
-          <p className="text-gray-600 mb-8">캥스터즈 자동 재고관리 시스템</p>
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">KARS</h1>
+          <p className="mb-8 text-gray-600">캥스터즈 자동 재고관리 시스템</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           {loginError && (
-            <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+            <div className="p-3 text-sm text-red-700 bg-red-100 rounded-lg">
               {loginError}
             </div>
           )}
@@ -63,12 +63,12 @@ export default function LoginBoxComponent() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block mb-2 text-sm font-medium text-gray-700"
             >
               이메일
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Mail className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
               <input
                 id="email"
                 type="email"
@@ -76,9 +76,7 @@ export default function LoginBoxComponent() {
                 onChange={(e) =>
                   setAuth({ email: e.target.value, password: auth.password })
                 }
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg 
-                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                          placeholder:text-gray-400"
+                className="block w-full py-2 pl-10 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                 placeholder="name@example.com"
                 required
               />
@@ -88,12 +86,12 @@ export default function LoginBoxComponent() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block mb-2 text-sm font-medium text-gray-700"
             >
               비밀번호
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Lock className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
               <input
                 id="password"
                 type={isPasswordVisible ? "text" : "password"}
@@ -101,9 +99,7 @@ export default function LoginBoxComponent() {
                 onChange={(e) =>
                   setAuth({ email: auth.email, password: e.target.value })
                 }
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg 
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                  placeholder:text-gray-400"
+                className="block w-full py-2 pl-10 pr-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400"
                 placeholder="••••••••"
                 required
               />
@@ -123,9 +119,7 @@ export default function LoginBoxComponent() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg
-                      hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                      transition-colors duration-200"
+            className="w-full px-4 py-2 text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             disabled={isLoading}
           >
             {isLoading ? "로그인 중..." : "로그인"}
@@ -141,7 +135,7 @@ export default function LoginBoxComponent() {
               비밀번호를 잊으셨나요?
             </a>
           </div>
-          {/* <div className="text-center text-sm text-gray-600">
+          {/* <div className="text-sm text-center text-gray-600">
             계정이 없으신가요?{" "}
             <a
               href="#"
@@ -155,9 +149,9 @@ export default function LoginBoxComponent() {
 
       {/* 로딩 오버레이 */}
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-5 rounded-full">
-            <Loader className="h-8 w-8 text-blue-600 animate-spin" />
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="p-5 bg-white rounded-full">
+            <Loader className="w-8 h-8 text-blue-600 animate-spin" />
           </div>
         </div>
       )}

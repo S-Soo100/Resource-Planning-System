@@ -229,16 +229,16 @@ export default function IoHistoryRecordListComponent() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
                   일자
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[8%]">
                   구분
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[25%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[35%]">
                   품목
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[8%]">
                   수량
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[40%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[34%]">
                   비고
                 </th>
               </tr>
@@ -271,7 +271,25 @@ export default function IoHistoryRecordListComponent() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
-                      {record.item?.teamItem?.itemName || record.itemId || "-"}
+                      {record.item?.teamItem ? (
+                        <div className="space-y-1">
+                          <div className="font-medium text-blue-700">
+                            {record.item.teamItem.itemName}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            코드: {record.item.teamItem.itemCode}
+                          </div>
+                          {record.item.teamItem.category?.name && (
+                            <div className="text-xs text-gray-400">
+                              카테고리: {record.item.teamItem.category.name}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-red-500">
+                          품목 정보 없음 (ID: {record.itemId})
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                       {record.inboundQuantity || record.outboundQuantity}
@@ -285,11 +303,20 @@ export default function IoHistoryRecordListComponent() {
                       <td colSpan={5} className="px-4 py-3 bg-gray-50">
                         <div className="mb-4">
                           <h3 className="text-lg font-semibold text-gray-800">
-                            [
-                            {record.item?.teamItem?.itemName ||
-                              record.itemId ||
-                              "-"}
-                            ] {record.inboundQuantity ? "입고" : "출고"}건 (
+                            {record.item?.teamItem ? (
+                              <>
+                                [{record.item.teamItem.itemCode}]{" "}
+                                {record.item.teamItem.itemName}
+                                {record.item.teamItem.category?.name && (
+                                  <span className="text-sm text-gray-500 ml-2">
+                                    ({record.item.teamItem.category.name})
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              `품목 ID: ${record.itemId}`
+                            )}{" "}
+                            {record.inboundQuantity ? "입고" : "출고"}건 (
                             {record.inboundQuantity || record.outboundQuantity}
                             개) -{" "}
                             {warehouses.find(

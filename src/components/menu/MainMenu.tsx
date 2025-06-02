@@ -19,28 +19,17 @@ const MainMenu = () => {
   const selectedTeam = authStore((state) => state.selectedTeam);
 
   // 탭 상태 관리를 menuTabStore로 변경
-  const { activeTab, setActiveTab } = menuTabStore();
+  const { activeTab, setActiveTab, setTabForUser } = menuTabStore();
 
   // 새로운 useCategory 훅 사용
   const { isLoading: categoriesLoading } = useCategory(selectedTeam?.id);
 
-  // 사용자 권한에 따른 기본 탭 설정
+  // 사용자 권한에 따른 탭 설정 (최초 로드 시에만)
   useEffect(() => {
     if (user?.accessLevel) {
-      const currentTab = activeTab;
-      // supplier는 order 탭만 사용 가능
-      if (user.accessLevel === "supplier" && currentTab !== "order") {
-        setActiveTab("order");
-      }
-      // 다른 사용자는 stock 탭이 기본이지만 현재 탭이 유효하면 유지
-      else if (
-        user.accessLevel !== "supplier" &&
-        !["stock", "order", "admin"].includes(currentTab)
-      ) {
-        setActiveTab("stock");
-      }
+      setTabForUser(user.accessLevel);
     }
-  }, [user?.accessLevel, activeTab, setActiveTab]);
+  }, [user?.accessLevel, setTabForUser]);
 
   // 권한 체크 함수
   const checkAccess = (

@@ -1,12 +1,15 @@
 // lib/api.ts
 import axios from "axios";
 import { getToken } from "./cookie-api";
+import { authStore } from "@/store/authStore";
+import Cookies from "js-cookie";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
 // console.log("API Base URL:", baseURL);
 
 export const api = axios.create({
-  baseURL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -15,19 +18,22 @@ export const api = axios.create({
 // 요청 인터셉터
 api.interceptors.request.use(
   (config) => {
-    console.log("API 요청:", {
-      url: config.url,
-      method: config.method,
-      headers: config.headers,
-    });
     const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log("API 요청:", {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      fullURL: `${config.baseURL}${config.url}`,
+      data: config.data,
+      headers: config.headers,
+    });
     return config;
   },
   (error) => {
-    console.log("API 요청 에러:", error);
+    console.error("요청 에러:", error);
     return Promise.reject(error);
   }
 );
@@ -48,8 +54,21 @@ api.interceptors.response.use(
       message: error.message,
     });
     if (error.response?.status === 401) {
+      // 토큰 제거
       localStorage.removeItem("token");
-      window.location.href = "/signin";
+      Cookies.remove("token");
+
+      // authStore 초기화
+      authStore.getState().logout();
+
+      // 현재 경로가 /signin이 아닌 경우에만 리다이렉트
+      if (
+        typeof window !== "undefined" &&
+        window.location.pathname !== "/signin"
+      ) {
+        console.log("401 에러 감지, /signin으로 리다이렉트");
+        window.location.replace("/signin"); // replace를 사용하여 히스토리에 남지 않도록 함
+      }
     }
     return Promise.reject(error);
   }

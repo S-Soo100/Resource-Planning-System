@@ -18,6 +18,7 @@ const AppBarComponent = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const { user } = useCurrentUser();
   const selectedTeam = authStore((state) => state.selectedTeam);
 

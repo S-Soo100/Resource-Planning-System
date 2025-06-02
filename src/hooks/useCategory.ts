@@ -8,6 +8,7 @@ import {
 } from "@/types/(item)/category";
 import { useCategoryStore } from "@/store/categoryStore";
 import { useSelectedTeam } from "@/store/authStore";
+import { useCallback } from "react";
 
 /**
  * React Query 기반 카테고리 훅
@@ -37,7 +38,7 @@ export const useCategory = (teamId?: number) => {
     queryKey: ["categories", effectiveTeamId],
     queryFn: async () => {
       if (!effectiveTeamId) {
-        throw new Error("팀 ID가 필요합니다");
+        return [];
       }
 
       const response = await categoryApi.getCategories(effectiveTeamId);
@@ -176,10 +177,10 @@ export const useCategory = (teamId?: number) => {
     },
   });
 
-  // 우선순위 순으로 정렬된 카테고리 반환
-  const getCategoriesSorted = () => {
+  // 우선순위 순으로 정렬된 카테고리 반환 - 메모이제이션 적용
+  const getCategoriesSorted = useCallback(() => {
     return [...categories].sort((a, b) => a.priority - b.priority);
-  };
+  }, [categories]);
 
   return {
     // 데이터

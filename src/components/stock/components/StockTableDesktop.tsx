@@ -23,9 +23,9 @@ export default function StockTableDesktop({
   }>(() => {
     const initial: { [key: string]: boolean } = {};
     categories.forEach((cat) => {
-      initial[cat.id] = false;
+      initial[cat.id] = true;
     });
-    initial["none"] = false;
+    initial["none"] = true;
     return initial;
   });
 

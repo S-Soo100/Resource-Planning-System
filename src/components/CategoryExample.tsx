@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useCategory } from "@/hooks/useCategory";
 import { CreateCategoryDto, UpdateCategoryDto } from "@/types/(item)/category";
 import { authStore } from "@/store/authStore";
+import { Button, Input } from "@/components/ui";
 
 interface CategoryExampleProps {
   teamId?: number;
@@ -96,20 +97,20 @@ export const CategoryExample: React.FC<CategoryExampleProps> = ({ teamId }) => {
       {/* 카테고리 생성 폼 */}
       <form onSubmit={handleCreateCategory} className="mb-6">
         <div className="flex gap-2">
-          <input
+          <Input
             type="text"
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
             placeholder="새 카테고리 이름"
-            className="border p-2 rounded flex-grow"
+            className="flex-grow"
           />
-          <button
+          <Button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            variant="primary"
             disabled={!newCategoryName.trim()}
           >
             추가
-          </button>
+          </Button>
         </div>
       </form>
 
@@ -125,26 +126,24 @@ export const CategoryExample: React.FC<CategoryExampleProps> = ({ teamId }) => {
                 onSubmit={(e) => handleUpdateCategory(e, category.id)}
                 className="flex gap-2 w-full"
               >
-                <input
+                <Input
                   type="text"
                   value={editCategoryName}
                   onChange={(e) => setEditCategoryName(e.target.value)}
-                  className="border p-2 rounded flex-grow"
+                  className="flex-grow"
                   autoFocus
                 />
-                <button
-                  type="submit"
-                  className="bg-green-500 text-white px-3 py-1 rounded"
-                >
+                <Button type="submit" variant="success" size="sm">
                   저장
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="default"
+                  size="sm"
                   onClick={() => setEditCategoryId(null)}
-                  className="bg-gray-500 text-white px-3 py-1 rounded"
                 >
                   취소
-                </button>
+                </Button>
               </form>
             ) : (
               <>
@@ -155,20 +154,22 @@ export const CategoryExample: React.FC<CategoryExampleProps> = ({ teamId }) => {
                   </span>
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() =>
                       handleSetEditMode(category.id, category.name)
                     }
-                    className="bg-yellow-500 text-white px-3 py-1 rounded"
                   >
                     수정
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
                     onClick={() => handleDeleteCategory(category.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded"
                   >
                     삭제
-                  </button>
+                  </Button>
                 </div>
               </>
             )}

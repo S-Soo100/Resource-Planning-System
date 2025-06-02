@@ -4,6 +4,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import CustomItemTable from "@/components/item/CustomItemTable";
+import { Button } from "@/components/ui";
 
 export default function ItemsPage() {
   const router = useRouter();
@@ -30,13 +31,14 @@ export default function ItemsPage() {
           <p className="text-gray-600 mb-6">
             해당 페이지는 로그인한 사용자만 접근할 수 있습니다.
           </p>
-          <button
+          <Button
+            variant="default"
             onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            icon={<ArrowLeft className="w-4 h-4" />}
+            iconPosition="left"
           >
-            <ArrowLeft size={20} />
             뒤로가기
-          </button>
+          </Button>
         </div>
       </div>
     );

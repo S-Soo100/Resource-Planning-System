@@ -3,7 +3,6 @@ import React, { Suspense, useEffect, useState } from "react";
 import { authStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { FaUsers, FaWarehouse, FaBuilding } from "react-icons/fa";
-import TeamMembersManagement from "@/components/admin/TeamMembersManagement";
 import WarehouseManagement from "@/components/admin/WarehouseManagement";
 import TeamManagement from "@/components/admin/TeamManagement";
 import { MenuCard, Button } from "@/components/ui";
@@ -11,6 +10,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { ArrowLeft } from "lucide-react";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+import TeamMembers from "@/components/admin/TeamMembers";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -70,7 +70,7 @@ export default function AdminPage() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "team-members":
-        return <TeamMembersManagement isReadOnly={isReadOnly} />;
+        return <TeamMembers isReadOnly={isReadOnly} />;
       case "warehouse":
         return (
           <WarehouseManagement

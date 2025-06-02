@@ -20,16 +20,10 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
   const router = useRouter();
   const pathname = usePathname();
 
-  console.log("useCurrentUser - 현재 상태:", {
-    pathname,
-    auth: auth ? { id: auth.id, name: auth.name } : null,
-    hasAuthId: !!auth?.id,
-  });
-
   // /signin 페이지에서만 API 호출하지 않음 (team-select에서는 사용자 정보가 필요)
   const shouldFetchUser = pathname !== "/signin" && !!auth?.id;
 
-  console.log("API 호출 여부:", shouldFetchUser);
+  // console.log("API 호출 여부:", shouldFetchUser);
 
   const {
     data: userData,

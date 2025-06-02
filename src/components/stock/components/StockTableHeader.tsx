@@ -1,5 +1,7 @@
 import React from "react";
 import { SearchOutlined } from "@ant-design/icons";
+import { Button, Input } from "@/components/ui";
+import { Plus, Minus } from "lucide-react";
 
 interface StockTableHeaderProps {
   searchText: string;
@@ -27,14 +29,14 @@ export default function StockTableHeader({
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center space-x-4 m-4">
           <div className="relative w-64">
-            <input
+            <Input
               type="text"
               placeholder="품목코드 또는 품목명 검색..."
-              className="w-full px-4 py-2 bg-gray-50 border-0 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm text-sm"
               value={searchText}
               onChange={(e) => onSearch(e.target.value)}
+              rightIcon={<SearchOutlined className="text-gray-400" />}
+              className="bg-gray-50 border-0 rounded-2xl"
             />
-            <SearchOutlined className="absolute right-3 top-2.5 text-gray-400 text-sm" />
           </div>
 
           <div className="flex items-center">
@@ -62,47 +64,23 @@ export default function StockTableHeader({
           </h2>
 
           {showButtons && (
-            <div className="flex items-center space-x-2 justify-end w-full ">
-              <button
+            <div className="flex items-center space-x-2 justify-end w-full">
+              <Button
+                variant="primary"
                 onClick={onInboundClick}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
+                icon={<Plus className="w-4 h-4" />}
+                iconPosition="left"
               >
-                <svg
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
                 입고
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="danger"
                 onClick={onOutboundClick}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center transition-colors duration-200"
+                icon={<Minus className="w-4 h-4" />}
+                iconPosition="left"
               >
-                <svg
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M20 12H4"
-                  />
-                </svg>
                 출고
-              </button>
+              </Button>
             </div>
           )}
         </div>

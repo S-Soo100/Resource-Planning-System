@@ -6,7 +6,7 @@ import { FaUsers, FaWarehouse, FaBuilding } from "react-icons/fa";
 import TeamMembersManagement from "@/components/admin/TeamMembersManagement";
 import WarehouseManagement from "@/components/admin/WarehouseManagement";
 import TeamManagement from "@/components/admin/TeamManagement";
-import { MenuCard } from "@/components/ui";
+import { MenuCard, Button } from "@/components/ui";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { ArrowLeft } from "lucide-react";
@@ -50,13 +50,14 @@ export default function AdminPage() {
           <p className="text-gray-600 mb-6">
             해당 페이지는 관리자 또는 중재자만 접근할 수 있습니다.
           </p>
-          <button
+          <Button
+            variant="default"
             onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            icon={<ArrowLeft className="w-4 h-4" />}
+            iconPosition="left"
           >
-            <ArrowLeft size={20} />
             뒤로가기
-          </button>
+          </Button>
         </div>
       </div>
     );

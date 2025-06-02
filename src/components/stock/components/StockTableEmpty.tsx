@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui";
 
 interface StockTableEmptyProps {
   message?: string;
@@ -30,13 +31,16 @@ export default function StockTableEmpty({
       </svg>
       <h3 className="mt-2 text-lg font-medium">{message}</h3>
       <p className="mt-1 text-sm">{subMessage}</p>
-      <button
-        onClick={() => router.back()}
-        className="mt-4 flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors mx-auto"
-      >
-        <ArrowLeft size={20} />
-        뒤로가기
-      </button>
+      <div className="mt-4 flex justify-center">
+        <Button
+          variant="default"
+          onClick={() => router.back()}
+          icon={<ArrowLeft className="w-4 h-4" />}
+          iconPosition="left"
+        >
+          뒤로가기
+        </Button>
+      </div>
     </div>
   );
 }

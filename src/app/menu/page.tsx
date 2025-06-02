@@ -1,5 +1,5 @@
 "use client";
-import MainMenuComponent from "@/components/menu/MainMenuComponent";
+import MainMenu from "@/components/menu/MainMenu";
 import { authStore } from "@/store/authStore";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useRouter } from "next/navigation";
@@ -104,7 +104,7 @@ export default function MenuPage() {
   return (
     <>
       <div className=" pb-6 ">
-        <MainMenuComponent />
+        <MainMenu />
       </div>
 
       {/* Footer */}

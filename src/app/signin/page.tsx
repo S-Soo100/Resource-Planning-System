@@ -1,10 +1,9 @@
-import LoginBoxComponent from "@/components/login/LoginBoxComponent";
-import React from "react";
+import LoginForm from "@/components/login/LoginForm";
 
-export default function SignInPage() {
+export default function SigninPage() {
   return (
-    <>
-      <LoginBoxComponent />
-    </>
+    <div>
+      <LoginForm />
+    </div>
   );
 }

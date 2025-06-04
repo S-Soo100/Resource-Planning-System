@@ -3,6 +3,8 @@ import { useTeamAdmin } from "@/hooks/admin/useTeamAdmin";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { IMappingUser } from "@/types/mappingUser";
 import { CreateUserDto } from "@/types/(auth)/user";
+import { Button, Input, Modal } from "@/components/ui";
+import { Eye, EyeOff } from "lucide-react";
 
 interface NewUserForm {
   email: string;
@@ -199,12 +201,6 @@ export default function TeamMembers({
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setFormError(null);
-    setFormSuccess(null);
-    setDetailMessage(null);
-    setIsExistingUser(false);
-    setShowPassword(false);
-    setShowConfirmPassword(false);
     setNewUserForm({
       email: "",
       password: "",
@@ -213,414 +209,314 @@ export default function TeamMembers({
       userId: 0,
       accessLevel: "user",
     });
+    setFormError(null);
+    setFormSuccess(null);
+    setDetailMessage(null);
+    setIsExistingUser(false);
   };
+
+  const handleRemoveUser = async (userId: number) => {
+    if (
+      window.confirm(
+        "정말로 이 사용자를 팀에서 제거하시겠습니까?\n이 작업은 되돌릴 수 없습니다."
+      )
+    ) {
+      try {
+        await removeUser(userId);
+      } catch (error) {
+        console.error("사용자 제거 중 오류:", error);
+      }
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="bg-white p-5 rounded-lg shadow-sm">
+        <div className="text-center py-10">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-2 text-gray-600">팀 멤버 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white p-5 rounded-lg shadow-sm">
+        <div className="text-center py-10">
+          <p className="text-red-600">
+            오류가 발생했습니다: {error.toString()}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white p-5 rounded-lg shadow-sm">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">팀 멤버 관리</h2>
-        {!isReadOnly && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-          >
-            멤버 추가
-          </button>
-        )}
-        {isReadOnly && (
-          <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
-            읽기 전용 모드
-          </div>
-        )}
+        <div className="flex items-center space-x-2">
+          {isReadOnly && (
+            <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+              읽기 전용 모드
+            </div>
+          )}
+          {!isReadOnly && (
+            <Button
+              variant="primary"
+              onClick={() => setIsModalOpen(true)}
+              size="md"
+            >
+              멤버 추가
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="border-b pb-4 mb-4">
         <p className="text-gray-600">
-          팀원 초대, 권한 관리 및 멤버 상태를 확인할 수 있습니다.
-        </p>
-        <p className="text-xs text-gray-500 mt-1">
-          현재 팀 ID: {teamId || "없음"}, 사용자 수: {teamUsers.length}
+          팀원을 추가하거나 제거하고, 권한을 관리할 수 있습니다.
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="text-center py-4">
-          <p className="text-gray-500">로딩 중...</p>
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 text-red-500 p-4 rounded-lg">
-          <p>오류가 발생했습니다: {error.message}</p>
-        </div>
-      ) : teamUsers.length === 0 ? (
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <p className="text-center text-gray-500">
-            등록된 팀 멤버가 없습니다.
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  이름
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  이메일
-                </th>
-                {!isReadOnly && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    관리
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {teamUsers.map((user: IMappingUser, index: number) => (
-                <tr
-                  key={`user-${user.userId}-${index}`}
-                  className="hover:bg-gray-50"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-500 font-medium">
-                          {user.user?.name
-                            ? user.user.name.charAt(0).toUpperCase()
-                            : "U"}
-                        </span>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.user?.name || "이름 없음"}
-                        </div>
-                      </div>
+      {/* 팀 멤버 목록 */}
+      <div className="space-y-3">
+        {teamUsers.length > 0 ? (
+          teamUsers.map((member: IMappingUser) => (
+            <div
+              key={member.id}
+              className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+            >
+              <div className="flex-1">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 font-medium">
+                        {member.user.name.charAt(0)}
+                      </span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {user.user?.email || "이메일 없음"}
-                    </div>
-                  </td>
-                  {!isReadOnly && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => removeUser(user.userId)}
-                        disabled={isRemovingUser}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        {isRemovingUser ? "처리 중..." : "삭제"}
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* 유저 추가 모달 */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">새 멤버 추가</h3>
-
-            <div className="mb-4">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setIsExistingUser(false)}
-                  className={`py-2 px-4 rounded-md ${
-                    !isExistingUser
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  새 사용자 생성
-                </button>
-                <button
-                  onClick={() => setIsExistingUser(true)}
-                  className={`py-2 px-4 rounded-md ${
-                    isExistingUser
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  기존 사용자 추가
-                </button>
-              </div>
-            </div>
-
-            {formError && (
-              <div className="mb-4 bg-red-50 p-3 rounded text-red-500 text-sm">
-                {formError}
-              </div>
-            )}
-
-            {formSuccess && (
-              <div className="mb-4 bg-green-50 p-3 rounded text-green-500 text-sm">
-                {formSuccess}
-              </div>
-            )}
-
-            {detailMessage && (
-              <div className="mb-4 bg-gray-50 p-3 rounded text-gray-700 text-xs font-mono whitespace-pre-wrap">
-                {detailMessage}
-              </div>
-            )}
-
-            {isCreatingUser || isAddingUser ? (
-              <div className="flex items-center justify-center mb-4">
-                <svg
-                  className="animate-spin h-5 w-5 text-blue-500 mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8z"
-                  ></path>
-                </svg>
-                <span className="text-blue-500 text-sm">처리 중입니다...</span>
-              </div>
-            ) : null}
-
-            <div className="space-y-4">
-              {isExistingUser ? (
-                <div>
-                  <label
-                    className="block text-gray-700 text-sm font-bold mb-2"
-                    htmlFor="userId"
-                  >
-                    사용자 ID
-                  </label>
-                  <input
-                    id="userId"
-                    name="userId"
-                    type="text"
-                    value={newUserForm.userId}
-                    onChange={handleInputChange}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    placeholder="추가할 사용자의 ID"
-                  />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">
+                      {member.user.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">{member.user.email}</p>
+                  </div>
                 </div>
-              ) : (
-                <>
-                  <div>
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="email"
-                    >
-                      이메일
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={newUserForm.email}
-                      onChange={handleInputChange}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                      placeholder="example@email.com"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="name"
-                    >
-                      이름
-                    </label>
-                    <input
-                      id="name"
-                      name="name"
-                      type="text"
-                      value={newUserForm.name}
-                      onChange={handleInputChange}
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                      placeholder="사용자 이름"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="password"
-                    >
-                      비밀번호
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="password"
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        value={newUserForm.password}
-                        onChange={handleInputChange}
-                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        placeholder="최소 6자 이상"
-                      />
-                      <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                        onClick={toggleShowPassword}
-                      >
-                        {showPassword ? (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-5 h-5 text-gray-500"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-5 h-5 text-gray-500"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="confirmPassword"
-                    >
-                      비밀번호 확인
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={newUserForm.confirmPassword}
-                        onChange={handleInputChange}
-                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        placeholder="비밀번호 확인"
-                      />
-                      <button
-                        type="button"
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                        onClick={toggleShowConfirmPassword}
-                      >
-                        {showConfirmPassword ? (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-5 h-5 text-gray-500"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="w-5 h-5 text-gray-500"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      권한 레벨
-                    </label>
-                    <select
-                      value={newUserForm.accessLevel}
-                      onChange={(e) =>
-                        setNewUserForm({
-                          ...newUserForm,
-                          accessLevel: e.target.value as
-                            | "user"
-                            | "supplier"
-                            | "moderator",
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="user">일반 사용자</option>
-                      <option value="supplier">공급자</option>
-                      <option value="moderator">1차승인권자</option>
-                    </select>
-                  </div>
-                </>
-              )}
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {(() => {
+                    const accessLevel =
+                      (member.user as { accessLevel?: string }).accessLevel ||
+                      "user";
+                    return accessLevel === "admin"
+                      ? "관리자"
+                      : accessLevel === "moderator"
+                      ? "중재자"
+                      : accessLevel === "supplier"
+                      ? "공급자"
+                      : "일반 사용자";
+                  })()}
+                </span>
+                {!isReadOnly && (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleRemoveUser(member.user.id)}
+                    disabled={isRemovingUser}
+                  >
+                    제거
+                  </Button>
+                )}
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="text-center py-10">
+            <p className="text-gray-500">등록된 팀 멤버가 없습니다.</p>
+          </div>
+        )}
+      </div>
 
-            <div className="flex justify-end space-x-2 mt-6">
-              <button
-                onClick={handleCloseModal}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded"
-                disabled={isCreatingUser || isAddingUser}
-              >
-                취소
-              </button>
-              <button
-                onClick={handleAddUser}
-                disabled={isCreatingUser || isAddingUser}
-                className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isCreatingUser || isAddingUser ? "처리 중..." : "추가"}
-              </button>
+      {/* 멤버 추가 모달 */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={isExistingUser ? "기존 사용자 추가" : "새 사용자 생성"}
+        size="md"
+      >
+        <div className="space-y-4">
+          {/* 모드 선택 */}
+          <div className="flex space-x-4 mb-6">
+            <Button
+              variant={!isExistingUser ? "primary" : "outline"}
+              onClick={() => setIsExistingUser(false)}
+              size="sm"
+            >
+              새 사용자 생성
+            </Button>
+            <Button
+              variant={isExistingUser ? "primary" : "outline"}
+              onClick={() => setIsExistingUser(true)}
+              size="sm"
+            >
+              기존 사용자 추가
+            </Button>
+          </div>
+
+          {/* 에러/성공 메시지 */}
+          {formError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600 text-sm">{formError}</p>
             </div>
+          )}
+          {formSuccess && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-green-600 text-sm">{formSuccess}</p>
+            </div>
+          )}
+          {detailMessage && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-blue-600 text-sm">{detailMessage}</p>
+            </div>
+          )}
+
+          {/* 폼 필드 */}
+          {isExistingUser ? (
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                사용자 ID
+              </label>
+              <Input
+                name="userId"
+                type="text"
+                value={newUserForm.userId.toString()}
+                onChange={handleInputChange}
+                placeholder="추가할 사용자의 ID"
+              />
+            </div>
+          ) : (
+            <>
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  이메일
+                </label>
+                <Input
+                  name="email"
+                  type="email"
+                  value={newUserForm.email}
+                  onChange={handleInputChange}
+                  placeholder="example@email.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  이름
+                </label>
+                <Input
+                  name="name"
+                  type="text"
+                  value={newUserForm.name}
+                  onChange={handleInputChange}
+                  placeholder="사용자 이름"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  비밀번호
+                </label>
+                <Input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={newUserForm.password}
+                  onChange={handleInputChange}
+                  placeholder="최소 6자 이상"
+                  rightIcon={
+                    <button
+                      type="button"
+                      onClick={toggleShowPassword}
+                      className="p-1 hover:bg-gray-100 rounded"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">
+                  비밀번호 확인
+                </label>
+                <Input
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={newUserForm.confirmPassword}
+                  onChange={handleInputChange}
+                  placeholder="비밀번호 확인"
+                  rightIcon={
+                    <button
+                      type="button"
+                      onClick={toggleShowConfirmPassword}
+                      className="p-1 hover:bg-gray-100 rounded"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  }
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  권한 레벨
+                </label>
+                <select
+                  value={newUserForm.accessLevel}
+                  onChange={(e) =>
+                    setNewUserForm({
+                      ...newUserForm,
+                      accessLevel: e.target.value as
+                        | "user"
+                        | "supplier"
+                        | "moderator",
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="user">일반 사용자</option>
+                  <option value="supplier">공급자</option>
+                  <option value="moderator">1차승인권자</option>
+                </select>
+              </div>
+            </>
+          )}
+
+          {/* 액션 버튼 */}
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button variant="outline" onClick={handleCloseModal}>
+              취소
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleAddUser}
+              loading={isAddingUser || isCreatingUser}
+            >
+              {isExistingUser ? "추가" : "생성 및 추가"}
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

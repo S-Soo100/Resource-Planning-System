@@ -11,6 +11,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { authService } from "@/services/authService";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+import { Button, Input, Modal } from "@/components/ui";
+import { Plus, Edit, Trash2, Search } from "lucide-react";
 
 // SearchAddressModal을 동적으로 import
 const SearchAddressModal = dynamic(() => import("../SearchAddressModal"), {
@@ -261,24 +263,14 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
             </div>
           )}
           {!isReadOnly && (
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center"
+            <Button
+              variant="primary"
               onClick={handleOpenModal}
+              icon={<Plus className="w-4 h-4" />}
+              iconPosition="left"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-1"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
               창고 추가
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -311,44 +303,24 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
                 </div>
               </div>
               {!isReadOnly && (
-                <div className="flex justify-end mt-4 pt-3 border-t border-blue-200">
-                  <button
+                <div className="flex justify-end mt-4 pt-3 border-t border-blue-200 space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => handleEditWarehouse(warehouse)}
-                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-white rounded-md hover:bg-blue-50 transition-colors duration-200 mr-2"
+                    icon={<Edit className="w-3 h-3" />}
+                    iconPosition="left"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
                     수정
-                  </button>
-                  <button className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 bg-white rounded-md hover:bg-red-50 transition-colors duration-200">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    icon={<Trash2 className="w-3 h-3" />}
+                    iconPosition="left"
+                  >
                     삭제
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -361,174 +333,72 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
       )}
 
       {/* 창고 추가/수정 모달 */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">
-                {editingWarehouse ? "창고 정보 수정" : "새 창고 추가"}
-              </h3>
-              <button
-                className="text-gray-500 hover:text-gray-700"
-                onClick={handleCloseModal}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="warehouseName"
-                >
-                  창고명
-                </label>
-                <input
-                  type="text"
-                  id="warehouseName"
-                  name="warehouseName"
-                  value={newWarehouse.warehouseName}
-                  onChange={handleInputChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="warehouseAddress"
-                >
-                  주소
-                </label>
-                <div className="flex">
-                  <input
-                    type="text"
-                    id="warehouseAddress"
-                    name="warehouseAddress"
-                    value={newWarehouse.warehouseAddress}
-                    onChange={handleInputChange}
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    readOnly
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={handleOpenAddressModal}
-                    className="ml-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"
-                  >
-                    주소 검색
-                  </button>
-                </div>
-              </div>
-              <div className="mb-4">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="detailLocation"
-                >
-                  상세 주소
-                </label>
-                <input
-                  type="text"
-                  id="detailLocation"
-                  name="detailLocation"
-                  value={newWarehouse.detailLocation}
-                  onChange={handleInputChange}
-                  placeholder="건물명, 동/호수 등 상세 주소를 입력하세요"
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="mr-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
-                  onClick={handleCloseModal}
-                  disabled={isSubmitting}
-                >
-                  취소
-                </button>
-                <button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      {editingWarehouse ? "수정 중..." : "저장 중..."}
-                    </>
-                  ) : editingWarehouse ? (
-                    "수정"
-                  ) : (
-                    "저장"
-                  )}
-                </button>
-              </div>
-            </form>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={editingWarehouse ? "창고 정보 수정" : "새 창고 추가"}
+        size="md"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Input
+              label="창고명"
+              name="warehouseName"
+              type="text"
+              value={newWarehouse.warehouseName}
+              onChange={handleInputChange}
+              required
+            />
           </div>
-        </div>
-      )}
+
+          <div>
+            <Input
+              label="주소"
+              name="warehouseAddress"
+              type="text"
+              value={newWarehouse.warehouseAddress}
+              onChange={handleInputChange}
+              readOnly
+              required
+              rightIcon={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleOpenAddressModal}
+                  icon={<Search className="w-4 h-4" />}
+                >
+                  검색
+                </Button>
+              }
+            />
+          </div>
+
+          <div>
+            <Input
+              label="상세 주소"
+              name="detailLocation"
+              type="text"
+              value={newWarehouse.detailLocation}
+              onChange={handleInputChange}
+              placeholder="건물명, 동/호수 등 상세 주소를 입력하세요"
+            />
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button type="button" variant="outline" onClick={handleCloseModal}>
+              취소
+            </Button>
+            <Button type="submit" variant="primary" loading={isSubmitting}>
+              {editingWarehouse ? "수정" : "추가"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* 주소 검색 모달 */}
       {isAddressModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">주소 검색</h3>
-              <button
-                className="text-gray-500 hover:text-gray-700"
-                onClick={() => setIsAddressModalOpen(false)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-            <SearchAddressModal onCompletePost={handleCompletePost} />
-          </div>
-        </div>
+        <SearchAddressModal onCompletePost={handleCompletePost} />
       )}
     </div>
   );

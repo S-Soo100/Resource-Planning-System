@@ -30,7 +30,7 @@ export default function AdminPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="w-12 h-12 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -44,10 +44,10 @@ export default function AdminPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="mb-4 text-2xl font-bold text-gray-800">
             권한이 필요합니다
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="mb-6 text-gray-600">
             해당 페이지는 관리자 또는 중재자만 접근할 수 있습니다.
           </p>
           <Button
@@ -89,20 +89,20 @@ export default function AdminPage() {
     <Suspense>
       <div className="flex flex-col min-h-full p-6">
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h1 className="text-2xl font-bold mb-2">관리자 대시보드</h1>
+          <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <h1 className="mb-2 text-2xl font-bold">관리자 대시보드</h1>
             <p className="text-gray-600">
               환영합니다, {user.accessLevel === "admin" ? "관리자" : "중재자"}{" "}
               {zustandAuth?.name} 님
             </p>
             {isReadOnly && (
-              <div className="mt-2 p-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+              <div className="p-2 mt-2 text-sm text-yellow-700 rounded-md bg-yellow-50">
                 중재자 권한으로는 조회만 가능하며, 수정은 불가능합니다.
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <MenuCard
               title="팀 멤버 관리"
               icon={<FaUsers />}
@@ -123,7 +123,7 @@ export default function AdminPage() {
               title="팀 관리"
               icon={<FaBuilding />}
               id="team"
-              description="팀 생성 및 설정 관리"
+              description="팀 설정 관리"
               isActive={activeTab === "team"}
               onClick={setActiveTab}
             />
@@ -133,7 +133,7 @@ export default function AdminPage() {
             {activeTab === "warehouse" && isWarehousesLoading ? (
               <div className="flex items-center justify-center p-10">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+                  <div className="w-10 h-10 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
                   <p className="mt-2 text-gray-600">
                     창고 정보를 불러오는 중...
                   </p>

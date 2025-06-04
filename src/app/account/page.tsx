@@ -149,7 +149,7 @@ export default function AccountPage() {
     const levelMap: Record<AccessLevel, string> = {
       admin: "관리자",
       user: "일반 사용자",
-      supplier: "공급자",
+      supplier: "거래처",
       moderator: "1차승인권자",
     };
     return levelMap[level];
@@ -157,15 +157,15 @@ export default function AccountPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen">
         로딩중...
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">내 계정</h1>
+    <div className="container py-8 mx-auto">
+      <h1 className="mb-8 text-3xl font-bold">내 계정</h1>
 
       <div className="grid gap-6">
         <Card>
@@ -174,10 +174,10 @@ export default function AccountPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-4">
-              <Avatar className="h-20 w-20">
+              <Avatar className="w-20 h-20">
                 <AvatarImage src={null} />
                 <AvatarFallback className="bg-gray-800">
-                  <User className="h-10 w-10 text-white" />
+                  <User className="w-10 h-10 text-white" />
                 </AvatarFallback>
               </Avatar>
               <div>
@@ -188,7 +188,7 @@ export default function AccountPage() {
                   {user?.email || "이메일 정보 없음"}
                 </p>
                 {user?.accessLevel && (
-                  <p className="text-sm mt-1 inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                  <p className="inline-block px-2 py-1 mt-1 text-sm text-blue-800 bg-blue-100 rounded-full">
                     {getAccessLevelKorean(user.accessLevel)}
                   </p>
                 )}

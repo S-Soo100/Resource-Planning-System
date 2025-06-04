@@ -92,7 +92,7 @@ const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* 콘텐츠 */}
-        <div className="overflow-auto max-h-[calc(90vh-theme(spacing.20))]">
+        <div className="overflow-auto max-h-[calc(90vh-theme(spacing.20))] p-6">
           {children}
         </div>
       </div>

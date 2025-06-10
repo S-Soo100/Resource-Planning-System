@@ -259,7 +259,7 @@ export default function TeamItemsPage() {
         </h1>
         {isReadOnly && (
           <div className="px-4 py-2 text-sm text-yellow-700 rounded-md bg-yellow-50">
-            중재자 권한으로는 조회만 가능합니다
+            1차 승인권자 권한으로는 조회만 가능합니다
           </div>
         )}
       </div>

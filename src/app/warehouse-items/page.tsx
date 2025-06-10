@@ -32,7 +32,7 @@ export default function ItemsPage() {
             권한이 필요합니다
           </h2>
           <p className="text-gray-600 mb-6">
-            해당 페이지는 관리자 또는 중재자만 접근할 수 있습니다.
+            해당 페이지는 관리자 또는 1차 승인권자만 접근할 수 있습니다.
           </p>
           <Button
             variant="default"
@@ -59,7 +59,7 @@ export default function ItemsPage() {
         </div>
         {isReadOnly && (
           <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
-            중재자 권한으로는 조회만 가능합니다
+            1차 승인권자 권한으로는 조회만 가능합니다
           </div>
         )}
       </div>

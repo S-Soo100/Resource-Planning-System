@@ -192,7 +192,7 @@ const MainMenu = () => {
     ];
   }
 
-  // 관리자 또는 중재자인 경우 관리자 탭 추가
+  // 관리자 또는 1차 승인권자인 경우 관리자 탭 추가
   if (user?.accessLevel === "admin" || user?.accessLevel === "moderator") {
     tabs.push({
       id: "admin",

@@ -48,7 +48,7 @@ export default function AdminPage() {
             권한이 필요합니다
           </h2>
           <p className="mb-6 text-gray-600">
-            해당 페이지는 관리자 또는 중재자만 접근할 수 있습니다.
+            해당 페이지는 관리자 또는 1차 승인권자만 접근할 수 있습니다.
           </p>
           <Button
             variant="default"
@@ -92,12 +92,13 @@ export default function AdminPage() {
           <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
             <h1 className="mb-2 text-2xl font-bold">관리자 대시보드</h1>
             <p className="text-gray-600">
-              환영합니다, {user.accessLevel === "admin" ? "관리자" : "중재자"}{" "}
+              환영합니다,{" "}
+              {user.accessLevel === "admin" ? "관리자" : "1차 승인권자"}{" "}
               {zustandAuth?.name} 님
             </p>
             {isReadOnly && (
               <div className="p-2 mt-2 text-sm text-yellow-700 rounded-md bg-yellow-50">
-                중재자 권한으로는 조회만 가능하며, 수정은 불가능합니다.
+                1차 승인권자 권한으로는 조회만 가능하며, 수정은 불가능합니다.
               </div>
             )}
           </div>

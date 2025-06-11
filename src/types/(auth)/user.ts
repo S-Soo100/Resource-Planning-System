@@ -36,7 +36,6 @@ export interface CreateUserResponse {
 
 export interface UpdateUserRequest {
   email?: string;
-  password?: string;
   name?: string;
   restrictedWhs?: string;
   accessLevel?: "user" | "admin" | "supplier" | "moderator";

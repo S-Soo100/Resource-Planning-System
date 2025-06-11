@@ -66,9 +66,6 @@ export default function UserEditModal({
         restrictedWhs: selectedWarehouses.join(","),
       };
 
-      // 비밀번호 필드는 제외
-      delete updateData.password;
-
       // 빈 필드는 제거
       Object.keys(updateData).forEach((key) => {
         const value = updateData[key as keyof UpdateUserRequest];

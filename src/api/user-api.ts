@@ -44,15 +44,18 @@ export const userApi = {
     }
   },
 
-  // 사용자 정보 수정
+  // 사용자 정보 수정 (이메일, 비밀번호, 이름, 창고 접근 권한, 권한 레벨, 관리자 여부)
   updateUser: async (
     id: string,
     data: UpdateUserRequest
   ): Promise<ApiResponse<IUser>> => {
     try {
+      console.log(`[API] 사용자 ${id} 정보 수정 요청:`, data);
       const response = await api.patch<IUser>(`/user/${id}`, data);
+      console.log(`[API] 사용자 ${id} 정보 수정 완료:`, response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      console.error(`[API] 사용자 ${id} 정보 수정 실패:`, error);
       return { success: false, error: "사용자 정보 수정에 실패했습니다." };
     }
   },

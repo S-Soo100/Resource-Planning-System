@@ -35,10 +35,12 @@ export interface CreateUserResponse {
 }
 
 export interface UpdateUserRequest {
-  name?: string;
   email?: string;
   password?: string;
-  role?: "admin" | "user";
+  name?: string;
+  restrictedWhs?: string;
+  accessLevel?: "user" | "admin" | "supplier" | "moderator";
+  isAdmin?: boolean;
 }
 
 export interface WarehouseAccessRequest {

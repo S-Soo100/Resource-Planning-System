@@ -164,104 +164,123 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="container py-8 mx-auto">
-      <h1 className="mb-8 text-3xl font-bold">내 계정</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl px-4 py-8 mx-auto sm:px-6 lg:px-8 sm:py-12">
+        <div className="mb-8 sm:mb-12">
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+            내 계정
+          </h1>
+          <p className="mt-2 text-sm text-gray-600">
+            계정 정보와 소속 팀을 확인하고 관리하세요.
+          </p>
+        </div>
 
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>프로필 정보</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <Avatar className="w-20 h-20">
-                <AvatarImage src={null} />
-                <AvatarFallback className="bg-gray-800">
-                  <User className="w-10 h-10 text-white" />
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h2 className="text-xl font-semibold">
-                  {user?.name || "이름 없음"}
-                </h2>
-                <p className="text-gray-500">
-                  {user?.email || "이메일 정보 없음"}
-                </p>
-                {user?.accessLevel && (
-                  <p className="inline-block px-2 py-1 mt-1 text-sm text-blue-800 bg-blue-100 rounded-full">
-                    {getAccessLevelKorean(user.accessLevel)}
+        <div className="space-y-6 sm:space-y-8">
+          <Card className="overflow-hidden">
+            <CardHeader className="p-6 bg-white border-b border-gray-100 sm:p-8">
+              <CardTitle className="text-lg sm:text-xl">프로필 정보</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 sm:p-8">
+              <div className="flex flex-col items-start space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-6">
+                <Avatar className="w-16 h-16 sm:w-20 sm:h-20">
+                  <AvatarImage src={null} />
+                  <AvatarFallback className="bg-blue-600">
+                    <User className="w-8 h-8 text-white sm:w-10 sm:h-10" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl font-semibold text-gray-900 truncate sm:text-2xl">
+                    {user?.name || "이름 없음"}
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-500 truncate sm:text-base">
+                    {user?.email || "이메일 정보 없음"}
                   </p>
-                )}
+                  {user?.accessLevel && (
+                    <div className="mt-3">
+                      <span className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">
+                        {getAccessLevelKorean(user.accessLevel)}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>계정 설정</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium">이메일</h3>
-                <p className="text-gray-500">
-                  {user?.email || "이메일 정보 없음"}
-                </p>
-              </div>
-              <div>
-                <h3 className="font-medium">계정 생성일</h3>
-                <p className="text-gray-500">
-                  {user?.createdAt
-                    ? new Date(user.createdAt).toLocaleDateString("ko-KR")
-                    : "알 수 없음"}
-                </p>
-              </div>
-              <div>
-                <h3 className="font-medium">권한 레벨</h3>
-                <p className="text-gray-500">
-                  {user?.accessLevel
-                    ? getAccessLevelKorean(user.accessLevel)
-                    : "권한 정보 없음"}
-                </p>
-                {user?.isAdmin && (
-                  <span className="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                    관리자
-                  </span>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 sm:gap-8">
+            <Card className="overflow-hidden">
+              <CardHeader className="p-6 bg-white border-b border-gray-100">
+                <CardTitle className="text-lg">계정 설정</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="mb-2 text-sm font-medium text-gray-900">
+                      이메일
+                    </h3>
+                    <p className="px-3 py-2 text-sm text-gray-600 rounded-md bg-gray-50">
+                      {user?.email || "이메일 정보 없음"}
+                    </p>
+                  </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>소속 팀 목록</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {userTeams.length > 0 ? (
-              <div className="space-y-3">
-                {userTeams.map((team) => (
-                  <div
-                    key={team.id}
-                    className="p-3 border border-gray-200 rounded-lg"
-                  >
-                    <div className="flex items-center">
-                      <div>
-                        <h4 className="font-medium">{team.teamName}</h4>
-                        <p className="text-sm text-gray-500">
-                          팀 ID: {team.id}
-                        </p>
-                      </div>
+                  <div>
+                    <h3 className="mb-2 text-sm font-medium text-gray-900">
+                      권한 레벨
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      {user?.isAdmin && (
+                        <span className="inline-block px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">
+                          관리자
+                        </span>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">소속된 팀이 없습니다.</p>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden">
+              <CardHeader className="p-6 bg-white border-b border-gray-100">
+                <CardTitle className="text-lg">소속 팀 목록</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {userTeams.length > 0 ? (
+                  <div className="space-y-3">
+                    {userTeams.map((team) => (
+                      <div
+                        key={team.id}
+                        className="p-4 transition-colors border border-gray-200 rounded-lg hover:bg-gray-50"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-900 truncate">
+                              {team.teamName}
+                            </h4>
+                            <p className="mt-1 text-sm text-gray-500">
+                              팀 ID: {team.id}
+                            </p>
+                          </div>
+                          <div className="flex-shrink-0 ml-4">
+                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center">
+                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full">
+                      <User className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      소속된 팀이 없습니다.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

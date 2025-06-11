@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useTeamAdmin } from "@/hooks/admin/useTeamAdmin";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { IMappingUser } from "@/types/mappingUser";
-import { CreateUserDto } from "@/types/(auth)/user";
+import { CreateUserDto, IUser } from "@/types/(auth)/user";
 import { Button } from "@/components/ui";
 import UserManagementModal from "./UserManagementModal";
+import UserEditModal from "./UserEditModal";
 
 export default function TeamMembers({
   isReadOnly = false,
@@ -36,6 +37,8 @@ export default function TeamMembers({
   } = useTeamAdmin(teamId || 0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
 
   const handleAddUser = async (userId: number) => {
     await addUser(userId);
@@ -57,6 +60,21 @@ export default function TeamMembers({
         console.error("사용자 제거 중 오류:", error);
       }
     }
+  };
+
+  const handleEditUser = (user: IUser) => {
+    setSelectedUser(user);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleUserUpdated = () => {
+    // 팀 멤버 목록 새로고침 (useTeamAdmin 훅의 refetch 기능 활용)
+    window.location.reload(); // 간단한 새로고침으로 처리
   };
 
   if (isLoading) {
@@ -151,13 +169,31 @@ export default function TeamMembers({
                   })()}
                 </span>
                 {!isReadOnly && (
+                  <>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleEditUser(member.user as IUser)}
+                    >
+                      수정
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleRemoveUser(member.user.id)}
+                      disabled={isRemovingUser}
+                    >
+                      제거
+                    </Button>
+                  </>
+                )}
+                {isReadOnly && (
                   <Button
-                    variant="danger"
+                    variant="secondary"
                     size="sm"
-                    onClick={() => handleRemoveUser(member.user.id)}
-                    disabled={isRemovingUser}
+                    onClick={() => handleEditUser(member.user as IUser)}
                   >
-                    제거
+                    조회
                   </Button>
                 )}
               </div>
@@ -178,6 +214,15 @@ export default function TeamMembers({
         onCreateUser={handleCreateUser}
         isAddingUser={isAddingUser}
         isCreatingUser={isCreatingUser}
+      />
+
+      {/* 사용자 수정 모달 */}
+      <UserEditModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        user={selectedUser}
+        onUserUpdated={handleUserUpdated}
+        isReadOnly={isReadOnly}
       />
     </div>
   );

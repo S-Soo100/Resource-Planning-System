@@ -5,6 +5,7 @@ export interface IOrderRecord {
   userId: number;
   supplierId: number;
   packageId: number;
+  warehouseId: number; // 창고 ID 추가
   requester: string; // 이전의 orderer
   receiver: string; // 이전의 recipient
   receiverPhone: string; // 이전의 recipientPhone

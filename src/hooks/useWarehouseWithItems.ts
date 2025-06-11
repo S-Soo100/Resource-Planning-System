@@ -3,6 +3,8 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Item } from "@/types/(item)/item";
 import { ApiResponse } from "@/types/common";
 import { warehouseApi } from "@/api/warehouse-api";
+import { hasWarehouseAccess } from "@/utils/warehousePermissions";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 /**
  * 창고 목록과 창고별 아이템 정보를 관리하는 커스텀 훅
@@ -11,6 +13,7 @@ import { warehouseApi } from "@/api/warehouse-api";
 export function useWarehouseWithItems() {
   // 창고 목록 상태
   const { warehouses } = useWarehouseItems();
+  const { user } = useCurrentUser();
 
   // 창고별 아이템 정보를 저장할 객체
   const [warehouseItems, setWarehouseItems] = useState<{
@@ -22,6 +25,14 @@ export function useWarehouseWithItems() {
     warehouseId: number
   ): Promise<ApiResponse> => {
     try {
+      // 창고 접근 권한 체크
+      if (user && !hasWarehouseAccess(user, warehouseId)) {
+        return {
+          success: false,
+          error: "해당 창고에 대한 접근 권한이 없습니다.",
+        };
+      }
+
       // 이미 로드된 데이터가 있으면 다시 로드하지 않음
       if (warehouseItems[warehouseId.toString()]) {
         return { success: true, data: warehouseItems[warehouseId.toString()] };

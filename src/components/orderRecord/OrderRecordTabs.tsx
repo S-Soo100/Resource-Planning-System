@@ -28,6 +28,8 @@ import { userApi } from "@/api/user-api";
 import { toast } from "react-hot-toast";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import dynamic from "next/dynamic";
+import { hasWarehouseAccess } from "@/utils/warehousePermissions";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 // 사용자 접근 레벨 타입 추가
 type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
@@ -45,6 +47,7 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
     userId: order.userId,
     supplierId: order.supplierId || 0,
     packageId: order.packageId || 0,
+    warehouseId: order.warehouseId || 0,
     requester: order.user?.name || "알 수 없음",
     receiver: order.receiver || "",
     receiverPhone: order.receiverPhone || "",
@@ -126,6 +129,7 @@ const OrderRecordTabs = () => {
   const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
   const { refetchAll: refetchWarehouseItems } = useWarehouseItems();
+  const { user: currentUser } = useCurrentUser();
   // const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -289,12 +293,27 @@ const OrderRecordTabs = () => {
     return allOrderRecords;
   }, [activeTab, allOrderRecords, userId]);
 
-  // 검색 필터링 적용 (useMemo로 최적화)
+  // 검색 필터링 및 창고 권한 체크 적용 (useMemo로 최적화)
   const filteredOrders = useMemo(() => {
     // console.log(
     //   `검색어 "${searchTerm}"로 ${orderRecords.length}개 항목 필터링`
     // );
     return orderRecords.filter((order: IOrderRecord) => {
+      // 창고 접근 권한 체크 (Admin이 아닌 경우에만)
+      if (
+        currentUser &&
+        currentUser.accessLevel !== "admin" &&
+        order.warehouseId
+      ) {
+        const warehouseAccessible = hasWarehouseAccess(
+          currentUser,
+          order.warehouseId
+        );
+        if (!warehouseAccessible) {
+          return false; // 접근 불가능한 창고의 발주는 필터링
+        }
+      }
+
       // 검색어 필터링
       const matchesSearch =
         order.requester?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -309,7 +328,7 @@ const OrderRecordTabs = () => {
 
       return matchesSearch && matchesStatus;
     });
-  }, [orderRecords, searchTerm, statusFilter]);
+  }, [orderRecords, searchTerm, statusFilter, currentUser]);
 
   // 페이지네이션 계산 (useMemo로 최적화)
   const { totalPages, currentRecords } = useMemo(() => {

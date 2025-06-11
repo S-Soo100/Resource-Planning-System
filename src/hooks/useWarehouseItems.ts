@@ -5,6 +5,8 @@ import { Warehouse } from "@/types/warehouse";
 import { Item } from "@/types/(item)/item";
 import { authStore } from "@/store/authStore";
 import { teamApi } from "@/api/team-api";
+import { filterAccessibleWarehouses } from "@/utils/warehousePermissions";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface useWarehouseItemsReturn {
   isLoading: boolean;
@@ -23,6 +25,7 @@ interface WarehousesData {
 export function useWarehouseItems(): useWarehouseItemsReturn {
   const queryClient = useQueryClient();
   const selectedTeamId = authStore((state) => state.selectedTeam?.id);
+  const { user } = useCurrentUser();
 
   // 팀 정보를 React Query로 관리
   const { data: selectedTeam } = useQuery({
@@ -107,11 +110,27 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
   const isLoading = !allWarehousesData;
   const isError = false;
 
+  // 사용자 권한에 따른 창고 필터링
+  const accessibleWarehouses =
+    user && allWarehousesData?.warehouses
+      ? filterAccessibleWarehouses(user, allWarehousesData.warehouses)
+      : allWarehousesData?.warehouses || [];
+
+  // 접근 가능한 창고의 아이템만 필터링
+  const accessibleItems =
+    user && allWarehousesData?.items
+      ? allWarehousesData.items.filter((item) =>
+          accessibleWarehouses.some(
+            (warehouse) => warehouse.id === item.warehouseId
+          )
+        )
+      : allWarehousesData?.items || [];
+
   return {
     isLoading,
     isError,
-    warehouses: allWarehousesData?.warehouses || [],
-    items: allWarehousesData?.items || [],
+    warehouses: accessibleWarehouses,
+    items: accessibleItems,
     invalidateInventory,
     refetchAll,
   };

@@ -23,6 +23,11 @@ import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { Item } from "@/types/(item)/item";
 import { uploadMultipleOrderFileById } from "@/api/order-api";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  hasWarehouseAccess,
+  getWarehouseAccessDeniedMessage,
+} from "@/utils/warehousePermissions";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -41,6 +46,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const selectedFiles = useRef<HTMLInputElement>(null);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
   const auth = authStore((state) => state.user);
+  const { user } = useCurrentUser();
 
   // 아이템 관련 상태
   const [orderItems, setOrderItems] = useState<
@@ -445,6 +451,17 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const warehouseId = parseInt(e.target.value);
+
+    // 창고 접근 권한 체크
+    if (warehouseId !== 0 && user && !hasWarehouseAccess(user, warehouseId)) {
+      const warehouseName =
+        effectiveWarehousesList.find((w) => w.id === warehouseId)
+          ?.warehouseName || `창고 ${warehouseId}`;
+      toast.error(getWarehouseAccessDeniedMessage(warehouseName));
+      e.target.value = formData.warehouseId?.toString() || "0"; // 이전 값으로 복원
+      return;
+    }
+
     setFormData({
       ...formData,
       warehouseId: warehouseId,
@@ -692,12 +709,29 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             required
           >
             <option value="0">창고 선택</option>
-            {effectiveWarehousesList.map((warehouse) => (
-              <option key={warehouse.id} value={warehouse.id}>
-                {warehouse.warehouseName}
-              </option>
-            ))}
+            {effectiveWarehousesList.map((warehouse) => {
+              const hasAccess = !user || hasWarehouseAccess(user, warehouse.id);
+              return (
+                <option
+                  key={warehouse.id}
+                  value={warehouse.id}
+                  disabled={!hasAccess}
+                  style={{ color: hasAccess ? "inherit" : "#9CA3AF" }}
+                >
+                  {warehouse.warehouseName}
+                  {!hasAccess ? " (접근 불가)" : ""}
+                </option>
+              );
+            })}
           </select>
+          {user &&
+            effectiveWarehousesList.some(
+              (w) => !hasWarehouseAccess(user, w.id)
+            ) && (
+              <p className="text-xs text-amber-600">
+                일부 창고는 접근 권한이 제한되어 있습니다.
+              </p>
+            )}
         </div>
 
         {/* 패키지 선택 (패키지 발주 요청인 경우에만 표시) */}

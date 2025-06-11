@@ -3,7 +3,6 @@ import { Button } from "@/components/ui";
 import { IUser, UpdateUserRequest } from "@/types/(auth)/user";
 import { userApi } from "@/api/user-api";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 interface UserEditModalProps {
   isOpen: boolean;
@@ -23,7 +22,7 @@ export default function UserEditModal({
   const { warehouses } = useWarehouseItems();
   const [formData, setFormData] = useState<UpdateUserRequest>({});
   const [isUpdating, setIsUpdating] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+
   const [selectedWarehouses, setSelectedWarehouses] = useState<number[]>([]);
 
   // 사용자 정보가 변경될 때 폼 데이터 초기화
@@ -66,6 +65,9 @@ export default function UserEditModal({
         ...formData,
         restrictedWhs: selectedWarehouses.join(","),
       };
+
+      // 비밀번호 필드는 제외
+      delete updateData.password;
 
       // 빈 필드는 제거
       Object.keys(updateData).forEach((key) => {
@@ -168,35 +170,6 @@ export default function UserEditModal({
                 disabled={isReadOnly}
               />
             </div>
-
-            {!isReadOnly && (
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  새 비밀번호 (입력 시에만 변경됨)
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        password: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="새 비밀번호를 입력하세요"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* 권한 설정 */}

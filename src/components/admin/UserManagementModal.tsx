@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { CreateUserDto } from "@/types/(auth)/user";
 import { Button, Input, Modal } from "@/components/ui";
 import { Eye, EyeOff } from "lucide-react";
+import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+import { Warehouse } from "@/types/warehouse";
 
 interface NewUserForm {
   email: string;
@@ -10,6 +12,7 @@ interface NewUserForm {
   name: string;
   userId: number;
   accessLevel: "user" | "supplier" | "moderator";
+  restrictedWhs: number[];
 }
 
 interface UserManagementModalProps {
@@ -39,10 +42,14 @@ export default function UserManagementModal({
     name: "",
     userId: 0,
     accessLevel: "user",
+    restrictedWhs: [],
   });
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [detailMessage, setDetailMessage] = useState<string | null>(null);
+
+  // 창고 목록 가져오기
+  const { warehouses } = useWarehouseItems();
 
   // 성공 시 모달 자동 닫기
   useEffect(() => {
@@ -65,6 +72,19 @@ export default function UserManagementModal({
     setFormError(null);
     setFormSuccess(null);
     setDetailMessage(null);
+  };
+
+  // 창고 제한 체크박스 핸들러
+  const handleWarehouseRestriction = (
+    warehouseId: number,
+    isChecked: boolean
+  ) => {
+    setNewUserForm((prev) => ({
+      ...prev,
+      restrictedWhs: isChecked
+        ? [...prev.restrictedWhs, warehouseId]
+        : prev.restrictedWhs.filter((id) => id !== warehouseId),
+    }));
   };
 
   const toggleShowPassword = () => {
@@ -130,7 +150,7 @@ export default function UserManagementModal({
           email: newUserForm.email,
           password: newUserForm.password,
           name: newUserForm.name,
-          restrictedWhs: "",
+          restrictedWhs: newUserForm.restrictedWhs.join(","),
           accessLevel: newUserForm.accessLevel,
           isAdmin: false,
         };
@@ -149,6 +169,7 @@ export default function UserManagementModal({
         name: "",
         userId: 0,
         accessLevel: "user",
+        restrictedWhs: [],
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -171,6 +192,7 @@ export default function UserManagementModal({
       name: "",
       userId: 0,
       accessLevel: "user",
+      restrictedWhs: [],
     });
     setFormError(null);
     setFormSuccess(null);
@@ -186,7 +208,7 @@ export default function UserManagementModal({
       isOpen={isOpen}
       onClose={handleCloseModal}
       title={isExistingUser ? "기존 사용자 추가" : "새 사용자 생성"}
-      size="md"
+      size="lg"
     >
       <div className="space-y-4">
         {/* 모드 선택 */}
@@ -329,6 +351,59 @@ export default function UserManagementModal({
                 <option value="supplier">거래처</option>
                 <option value="moderator">1차승인권자</option>
               </select>
+            </div>
+
+            {/* 창고 접근 제한 설정 */}
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                창고 접근 제한
+              </label>
+              <p className="mb-3 text-xs text-gray-500">
+                체크된 창고는 해당 사용자가 접근할 수 없습니다.
+              </p>
+              <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2">
+                {warehouses && warehouses.length > 0 ? (
+                  <div className="space-y-2">
+                    {warehouses.map((warehouse: Warehouse) => (
+                      <label
+                        key={warehouse.id}
+                        className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={newUserForm.restrictedWhs.includes(
+                            warehouse.id
+                          )}
+                          onChange={(e) =>
+                            handleWarehouseRestriction(
+                              warehouse.id,
+                              e.target.checked
+                            )
+                          }
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {warehouse.warehouseName}
+                        </span>
+                        {warehouse.warehouseAddress && (
+                          <span className="text-xs text-gray-400">
+                            ({warehouse.warehouseAddress})
+                          </span>
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 text-center py-2">
+                    등록된 창고가 없습니다.
+                  </p>
+                )}
+              </div>
+              {newUserForm.restrictedWhs.length > 0 && (
+                <p className="mt-2 text-xs text-amber-600">
+                  {newUserForm.restrictedWhs.length}개 창고에 접근이 제한됩니다.
+                </p>
+              )}
             </div>
           </>
         )}

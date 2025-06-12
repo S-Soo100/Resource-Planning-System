@@ -5,6 +5,8 @@ import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useCategory } from "@/hooks/useCategory";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { APP_VERSION, APP_NAME, COPYRIGHT } from "@/constants/version";
 
 export default function MenuPage() {
   const router = useRouter();
@@ -65,12 +67,13 @@ export default function MenuPage() {
         <div className="fixed bottom-0 w-full px-4 py-3 bg-white shadow-inner">
           <div className="max-w-2xl mx-auto">
             <div className="flex flex-col items-center justify-center text-center">
-              <p className="text-sm text-gray-500">
-                KARS 재고관리 시스템 v1.0.0
-              </p>
-              <p className="mt-1 text-xs text-gray-400">
-                © 2025 Kangsters. All rights reserved.
-              </p>
+              <Link
+                href="/update"
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+              >
+                {APP_NAME} v{APP_VERSION}
+              </Link>
+              <p className="mt-1 text-xs text-gray-400">{COPYRIGHT}</p>
             </div>
           </div>
         </div>
@@ -92,10 +95,13 @@ export default function MenuPage() {
       <div className="w-full px-4 py-3 mb-2 bg-white shadow-inner">
         <div className="max-w-2xl mx-auto">
           <div className="flex flex-col items-center justify-center text-center">
-            <p className="text-sm text-gray-500">KARS 재고관리 시스템 v1.0.0</p>
-            <p className="mt-1 text-xs text-gray-400">
-              © 2025 Kangsters. All rights reserved.
-            </p>
+            <Link
+              href="/update"
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+            >
+              {APP_NAME} v{APP_VERSION}
+            </Link>
+            <p className="mt-1 text-xs text-gray-400">{COPYRIGHT}</p>
           </div>
         </div>
       </div>

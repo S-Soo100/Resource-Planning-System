@@ -2,6 +2,7 @@ import React from "react";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
+import { navigateByAuthStatus } from "@/utils/navigation";
 
 interface StockTableEmptyProps {
   message?: string;
@@ -34,7 +35,7 @@ export default function StockTableEmpty({
       <div className="mt-4 flex justify-center">
         <Button
           variant="default"
-          onClick={() => router.back()}
+          onClick={() => navigateByAuthStatus(router)}
           icon={<ArrowLeft className="w-4 h-4" />}
           iconPosition="left"
         >

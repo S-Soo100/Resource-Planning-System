@@ -13,6 +13,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
+import { navigateByAuthStatus } from "@/utils/navigation";
 
 // Daum 주소 검색 모달 동적 임포트
 const SearchAddressModal = dynamic(
@@ -455,8 +456,8 @@ export default function SupplierManagePage() {
             해당 페이지에 접근할 수 있는 권한이 없습니다.
           </p>
           <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
+            onClick={() => navigateByAuthStatus(router)}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
           >
             <ArrowLeft size={20} />
             뒤로가기

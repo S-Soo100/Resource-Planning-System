@@ -9,6 +9,8 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { filterRecordsByDateRange } from "@/utils/dateFilter";
 import InventoryRecordDetail from "./InventoryRecordDetail";
+import { navigateByAuthStatus } from "@/utils/navigation";
+import { Button } from "@/components/ui/button";
 
 // 날짜 포맷팅 유틸리티 함수
 const formatDate = (dateString: string | null) => {
@@ -105,13 +107,14 @@ export default function IoHistoryList() {
           <p className="mb-6 text-gray-600">
             해당 페이지에 접근할 수 있는 권한이 없습니다.
           </p>
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
+          <Button
+            variant="outline"
+            onClick={() => navigateByAuthStatus(router)}
+            icon={<ArrowLeft className="w-4 h-4" />}
+            iconPosition="left"
           >
-            <ArrowLeft size={20} />
             뒤로가기
-          </button>
+          </Button>
         </div>
       </div>
     );

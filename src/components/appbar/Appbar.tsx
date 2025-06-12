@@ -13,6 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { navigateByAuthStatus } from "@/utils/navigation";
 
 const Appbar = () => {
   const pathname = usePathname();
@@ -64,7 +65,7 @@ const Appbar = () => {
     if (pathname !== "/" && pathname !== "/menu") {
       return (
         <button
-          onClick={() => router.back()}
+          onClick={() => navigateByAuthStatus(router)}
           className="flex items-center text-blue-500 focus:outline-none"
         >
           <ChevronLeft className="w-5 h-5" />

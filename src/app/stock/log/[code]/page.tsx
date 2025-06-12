@@ -5,6 +5,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getToken } from "@/api/cookie-api";
+import { navigateByAuthStatus } from "@/utils/navigation";
 
 interface LogItem {
   date: string;
@@ -74,7 +75,7 @@ export default function ItemLogPage() {
             해당 페이지는 로그인한 사용자만 접근할 수 있습니다.
           </p>
           <button
-            onClick={() => router.back()}
+            onClick={() => navigateByAuthStatus(router)}
             className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
           >
             <ArrowLeft size={20} />

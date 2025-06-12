@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import CustomItemTable from "@/components/item/CustomItemTable";
 import { Button } from "@/components/ui";
+import { navigateByAuthStatus } from "@/utils/navigation";
 
 export default function ItemsPage() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function ItemsPage() {
           </p>
           <Button
             variant="default"
-            onClick={() => router.back()}
+            onClick={() => navigateByAuthStatus(router)}
             icon={<ArrowLeft className="w-4 h-4" />}
             iconPosition="left"
           >

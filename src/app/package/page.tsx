@@ -13,6 +13,7 @@ import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { navigateByAuthStatus } from "@/utils/navigation";
 
 // 모달 컴포넌트
 interface ModalProps {
@@ -297,7 +298,7 @@ export default function PacakgePage() {
             해당 페이지에 접근할 수 있는 권한이 없습니다.
           </p>
           <button
-            onClick={() => router.back()}
+            onClick={() => navigateByAuthStatus(router)}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
           >
             <ArrowLeft size={20} />
@@ -325,7 +326,7 @@ export default function PacakgePage() {
             패키지 관리를 위해서는 팀을 먼저 선택해야 합니다.
           </p>
           <button
-            onClick={() => router.back()}
+            onClick={() => navigateByAuthStatus(router)}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
           >
             <ArrowLeft size={20} />

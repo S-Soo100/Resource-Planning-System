@@ -6,6 +6,8 @@ import { LoginAuth } from "@/types/(auth)/loginAuth";
 import { FaEye, FaRegEyeSlash } from "react-icons/fa";
 import { authService } from "@/services/authService";
 import { Button, Input } from "@/components/ui";
+import { APP_VERSION } from "@/constants/version";
+import Link from "next/link";
 
 export default function LoginForm() {
   const [auth, setAuth] = useState<LoginAuth>({ email: "", password: "" });
@@ -119,6 +121,14 @@ export default function LoginForm() {
             >
               비밀번호를 잊으셨나요?
             </a>
+          </div>
+          <div className="text-center">
+            <Link
+              href="/update"
+              className="text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            >
+              v{APP_VERSION}
+            </Link>
           </div>
         </div>
       </div>

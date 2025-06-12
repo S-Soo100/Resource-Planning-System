@@ -578,7 +578,14 @@ export default function StockTable() {
           return null;
         });
 
-        await Promise.all([...uploadPromises, invalidateInventory()]);
+        await Promise.all([
+          ...uploadPromises,
+          invalidateInventory(),
+          // ioHistory 페이지 데이터 갱신을 위한 쿼리 무효화
+          queryClient.invalidateQueries({
+            queryKey: ["inventoryRecordsByTeam"],
+          }),
+        ]);
 
         alert("입고가 성공적으로 처리되었습니다.");
 
@@ -661,7 +668,14 @@ export default function StockTable() {
           }
         );
 
-        await Promise.all([...uploadPromises, invalidateInventory()]);
+        await Promise.all([
+          ...uploadPromises,
+          invalidateInventory(),
+          // ioHistory 페이지 데이터 갱신을 위한 쿼리 무효화
+          queryClient.invalidateQueries({
+            queryKey: ["inventoryRecordsByTeam"],
+          }),
+        ]);
 
         alert("출고가 성공적으로 처리되었습니다.");
         handleCloseOutboundModal();

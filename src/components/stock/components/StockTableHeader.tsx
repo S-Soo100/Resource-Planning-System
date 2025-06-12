@@ -26,8 +26,8 @@ export default function StockTableHeader({
 }: StockTableHeaderProps) {
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center space-x-4 m-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center m-4 space-x-4">
           <div className="relative w-64">
             <Input
               type="text"
@@ -35,7 +35,7 @@ export default function StockTableHeader({
               value={searchText}
               onChange={(e) => onSearch(e.target.value)}
               rightIcon={<SearchOutlined className="text-gray-400" />}
-              className="bg-gray-50 border-0 rounded-2xl"
+              className="border-0 bg-gray-50 rounded-2xl"
             />
           </div>
 
@@ -45,7 +45,7 @@ export default function StockTableHeader({
               id="hideZeroStock"
               checked={hideZeroStock}
               onChange={(e) => onHideZeroStockChange(e.target.checked)}
-              className="rounded text-blue-500 focus:ring-blue-400 h-4 w-4"
+              className="w-4 h-4 text-blue-500 rounded focus:ring-blue-400"
             />
             <label
               htmlFor="hideZeroStock"
@@ -58,13 +58,13 @@ export default function StockTableHeader({
       </div>
 
       <div className="mb-8">
-        <div className="flex flex-col justify-between items-center mb-4 px-4 gap-2">
-          <h2 className="flex justify-start text-start w-full text-xl font-bold">
+        <div className="flex flex-col items-center justify-between gap-2 px-4 mb-4">
+          <h2 className="flex justify-start w-full text-xl font-bold text-start">
             {warehouseName}
           </h2>
 
           {showButtons && (
-            <div className="flex items-center space-x-2 justify-end w-full">
+            <div className="flex items-center justify-end w-full space-x-2">
               <Button
                 variant="primary"
                 onClick={onInboundClick}

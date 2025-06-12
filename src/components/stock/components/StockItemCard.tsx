@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Item } from "@/types/(item)/item";
 import { useCategory } from "@/hooks/useCategory";
 import { useRouter } from "next/navigation";
@@ -21,16 +21,20 @@ export default function StockItemCard({
 
   const [openCategories, setOpenCategories] = useState<{
     [key: string]: boolean;
-  }>(() => {
-    const initial: { [key: string]: boolean } = {};
-    Object.values(categories)
-      .flat()
-      .forEach((cat) => {
-        initial[cat.id] = true;
-      });
-    initial["none"] = true;
-    return initial;
+  }>({
+    none: true, // 카테고리 없는 항목들은 기본적으로 열어둠
   });
+
+  // 카테고리가 로드되면 모든 카테고리를 열린 상태로 설정
+  useEffect(() => {
+    if (categories.length > 0) {
+      const initial: { [key: string]: boolean } = { none: true };
+      categories.forEach((cat) => {
+        initial[cat.id] = true; // 모든 카테고리를 기본적으로 열어둠
+      });
+      setOpenCategories(initial);
+    }
+  }, [categories]);
 
   const handleToggle = (catId: string) => {
     setOpenCategories((prev) => ({

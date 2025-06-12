@@ -5,12 +5,31 @@ import { useInventoryRecordsByTeamId } from "@/hooks/useInventoryRecordsByTeamId
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus, Minus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { filterRecordsByDateRange } from "@/utils/dateFilter";
 import InventoryRecordDetail from "./InventoryRecordDetail";
 import { navigateByAuthStatus } from "@/utils/navigation";
 import { Button } from "@/components/ui/button";
+import { CreateInventoryRecordDto } from "@/types/(inventoryRecord)/inventory-record";
+import InboundModal from "../stock/modal/InboundModal";
+import OutboundModal from "../stock/modal/OutboundModal";
+import { useSuppliers } from "@/hooks/useSupplier";
+import {
+  useCreateInventoryRecord,
+  useUploadInventoryRecordFile,
+} from "@/hooks/useInventoryRecord";
+import { useCategory } from "@/hooks/useCategory";
+import { useQueryClient } from "@tanstack/react-query";
+
+// 파일 타입 정의 추가
+export interface AttachedFile {
+  file: File;
+  preview: string;
+  name: string;
+  type: string;
+  size: number;
+}
 
 // 날짜 포맷팅 유틸리티 함수
 const formatDate = (dateString: string | null) => {
@@ -25,7 +44,7 @@ const formatDate = (dateString: string | null) => {
 export default function IoHistoryList() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
-  const { warehouses = [] } = useWarehouseItems();
+  const { warehouses = [], items, invalidateInventory } = useWarehouseItems();
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
     null
   );
@@ -40,6 +59,89 @@ export default function IoHistoryList() {
       .split("T")[0]
   );
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
+
+  // 입고/출고 모달 관련 상태
+  const { createInventoryRecordAsync } = useCreateInventoryRecord();
+  const { uploadFileAsync } = useUploadInventoryRecordFile();
+  const { categories } = useCategory();
+  const queryClient = useQueryClient();
+  const [isInboundModalOpen, setIsInboundModalOpen] = useState(false);
+  const [isOutboundModalOpen, setIsOutboundModalOpen] = useState(false);
+  const [selectedInboundItem, setSelectedInboundItem] = useState<
+    unknown | null
+  >(null);
+  const [selectedOutboundItem, setSelectedOutboundItem] = useState<
+    unknown | null
+  >(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null
+  );
+
+  const [inboundValues, setInboundValues] = useState<{
+    itemId: number | null;
+    itemCode: string;
+    itemName: string;
+    quantity: number;
+    date: string;
+    inboundPlace: string;
+    inboundAddress: string;
+    inboundAddressDetail: string;
+    remarks: string;
+    warehouseId: number;
+    attachedFiles: AttachedFile[];
+    supplierId?: number;
+  }>({
+    itemId: null,
+    itemCode: "",
+    itemName: "",
+    quantity: 1,
+    date: new Date().toISOString().split("T")[0],
+    inboundPlace: "",
+    inboundAddress: "",
+    inboundAddressDetail: "",
+    remarks: "",
+    warehouseId: 0,
+    attachedFiles: [],
+  });
+
+  const [outboundValues, setOutboundValues] = useState<{
+    itemId: number | null;
+    itemCode: string;
+    itemName: string;
+    currentQuantity: number;
+    quantity: number;
+    date: string;
+    outboundPlace: string;
+    outboundAddress: string;
+    outboundAddressDetail: string;
+    remarks: string;
+    warehouseId: number;
+    attachedFiles: AttachedFile[];
+    supplierId?: number;
+  }>({
+    itemId: null,
+    itemCode: "",
+    itemName: "",
+    currentQuantity: 0,
+    quantity: 1,
+    date: new Date().toISOString().split("T")[0],
+    outboundPlace: "",
+    outboundAddress: "",
+    outboundAddressDetail: "",
+    remarks: "",
+    warehouseId: 0,
+    attachedFiles: [],
+  });
+
+  const { useGetSuppliers } = useSuppliers();
+  const { suppliers: suppliersResponse } = useGetSuppliers();
+  const [suppliersList, setSuppliersList] = useState<
+    {
+      id: number;
+      supplierName: string;
+      supplierAddress: string;
+    }[]
+  >([]);
 
   const {
     records,
@@ -85,6 +187,407 @@ export default function IoHistoryList() {
       setSelectedWarehouseId(Number(warehouses[0].id));
     }
   }, [warehouses, selectedWarehouseId]);
+
+  useEffect(() => {
+    if (suppliersResponse) {
+      if (
+        typeof suppliersResponse === "object" &&
+        "data" in suppliersResponse
+      ) {
+        setSuppliersList(
+          suppliersResponse.data as {
+            id: number;
+            supplierName: string;
+            supplierAddress: string;
+          }[]
+        );
+      } else {
+        setSuppliersList(
+          suppliersResponse as {
+            id: number;
+            supplierName: string;
+            supplierAddress: string;
+          }[]
+        );
+      }
+    }
+  }, [suppliersResponse]);
+
+  // 입고/출고 모달 핸들러들
+  const handleOpenInboundModal = (warehouseId: number) => {
+    setInboundValues({
+      ...inboundValues,
+      warehouseId,
+      itemId: null,
+      itemCode: "",
+      itemName: "",
+    });
+    setSelectedInboundItem(null);
+    setIsInboundModalOpen(true);
+  };
+
+  const handleCloseInboundModal = () => {
+    setIsInboundModalOpen(false);
+    setSelectedInboundItem(null);
+  };
+
+  const handleOpenOutboundModal = (warehouseId: number) => {
+    setOutboundValues({
+      ...outboundValues,
+      warehouseId,
+      itemId: null,
+      itemCode: "",
+      itemName: "",
+      currentQuantity: 0,
+    });
+    setSelectedOutboundItem(null);
+    setIsOutboundModalOpen(true);
+  };
+
+  const handleCloseOutboundModal = () => {
+    setIsOutboundModalOpen(false);
+    setSelectedOutboundItem(null);
+  };
+
+  const handleInboundFormChange = (
+    field: string,
+    value: string | number | null | AttachedFile[] | undefined
+  ) => {
+    if (field === "itemId") {
+      const selectedItem = items.find((item) => item.id === value);
+      setSelectedInboundItem(selectedItem || null);
+
+      if (selectedItem) {
+        setInboundValues({
+          ...inboundValues,
+          itemId: selectedItem.id,
+          itemCode: selectedItem.itemCode || "",
+          itemName: selectedItem.itemName || "",
+        });
+      } else {
+        setInboundValues({
+          ...inboundValues,
+          itemId: null,
+          itemCode: "",
+          itemName: "",
+        });
+      }
+    } else if (field === "supplierId") {
+      const selectedSupplier = suppliersList?.find(
+        (supplier) => supplier.id === value
+      );
+      setInboundValues({
+        ...inboundValues,
+        supplierId: value as number | undefined,
+        inboundPlace: selectedSupplier?.supplierName || "",
+        inboundAddress: selectedSupplier?.supplierAddress || "",
+      });
+    } else {
+      setInboundValues({
+        ...inboundValues,
+        [field]: value,
+      });
+    }
+  };
+
+  const handleOutboundFormChange = (
+    field: string,
+    value: string | number | null | AttachedFile[] | undefined
+  ) => {
+    if (field === "itemId") {
+      const selectedItem = items.find((item) => item.id === value);
+      setSelectedOutboundItem(selectedItem || null);
+
+      if (selectedItem) {
+        setOutboundValues({
+          ...outboundValues,
+          itemId: selectedItem.id,
+          itemCode: selectedItem.itemCode || "",
+          itemName: selectedItem.itemName || "",
+          currentQuantity: selectedItem.itemQuantity,
+        });
+      } else {
+        setOutboundValues({
+          ...outboundValues,
+          itemId: null,
+          itemCode: "",
+          itemName: "",
+          currentQuantity: 0,
+        });
+      }
+    } else if (field === "supplierId") {
+      const selectedSupplier = suppliersList?.find(
+        (supplier) => supplier.id === value
+      );
+      setOutboundValues({
+        ...outboundValues,
+        supplierId: value as number | undefined,
+        outboundPlace: selectedSupplier?.supplierName || "",
+        outboundAddress: selectedSupplier?.supplierAddress || "",
+      });
+    } else {
+      setOutboundValues({
+        ...outboundValues,
+        [field]: value,
+      });
+    }
+  };
+
+  const handleInboundFileUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const newFiles: AttachedFile[] = Array.from(files).map((file) => {
+      const preview = URL.createObjectURL(file);
+      return {
+        file,
+        preview,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      };
+    });
+
+    setInboundValues({
+      ...inboundValues,
+      attachedFiles: [...inboundValues.attachedFiles, ...newFiles],
+    });
+  };
+
+  const handleOutboundFileUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const newFiles: AttachedFile[] = Array.from(files).map((file) => {
+      const preview = URL.createObjectURL(file);
+      return {
+        file,
+        preview,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      };
+    });
+
+    setOutboundValues({
+      ...outboundValues,
+      attachedFiles: [...outboundValues.attachedFiles, ...newFiles],
+    });
+  };
+
+  const handleInboundFileDelete = (index: number) => {
+    const updatedFiles = inboundValues.attachedFiles.filter(
+      (_, i) => i !== index
+    );
+    // URL 해제
+    const fileToDelete = inboundValues.attachedFiles[index];
+    if (fileToDelete?.preview) {
+      URL.revokeObjectURL(fileToDelete.preview);
+    }
+    setInboundValues({
+      ...inboundValues,
+      attachedFiles: updatedFiles,
+    });
+  };
+
+  const handleOutboundFileDelete = (index: number) => {
+    const updatedFiles = outboundValues.attachedFiles.filter(
+      (_, i) => i !== index
+    );
+    // URL 해제
+    const fileToDelete = outboundValues.attachedFiles[index];
+    if (fileToDelete?.preview) {
+      URL.revokeObjectURL(fileToDelete.preview);
+    }
+    setOutboundValues({
+      ...outboundValues,
+      attachedFiles: updatedFiles,
+    });
+  };
+
+  const handleSubmitInbound = async () => {
+    if (!inboundValues.itemId) return;
+
+    try {
+      const recordData: CreateInventoryRecordDto = {
+        itemId: inboundValues.itemId!,
+        inboundQuantity: inboundValues.quantity,
+        inboundDate: new Date(inboundValues.date).toISOString(),
+        inboundLocation: [
+          inboundValues.inboundPlace,
+          inboundValues.inboundAddress,
+          inboundValues.inboundAddressDetail,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        remarks: inboundValues.remarks,
+        supplierId: inboundValues.supplierId,
+        warehouseId: inboundValues.warehouseId,
+        userId: user?.id,
+      };
+
+      try {
+        const recordId = await createInventoryRecordAsync(recordData);
+
+        const uploadPromises = inboundValues.attachedFiles.map(async (file) => {
+          if (recordId) {
+            try {
+              return await uploadFileAsync({
+                recordId,
+                file: file.file,
+              });
+            } catch (error) {
+              console.error("파일 업로드 실패:", error);
+              return null;
+            }
+          }
+          return null;
+        });
+
+        await Promise.all([
+          ...uploadPromises,
+          invalidateInventory(),
+          queryClient.invalidateQueries({
+            queryKey: ["inventoryRecordsByTeam"],
+          }),
+        ]);
+
+        alert("입고가 성공적으로 처리되었습니다.");
+
+        setInboundValues({
+          itemId: null,
+          itemCode: "",
+          itemName: "",
+          quantity: 1,
+          date: new Date().toISOString().split("T")[0],
+          inboundPlace: "",
+          inboundAddress: "",
+          inboundAddressDetail: "",
+          remarks: "",
+          warehouseId: inboundValues.warehouseId,
+          attachedFiles: [],
+          supplierId: undefined,
+        });
+
+        handleCloseInboundModal();
+      } catch (error: unknown) {
+        console.error("입고 기록 생성 실패:", error);
+        const errorMessage =
+          error instanceof Error && "error" in error
+            ? (error as { error?: string }).error
+            : "입고 처리 중 오류가 발생했습니다.";
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error("입고 처리 중 오류 발생:", error);
+      alert("입고 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleSubmitOutbound = async () => {
+    if (!outboundValues.itemId) return;
+
+    try {
+      const currentQuantity =
+        items.find((item) => item.id === outboundValues.itemId)?.itemQuantity ||
+        0;
+
+      if (outboundValues.quantity > currentQuantity) {
+        alert("출고 수량이 현재 재고보다 많습니다.");
+        return;
+      }
+
+      const recordData: CreateInventoryRecordDto = {
+        itemId: outboundValues.itemId!,
+        outboundQuantity: outboundValues.quantity,
+        outboundDate: new Date(outboundValues.date).toISOString(),
+        outboundLocation: [
+          outboundValues.outboundPlace,
+          outboundValues.outboundAddress,
+          outboundValues.outboundAddressDetail,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        remarks: outboundValues.remarks,
+        warehouseId: outboundValues.warehouseId,
+        userId: user?.id,
+        supplierId: outboundValues.supplierId,
+      };
+
+      try {
+        const recordId = await createInventoryRecordAsync(recordData);
+
+        const uploadPromises = outboundValues.attachedFiles.map(
+          async (file) => {
+            if (recordId) {
+              try {
+                return await uploadFileAsync({
+                  recordId,
+                  file: file.file,
+                });
+              } catch (error) {
+                console.error("파일 업로드 실패:", error);
+                return null;
+              }
+            }
+            return null;
+          }
+        );
+
+        await Promise.all([
+          ...uploadPromises,
+          invalidateInventory(),
+          queryClient.invalidateQueries({
+            queryKey: ["inventoryRecordsByTeam"],
+          }),
+        ]);
+
+        alert("출고가 성공적으로 처리되었습니다.");
+        handleCloseOutboundModal();
+      } catch (error: unknown) {
+        console.error("출고 기록 생성 실패:", error);
+        const errorMessage =
+          error instanceof Error && "error" in error
+            ? (error as { error?: string }).error
+            : "출고 처리 중 오류가 발생했습니다.";
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error("출고 처리 중 오류 발생:", error);
+      alert("출고 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleInboundCategoryChange = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
+    setInboundValues({
+      ...inboundValues,
+      itemId: null,
+      itemCode: "",
+      itemName: "",
+    });
+    setSelectedInboundItem(null);
+  };
+
+  const handleOutboundCategoryChange = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
+    setOutboundValues({
+      ...outboundValues,
+      itemId: null,
+      itemCode: "",
+      itemName: "",
+      currentQuantity: 0,
+    });
+    setSelectedOutboundItem(null);
+  };
+
+  const getWarehouseItems = (warehouseId: number) => {
+    const warehouseData = warehouses.find((w) => Number(w.id) === warehouseId);
+
+    if (warehouseData && warehouseData.items) {
+      return warehouseData.items;
+    }
+
+    return items.filter((item) => item.warehouseId === warehouseId);
+  };
 
   if (isUserLoading || isDataLoading) {
     return (
@@ -165,6 +668,30 @@ export default function IoHistoryList() {
           </div>
         ))}
       </div>
+
+      {/* 입고/출고 버튼 섹션 */}
+      {selectedWarehouseId && user?.accessLevel !== "user" && (
+        <div className="mb-6 flex justify-end space-x-2">
+          <Button
+            variant="default"
+            onClick={() => handleOpenInboundModal(selectedWarehouseId)}
+            icon={<Plus className="w-4 h-4" />}
+            iconPosition="left"
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            입고
+          </Button>
+          <Button
+            variant="default"
+            onClick={() => handleOpenOutboundModal(selectedWarehouseId)}
+            icon={<Minus className="w-4 h-4" />}
+            iconPosition="left"
+            className="bg-red-500 hover:bg-red-600 text-white"
+          >
+            출고
+          </Button>
+        </div>
+      )}
 
       {/* 필터 섹션 */}
       <div className="mb-6 space-y-4">
@@ -334,6 +861,40 @@ export default function IoHistoryList() {
           </table>
         </div>
       )}
+
+      {/* 입고 모달 */}
+      <InboundModal
+        isOpen={isInboundModalOpen}
+        onClose={handleCloseInboundModal}
+        inboundValues={inboundValues}
+        onFormChange={handleInboundFormChange}
+        onSubmitInbound={handleSubmitInbound}
+        warehouseItems={getWarehouseItems(selectedWarehouseId || 0)}
+        selectedItem={selectedInboundItem}
+        onFileUpload={handleInboundFileUpload}
+        onFileDelete={handleInboundFileDelete}
+        suppliers={suppliersList}
+        categories={categories}
+        selectedCategoryId={selectedCategoryId}
+        onCategoryChange={handleInboundCategoryChange}
+      />
+
+      {/* 출고 모달 */}
+      <OutboundModal
+        isOpen={isOutboundModalOpen}
+        onClose={handleCloseOutboundModal}
+        outboundValues={outboundValues}
+        onFormChange={handleOutboundFormChange}
+        onSubmitOutbound={handleSubmitOutbound}
+        warehouseItems={getWarehouseItems(selectedWarehouseId || 0)}
+        selectedItem={selectedOutboundItem}
+        onFileUpload={handleOutboundFileUpload}
+        onFileDelete={handleOutboundFileDelete}
+        suppliers={suppliersList}
+        categories={categories}
+        selectedCategoryId={selectedCategoryId}
+        onCategoryChange={handleOutboundCategoryChange}
+      />
     </div>
   );
 }

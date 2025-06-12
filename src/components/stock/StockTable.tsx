@@ -617,11 +617,11 @@ export default function StockTable() {
         getItemById(outboundValues.itemId)?.itemQuantity || 0;
 
       if (outboundValues.quantity > currentQuantity) {
-        alert("발주 수량이 현재 재고보다 많습니다.");
+        alert("출고 수량이 현재 재고보다 많습니다.");
         return;
       }
 
-      // 발주 기록 데이터 준비
+      // 출고 기록 데이터 준비
       const recordData: CreateInventoryRecordDto = {
         itemId: outboundValues.itemId!,
         outboundQuantity: outboundValues.quantity,
@@ -641,7 +641,7 @@ export default function StockTable() {
 
       try {
         const recordId = await createInventoryRecordAsync(recordData);
-        console.log("발주 기록 생성 성공, recordId:", recordId);
+        console.log("출고 기록 생성 성공, recordId:", recordId);
 
         // 파일 업로드와 캐시 업데이트를 병렬로 처리
         const uploadPromises = outboundValues.attachedFiles.map(
@@ -663,15 +663,15 @@ export default function StockTable() {
 
         await Promise.all([...uploadPromises, invalidateInventory()]);
 
-        alert("발주가 성공적으로 처리되었습니다.");
+        alert("출고가 성공적으로 처리되었습니다.");
         handleCloseOutboundModal();
       } catch (error: any) {
-        console.error("발주 기록 생성 실패:", error);
-        alert(error.error || "발주 처리 중 오류가 발생했습니다.");
+        console.error("출고 기록 생성 실패:", error);
+        alert(error.error || "출고 처리 중 오류가 발생했습니다.");
       }
     } catch (error) {
-      console.error("발주 처리 중 오류 발생:", error);
-      alert("발주 처리 중 오류가 발생했습니다.");
+      console.error("출고 처리 중 오류 발생:", error);
+      alert("출고 처리 중 오류가 발생했습니다.");
     }
   };
 

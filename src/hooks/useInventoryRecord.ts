@@ -6,12 +6,10 @@ import {
   InventoryRecord,
 } from "../types/(inventoryRecord)/inventory-record";
 import { ApiResponse } from "../types/common";
-import { authStore } from "@/store/authStore";
 
 // 입출고 기록 생성 mutation 훅
 export function useCreateInventoryRecord() {
   const queryClient = useQueryClient();
-  const selectedTeamId = authStore((state) => state.selectedTeam?.id);
 
   const mutation = useMutation<
     ApiResponse<{ data: InventoryRecord } | InventoryRecord>,
@@ -28,9 +26,9 @@ export function useCreateInventoryRecord() {
         const actionType = record.inboundQuantity ? "입고" : "출고";
         toast.success(`${actionType}가 성공적으로 처리되었습니다.`);
 
-        // 입출고 기록 캐시 무효화
+        // 입출고 기록 캐시 무효화 - ioHistory 페이지와 관련 데이터 갱신
         queryClient.invalidateQueries({
-          queryKey: ["inventoryRecordsByTeam", selectedTeamId],
+          queryKey: ["inventoryRecordsByTeam"],
         });
       } else {
         toast.error(response.error || "처리 중 오류가 발생했습니다.");

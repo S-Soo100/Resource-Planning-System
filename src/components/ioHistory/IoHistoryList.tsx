@@ -12,6 +12,7 @@ import InventoryRecordDetail from "./InventoryRecordDetail";
 import { navigateByAuthStatus } from "@/utils/navigation";
 import { Button } from "@/components/ui/button";
 import { CreateInventoryRecordDto } from "@/types/(inventoryRecord)/inventory-record";
+import { AttachedFile } from "@/types/common";
 import InboundModal from "../stock/modal/InboundModal";
 import OutboundModal from "../stock/modal/OutboundModal";
 import { useSuppliers } from "@/hooks/useSupplier";
@@ -21,15 +22,6 @@ import {
 } from "@/hooks/useInventoryRecord";
 import { useCategory } from "@/hooks/useCategory";
 import { useQueryClient } from "@tanstack/react-query";
-
-// 파일 타입 정의 추가
-export interface AttachedFile {
-  file: File;
-  preview: string;
-  name: string;
-  type: string;
-  size: number;
-}
 
 // 날짜 포맷팅 유틸리티 함수
 const formatDate = (dateString: string | null) => {

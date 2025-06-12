@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { AttachedFile } from "../StockTable";
+import { AttachedFile } from "@/types/common";
 import SearchAddressModal from "./SearchAddressModal";
 import { Category } from "@/types/(item)/category";
 

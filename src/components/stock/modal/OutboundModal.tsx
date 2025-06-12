@@ -181,7 +181,7 @@ export default function OutboundModal({
               <div className="sm:flex sm:items-start">
                 <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                   <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                    발주 등록
+                    출고 등록
                   </h3>
 
                   <div className="space-y-4">
@@ -259,7 +259,7 @@ export default function OutboundModal({
 
                     <div className="mb-4">
                       <label className="block text-sm font-medium mb-2 text-gray-700">
-                        발주 수량
+                        출고 수량
                       </label>
                       <input
                         type="number"
@@ -279,7 +279,7 @@ export default function OutboundModal({
 
                     <div className="mb-4">
                       <label className="block text-sm font-medium mb-2 text-gray-700">
-                        발주 날짜
+                        출고 날짜
                       </label>
                       <input
                         type="date"
@@ -315,7 +315,7 @@ export default function OutboundModal({
 
                     <div className="mb-4">
                       <label className="block text-sm font-medium mb-2 text-gray-700">
-                        발주처
+                        출고처
                       </label>
                       <input
                         type="text"
@@ -324,13 +324,13 @@ export default function OutboundModal({
                           onFormChange("outboundPlace", e.target.value)
                         }
                         className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-                        placeholder="발주처를 입력하세요"
+                        placeholder="출고처를 입력하세요"
                       />
                     </div>
 
                     <div className="mb-4">
                       <label className="block text-sm font-medium mb-2 text-gray-700">
-                        발주 주소
+                        출고 주소
                       </label>
                       <div className="flex space-x-2">
                         <input
@@ -501,7 +501,7 @@ export default function OutboundModal({
                 }
                 className="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-500 text-base font-medium text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
               >
-                발주 완료
+                출고 완료
               </button>
               <button
                 type="button"

@@ -11,6 +11,7 @@ import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { ArrowLeft } from "lucide-react";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import TeamMembers from "@/components/admin/TeamMembers";
+import { navigateByAuthStatus } from "@/utils/navigation";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function AdminPage() {
           </p>
           <Button
             variant="default"
-            onClick={() => router.back()}
+            onClick={() => navigateByAuthStatus(router)}
             icon={<ArrowLeft className="w-4 h-4" />}
             iconPosition="left"
           >

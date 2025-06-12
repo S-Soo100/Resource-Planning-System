@@ -4,6 +4,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
+import { navigateByAuthStatus } from "@/utils/navigation";
 
 export default function StockPage() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function StockPage() {
           </p>
           <Button
             variant="default"
-            onClick={() => router.back()}
+            onClick={() => navigateByAuthStatus(router)}
             icon={<ArrowLeft className="w-4 h-4" />}
             iconPosition="left"
           >

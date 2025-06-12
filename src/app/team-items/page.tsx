@@ -19,6 +19,7 @@ import CategoryManagementModal, {
   CategoryManagementModalRef,
 } from "@/components/admin/CategoryManagementModal";
 import TeamItemModal from "@/components/admin/TeamItemModal";
+import { navigateByAuthStatus } from "@/utils/navigation";
 
 interface TeamItem {
   id: number;
@@ -240,7 +241,7 @@ export default function TeamItemsPage() {
           </p>
           <Button
             variant="outline"
-            onClick={() => router.back()}
+            onClick={() => navigateByAuthStatus(router)}
             icon={<ArrowLeft className="w-4 h-4" />}
             iconPosition="left"
           >

@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { UpdateItemQuantityRequest } from "@/types/(item)/item";
 import React, { useState, useEffect } from "react";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItemStockManagement } from "@/hooks/useItemStockManagement";
-import { CreateInventoryRecordDto } from "@/types/(inventoryRecord)/inventory-record";
 import EditQuantityModal from "./modal/EditQuantityModal";
-import { inventoryRecordService } from "@/services/inventoryRecordService";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import WarehouseCard from "./components/WarehouseCard";
 import StockTableHeader from "./components/StockTableHeader";
@@ -145,35 +144,7 @@ export default function StockTable() {
         {
           onSuccess: async (response) => {
             if (response.success) {
-              // 재고 기록 생성
-              const currentQuantity = quantityEditValues.currentQuantity;
-              const newQuantity = quantityEditValues.newQuantity;
-
-              const recordData: CreateInventoryRecordDto = {
-                itemId: quantityEditValues.itemId!,
-                inboundQuantity:
-                  newQuantity > currentQuantity
-                    ? newQuantity - currentQuantity
-                    : undefined,
-                outboundQuantity:
-                  newQuantity < currentQuantity
-                    ? currentQuantity - newQuantity
-                    : undefined,
-                inboundDate:
-                  newQuantity > currentQuantity
-                    ? new Date().toISOString()
-                    : undefined,
-                outboundDate:
-                  newQuantity < currentQuantity
-                    ? new Date().toISOString()
-                    : undefined,
-                remarks: "",
-              };
-
-              // 재고 기록 저장 및 캐시 업데이트
-              await inventoryRecordService.createInventoryRecord(recordData);
-              await invalidateInventory();
-
+              // 재고 기록 생성 로직 제거 - 단순 수량 수정만 수행
               alert("재고 수량이 성공적으로 업데이트되었습니다.");
               handleCloseEditQuantityModal();
             } else {

@@ -118,26 +118,28 @@ const MainMenu = () => {
       title: "시연 요청",
       subtitle: "시연품 출고를 요청합니다",
       icon: <PiHandCoinsFill className="text-3xl" />,
-      onClick: () =>
-        checkAccess(`/demonstration`, [
-          "admin",
-          "user",
-          "supplier",
-          "moderator",
-        ]),
+      onClick: () => {
+        if (user?.accessLevel === "admin") {
+          return checkAccess(`/demonstration`, ["admin"]);
+        } else {
+          toast.error("시연 요청 기능은 현재 개발 중입니다.");
+          return false;
+        }
+      },
       accessLevel: ["supplier", "user", "admin", "moderator"],
     },
     {
       title: "시연 기록",
       subtitle: "시연품 출고 기록을 확인합니다",
       icon: <PiClipboardTextFill className="text-3xl" />,
-      onClick: () =>
-        checkAccess(`/demonstration-record`, [
-          "admin",
-          "user",
-          "supplier",
-          "moderator",
-        ]),
+      onClick: () => {
+        if (user?.accessLevel === "admin") {
+          return checkAccess(`/demonstration-record`, ["admin"]);
+        } else {
+          toast.error("시연 기록 기능은 현재 개발 중입니다.");
+          return false;
+        }
+      },
       accessLevel: ["supplier", "user", "admin", "moderator"],
     },
   ];

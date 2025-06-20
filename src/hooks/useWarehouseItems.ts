@@ -7,6 +7,7 @@ import { authStore } from "@/store/authStore";
 import { teamApi } from "@/api/team-api";
 import { filterAccessibleWarehouses } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useMemo } from "react";
 
 interface useWarehouseItemsReturn {
   isLoading: boolean;
@@ -111,20 +112,20 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
   const isError = false;
 
   // 사용자 권한에 따른 창고 필터링
-  const accessibleWarehouses =
-    user && allWarehousesData?.warehouses
-      ? filterAccessibleWarehouses(user, allWarehousesData.warehouses)
-      : allWarehousesData?.warehouses || [];
+  const accessibleWarehouses = useMemo(() => {
+    if (!user || !allWarehousesData?.warehouses) return [];
+    return filterAccessibleWarehouses(user, allWarehousesData.warehouses);
+  }, [user, allWarehousesData?.warehouses]);
 
   // 접근 가능한 창고의 아이템만 필터링
-  const accessibleItems =
-    user && allWarehousesData?.items
-      ? allWarehousesData.items.filter((item) =>
-          accessibleWarehouses.some(
-            (warehouse) => warehouse.id === item.warehouseId
-          )
-        )
-      : allWarehousesData?.items || [];
+  const accessibleItems = useMemo(() => {
+    if (!user || !allWarehousesData?.items) return [];
+    return allWarehousesData.items.filter((item) =>
+      accessibleWarehouses.some(
+        (warehouse) => warehouse.id === item.warehouseId
+      )
+    );
+  }, [user, allWarehousesData?.items, accessibleWarehouses]);
 
   return {
     isLoading,

@@ -27,6 +27,7 @@ export function useItemStockManagement(warehouseId?: string) {
     return useQuery({
       queryKey: ["items", { currentTeamId }],
       queryFn: () => getAllItemsByTeamId(currentTeamId!.toString()),
+      enabled: !!currentTeamId,
       staleTime: 30 * 60 * 1000,
       refetchOnWindowFocus: false,
       refetchOnMount: false,

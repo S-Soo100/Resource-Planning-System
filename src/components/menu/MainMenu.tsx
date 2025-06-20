@@ -10,6 +10,8 @@ import {
   PiNewspaperClippingFill,
   PiShoppingCartFill,
   PiPackageFill,
+  PiHandCoinsFill,
+  PiClipboardTextFill,
 } from "react-icons/pi";
 import { useCategory } from "@/hooks/useCategory";
 
@@ -105,6 +107,32 @@ const MainMenu = () => {
         checkAccess(`/orderRecord`, ["admin", "user", "supplier", "moderator"]),
       accessLevel: ["supplier", "user", "admin", "moderator"],
     },
+    {
+      title: "시연 요청",
+      subtitle: "시연품 출고를 요청합니다",
+      icon: <PiHandCoinsFill className="text-3xl" />,
+      onClick: () =>
+        checkAccess(`/demonstration`, [
+          "admin",
+          "user",
+          "supplier",
+          "moderator",
+        ]),
+      accessLevel: ["supplier", "user", "admin", "moderator"],
+    },
+    {
+      title: "시연 기록",
+      subtitle: "시연품 출고 기록을 확인합니다",
+      icon: <PiClipboardTextFill className="text-3xl" />,
+      onClick: () =>
+        checkAccess(`/demonstration-record`, [
+          "admin",
+          "user",
+          "supplier",
+          "moderator",
+        ]),
+      accessLevel: ["supplier", "user", "admin", "moderator"],
+    },
   ];
 
   // 관리자 메뉴
@@ -154,7 +182,7 @@ const MainMenu = () => {
     tabs = [
       {
         id: "order",
-        title: "발주",
+        title: "발주 & 시연",
         items: orderMenuItems,
         bgColor: "bg-green-50",
         textColor: "text-green-800",
@@ -180,7 +208,7 @@ const MainMenu = () => {
       },
       {
         id: "order",
-        title: "발주",
+        title: "발주 & 시연",
         items: orderMenuItems,
         bgColor: "bg-green-50",
         textColor: "text-green-800",

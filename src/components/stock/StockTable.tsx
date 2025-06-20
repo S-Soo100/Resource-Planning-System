@@ -68,30 +68,6 @@ export default function StockTable() {
     }
   }, [isDataLoading, warehouses, selectedWarehouseId]);
 
-  // 재고 데이터 자동 갱신을 위한 설정 (통합된 구독)
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
-    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
-      // 디바운싱 적용 (500ms로 증가)
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        const warehouseItemsData = queryClient.getQueryData(["warehouseItems"]);
-        const ordersData = queryClient.getQueryData(["orders"]);
-
-        if (warehouseItemsData || ordersData) {
-          // 불필요한 refetch 제거
-          invalidateInventory();
-        }
-      }, 500);
-    });
-
-    return () => {
-      clearTimeout(timeoutId);
-      unsubscribe();
-    };
-  }, [queryClient, invalidateInventory]);
-
   const handleSearch = (value: string) => {
     setSearchText(value);
   };

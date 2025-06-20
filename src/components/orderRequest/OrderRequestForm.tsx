@@ -45,6 +45,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const [files, setFiles] = useState<File[]>([]);
   const selectedFiles = useRef<HTMLInputElement>(null);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
+  const [isRequesterManuallySet, setIsRequesterManuallySet] = useState(false);
   const auth = authStore((state) => state.user);
   const { user } = useCurrentUser();
 
@@ -67,15 +68,15 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     warehouseId: null,
   });
 
-  // auth가 변경될 때 requester 업데이트
+  // auth가 변경될 때 requester 업데이트 (초기에만)
   useEffect(() => {
-    if (auth?.name && !formData.requester) {
+    if (auth?.name && !formData.requester && !isRequesterManuallySet) {
       setFormData((prev) => ({
         ...prev,
         requester: auth.name,
       }));
     }
-  }, [auth, formData.requester]);
+  }, [auth, formData.requester, isRequesterManuallySet]);
 
   // 훅 호출
   const { useGetPackages } = usePackages();
@@ -201,7 +202,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     if (hasChanges) {
       setOrderItems(updatedItems);
     }
-  }, [currentWarehouseItems, formData.warehouseId, orderItems]);
+  }, [currentWarehouseItems, formData.warehouseId]);
 
   // 파일 선택 핸들러
   const handleFileSelection = () => {
@@ -391,6 +392,12 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     >
   ) => {
     const { name, value } = e.target;
+
+    // requester 필드가 변경되면 수동 입력 플래그 설정
+    if (name === "requester") {
+      setIsRequesterManuallySet(true);
+    }
+
     setFormData({
       ...formData,
       [name]: value,
@@ -705,7 +712,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             name="warehouseId"
             onChange={handleWarehouseChange}
             value={formData.warehouseId || 0}
-            className="w-full px-3 py-2 border rounded-md"
+            className="px-3 py-2 w-full rounded-md border"
             required
           >
             <option value="0">창고 선택</option>
@@ -740,11 +747,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             <label className="block text-sm font-medium text-gray-700">
               패키지 선택
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               <select
                 name="packageId"
                 onChange={handlePackageSelect}
-                className="flex-1 px-3 py-2 border rounded-md"
+                className="flex-1 px-3 py-2 rounded-md border"
                 required={isPackageOrder}
                 disabled={!formData.warehouseId}
               >
@@ -756,7 +763,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                 ))}
               </select>
               {formData.packageId && (
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2 items-center">
                   <button
                     type="button"
                     onClick={() => handlePackageQuantityChange(false)}
@@ -792,7 +799,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             <select
               name="item"
               onChange={handleItemSelect}
-              className="w-full px-3 py-2 border rounded-md"
+              className="px-3 py-2 w-full rounded-md border"
               required={!isPackageOrder}
               disabled={!formData.warehouseId}
             >
@@ -815,14 +822,14 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         {orderItems.length > 0 && (
           <div className="mt-4">
             <h3 className="mb-2 font-medium">선택된 품목</h3>
-            <div className="p-3 border rounded-md">
+            <div className="p-3 rounded-md border">
               {orderItems.map((item, index) => (
                 <div
                   key={item.warehouseItemId}
-                  className="flex items-center justify-between py-2 border-b last:border-0"
+                  className="flex justify-between items-center py-2 border-b last:border-0"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex gap-2 items-center">
                       <p className="font-medium">{item.teamItem.itemName}</p>
                       {formData.warehouseId &&
                         item.stockAvailable === false && (
@@ -842,7 +849,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                         )}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex gap-2 items-center">
                     <button
                       type="button"
                       onClick={() => handleQuantityChange(index, false)}
@@ -880,11 +887,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           name="notes"
           value={formData.notes}
           onChange={handleChange}
-          className="p-2 border rounded"
+          className="p-2 rounded border"
         />
 
         <label htmlFor="requester" className="block text-sm font-medium">
-          요청자
+          캥스터즈 영업 담당자 이름
         </label>
         <input
           type="text"
@@ -892,12 +899,12 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           name="requester"
           value={formData.requester}
           onChange={handleChange}
-          className="p-2 border rounded"
+          className="p-2 rounded border"
           required
         />
 
         <label htmlFor="manager" className="block text-sm font-medium">
-          담당자
+          업체 발주 담당자
         </label>
         <input
           type="text"
@@ -905,7 +912,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           name="manager"
           value={formData.manager}
           onChange={handleChange}
-          className="p-2 border rounded"
+          className="p-2 rounded border"
           required
         />
 
@@ -919,7 +926,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           data-placeholder="날짜 선택"
           value={requestDate}
           onChange={(e) => handleDateChange(e, "requestDate")}
-          className="p-2 border rounded"
+          className="p-2 rounded border"
           required
         />
 
@@ -933,19 +940,21 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           data-placeholder="날짜 선택"
           value={setupDate}
           onChange={(e) => handleDateChange(e, "setupDate")}
-          className="p-2 border rounded"
+          className="p-2 rounded border"
           required
         />
         {/* 거래처 선택 */}
         <div className="space-y-2">
           <label className="flex flex-row gap-3 text-sm font-medium text-gray-700">
             거래처 선택
-            <p className="text-xs text-red-500">*업체 공급시에만</p>
+            <p className="text-xs text-red-500">
+              *등록 업체일 경우에만 선택, 이외에는 모두 별도 기재
+            </p>
           </label>
           <select
             name="supplier"
             onChange={handleSupplierChange}
-            className="w-full px-3 py-2 border rounded-md"
+            className="px-3 py-2 w-full rounded-md border"
           >
             <option value="0">거래처 선택</option>
             {Array.isArray(suppliers) && suppliers?.length > 0 ? (
@@ -970,7 +979,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           name="receiver"
           value={formData.receiver}
           onChange={handleChange}
-          className="p-2 border rounded"
+          className="p-2 rounded border"
           required
         />
 
@@ -984,7 +993,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           value={formData.receiverPhone}
           onChange={handleChange}
           placeholder="xxx-xxxx-xxxx"
-          className="p-2 border rounded"
+          className="p-2 rounded border"
           required
         />
 
@@ -998,20 +1007,23 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             name="address"
             value={formData.address}
             onChange={handleChange}
-            className="p-2 border rounded"
+            className="p-2 rounded border"
             placeholder="주소를 입력하세요"
             required
           />
           <button
             type="button"
-            className="p-2 ml-3 text-black transition-colors duration-200 border rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="p-2 ml-3 text-black rounded border transition-colors duration-200 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             onClick={() => setIsAddressOpen(!isAddressOpen)}
           >
             주소 검색
           </button>
         </div>
         {isAddressOpen && (
-          <SearchAddressModal onCompletePost={handleAddressChange} />
+          <SearchAddressModal
+            onCompletePost={handleAddressChange}
+            onClose={() => setIsAddressOpen(false)}
+          />
         )}
 
         <input
@@ -1020,7 +1032,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           name="detailAddress"
           value={formData.detailAddress}
           onChange={handleChange}
-          className="p-2 border rounded"
+          className="p-2 rounded border"
           placeholder="상세 주소"
         />
 
@@ -1030,7 +1042,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         </div>
         <div
           onClick={() => selectedFiles.current?.click()}
-          className="flex flex-row items-center gap-2 p-2 border rounded hover:bg-blue-100"
+          className="flex flex-row gap-2 items-center p-2 rounded border hover:bg-blue-100"
         >
           <Paperclip className="w-4 h-4" />
           파일 업로드
@@ -1042,9 +1054,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           multiple={true}
           onChange={handleFileSelection}
         />
-        <div className="p-2 border rounded-md">
+        <div className="p-2 rounded-md border">
           <div className="mb-2">업로드된 파일</div>
-          <ul className="p-2 text-black border rounded ">
+          <ul className="p-2 text-black rounded border">
             {files.length == 0 ? (
               <div className="text-sm text-gray-400">
                 업로드 항목이 없습니다.
@@ -1065,12 +1077,12 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="mr-2 w-4 h-4 animate-spin" />
               처리 중...
             </>
           ) : isProcessing ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="mr-2 w-4 h-4 animate-spin" />
               완료 처리 중...
             </>
           ) : (
@@ -1078,9 +1090,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           )}
         </button>
       </form>
-      <div className="flex flex-col h-32 mb-12 text-white"> - </div>
-      <div className="flex flex-col h-32 mb-12 text-white"> - </div>
-      <div className="flex flex-col h-32 mb-12 text-white"> - </div>
+      <div className="flex flex-col mb-12 h-32 text-white"> - </div>
+      <div className="flex flex-col mb-12 h-32 text-white"> - </div>
+      <div className="flex flex-col mb-12 h-32 text-white"> - </div>
     </div>
   );
 };

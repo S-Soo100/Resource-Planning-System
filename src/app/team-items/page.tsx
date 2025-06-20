@@ -172,9 +172,9 @@ export default function TeamItemsPage() {
 
   if (isLoading || isUserLoading || isCategoryLoading) {
     return (
-      <div className="max-w-6xl p-4 mx-auto">
+      <div className="p-4 mx-auto max-w-6xl">
         <div className="animate-pulse">
-          <div className="w-1/3 h-8 mb-6 bg-gray-300 rounded"></div>
+          <div className="mb-6 w-1/3 h-8 bg-gray-300 rounded"></div>
           <div className="space-y-4">
             <div className="h-32 bg-gray-300 rounded"></div>
             <div className="h-64 bg-gray-300 rounded"></div>
@@ -186,7 +186,7 @@ export default function TeamItemsPage() {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col justify-center items-center min-h-screen">
         <div className="text-center">
           <h2 className="mb-4 text-2xl font-bold text-gray-800">
             로그인이 필요합니다
@@ -209,7 +209,7 @@ export default function TeamItemsPage() {
 
   if (!team) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col justify-center items-center min-h-screen">
         <div className="text-center">
           <h2 className="mb-4 text-2xl font-bold text-gray-800">
             팀 선택이 필요합니다
@@ -232,9 +232,9 @@ export default function TeamItemsPage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col justify-center items-center min-h-screen">
         <div className="text-center">
-          <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+          <AlertCircle className="mx-auto mb-4 w-16 h-16 text-red-500" />
           <h2 className="mb-4 text-2xl font-bold text-gray-800">오류 발생</h2>
           <p className="mb-6 text-red-600">
             {error.message || "오류가 발생했습니다"}
@@ -253,13 +253,13 @@ export default function TeamItemsPage() {
   }
 
   return (
-    <div className="max-w-5xl p-4 mx-auto">
+    <div className="p-4 mx-auto max-w-5xl">
       <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-800">
           팀 카테고리, 품목 관리
         </h1>
         {isReadOnly && (
-          <div className="px-4 py-2 text-sm text-yellow-700 rounded-md bg-yellow-50">
+          <div className="px-4 py-2 text-sm text-yellow-700 bg-yellow-50 rounded-md">
             1차 승인권자 권한으로는 조회만 가능합니다
           </div>
         )}
@@ -267,7 +267,7 @@ export default function TeamItemsPage() {
 
       {/* 팀 카테고리 테이블 */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-700">팀 카테고리</h2>
           {!isReadOnly && (
             <Button
@@ -281,19 +281,19 @@ export default function TeamItemsPage() {
           )}
         </div>
         {categories.length > 0 ? (
-          <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md">
+          <div className="overflow-hidden bg-white rounded-lg border border-gray-200 shadow-md">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="w-20 px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    <th className="px-4 py-3 w-20 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       순서
                     </th>
                     <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       카테고리명
                     </th>
                     {!isReadOnly && (
-                      <th className="w-20 px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
+                      <th className="px-4 py-3 w-20 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
                         관리
                       </th>
                     )}
@@ -315,7 +315,7 @@ export default function TeamItemsPage() {
                         </td>
                         {!isReadOnly && (
                           <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
-                            <div className="flex items-center justify-center">
+                            <div className="flex justify-center items-center">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -334,15 +334,15 @@ export default function TeamItemsPage() {
             </div>
           </div>
         ) : (
-          <div className="p-8 text-center border border-gray-200 rounded-lg shadow-sm bg-gray-50">
-            <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+          <div className="p-8 text-center bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+            <Package className="mx-auto mb-4 w-12 h-12 text-gray-400" />
             <p className="text-gray-500">등록된 팀 카테고리가 없습니다.</p>
           </div>
         )}
       </div>
 
       {/* 팀 아이템 섹션 */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold text-gray-700">팀 아이템 목록</h2>
         {!isReadOnly && (
           <Button
@@ -358,8 +358,8 @@ export default function TeamItemsPage() {
 
       {/* 카테고리 필터 */}
       {teamItems.length > 0 && (
-        <div className="flex flex-col gap-4 p-4 mb-4 rounded-lg sm:flex-row sm:items-center bg-gray-50">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-4 p-4 mb-4 bg-gray-50 rounded-lg sm:flex-row sm:items-center">
+          <div className="flex gap-2 items-center">
             <label
               htmlFor="category-filter"
               className="text-sm font-medium text-gray-700"
@@ -370,7 +370,7 @@ export default function TeamItemsPage() {
               id="category-filter"
               value={selectedCategoryId || "all"}
               onChange={handleCategoryFilterChange}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">전체 카테고리</option>
               {categories
@@ -385,7 +385,7 @@ export default function TeamItemsPage() {
           </div>
 
           {selectedCategoryId && (
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               <span className="text-sm text-gray-600">
                 {filteredTeamItems.length}개 아이템 표시 중
               </span>
@@ -400,24 +400,24 @@ export default function TeamItemsPage() {
       {teamItems.length > 0 ? (
         <>
           {/* 데스크톱 테이블 뷰 */}
-          <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md">
+          <div className="overflow-hidden bg-white rounded-lg border border-gray-200 shadow-md">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase w-28">
+                    <th className="px-4 py-3 w-28 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       아이템 코드
                     </th>
-                    <th className="w-40 px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    <th className="px-4 py-3 w-40 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       아이템명
                     </th>
-                    <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase w-28">
+                    <th className="px-4 py-3 w-28 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       카테고리
                     </th>
-                    <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase w-52">
+                    <th className="px-4 py-3 w-52 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       메모
                     </th>
-                    <th className="w-20 px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
+                    <th className="px-4 py-3 w-20 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
                       관리
                     </th>
                   </tr>
@@ -488,8 +488,8 @@ export default function TeamItemsPage() {
 
           {/* 필터링된 결과가 없을 때 */}
           {filteredTeamItems.length === 0 && selectedCategoryId && (
-            <div className="p-8 text-center border border-gray-200 rounded-lg shadow-sm bg-gray-50">
-              <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <div className="p-8 text-center bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+              <Package className="mx-auto mb-4 w-12 h-12 text-gray-400" />
               <p className="mb-2 text-gray-500">
                 {selectedCategoryId === "none"
                   ? "카테고리가 설정되지 않은 아이템이 없습니다."
@@ -507,8 +507,8 @@ export default function TeamItemsPage() {
           )}
         </>
       ) : (
-        <div className="p-12 text-center border border-gray-200 rounded-lg shadow-sm bg-gray-50">
-          <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+        <div className="p-12 text-center bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+          <Package className="mx-auto mb-4 w-16 h-16 text-gray-400" />
           <p className="mb-2 text-gray-500">등록된 팀 아이템이 없습니다.</p>
           <p className="mb-6 text-sm text-gray-400">
             아이템을 추가하여 팀의 품목을 관리해보세요.

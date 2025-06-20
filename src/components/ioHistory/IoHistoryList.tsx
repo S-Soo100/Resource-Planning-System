@@ -33,6 +33,9 @@ const formatDate = (dateString: string | null) => {
   });
 };
 
+// 타입 필터 옵션
+type TypeFilter = "all" | "inbound" | "outbound";
+
 export default function IoHistoryList() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
@@ -51,6 +54,9 @@ export default function IoHistoryList() {
       .split("T")[0]
   );
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
+
+  // 타입 필터 상태 추가
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
 
   // 입고/출고 모달 관련 상태
   const { createInventoryRecordAsync } = useCreateInventoryRecord();
@@ -155,6 +161,12 @@ export default function IoHistoryList() {
     );
   };
 
+  // 모든 필터 초기화 함수
+  const resetAllFilters = () => {
+    resetDateFilter();
+    setTypeFilter("all");
+  };
+
   // 필터링된 기록
   const filteredRecords = useMemo(() => {
     // 날짜로 필터링
@@ -165,14 +177,26 @@ export default function IoHistoryList() {
     );
 
     // 창고로 필터링
+    let warehouseFilteredRecords = dateFilteredRecords;
     if (selectedWarehouseId) {
-      return dateFilteredRecords.filter(
+      warehouseFilteredRecords = dateFilteredRecords.filter(
         (record) => record.item?.warehouseId === selectedWarehouseId
       );
     }
 
-    return dateFilteredRecords;
-  }, [records, startDate, endDate, selectedWarehouseId]);
+    // 타입으로 필터링
+    if (typeFilter === "inbound") {
+      return warehouseFilteredRecords.filter(
+        (record) => record.inboundQuantity
+      );
+    } else if (typeFilter === "outbound") {
+      return warehouseFilteredRecords.filter(
+        (record) => record.outboundQuantity
+      );
+    }
+
+    return warehouseFilteredRecords;
+  }, [records, startDate, endDate, selectedWarehouseId, typeFilter]);
 
   useEffect(() => {
     if (warehouses.length > 0 && !selectedWarehouseId) {
@@ -712,7 +736,7 @@ export default function IoHistoryList() {
             />
           </div>
           <button
-            onClick={resetDateFilter}
+            onClick={resetAllFilters}
             className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-md hover:bg-gray-200"
           >
             <svg
@@ -730,6 +754,41 @@ export default function IoHistoryList() {
             초기화
           </button>
         </div>
+
+        {/* 타입 필터 */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">구분:</span>
+          <button
+            onClick={() => setTypeFilter("all")}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              typeFilter === "all"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            전체
+          </button>
+          <button
+            onClick={() => setTypeFilter("inbound")}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              typeFilter === "inbound"
+                ? "bg-green-500 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            입고
+          </button>
+          <button
+            onClick={() => setTypeFilter("outbound")}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              typeFilter === "outbound"
+                ? "bg-red-500 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            출고
+          </button>
+        </div>
       </div>
 
       {/* 기록 목록 테이블 */}
@@ -737,7 +796,11 @@ export default function IoHistoryList() {
         <div className="py-8 text-center rounded-lg bg-gray-50">
           <p className="text-lg text-gray-500">데이터가 없습니다</p>
           <p className="mt-2 text-sm text-gray-400">
-            선택한 기간에 입출고 기록이 없습니다
+            {typeFilter === "inbound"
+              ? "선택한 기간에 입고 기록이 없습니다"
+              : typeFilter === "outbound"
+              ? "선택한 기간에 출고 기록이 없습니다"
+              : "선택한 기간에 입출고 기록이 없습니다"}
           </p>
         </div>
       ) : (

@@ -13,9 +13,9 @@ export default function ItemsPage() {
 
   if (isUserLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-blue-500 animate-spin"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -24,12 +24,12 @@ export default function ItemsPage() {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col justify-center items-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="mb-4 text-2xl font-bold text-gray-800">
             로그인이 필요합니다
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="mb-6 text-gray-600">
             해당 페이지는 로그인한 사용자만 접근할 수 있습니다.
           </p>
           <Button
@@ -45,10 +45,23 @@ export default function ItemsPage() {
     );
   }
 
+  // 권한에 따라 읽기 전용 모드 결정
+  // Admin과 Moderator만 아이템 추가/삭제 가능
+  const isReadOnly =
+    user.accessLevel === "user" || user.accessLevel === "supplier";
+
   return (
     <div className="p-4">
       <h1 className="mb-4 text-2xl font-bold">품목 관리</h1>
-      <CustomItemTable />
+      {isReadOnly && (
+        <div className="p-3 mb-4 bg-yellow-50 rounded-lg border border-yellow-200">
+          <p className="text-sm text-yellow-800">
+            <strong>읽기 전용 모드:</strong> 현재 권한으로는 품목 조회만
+            가능합니다.
+          </p>
+        </div>
+      )}
+      <CustomItemTable isReadOnly={isReadOnly} />
     </div>
   );
 }

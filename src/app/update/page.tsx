@@ -41,12 +41,12 @@ export default function UpdatePage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="px-4 py-4 mx-auto max-w-4xl">
+          <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleBack}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-lg transition-colors hover:bg-gray-100"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -57,7 +57,7 @@ export default function UpdatePage() {
                 <p className="text-sm text-gray-600">{APP_NAME} 변경사항</p>
               </div>
             </div>
-            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            <div className="px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">
               현재 버전: v{APP_VERSION}
             </div>
           </div>
@@ -65,31 +65,232 @@ export default function UpdatePage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
-          {/* v1.3.0 */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {/* v1.4.1 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-3">
                   <h2 className="text-xl font-semibold text-gray-900">
-                    v1.3.0
+                    v1.4.1
                   </h2>
-                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
                     최신
                   </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  2025-06-11
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-06-20
                 </div>
               </div>
-              <p className="text-gray-600 mt-2">입출고 관리 시스템 개선</p>
+              <p className="mt-2 text-gray-600">업체관리 기능 접근 권한 확장</p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 변경됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("변경됨")}
+                  <h3 className="font-medium text-gray-900">변경됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    업체관리 기능을 재고관리 탭으로 이동
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    기존 관리자 탭에서 재고관리 탭으로 메뉴 위치 변경
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    user, moderator 권한 사용자도 업체관리 기능 접근 가능하도록
+                    권한 확장
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    접근 권한을 [&quot;user&quot;, &quot;admin&quot;,
+                    &quot;moderator&quot;]로 설정
+                  </li>
+                </ul>
+              </div>
+
+              {/* 개선됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("개선됨")}
+                  <h3 className="font-medium text-gray-900">개선됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    사용자 경험 향상: 일반 사용자와 1차승인권자도 업체관리 기능
+                    이용 가능
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    메뉴 구조 개선: 업체관리 기능을 논리적으로 재고관리 탭에
+                    배치
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* v1.4.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-900">v1.4.0</h2>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-06-20
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                발주 상태 관리 및 재고 확인 시스템
+              </p>
             </div>
             <div className="p-6 space-y-6">
               {/* 추가됨 */}
               <div>
-                <div className="flex items-center space-x-2 mb-3">
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("추가됨")}
+                  <h3 className="font-medium text-gray-900">추가됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    발주 상태 변경 시 권한별 제한 기능 구현
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    출고 관련 상태 변경 시 재고 확인 로직 추가
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    발주 상태 표시 개선 (아이콘 추가, UI 개선)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    서버 응답 호환성 개선 (&quot;주문 접수&quot; 문자열 처리)
+                  </li>
+                </ul>
+              </div>
+
+              {/* 변경됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("변경됨")}
+                  <h3 className="font-medium text-gray-900">변경됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    재고 수량 수정 로직 개선 (불필요한 재고 기록 생성 제거)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    발주 상태 변경 UI 개선 (권한에 따른 드롭다운 표시 제한)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    캐시 무효화 로직 개선 (화면 반영 문제 해결)
+                  </li>
+                </ul>
+              </div>
+
+              {/* 수정됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("수정됨")}
+                  <h3 className="font-medium text-gray-900">수정됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    재고 수량 수정 시 2개씩 증가하는 중복 업데이트 문제 해결
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    재고 수량 수정 후 화면에 반영되지 않는 캐시 동기화 문제 해결
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    발주 상태 변경 시 권한 제한이 적용되지 않는 문제 해결
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    &quot;주문 접수&quot; 상태 표시 오류 수정 (requested와 동일
+                    처리)
+                  </li>
+                </ul>
+              </div>
+
+              {/* 개선됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("개선됨")}
+                  <h3 className="font-medium text-gray-900">개선됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    사용자 경험 향상: 권한별 명확한 기능 제한으로 혼란 방지
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    성능 개선: 불필요한 재고 기록 생성 제거로 데이터베이스 부하
+                    감소
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    UI/UX 개선: 상태별 아이콘과 직관적인 상태 표시
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    데이터 일관성: 올바른 캐시 무효화로 실시간 데이터 동기화
+                    보장
+                  </li>
+                </ul>
+              </div>
+
+              {/* 보안 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("보안")}
+                  <h3 className="font-medium text-gray-900">보안</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    권한별 발주 상태 변경 제한으로 비즈니스 로직 보호
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    재고 확인 로직으로 출고 시 데이터 무결성 보장
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* v1.3.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-900">v1.3.0</h2>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-06-11
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">입출고 관리 시스템 개선</p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 추가됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
                   {getIconForType("추가됨")}
                   <h3 className="font-medium text-gray-900">추가됨</h3>
                 </div>
@@ -115,7 +316,7 @@ export default function UpdatePage() {
 
               {/* 변경됨 */}
               <div>
-                <div className="flex items-center space-x-2 mb-3">
+                <div className="flex items-center mb-3 space-x-2">
                   {getIconForType("변경됨")}
                   <h3 className="font-medium text-gray-900">변경됨</h3>
                 </div>
@@ -143,7 +344,7 @@ export default function UpdatePage() {
 
               {/* 수정됨 */}
               <div>
-                <div className="flex items-center space-x-2 mb-3">
+                <div className="flex items-center mb-3 space-x-2">
                   {getIconForType("수정됨")}
                   <h3 className="font-medium text-gray-900">수정됨</h3>
                 </div>
@@ -170,7 +371,7 @@ export default function UpdatePage() {
 
               {/* 개선됨 */}
               <div>
-                <div className="flex items-center space-x-2 mb-3">
+                <div className="flex items-center mb-3 space-x-2">
                   {getIconForType("개선됨")}
                   <h3 className="font-medium text-gray-900">개선됨</h3>
                 </div>
@@ -196,7 +397,7 @@ export default function UpdatePage() {
 
               {/* 보안 */}
               <div>
-                <div className="flex items-center space-x-2 mb-3">
+                <div className="flex items-center mb-3 space-x-2">
                   {getIconForType("보안")}
                   <h3 className="font-medium text-gray-900">보안</h3>
                 </div>
@@ -211,16 +412,16 @@ export default function UpdatePage() {
           </div>
 
           {/* v1.2.0 */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-900">v1.2.0</h2>
                 <div className="flex items-center text-sm text-gray-500">
-                  <Calendar className="w-4 h-4 mr-1" />
+                  <Calendar className="mr-1 w-4 h-4" />
                   2025-05-31
                 </div>
               </div>
-              <p className="text-gray-600 mt-2">창고 접근 권한 관리 시스템</p>
+              <p className="mt-2 text-gray-600">창고 접근 권한 관리 시스템</p>
             </div>
             <div className="p-6">
               <div className="text-sm text-gray-600">
@@ -231,16 +432,16 @@ export default function UpdatePage() {
           </div>
 
           {/* v1.1.0 */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-900">v1.1.0</h2>
                 <div className="flex items-center text-sm text-gray-500">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  2024-11-XX
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-05-23
                 </div>
               </div>
-              <p className="text-gray-600 mt-2">발주 시스템 개선</p>
+              <p className="mt-2 text-gray-600">발주 시스템 개선</p>
             </div>
             <div className="p-6">
               <div className="text-sm text-gray-600">
@@ -251,23 +452,23 @@ export default function UpdatePage() {
           </div>
 
           {/* v1.0.0 */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-3">
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.0.0
                   </h2>
-                  <span className="bg-gold-100 text-gold-800 px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                  <span className="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded bg-gold-100 text-gold-800">
                     초기 릴리즈
                   </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  2025-05-31
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-04-29
                 </div>
               </div>
-              <p className="text-gray-600 mt-2">KARS 시스템 최초 출시</p>
+              <p className="mt-2 text-gray-600">KARS 시스템 최초 출시</p>
             </div>
             <div className="p-6">
               <div className="text-sm text-gray-600">

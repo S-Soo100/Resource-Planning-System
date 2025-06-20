@@ -72,19 +72,6 @@ const MainMenu = () => {
   // 발주 메뉴
   const orderMenuItems = [
     {
-      title: "발주 요청",
-      subtitle: "새로운 발주를 요청합니다",
-      icon: <PiShoppingCartFill className="text-3xl" />,
-      onClick: () =>
-        checkAccess(`/orderRequest`, [
-          "admin",
-          "user",
-          "supplier",
-          "moderator",
-        ]),
-      accessLevel: ["supplier", "user", "admin", "moderator"],
-    },
-    {
       title: "패키지 발주",
       subtitle: "패키지 단위로 발주를 요청합니다",
       icon: <FaTruck className="text-3xl" />,
@@ -98,8 +85,21 @@ const MainMenu = () => {
       accessLevel: ["supplier", "user", "admin", "moderator"],
     },
     {
+      title: "개별 품목 발주",
+      subtitle: "개별 소모품류 발주를 요청합니다",
+      icon: <PiShoppingCartFill className="text-3xl" />,
+      onClick: () =>
+        checkAccess(`/orderRequest`, [
+          "admin",
+          "user",
+          "supplier",
+          "moderator",
+        ]),
+      accessLevel: ["supplier", "user", "admin", "moderator"],
+    },
+    {
       title: "발주 기록",
-      subtitle: "이전 발주 요청 및 처리 상태를 확인합니다",
+      subtitle: "발주건의 기록과 상태를 확인합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () =>
         checkAccess(`/orderRecord`, ["admin", "user", "supplier", "moderator"]),
@@ -209,9 +209,9 @@ const MainMenu = () => {
 
   if (userLoading || categoriesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-blue-500 animate-spin"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -231,19 +231,19 @@ const MainMenu = () => {
   const currentTab = tabs.find((tab) => tab.id === activeTab) || tabs[0];
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container p-6 mx-auto max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+        <h1 className="flex items-center text-3xl font-bold text-gray-900">
           <FaUser className="mr-3 text-blue-600" />
           {user.name}님, 환영합니다!
         </h1>
-        <p className="text-lg text-gray-600 mt-2">
+        <p className="mt-2 text-lg text-gray-600">
           팀: <span className="font-semibold">{selectedTeam.teamName}</span>
         </p>
       </div>
 
       {/* 탭 네비게이션 */}
-      <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
+      <div className="flex p-1 mb-6 bg-gray-100 rounded-lg">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -260,7 +260,7 @@ const MainMenu = () => {
       </div>
 
       {/* 메뉴 아이템 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {currentTab.items
           .filter((item) => item.accessLevel.includes(user.accessLevel))
           .map((item, index) => (
@@ -281,7 +281,7 @@ const MainMenu = () => {
                   </h3>
                 </div>
               </div>
-              <p className="text-gray-600 leading-relaxed">{item.subtitle}</p>
+              <p className="leading-relaxed text-gray-600">{item.subtitle}</p>
             </div>
           ))}
       </div>

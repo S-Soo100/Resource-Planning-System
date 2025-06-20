@@ -398,17 +398,18 @@ const OrderRecordTabs = () => {
   const getStatusText = (status: string): string => {
     switch (status) {
       case OrderStatus.requested:
+      case "주문 접수":
         return "요청";
       case OrderStatus.approved:
         return "승인";
       case OrderStatus.rejected:
         return "반려";
       case OrderStatus.confirmedByShipper:
-        return "발주자 확인";
+        return "출고팀 확인";
       case OrderStatus.shipmentCompleted:
-        return "발주 완료";
+        return "출고 완료";
       case OrderStatus.rejectedByShipper:
-        return "발주자 반려";
+        return "출고 보류";
       default:
         return status;
     }
@@ -472,7 +473,7 @@ const OrderRecordTabs = () => {
         data: { status: newStatus },
       });
 
-      // 발주 완료 상태로 변경된 경우 추가 액션 수행
+      // 출고 완료 상태로 변경된 경우 추가 액션 수행
       if (newStatus === OrderStatus.shipmentCompleted) {
         try {
           // 모든 관련 쿼리를 한 번에 무효화
@@ -496,9 +497,9 @@ const OrderRecordTabs = () => {
             await refetchWarehouseItems();
           }, 1000);
 
-          alert("발주 완료, 재고에 반영 했습니다.");
+          alert("출고 완료, 재고에 반영 했습니다.");
           toast.success(
-            "발주 완료 처리되었습니다. 재고가 업데이트되었습니다.",
+            "출고 완료 처리되었습니다. 재고가 업데이트되었습니다.",
             {
               duration: 4000,
               position: "top-center",
@@ -512,7 +513,7 @@ const OrderRecordTabs = () => {
           );
         } catch (error) {
           console.error("데이터 최신화 실패:", error);
-          alert("발주 완료 처리 중 오류가 발생했습니다.");
+          alert("출고 완료 처리 중 오류가 발생했습니다.");
           toast.error("데이터 최신화 중 오류가 발생했습니다.", {
             duration: 4000,
             position: "top-center",
@@ -560,55 +561,123 @@ const OrderRecordTabs = () => {
     // 권한이 없는 경우 상태만 표시
     if (!hasPermissionToChangeStatus()) {
       return (
-        <div
-          className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
-            record.status
-          )}`}
-        >
-          {getStatusText(record.status)}
+        <div className="flex items-center gap-2">
+          <div
+            className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
+              record.status
+            )}`}
+          >
+            {getStatusIcon(record.status)}
+            {getStatusText(record.status)}
+          </div>
         </div>
       );
     }
 
-    // 발주 완료 상태인 경우 상태만 표시하고 변경 불가
+    // 출고 완료 상태인 경우 상태만 표시하고 변경 불가
     if (record.status === OrderStatus.shipmentCompleted) {
       return (
-        <div
-          className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
-            record.status
-          )} cursor-not-allowed`}
-          title="발주 완료된 주문은 상태를 변경할 수 없습니다"
-        >
-          {getStatusText(record.status)}
+        <div className="flex items-center gap-2">
+          <div
+            className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
+              record.status
+            )} cursor-not-allowed`}
+            title="출고 완료된 주문은 상태를 변경할 수 없습니다"
+          >
+            {getStatusIcon(record.status)}
+            {getStatusText(record.status)}
+          </div>
         </div>
       );
     }
 
-    // 권한이 있는 경우 드롭다운 표시
-    return (
-      <div className="relative">
-        <select
-          value={record.status}
-          onChange={(e) =>
-            handleStatusChange(record.id, e.target.value as OrderStatus)
-          }
-          disabled={isUpdatingStatus === record.id}
-          className={`px-3 py-1.5 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColorClass(
-            record.status
-          )}`}
-        >
-          <option value={OrderStatus.requested}>요청됨</option>
-          <option value={OrderStatus.approved}>승인됨</option>
-          <option value={OrderStatus.rejected}>반려됨</option>
-          <option value={OrderStatus.confirmedByShipper}>발주자 확인</option>
-          <option value={OrderStatus.shipmentCompleted}>발주 완료</option>
-          <option value={OrderStatus.rejectedByShipper}>발주자 반려</option>
-        </select>
-        {isUpdatingStatus === record.id && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50 rounded-md">
-            <div className="w-4 h-4 border-2 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+    // admin 권한 사용자의 경우 특정 상태일 때만 드롭다운 표시
+    if (userAccessLevel === "admin") {
+      const allowedStatusesForAdmin = [
+        OrderStatus.approved,
+        OrderStatus.confirmedByShipper,
+        OrderStatus.shipmentCompleted,
+        OrderStatus.rejectedByShipper,
+      ];
+
+      if (!allowedStatusesForAdmin.includes(record.status as OrderStatus)) {
+        return (
+          <div className="flex items-center gap-2">
+            <div
+              className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
+                record.status
+              )}`}
+            >
+              {getStatusIcon(record.status)}
+              {getStatusText(record.status)}
+            </div>
           </div>
-        )}
+        );
+      }
+    }
+
+    // 권한이 있는 경우 드롭다운과 현재 상태 표시
+    return (
+      <div className="flex items-center gap-3">
+        {/* 현재 상태 표시 */}
+        <div className="flex items-center gap-2">
+          <div
+            className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
+              record.status
+            )}`}
+          >
+            {getStatusIcon(record.status)}
+            {getStatusText(record.status)}
+          </div>
+        </div>
+
+        {/* 상태 변경 드롭다운 */}
+        <div className="relative">
+          <select
+            value={record.status}
+            onChange={(e) =>
+              handleStatusChange(record.id, e.target.value as OrderStatus)
+            }
+            disabled={isUpdatingStatus === record.id}
+            className="px-3 py-1.5 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white border border-gray-300 hover:border-gray-400 transition-colors"
+          >
+            {/* 권한에 따라 다른 선택지 표시 */}
+            {userAccessLevel === "moderator" ? (
+              // Moderator: 요청, 승인, 반려만 가능
+              <>
+                <option value={OrderStatus.requested}>요청</option>
+                <option value={OrderStatus.approved}>승인</option>
+                <option value={OrderStatus.rejected}>반려</option>
+              </>
+            ) : userAccessLevel === "admin" ? (
+              // Admin: 출고팀 확인, 출고 완료, 출고 보류만 가능
+              <>
+                <option value={OrderStatus.confirmedByShipper}>
+                  출고팀 확인
+                </option>
+                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+                <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
+              </>
+            ) : (
+              // 기본값 (권한이 없는 경우)
+              <>
+                <option value={OrderStatus.requested}>요청</option>
+                <option value={OrderStatus.approved}>승인</option>
+                <option value={OrderStatus.rejected}>반려</option>
+                <option value={OrderStatus.confirmedByShipper}>
+                  출고팀 확인
+                </option>
+                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+                <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
+              </>
+            )}
+          </select>
+          {isUpdatingStatus === record.id && (
+            <div className="flex absolute inset-0 justify-center items-center bg-gray-100 bg-opacity-50 rounded-md">
+              <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -623,8 +692,8 @@ const OrderRecordTabs = () => {
     // supplier인 경우 '내 발주 기록' 탭만 표시
     if (userAccessLevel === "supplier") {
       return (
-        <div className="flex mb-4 sm:mb-6 border-b">
-          <button className="py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors border-b-2 border-blue-500 text-blue-600">
+        <div className="flex mb-4 border-b sm:mb-6">
+          <button className="px-3 py-2 text-xs font-medium text-blue-600 border-b-2 border-blue-500 transition-colors sm:py-3 sm:px-5 sm:text-sm">
             <User size={16} className="inline-block mr-1" />
             <span className="hidden sm:inline">내 발주 기록</span>
             <span className="sm:hidden">내 발주</span>
@@ -635,7 +704,7 @@ const OrderRecordTabs = () => {
 
     // supplier가 아닌 경우 모든 탭 표시
     return (
-      <div className="flex mb-4 sm:mb-6 border-b">
+      <div className="flex mb-4 border-b sm:mb-6">
         <button
           onClick={() => handleTabChange("all")}
           className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
@@ -679,10 +748,10 @@ const OrderRecordTabs = () => {
   const isMobile = useMediaQuery("(max-width: 759px)");
 
   return (
-    <div className="container mx-auto px-0 sm:px-2 max-w-7xl">
-      <div className="bg-white rounded-lg shadow-md p-1 sm:p-4 mb-4 sm:mb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 sm:mb-6">
-          <div className="flex items-center gap-1 sm:gap-4">
+    <div className="container px-0 mx-auto max-w-7xl sm:px-2">
+      <div className="p-1 mb-4 bg-white rounded-lg shadow-md sm:p-4 sm:mb-8">
+        <div className="flex flex-col justify-between items-start mb-4 md:flex-row md:items-center sm:mb-6">
+          <div className="flex gap-1 items-center sm:gap-4">
             {/* <button
               onClick={handleBack}
               className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs sm:text-sm transition-colors"
@@ -691,8 +760,8 @@ const OrderRecordTabs = () => {
               <span className="hidden sm:inline">메인 메뉴로</span>
               <span className="sm:hidden">메인</span>
             </button> */}
-            <h1 className="text-base sm:text-2xl font-bold text-gray-800 flex items-center">
-              <Package className="mr-1 sm:mr-2 w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+            <h1 className="flex items-center text-base font-bold text-gray-800 sm:text-2xl">
+              <Package className="mr-1 w-4 h-4 text-blue-600 sm:mr-2 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">발주 기록 관리</span>
               <span className="sm:hidden">발주 기록</span>
             </h1>
@@ -714,12 +783,12 @@ const OrderRecordTabs = () => {
         {renderTabs()}
 
         {/* 검색 및 필터 */}
-        <div className="bg-gray-50 p-1 sm:p-4 rounded-lg mb-4 sm:mb-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-1 sm:gap-4">
+        <div className="p-1 mb-4 bg-gray-50 rounded-lg sm:p-4 sm:mb-6">
+          <div className="flex flex-col gap-1 items-start md:flex-row md:items-center sm:gap-4">
             <div className="relative flex-grow">
               <Search
                 size={16}
-                className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                className="absolute left-2 top-1/2 text-gray-400 transform -translate-y-1/2 sm:left-3"
               />
               <input
                 type="text"
@@ -739,23 +808,21 @@ const OrderRecordTabs = () => {
                 className="px-1 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
                 <option value="">모든 상태</option>
-                <option value={OrderStatus.requested}>요청됨</option>
-                <option value={OrderStatus.approved}>승인됨</option>
-                <option value={OrderStatus.rejected}>반려됨</option>
+                <option value={OrderStatus.requested}>요청</option>
+                <option value={OrderStatus.approved}>승인</option>
+                <option value={OrderStatus.rejected}>반려</option>
                 <option value={OrderStatus.confirmedByShipper}>
-                  발주자 확인
+                  출고팀 확인
                 </option>
-                <option value={OrderStatus.shipmentCompleted}>발주 완료</option>
-                <option value={OrderStatus.rejectedByShipper}>
-                  발주자 반려
-                </option>
+                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+                <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
               </select>
             </div>
 
             {activeTab === "user" && (
               <div className="flex items-center px-1 sm:px-4 py-1.5 sm:py-2 bg-blue-50 border border-blue-100 rounded-md">
-                <User size={14} className="mr-1 sm:mr-2 text-blue-500" />
-                <span className="text-xs sm:text-sm font-medium text-blue-700">
+                <User size={14} className="mr-1 text-blue-500 sm:mr-2" />
+                <span className="text-xs font-medium text-blue-700 sm:text-sm">
                   {authStore.getState().user?.name || "사용자"}의 발주
                 </span>
               </div>
@@ -765,8 +832,8 @@ const OrderRecordTabs = () => {
               <div className="flex items-center gap-1 sm:gap-2 min-w-[100px] sm:min-w-[200px]">
                 <Filter size={14} className="text-gray-500" />
                 {isLoadingSuppliers ? (
-                  <div className="text-xs sm:text-sm text-gray-500 flex items-center">
-                    <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mr-1 sm:mr-2"></div>
+                  <div className="flex items-center text-xs text-gray-500 sm:text-sm">
+                    <div className="mr-1 w-3 h-3 rounded-full border-2 animate-spin sm:w-4 sm:h-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent sm:mr-2"></div>
                     로딩중...
                   </div>
                 ) : (
@@ -790,8 +857,8 @@ const OrderRecordTabs = () => {
 
         {/* 데이터 테이블 */}
         {isLoading() ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+          <div className="flex flex-col justify-center items-center py-12">
+            <div className="mb-4 w-12 h-12 rounded-full border-4 border-gray-200 animate-spin border-t-blue-500"></div>
             <p className="text-gray-500">데이터를 불러오는 중...</p>
           </div>
         ) : isMobile ? (
@@ -806,7 +873,7 @@ const OrderRecordTabs = () => {
         ) : (
           <>
             <div className="overflow-x-auto -mx-1 sm:mx-0">
-              <table className="mx-1 my-2 bg-white rounded-2xl overflow-hidden shadow-sm w-full">
+              <table className="overflow-hidden mx-1 my-2 w-full bg-white rounded-2xl shadow-sm">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
@@ -839,7 +906,7 @@ const OrderRecordTabs = () => {
                           onClick={() => handleRowClick(record.id)}
                         >
                           {/* 데스크톱 UI */}
-                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700">
+                          <td className="hidden px-1 py-2 text-xs text-gray-700 whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
                             <Calendar
                               size={14}
                               className="inline-block mr-1 text-gray-500"
@@ -870,7 +937,7 @@ const OrderRecordTabs = () => {
                                 (record.orderItems.length > 2 ? " 외" : "")
                               : "품목 없음"}
                           </td>
-                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700">
+                          <td className="hidden px-1 py-2 text-xs text-gray-700 whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
                             <div
                               className="max-w-[60px] sm:max-w-[80px] truncate"
                               title={record.receiver}
@@ -880,8 +947,8 @@ const OrderRecordTabs = () => {
                                 : record.receiver}
                             </div>
                           </td>
-                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
-                            <div className="flex items-center justify-between">
+                          <td className="hidden px-1 py-2 text-xs whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
+                            <div className="flex justify-between items-center">
                               <span
                                 className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-xs rounded-full ${getStatusColorClass(
                                   record.status
@@ -889,7 +956,7 @@ const OrderRecordTabs = () => {
                               >
                                 {getStatusText(record.status)}
                               </span>
-                              <div className="ml-1 sm:ml-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors">
+                              <div className="flex justify-center items-center ml-1 w-5 h-5 bg-gray-100 rounded-full transition-colors sm:ml-2 sm:w-6 sm:h-6 hover:bg-gray-200">
                                 {expandedRowId === record.id ? (
                                   <ChevronUp
                                     size={14}
@@ -906,10 +973,10 @@ const OrderRecordTabs = () => {
                           </td>
 
                           {/* 모바일 UI */}
-                          <td className="sm:hidden px-3 py-3">
+                          <td className="px-3 py-3 sm:hidden">
                             <div className="flex flex-col gap-2">
                               {/* 첫 번째 줄: 날짜, 품목, 수령자 */}
-                              <div className="flex items-center gap-2">
+                              <div className="flex gap-2 items-center">
                                 <div className="flex items-center text-gray-500">
                                   <Calendar size={14} className="mr-1" />
                                   <span className="text-xs">
@@ -949,11 +1016,11 @@ const OrderRecordTabs = () => {
                                 </div>
                               </div>
                               {/* 두 번째 줄: 발주자, 현재상태 */}
-                              <div className="flex items-center justify-between">
+                              <div className="flex justify-between items-center">
                                 <div className="text-xs text-gray-600">
                                   {record.requester}
                                 </div>
-                                <div className="flex items-center gap-1">
+                                <div className="flex gap-1 items-center">
                                   <span
                                     className={`px-2 py-0.5 text-xs rounded-full ${getStatusColorClass(
                                       record.status
@@ -961,7 +1028,7 @@ const OrderRecordTabs = () => {
                                   >
                                     {getStatusText(record.status)}
                                   </span>
-                                  <div className="w-5 h-5 rounded-full flex items-center justify-center bg-gray-100">
+                                  <div className="flex justify-center items-center w-5 h-5 bg-gray-100 rounded-full">
                                     {expandedRowId === record.id ? (
                                       <ChevronUp
                                         size={14}
@@ -983,12 +1050,12 @@ const OrderRecordTabs = () => {
                           <tr className="bg-gray-50 transition-all duration-200 ease-in-out">
                             <td colSpan={6} className="p-2 sm:p-4">
                               {/* 상태 변경 섹션 */}
-                              <div className="mb-4 sm:mb-6 bg-white p-3 sm:p-6 rounded-xl shadow-sm border border-gray-100">
-                                <div className="flex items-center justify-between">
+                              <div className="p-3 mb-4 bg-white rounded-xl border border-gray-100 shadow-sm sm:mb-6 sm:p-6">
+                                <div className="flex justify-between items-center">
                                   <div className="flex items-center">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
-                                      className="h-5 w-5 sm:h-6 sm:w-6 mr-2 sm:mr-3 text-gray-500"
+                                      className="mr-2 w-5 h-5 text-gray-500 sm:h-6 sm:w-6 sm:mr-3"
                                       viewBox="0 0 20 20"
                                       fill="currentColor"
                                     >
@@ -998,7 +1065,7 @@ const OrderRecordTabs = () => {
                                         clipRule="evenodd"
                                       />
                                     </svg>
-                                    <h3 className="text-base sm:text-lg font-semibold text-gray-700">
+                                    <h3 className="text-base font-semibold text-gray-700 sm:text-lg">
                                       발주 상태
                                     </h3>
                                   </div>
@@ -1006,13 +1073,13 @@ const OrderRecordTabs = () => {
                                 </div>
                               </div>
 
-                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fadeIn">
+                              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 sm:gap-6 animate-fadeIn">
                                 {/* 왼쪽: 발주 상세 정보 */}
-                                <div className="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-gray-100">
-                                  <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center text-sm sm:text-base">
+                                <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
+                                  <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b sm:text-base">
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
-                                      className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-500"
+                                      className="mr-2 w-4 h-4 text-gray-500 sm:h-5 sm:w-5"
                                       viewBox="0 0 20 20"
                                       fill="currentColor"
                                     >
@@ -1026,56 +1093,56 @@ const OrderRecordTabs = () => {
                                   </h3>
                                   <div className="space-y-2 sm:space-y-3">
                                     <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
+                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                         생성일:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
+                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
                                         {formatDate(record.createdAt)}
                                       </span>
                                     </div>
                                     <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
+                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                         구매일:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
+                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
                                         {record.purchaseDate
                                           ? formatDate(record.purchaseDate)
                                           : "-"}
                                       </span>
                                     </div>
                                     <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
+                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                         출고예정일:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
+                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
                                         {record.outboundDate
                                           ? formatDate(record.outboundDate)
                                           : "-"}
                                       </span>
                                     </div>
                                     <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
+                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                         설치요청일:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
+                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
                                         {record.installationDate
                                           ? formatDate(record.installationDate)
                                           : "-"}
                                       </span>
                                     </div>
                                     <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
+                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                         발주자:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
+                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
                                         {record.requester}
                                       </span>
                                     </div>
                                     <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="font-medium text-gray-600 text-xs sm:text-sm">
+                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                         담당자:
                                       </span>
-                                      <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
+                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
                                         {record.manager || "-"}
                                       </span>
                                     </div>
@@ -1085,11 +1152,11 @@ const OrderRecordTabs = () => {
                                 {/* 오른쪽: 배송 정보와 주문품목목록 */}
                                 <div className="space-y-4 sm:space-y-6">
                                   {/* 배송 정보 */}
-                                  <div className="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-gray-100">
-                                    <h3 className="font-bold mb-3 text-gray-700 border-b pb-2 flex items-center text-sm sm:text-base">
+                                  <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
+                                    <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b sm:text-base">
                                       <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-500"
+                                        className="mr-2 w-4 h-4 text-gray-500 sm:h-5 sm:w-5"
                                         viewBox="0 0 20 20"
                                         fill="currentColor"
                                       >
@@ -1100,26 +1167,26 @@ const OrderRecordTabs = () => {
                                     </h3>
                                     <div className="space-y-2 sm:space-y-3">
                                       <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="font-medium text-gray-600 text-xs sm:text-sm">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                           수령자:
                                         </span>
-                                        <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
+                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
                                           {record.receiver}
                                         </span>
                                       </div>
                                       <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="font-medium text-gray-600 text-xs sm:text-sm">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                           연락처:
                                         </span>
-                                        <span className="text-gray-800 bg-gray-50 px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm">
+                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
                                           {record.receiverPhone}
                                         </span>
                                       </div>
                                       <div className="flex flex-col border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="font-medium text-gray-600 mb-1 text-xs sm:text-sm">
+                                        <span className="mb-1 text-xs font-medium text-gray-600 sm:text-sm">
                                           주소:
                                         </span>
-                                        <span className="text-gray-800 bg-gray-50 p-2 sm:p-3 rounded-md text-xs sm:text-sm break-words">
+                                        <span className="p-2 text-xs text-gray-800 break-words bg-gray-50 rounded-md sm:p-3 sm:text-sm">
                                           {record.receiverAddress}
                                         </span>
                                       </div>
@@ -1129,11 +1196,11 @@ const OrderRecordTabs = () => {
                                   {/* 주문 품목 목록 */}
                                   {record.orderItems &&
                                     record.orderItems.length > 0 && (
-                                      <div className="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-gray-100">
-                                        <h4 className="font-medium text-gray-700 mb-3 flex items-center text-xs sm:text-sm">
+                                      <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
+                                        <h4 className="flex items-center mb-3 text-xs font-medium text-gray-700 sm:text-sm">
                                           <svg
                                             xmlns="http://www.w3.org/2000/svg"
-                                            className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-gray-500"
+                                            className="mr-2 w-3 h-3 text-gray-500 sm:h-4 sm:w-4"
                                             viewBox="0 0 20 20"
                                             fill="currentColor"
                                           >
@@ -1142,36 +1209,36 @@ const OrderRecordTabs = () => {
                                           주문 품목 목록
                                         </h4>
 
-                                        <div className="bg-gray-50 rounded-lg p-2 sm:p-3 mb-3">
+                                        <div className="p-2 mb-3 bg-gray-50 rounded-lg sm:p-3">
                                           <div className="flex justify-between items-center mb-2">
-                                            <span className="font-medium text-gray-600 text-xs sm:text-sm">
+                                            <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                               패키지:
                                             </span>
-                                            <span className="text-gray-800 text-xs sm:text-sm">
+                                            <span className="text-xs text-gray-800 sm:text-sm">
                                               {record.package?.packageName ||
                                                 "-"}
                                             </span>
                                           </div>
                                         </div>
 
-                                        <div className="bg-gray-50 rounded-lg overflow-hidden">
+                                        <div className="overflow-hidden bg-gray-50 rounded-lg">
                                           <div className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-100 text-xs sm:text-sm font-medium text-gray-600 flex justify-between">
                                             <span>품목</span>
                                             <span>수량</span>
                                           </div>
-                                          <ul className="divide-y divide-gray-200 max-h-48 overflow-y-auto">
+                                          <ul className="overflow-y-auto max-h-48 divide-y divide-gray-200">
                                             {record.orderItems.map((item) => (
                                               <li
                                                 key={item.id}
                                                 className="py-1.5 sm:py-2 px-2 sm:px-3 hover:bg-gray-100 transition-colors"
                                               >
                                                 <div className="flex justify-between items-center">
-                                                  <span className="font-medium text-gray-700 text-xs sm:text-sm">
+                                                  <span className="text-xs font-medium text-gray-700 sm:text-sm">
                                                     {item.item?.teamItem
                                                       ?.itemName ||
                                                       "알 수 없는 품목"}
                                                   </span>
-                                                  <span className="text-gray-600 bg-white px-2 py-1 rounded-md text-xs sm:text-sm">
+                                                  <span className="px-2 py-1 text-xs text-gray-600 bg-white rounded-md sm:text-sm">
                                                     {item.quantity}개
                                                   </span>
                                                 </div>
@@ -1186,10 +1253,10 @@ const OrderRecordTabs = () => {
                                           {record.memo && (
                                             <div className="py-1.5 sm:py-2 px-2 sm:px-3 bg-gray-100">
                                               <p className="flex justify-between items-center">
-                                                <span className="font-medium text-gray-600 text-xs sm:text-sm">
+                                                <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                                   추가 요청사항:
                                                 </span>
-                                                <span className="text-gray-800 text-xs sm:text-sm italic">
+                                                <span className="text-xs italic text-gray-800 sm:text-sm">
                                                   {record.memo}
                                                 </span>
                                               </p>
@@ -1201,11 +1268,11 @@ const OrderRecordTabs = () => {
 
                                   {/* 첨부 파일 */}
                                   {record.files && record.files.length > 0 && (
-                                    <div className="bg-white p-3 sm:p-5 rounded-xl shadow-sm border border-gray-100">
-                                      <h4 className="font-medium text-gray-700 mb-3 flex items-center text-xs sm:text-sm">
+                                    <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
+                                      <h4 className="flex items-center mb-3 text-xs font-medium text-gray-700 sm:text-sm">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
-                                          className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-gray-500"
+                                          className="mr-2 w-3 h-3 text-gray-500 sm:h-4 sm:w-4"
                                           viewBox="0 0 20 20"
                                           fill="currentColor"
                                         >
@@ -1227,11 +1294,11 @@ const OrderRecordTabs = () => {
                                               href={file.fileUrl}
                                               target="_blank"
                                               rel="noopener noreferrer"
-                                              className="text-blue-500 hover:text-blue-700 hover:underline flex items-center text-xs sm:text-sm"
+                                              className="flex items-center text-xs text-blue-500 hover:text-blue-700 hover:underline sm:text-sm"
                                             >
                                               <svg
                                                 xmlns="http://www.w3.org/2000/svg"
-                                                className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2"
+                                                className="mr-1 w-3 h-3 sm:h-4 sm:w-4 sm:mr-2"
                                                 fill="none"
                                                 viewBox="0 0 24 24"
                                                 stroke="currentColor"
@@ -1265,12 +1332,12 @@ const OrderRecordTabs = () => {
                     <tr>
                       <td
                         colSpan={6}
-                        className="text-center py-8 text-gray-500"
+                        className="py-8 text-center text-gray-500"
                       >
                         <div className="flex flex-col items-center">
-                          <Package size={40} className="text-gray-300 mb-2" />
+                          <Package size={40} className="mb-2 text-gray-300" />
                           <p>표시할 데이터가 없습니다.</p>
-                          <p className="text-sm text-gray-400 mt-1">
+                          <p className="mt-1 text-sm text-gray-400">
                             다른 검색어나 필터를 시도해보세요.
                           </p>
                         </div>
@@ -1282,7 +1349,7 @@ const OrderRecordTabs = () => {
             </div>
 
             {/* 페이지네이션 */}
-            <div className="flex justify-between items-center mt-6 bg-white p-4 rounded-xl shadow-sm">
+            <div className="flex justify-between items-center p-4 mt-6 bg-white rounded-xl shadow-sm">
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
@@ -1326,6 +1393,7 @@ const OrderRecordTabs = () => {
 const getStatusColorClass = (status: string): string => {
   switch (status) {
     case OrderStatus.requested:
+    case "주문 접수":
       return "bg-yellow-50 text-yellow-600";
     case OrderStatus.approved:
       return "bg-green-50 text-green-600";
@@ -1339,6 +1407,108 @@ const getStatusColorClass = (status: string): string => {
       return "bg-orange-50 text-orange-600";
     default:
       return "bg-gray-50 text-gray-600";
+  }
+};
+
+// 상태에 따른 아이콘 반환 함수 추가
+const getStatusIcon = (status: string): JSX.Element => {
+  switch (status) {
+    case OrderStatus.requested:
+    case "주문 접수":
+      return (
+        <svg
+          className="inline-block w-4 h-4 mr-1"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+            clipRule="evenodd"
+          />
+        </svg>
+      );
+    case OrderStatus.approved:
+      return (
+        <svg
+          className="inline-block w-4 h-4 mr-1"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+            clipRule="evenodd"
+          />
+        </svg>
+      );
+    case OrderStatus.rejected:
+      return (
+        <svg
+          className="inline-block w-4 h-4 mr-1"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      );
+    case OrderStatus.confirmedByShipper:
+      return (
+        <svg
+          className="inline-block w-4 h-4 mr-1"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+          <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-5h2v5a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-9a1 1 0 00-.293-.707l-2-2A1 1 0 0017 3h-1c0-.552-.447-1-1-1H5a1 1 0 00-1 1H3z" />
+        </svg>
+      );
+    case OrderStatus.shipmentCompleted:
+      return (
+        <svg
+          className="inline-block w-4 h-4 mr-1"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+      );
+    case OrderStatus.rejectedByShipper:
+      return (
+        <svg
+          className="inline-block w-4 h-4 mr-1"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clipRule="evenodd"
+          />
+        </svg>
+      );
+    default:
+      return (
+        <svg
+          className="inline-block w-4 h-4 mr-1"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 112 0 1 1 0 01-2 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            clipRule="evenodd"
+          />
+        </svg>
+      );
   }
 };
 

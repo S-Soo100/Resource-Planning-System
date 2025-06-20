@@ -69,6 +69,13 @@ const MainMenu = () => {
       onClick: () => checkAccess(`/item`, ["admin", "user", "moderator"]),
       accessLevel: ["user", "admin", "moderator"],
     },
+    {
+      title: "업체 관리",
+      subtitle: "협력업체 정보를 등록하고 관리합니다",
+      icon: <PiNewspaperClippingFill className="text-3xl" />,
+      onClick: () => checkAccess(`/supplier`, ["admin", "user", "moderator"]),
+      accessLevel: ["user", "admin", "moderator"],
+    },
   ];
 
   // 발주 메뉴
@@ -137,13 +144,6 @@ const MainMenu = () => {
 
   // 관리자 메뉴
   const adminMenuItems = [
-    {
-      title: "업체 관리",
-      subtitle: "협력업체 정보를 등록하고 관리합니다",
-      icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/supplier`, ["admin", "user", "moderator"]),
-      accessLevel: ["user", "admin", "moderator"],
-    },
     {
       title: "패키지 관리",
       subtitle: "발주용 패키지를 구성하고 관리합니다",

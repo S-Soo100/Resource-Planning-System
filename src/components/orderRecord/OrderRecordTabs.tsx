@@ -128,7 +128,8 @@ const OrderRecordTabs = () => {
 
   const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
-  const { refetchAll: refetchWarehouseItems } = useWarehouseItems();
+  const { refetchAll: refetchWarehouseItems, items: warehouseItems } =
+    useWarehouseItems();
   const { user: currentUser } = useCurrentUser();
   // const router = useRouter();
   const queryClient = useQueryClient();
@@ -464,6 +465,71 @@ const OrderRecordTabs = () => {
       return; // 취소한 경우 함수 종료
     }
 
+    // 출고 관련 상태로 변경하는 경우 재고 확인
+    if (
+      newStatus === OrderStatus.confirmedByShipper ||
+      newStatus === OrderStatus.shipmentCompleted ||
+      newStatus === OrderStatus.rejectedByShipper
+    ) {
+      // 현재 주문 정보 찾기
+      const currentOrder = currentRecords.find(
+        (record) => record.id === orderId
+      );
+      if (!currentOrder) {
+        alert("주문 정보를 찾을 수 없습니다.");
+        return;
+      }
+
+      // 재고 확인
+      const currentWarehouseItems = warehouseItems.filter(
+        (item) => item.warehouseId === currentOrder.warehouseId
+      );
+
+      const insufficientItems: string[] = [];
+
+      // 주문 품목별 재고 확인
+      if (currentOrder.orderItems && currentOrder.orderItems.length > 0) {
+        currentOrder.orderItems.forEach((orderItem) => {
+          const stockItem = currentWarehouseItems.find(
+            (stock) =>
+              stock.teamItem?.itemCode === orderItem.item?.teamItem?.itemCode
+          );
+
+          if (!stockItem) {
+            insufficientItems.push(
+              `${
+                orderItem.item?.teamItem?.itemName || "알 수 없는 품목"
+              } (재고 없음)`
+            );
+          } else if (stockItem.itemQuantity < orderItem.quantity) {
+            insufficientItems.push(
+              `${
+                orderItem.item?.teamItem?.itemName || "알 수 없는 품목"
+              } (요청: ${orderItem.quantity}개, 재고: ${
+                stockItem.itemQuantity
+              }개)`
+            );
+          }
+        });
+      }
+
+      // 재고 부족한 품목이 있는 경우
+      if (insufficientItems.length > 0) {
+        const message = `재고가 부족하여 출고 처리를 할 수 없습니다.\n\n부족한 품목:\n${insufficientItems.join(
+          "\n"
+        )}`;
+        alert(message);
+        return;
+      }
+
+      // 재고 확인 완료 메시지
+      if (newStatus === OrderStatus.shipmentCompleted) {
+        if (!window.confirm("재고가 충분합니다. 출고 완료 처리하시겠습니까?")) {
+          return;
+        }
+      }
+    }
+
     try {
       setIsUpdatingStatus(orderId);
 
@@ -561,7 +627,7 @@ const OrderRecordTabs = () => {
     // 권한이 없는 경우 상태만 표시
     if (!hasPermissionToChangeStatus()) {
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
           <div
             className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
               record.status
@@ -577,7 +643,7 @@ const OrderRecordTabs = () => {
     // 출고 완료 상태인 경우 상태만 표시하고 변경 불가
     if (record.status === OrderStatus.shipmentCompleted) {
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
           <div
             className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
               record.status
@@ -602,7 +668,7 @@ const OrderRecordTabs = () => {
 
       if (!allowedStatusesForAdmin.includes(record.status as OrderStatus)) {
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2 items-center">
             <div
               className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
                 record.status
@@ -618,9 +684,9 @@ const OrderRecordTabs = () => {
 
     // 권한이 있는 경우 드롭다운과 현재 상태 표시
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex gap-3 items-center">
         {/* 현재 상태 표시 */}
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
           <div
             className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
               record.status
@@ -1417,7 +1483,7 @@ const getStatusIcon = (status: string): JSX.Element => {
     case "주문 접수":
       return (
         <svg
-          className="inline-block w-4 h-4 mr-1"
+          className="inline-block mr-1 w-4 h-4"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -1431,7 +1497,7 @@ const getStatusIcon = (status: string): JSX.Element => {
     case OrderStatus.approved:
       return (
         <svg
-          className="inline-block w-4 h-4 mr-1"
+          className="inline-block mr-1 w-4 h-4"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -1445,7 +1511,7 @@ const getStatusIcon = (status: string): JSX.Element => {
     case OrderStatus.rejected:
       return (
         <svg
-          className="inline-block w-4 h-4 mr-1"
+          className="inline-block mr-1 w-4 h-4"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -1459,7 +1525,7 @@ const getStatusIcon = (status: string): JSX.Element => {
     case OrderStatus.confirmedByShipper:
       return (
         <svg
-          className="inline-block w-4 h-4 mr-1"
+          className="inline-block mr-1 w-4 h-4"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -1470,7 +1536,7 @@ const getStatusIcon = (status: string): JSX.Element => {
     case OrderStatus.shipmentCompleted:
       return (
         <svg
-          className="inline-block w-4 h-4 mr-1"
+          className="inline-block mr-1 w-4 h-4"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -1484,7 +1550,7 @@ const getStatusIcon = (status: string): JSX.Element => {
     case OrderStatus.rejectedByShipper:
       return (
         <svg
-          className="inline-block w-4 h-4 mr-1"
+          className="inline-block mr-1 w-4 h-4"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -1498,13 +1564,13 @@ const getStatusIcon = (status: string): JSX.Element => {
     default:
       return (
         <svg
-          className="inline-block w-4 h-4 mr-1"
+          className="inline-block mr-1 w-4 h-4"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
           <path
             fillRule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 112 0 1 1 0 01-2 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 100 2 1 1 0 000-2zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
             clipRule="evenodd"
           />
         </svg>

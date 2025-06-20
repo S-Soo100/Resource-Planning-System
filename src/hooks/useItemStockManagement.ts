@@ -139,7 +139,19 @@ export function useItemStockManagement(warehouseId?: string) {
       },
       onSuccess: (data, variables) => {
         if (data.success) {
-          // 캐시 무효화
+          const currentTeamId = authStore.getState().selectedTeam?.id;
+
+          // useWarehouseItems에서 사용하는 쿼리 키와 일치하도록 수정
+          queryClient.invalidateQueries({
+            queryKey: ["allWarehouses", currentTeamId],
+          });
+
+          // 팀 정보도 함께 무효화
+          queryClient.invalidateQueries({
+            queryKey: ["team", currentTeamId],
+          });
+
+          // 기존 쿼리 키들도 함께 무효화 (다른 컴포넌트에서 사용할 수 있음)
           queryClient.invalidateQueries({
             queryKey: ["items"],
           });
@@ -147,11 +159,6 @@ export function useItemStockManagement(warehouseId?: string) {
           // 특정 아이템 쿼리 무효화
           queryClient.invalidateQueries({
             queryKey: ["item", variables.id],
-          });
-
-          // 특정 창고의 아이템 쿼리 무효화
-          queryClient.invalidateQueries({
-            queryKey: ["items", "warehouse", variables.itemWarehouseId],
           });
 
           toast.success("아이템 수량이 업데이트되었습니다.");

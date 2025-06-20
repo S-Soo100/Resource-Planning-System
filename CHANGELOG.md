@@ -5,6 +5,20 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## [1.4.1] - 2025-06-20
+
+### 변경됨 (Changed)
+
+- 업체관리 기능을 재고관리 탭으로 이동
+  - 기존 관리자 탭에서 재고관리 탭으로 메뉴 위치 변경
+  - user, moderator 권한 사용자도 업체관리 기능 접근 가능하도록 권한 확장
+  - 접근 권한을 ["user", "admin", "moderator"]로 설정
+
+### 개선됨 (Improved)
+
+- 사용자 경험 향상: 일반 사용자와 1차승인권자도 업체관리 기능 이용 가능
+- 메뉴 구조 개선: 업체관리 기능을 논리적으로 재고관리 탭에 배치
+
 ## [1.4.0] - 2025-06-20
 
 ### 추가됨 (Added)

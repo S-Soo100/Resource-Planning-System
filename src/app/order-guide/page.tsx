@@ -230,6 +230,10 @@ export default function OrderGuidePage() {
                     <span className="font-medium">완료:</span> 발주 요청이
                     접수되었습니다.
                   </div>
+                  <div className="p-2 mt-2 text-xs text-blue-700 bg-blue-50 rounded border border-blue-200">
+                    📧 <strong>알림:</strong> 요청자, 승인권자, 관리자에게
+                    이메일 알림이 자동 발송됩니다.
+                  </div>
                 </div>
               </div>
             </div>
@@ -356,6 +360,10 @@ export default function OrderGuidePage() {
                     <span className="font-medium">완료:</span> 발주 요청이
                     접수되었습니다.
                   </div>
+                  <div className="p-2 mt-2 text-xs text-blue-700 bg-blue-50 rounded border border-blue-200">
+                    📧 <strong>알림:</strong> 요청자, 승인권자, 관리자에게
+                    이메일 알림이 자동 발송됩니다.
+                  </div>
                 </div>
               </div>
             </div>
@@ -386,6 +394,73 @@ export default function OrderGuidePage() {
             </div>
           </div>
 
+          {/* 이메일 알림 안내 - 눈에 띄게 강조 */}
+          <div className="p-6 bg-blue-50 rounded-lg border-2 border-blue-300 shadow-lg">
+            <div className="flex gap-3 items-start">
+              <div className="flex-shrink-0">
+                <div className="flex justify-center items-center w-10 h-10 bg-blue-600 rounded-full">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div className="flex-1">
+                <h4 className="mb-3 text-lg font-bold text-blue-900">
+                  📧 이메일 알림 서비스
+                </h4>
+                <p className="mb-3 font-medium text-blue-800">
+                  발주 요청부터 완료까지 모든 과정에서 자동으로 이메일 알림이
+                  발송됩니다!
+                </p>
+                <div className="space-y-2 text-sm text-blue-700">
+                  <div className="flex gap-2 items-center">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    <span>
+                      <strong>발주 요청 시:</strong> 요청자, 승인권자,
+                      관리자에게 알림
+                    </span>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    <span>
+                      <strong>승인/반려 시:</strong> 요청자와 관련자들에게 상태
+                      변경 알림
+                    </span>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    <span>
+                      <strong>출고 완료 시:</strong> 배송 시작 및 추적 정보 알림
+                    </span>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    <span>
+                      <strong>배송 완료 시:</strong> 최종 완료 및 설치 일정 안내
+                    </span>
+                  </div>
+                </div>
+                {/* <div className="p-3 mt-4 bg-blue-100 rounded-lg">
+                  <p className="text-xs text-blue-800">
+                    💡 <strong>팁:</strong> 이메일 수신 설정은 계정 설정에서
+                    변경할 수 있습니다. 중요한 발주는 반드시 이메일을
+                    확인해주세요!
+                  </p>
+                </div> */}
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
             <Card className="p-4">
               <div className="flex gap-2 items-center mb-3">
@@ -405,6 +480,9 @@ export default function OrderGuidePage() {
                 <div>
                   • <strong>배송 완료:</strong> 5-7일
                 </div>
+              </div>
+              <div className="p-2 mt-3 text-xs text-blue-700 bg-blue-50 rounded border border-blue-200">
+                📧 <strong>각 단계마다 이메일 알림 발송!</strong>
               </div>
             </Card>
 

@@ -5,7 +5,13 @@ import { authStore } from "@/store/authStore";
 import { menuTabStore } from "@/store/menuTabStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import toast from "react-hot-toast";
-import { FaBox, FaClipboardList, FaTruck, FaUser } from "react-icons/fa";
+import {
+  FaBox,
+  FaClipboardList,
+  FaTruck,
+  FaUser,
+  FaQuestionCircle,
+} from "react-icons/fa";
 import {
   PiNewspaperClippingFill,
   PiShoppingCartFill,
@@ -271,10 +277,19 @@ const MainMenu = () => {
   return (
     <div className="container p-6 mx-auto max-w-6xl">
       <div className="mb-8">
-        <h1 className="flex items-center text-3xl font-bold text-gray-900">
-          <FaUser className="mr-3 text-blue-600" />
-          {user.name}님, 환영합니다!
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="flex items-center text-3xl font-bold text-gray-900">
+            <FaUser className="mr-3 text-blue-600" />
+            {user.name}님, 환영합니다!
+          </h1>
+          <button
+            onClick={() => router.push("/how-to-use")}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+          >
+            <FaQuestionCircle className="text-lg" />
+            사용법 안내
+          </button>
+        </div>
         <p className="mt-2 text-lg text-gray-600">
           팀: <span className="font-semibold">{selectedTeam.teamName}</span>
         </p>

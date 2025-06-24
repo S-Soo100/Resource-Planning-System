@@ -155,24 +155,24 @@ const MainMenu = () => {
   // 관리자 메뉴
   const adminMenuItems = [
     {
-      title: "패키지 관리",
+      title: "패키지 등록 및 관리",
       subtitle: "발주용 패키지를 구성하고 관리합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () => checkAccess(`/package`, ["admin", "user", "moderator"]),
       accessLevel: ["user", "admin", "moderator"],
     },
     {
-      title: "관리 - 창고별 품목 관리",
-      subtitle: "각 창고에 보관된 품목을 관리합니다",
-      icon: <FaBox className="text-3xl" />,
-      onClick: () => checkAccess(`/warehouse-items`, ["admin", "moderator"]),
-      accessLevel: ["admin", "moderator"],
-    },
-    {
-      title: "관리 - 카테고리 및 품목 관리",
+      title: "전체 물품, 카테고리 등록",
       subtitle: "팀에서 사용하는 모든 카테고리와 품목을 관리합니다",
       icon: <FaBox className="text-3xl" />,
       onClick: () => checkAccess(`/team-items`, ["admin", "moderator"]),
+      accessLevel: ["admin", "moderator"],
+    },
+    {
+      title: "창고별 관리물품 등록",
+      subtitle: "각 창고에 보관된 품목을 관리합니다",
+      icon: <FaBox className="text-3xl" />,
+      onClick: () => checkAccess(`/warehouse-items`, ["admin", "moderator"]),
       accessLevel: ["admin", "moderator"],
     },
     {

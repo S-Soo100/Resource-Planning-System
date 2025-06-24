@@ -81,6 +81,14 @@ const MainMenu = () => {
   // 발주 메뉴
   const orderMenuItems = [
     {
+      title: "발주 시작하기",
+      subtitle: "발주가 처음이신가요?",
+      icon: <FaTruck className="text-3xl" />,
+      onClick: () =>
+        checkAccess(`/order-guide`, ["admin", "user", "supplier", "moderator"]),
+      accessLevel: ["supplier", "user", "admin", "moderator"],
+    },
+    {
       title: "패키지 발주",
       subtitle: "패키지 단위로 발주를 요청합니다",
       icon: <FaTruck className="text-3xl" />,

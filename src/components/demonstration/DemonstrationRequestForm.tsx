@@ -45,7 +45,7 @@ const DemonstrationRequestForm: React.FC<OrderRequestFormProps> = ({
 
   const [formData, setFormData] = useState<OrderRequestFormData>({
     manager: "",
-    requester: auth?.name || "",
+    requester: user?.name || auth?.name || "",
     receiver: "",
     receiverPhone: "",
     address: "",
@@ -56,6 +56,16 @@ const DemonstrationRequestForm: React.FC<OrderRequestFormProps> = ({
     supplierId: null,
     warehouseId: null,
   });
+
+  // 사용자 정보가 로드되면 자동으로 요청자 정보 설정
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        requester: user.name,
+      }));
+    }
+  }, [user]);
 
   // 훅 호출
   const { useGetPackages } = usePackages();
@@ -242,7 +252,7 @@ const DemonstrationRequestForm: React.FC<OrderRequestFormProps> = ({
   // 폼 검증
   const validateForm = (): boolean => {
     if (!formData.requester.trim()) {
-      toast.error("요청자를 입력해주세요.");
+      toast.error("요청자 정보가 없습니다.");
       return false;
     }
     if (!formData.receiver.trim()) {
@@ -290,7 +300,7 @@ const DemonstrationRequestForm: React.FC<OrderRequestFormProps> = ({
       // 폼 초기화
       setFormData({
         manager: "",
-        requester: auth?.name || "",
+        requester: user?.name || auth?.name || "",
         receiver: "",
         receiverPhone: "",
         address: "",
@@ -322,20 +332,6 @@ const DemonstrationRequestForm: React.FC<OrderRequestFormProps> = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* 기본 정보 섹션 */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                요청자
-              </label>
-              <input
-                type="text"
-                name="requester"
-                value={formData.requester}
-                onChange={handleChange}
-                className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700">
                 수령자

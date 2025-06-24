@@ -208,7 +208,8 @@ const HowToUsePage = () => {
           KARS 시스템 사용법 안내
         </h1>
         <p className="text-lg text-gray-600">
-          KARS(Korea Auto Repair Shop)는 자동차 정비소를 위한 통합 재고 관리
+          KARS(Kangsters Auto Resource-management System)는 다양한 품목/창고를
+          가진 기업을 대상으로 하는 자동화 재고관리를 위한 통합 재고 관리
           시스템입니다.
         </p>
       </div>

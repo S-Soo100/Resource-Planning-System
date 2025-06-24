@@ -11,8 +11,6 @@ import {
   FaClipboardList,
   FaCog,
   FaQuestionCircle,
-  FaTimes,
-  FaExclamationTriangle,
 } from "react-icons/fa";
 import {
   PiNewspaperClippingFill,
@@ -208,8 +206,8 @@ const HowToUsePage = () => {
           KARS 시스템 사용법 안내
         </h1>
         <p className="text-lg text-gray-600">
-          KARS(Kangsters Auto Resource-management System)는 다양한 품목/창고를
-          가진 기업을 대상으로 하는 자동화 재고관리를 위한 통합 재고 관리
+          KARS(Kangsters Auto Resource-management System)는 다양한 품목을
+          효율적으로 분류하고 자동으로 재고 관리 하기 위한 통합 재고 관리
           시스템입니다.
         </p>
       </div>
@@ -271,8 +269,8 @@ const HowToUsePage = () => {
             <div className="mb-2 text-3xl">🔄</div>
             <h3 className="mb-2 font-semibold text-gray-800">자동화된 발주</h3>
             <p className="text-sm text-gray-600">
-              패키지 단위 발주와 개별 발주를 통해 효율적인 물품 공급을
-              지원합니다.
+              발주 물품은 자동으로 재고에 반영되며, 이메일로 상세히
+              안내해줍니다.
             </p>
           </div>
         </div>
@@ -293,10 +291,10 @@ const HowToUsePage = () => {
             {/* 팀 레벨 */}
             <div className="p-4 w-full max-w-2xl text-center bg-blue-100 rounded-lg">
               <div className="text-lg font-semibold text-blue-800">
-                🏢 팀 (정비소)
+                🏢 팀 (기업)
               </div>
               <div className="text-sm text-blue-600">
-                예: 서울정비소, 부산정비소
+                예: 캥스터즈, 에어패스 등
               </div>
             </div>
 
@@ -309,19 +307,23 @@ const HowToUsePage = () => {
                 <div className="text-lg font-semibold text-green-800">
                   📦 창고 A
                 </div>
-                <div className="text-sm text-green-600">예: 부품창고</div>
+                <div className="text-sm text-green-600">
+                  예: 안산 연구소 창고
+                </div>
               </div>
               <div className="p-4 text-center bg-green-100 rounded-lg">
                 <div className="text-lg font-semibold text-green-800">
                   📦 창고 B
                 </div>
-                <div className="text-sm text-green-600">예: 소모품창고</div>
+                <div className="text-sm text-green-600">예: 미국 현지 창고</div>
               </div>
               <div className="p-4 text-center bg-green-100 rounded-lg">
                 <div className="text-lg font-semibold text-green-800">
                   📦 창고 C
                 </div>
-                <div className="text-sm text-green-600">예: 도구창고</div>
+                <div className="text-sm text-green-600">
+                  예: 기업 시연품 창고
+                </div>
               </div>
             </div>
 
@@ -332,22 +334,22 @@ const HowToUsePage = () => {
             <div className="grid grid-cols-1 gap-4 w-full max-w-6xl md:grid-cols-4">
               <div className="p-3 text-center bg-yellow-100 rounded-lg">
                 <div className="text-sm font-semibold text-yellow-800">
-                  🔧 엔진부품
+                  🔧 하드웨어 생산품
                 </div>
               </div>
               <div className="p-3 text-center bg-yellow-100 rounded-lg">
                 <div className="text-sm font-semibold text-yellow-800">
-                  🛞 브레이크부품
+                  🛞 휠체어 등 유통품
                 </div>
               </div>
               <div className="p-3 text-center bg-yellow-100 rounded-lg">
                 <div className="text-sm font-semibold text-yellow-800">
-                  ⚡ 전기부품
+                  ⚡ TV, 컴퓨터 등 전자제품
                 </div>
               </div>
               <div className="p-3 text-center bg-yellow-100 rounded-lg">
                 <div className="text-sm font-semibold text-yellow-800">
-                  🔧 소모품
+                  🔧 시연 전용 물품(별도 관리품)
                 </div>
               </div>
             </div>
@@ -359,25 +361,29 @@ const HowToUsePage = () => {
             <div className="grid grid-cols-1 gap-2 w-full max-w-6xl md:grid-cols-6">
               <div className="p-2 text-center bg-white rounded border border-gray-300">
                 <div className="text-xs font-medium text-gray-700">
-                  엔진오일
+                  트레드밀
+                </div>
+              </div>
+              <div className="p-2 text-center bg-white rounded border border-gray-300">
+                <div className="text-xs font-medium text-gray-700">휠체어</div>
+              </div>
+              <div className="p-2 text-center bg-white rounded border border-gray-300">
+                <div className="text-xs font-medium text-gray-700">센서</div>
+              </div>
+              <div className="p-2 text-center bg-white rounded border border-gray-300">
+                <div className="text-xs font-medium text-gray-700">
+                  키오스크
                 </div>
               </div>
               <div className="p-2 text-center bg-white rounded border border-gray-300">
                 <div className="text-xs font-medium text-gray-700">
-                  브레이크패드
+                  악세사리
                 </div>
               </div>
               <div className="p-2 text-center bg-white rounded border border-gray-300">
-                <div className="text-xs font-medium text-gray-700">배터리</div>
-              </div>
-              <div className="p-2 text-center bg-white rounded border border-gray-300">
-                <div className="text-xs font-medium text-gray-700">필터</div>
-              </div>
-              <div className="p-2 text-center bg-white rounded border border-gray-300">
-                <div className="text-xs font-medium text-gray-700">와이어</div>
-              </div>
-              <div className="p-2 text-center bg-white rounded border border-gray-300">
-                <div className="text-xs font-medium text-gray-700">도구</div>
+                <div className="text-xs font-medium text-gray-700">
+                  소모품류
+                </div>
               </div>
             </div>
           </div>
@@ -386,31 +392,29 @@ const HowToUsePage = () => {
         {/* 카테고리 분류 체계 */}
         <div className="p-6 mb-6 bg-orange-50 rounded-xl border-2 border-orange-200">
           <h3 className="mb-4 text-lg font-semibold text-gray-800">
-            📂 카테고리 분류 체계
+            📂 카테고리 분류 체계 (예시)
           </h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div className="p-4 bg-white rounded-lg border border-orange-200">
               <h4 className="mb-2 font-semibold text-orange-800">
-                🔧 엔진부품
+                🔧 메인 컨트롤러
               </h4>
               <ul className="space-y-1 text-sm text-gray-600">
-                <li>• 엔진오일</li>
-                <li>• 오일필터</li>
-                <li>• 에어필터</li>
-                <li>• 연료필터</li>
-                <li>• 점화플러그</li>
+                <li>• 트레드밀 제품군</li>
+                <li>• 자체 센서 제품군</li>
+                <li>• 기타 메인 컨트롤러 제품군</li>
+                {/* <li>• 연료필터</li>
+                <li>• 점화플러그</li> */}
               </ul>
             </div>
             <div className="p-4 bg-white rounded-lg border border-orange-200">
-              <h4 className="mb-2 font-semibold text-orange-800">
-                🛞 브레이크부품
-              </h4>
+              <h4 className="mb-2 font-semibold text-orange-800">🛞 휠체어</h4>
               <ul className="space-y-1 text-sm text-gray-600">
-                <li>• 브레이크패드</li>
-                <li>• 브레이크디스크</li>
-                <li>• 브레이크액</li>
-                <li>• 브레이크호스</li>
-                <li>• 캘리퍼</li>
+                <li>• 사이즈별 휠체어 제품</li>
+                <li>• 휠체어 악세사리 전반</li>
+                <li>• 기타 관련 제품군</li>
+                {/* <li>• 브레이크호스</li>
+                <li>• 캘리퍼</li> */}
               </ul>
             </div>
             <div className="p-4 bg-white rounded-lg border border-orange-200">
@@ -418,14 +422,14 @@ const HowToUsePage = () => {
                 ⚡ 전기부품
               </h4>
               <ul className="space-y-1 text-sm text-gray-600">
-                <li>• 배터리</li>
-                <li>• 점화코일</li>
-                <li>• 전구</li>
-                <li>• 퓨즈</li>
-                <li>• 릴레이</li>
+                <li>• 모니터</li>
+                <li>• TV</li>
+                <li>• 키오스크</li>
+                {/* <li>• 퓨즈</li>
+                <li>• 릴레이</li> */}
               </ul>
             </div>
-            <div className="p-4 bg-white rounded-lg border border-orange-200">
+            {/* <div className="p-4 bg-white rounded-lg border border-orange-200">
               <h4 className="mb-2 font-semibold text-orange-800">🔧 소모품</h4>
               <ul className="space-y-1 text-sm text-gray-600">
                 <li>• 와이퍼</li>
@@ -454,7 +458,7 @@ const HowToUsePage = () => {
                 <li>• 미러</li>
                 <li>• 안테나</li>
               </ul>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -463,37 +467,68 @@ const HowToUsePage = () => {
           <h3 className="mb-4 text-lg font-semibold text-gray-800">
             🔄 물품 관리 프로세스
           </h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="p-4 text-center bg-white rounded-lg border border-green-200">
+              <div className="mb-2 text-2xl">📂</div>
+              <h4 className="mb-2 font-semibold text-green-800">
+                1. 카테고리 등록
+              </h4>
+              <p className="text-sm text-gray-600">
+                물품 분류를 위한 카테고리를 먼저 등록
+              </p>
+            </div>
             <div className="p-4 text-center bg-white rounded-lg border border-green-200">
               <div className="mb-2 text-2xl">📝</div>
-              <h4 className="mb-2 font-semibold text-green-800">1. 등록</h4>
+              <h4 className="mb-2 font-semibold text-green-800">
+                2. 품목 등록
+              </h4>
               <p className="text-sm text-gray-600">
-                카테고리별로 물품을 등록하고 기본 정보 설정
+                카테고리별로 품목을 등록하고 기본 정보 설정
+              </p>
+            </div>
+            <div className="p-4 text-center bg-white rounded-lg border border-green-200">
+              <div className="mb-2 text-2xl">🏢</div>
+              <h4 className="mb-2 font-semibold text-green-800">
+                3. 창고 선택
+              </h4>
+              <p className="text-sm text-gray-600">
+                품목을 보관할 적절한 창고를 선택 혹은 창고 생성
               </p>
             </div>
             <div className="p-4 text-center bg-white rounded-lg border border-green-200">
               <div className="mb-2 text-2xl">📦</div>
               <h4 className="mb-2 font-semibold text-green-800">
-                2. 창고 배치
+                4. 창고 관리 품목으로 추가
               </h4>
               <p className="text-sm text-gray-600">
-                등록된 물품을 적절한 창고에 배치
+                선택한 창고에 품목을 관리 품목으로 등록
               </p>
             </div>
             <div className="p-4 text-center bg-white rounded-lg border border-green-200">
               <div className="mb-2 text-2xl">📊</div>
               <h4 className="mb-2 font-semibold text-green-800">
-                3. 재고 관리
+                5. 재고 관리
               </h4>
               <p className="text-sm text-gray-600">
                 입출고를 통한 실시간 재고 수량 관리
               </p>
             </div>
             <div className="p-4 text-center bg-white rounded-lg border border-green-200">
-              <div className="mb-2 text-2xl">🛒</div>
-              <h4 className="mb-2 font-semibold text-green-800">4. 발주</h4>
+              <div className="mb-2 text-2xl">📋</div>
+              <h4 className="mb-2 font-semibold text-green-800">
+                6. 패키지 생성 및 구성
+              </h4>
               <p className="text-sm text-gray-600">
-                재고 부족 시 패키지 또는 개별 발주
+                자주 사용되는 품목들을 패키지로 구성하여 발주 효율성 증대
+              </p>
+            </div>
+            <div className="p-4 text-center bg-white rounded-lg border border-green-200">
+              <div className="mb-2 text-2xl">🛒</div>
+              <h4 className="mb-2 font-semibold text-green-800">
+                7. 발주 혹은 시연
+              </h4>
+              <p className="text-sm text-gray-600">
+                발주 혹은 시연을 통해 물품의 출고를 정확히 기록하고 재고에 반영
               </p>
             </div>
           </div>
@@ -511,7 +546,7 @@ const HowToUsePage = () => {
           <h3 className="mb-4 text-lg font-semibold text-gray-800">
             🎯 발주 시스템 콘셉트
           </h3>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="p-4 text-center bg-white rounded-lg shadow-sm">
               <div className="mb-2 text-3xl">📦</div>
               <h4 className="mb-2 font-semibold text-green-800">패키지 발주</h4>
@@ -536,133 +571,14 @@ const HowToUsePage = () => {
                 권한별로 구분된 승인 과정을 통한 체계적인 발주 관리
               </p>
             </div>
-          </div>
-        </div>
-
-        {/* 패키지 개념 시각화 */}
-        <div className="p-6 mb-6 bg-blue-50 rounded-xl border-2 border-blue-200">
-          <h3 className="mb-4 text-lg font-semibold text-gray-800">
-            📦 패키지 개념 이해
-          </h3>
-
-          {/* 패키지 구조 다이어그램 */}
-          <div className="mb-6">
-            <h4 className="mb-3 font-semibold text-blue-800">패키지 구조</h4>
-            <div className="flex flex-col items-center space-y-4">
-              {/* 패키지 레벨 */}
-              <div className="p-4 w-full max-w-4xl text-center bg-blue-100 rounded-lg border-2 border-blue-300">
-                <div className="text-lg font-semibold text-blue-800">
-                  📦 정기 정비 패키지
-                </div>
-                <div className="text-sm text-blue-600">
-                  자주 사용되는 정기 정비용 물품들의 조합
-                </div>
-              </div>
-
-              {/* 화살표 */}
-              <div className="text-xl text-blue-400">↓</div>
-
-              {/* 카테고리 그룹 */}
-              <div className="grid grid-cols-1 gap-4 w-full max-w-6xl md:grid-cols-3">
-                <div className="p-3 text-center bg-yellow-100 rounded-lg border border-yellow-300">
-                  <div className="text-sm font-semibold text-yellow-800">
-                    🔧 엔진부품 그룹
-                  </div>
-                </div>
-                <div className="p-3 text-center bg-yellow-100 rounded-lg border border-yellow-300">
-                  <div className="text-sm font-semibold text-yellow-800">
-                    🛞 브레이크부품 그룹
-                  </div>
-                </div>
-                <div className="p-3 text-center bg-yellow-100 rounded-lg border border-yellow-300">
-                  <div className="text-sm font-semibold text-yellow-800">
-                    🔧 소모품 그룹
-                  </div>
-                </div>
-              </div>
-
-              {/* 화살표 */}
-              <div className="text-xl text-blue-400">↓</div>
-
-              {/* 개별 물품들 */}
-              <div className="grid grid-cols-1 gap-2 w-full max-w-6xl md:grid-cols-6">
-                <div className="p-2 text-center bg-white rounded border border-gray-300">
-                  <div className="text-xs font-medium text-gray-700">
-                    엔진오일
-                  </div>
-                  <div className="text-xs text-gray-500">2개</div>
-                </div>
-                <div className="p-2 text-center bg-white rounded border border-gray-300">
-                  <div className="text-xs font-medium text-gray-700">
-                    오일필터
-                  </div>
-                  <div className="text-xs text-gray-500">2개</div>
-                </div>
-                <div className="p-2 text-center bg-white rounded border border-gray-300">
-                  <div className="text-xs font-medium text-gray-700">
-                    브레이크패드
-                  </div>
-                  <div className="text-xs text-gray-500">1세트</div>
-                </div>
-                <div className="p-2 text-center bg-white rounded border border-gray-300">
-                  <div className="text-xs font-medium text-gray-700">
-                    브레이크액
-                  </div>
-                  <div className="text-xs text-gray-500">1개</div>
-                </div>
-                <div className="p-2 text-center bg-white rounded border border-gray-300">
-                  <div className="text-xs font-medium text-gray-700">
-                    와이퍼
-                  </div>
-                  <div className="text-xs text-gray-500">1세트</div>
-                </div>
-                <div className="p-2 text-center bg-white rounded border border-gray-300">
-                  <div className="text-xs font-medium text-gray-700">
-                    세정액
-                  </div>
-                  <div className="text-xs text-gray-500">1개</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 패키지 예시 */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="p-4 bg-white rounded-lg border border-blue-200">
-              <h4 className="mb-2 font-semibold text-blue-800">
-                🔧 정기 정비 패키지
+            <div className="p-4 text-center bg-white rounded-lg shadow-sm">
+              <div className="mb-2 text-3xl">📧</div>
+              <h4 className="mb-2 font-semibold text-green-800">
+                자동으로 재고 반영 및 이메일 전송
               </h4>
-              <ul className="space-y-1 text-sm text-gray-600">
-                <li>• 엔진오일 (2개)</li>
-                <li>• 오일필터 (2개)</li>
-                <li>• 에어필터 (2개)</li>
-                <li>• 브레이크패드 (1세트)</li>
-                <li>• 브레이크액 (1개)</li>
-              </ul>
-            </div>
-            <div className="p-4 bg-white rounded-lg border border-blue-200">
-              <h4 className="mb-2 font-semibold text-blue-800">
-                🛞 브레이크 정비 패키지
-              </h4>
-              <ul className="space-y-1 text-sm text-gray-600">
-                <li>• 브레이크패드 (2세트)</li>
-                <li>• 브레이크디스크 (2개)</li>
-                <li>• 브레이크액 (2개)</li>
-                <li>• 브레이크호스 (2개)</li>
-                <li>• 캘리퍼 (2개)</li>
-              </ul>
-            </div>
-            <div className="p-4 bg-white rounded-lg border border-blue-200">
-              <h4 className="mb-2 font-semibold text-blue-800">
-                ⚡ 전기 정비 패키지
-              </h4>
-              <ul className="space-y-1 text-sm text-gray-600">
-                <li>• 배터리 (1개)</li>
-                <li>• 점화코일 (4개)</li>
-                <li>• 점화플러그 (4개)</li>
-                <li>• 전구 세트 (1세트)</li>
-                <li>• 퓨즈 세트 (1세트)</li>
-              </ul>
+              <p className="text-sm text-gray-600">
+                발주 완료 시 자동으로 재고에 반영되고 이메일로 상세 안내
+              </p>
             </div>
           </div>
         </div>
@@ -714,27 +630,6 @@ const HowToUsePage = () => {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* 권한 레벨 설명 */}
-      <div className="mb-8">
-        <h2 className="mb-4 text-2xl font-bold text-gray-900">
-          권한 레벨별 기능
-        </h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Object.entries(accessLevelInfo).map(([key, info]) => (
-            <div
-              key={key}
-              className={`p-4 rounded-lg border-2 ${info.bgColor} border-gray-200`}
-            >
-              <div className="flex gap-2 items-center mb-2">
-                {info.icon}
-                <h3 className={`font-semibold ${info.color}`}>{info.title}</h3>
-              </div>
-              <p className="text-sm text-gray-600">{info.description}</p>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -794,37 +689,6 @@ const HowToUsePage = () => {
         ))}
       </div>
 
-      {/* 주요 제한사항 */}
-      <div className="p-6 mt-8 bg-yellow-50 rounded-xl border-2 border-yellow-200">
-        <div className="flex gap-2 items-center mb-4">
-          <FaExclamationTriangle className="text-xl text-yellow-600" />
-          <h2 className="text-xl font-bold text-gray-800">주요 제한사항</h2>
-        </div>
-        <div className="space-y-3">
-          <div className="flex gap-2 items-start">
-            <FaTimes className="flex-shrink-0 mt-1 text-red-500" />
-            <p className="text-gray-700">
-              <strong>1차승인권자(Moderator)</strong>: 재고 수량 직접 수정 불가,
-              팀 멤버 추가 기능 사용 불가
-            </p>
-          </div>
-          <div className="flex gap-2 items-start">
-            <FaTimes className="flex-shrink-0 mt-1 text-red-500" />
-            <p className="text-gray-700">
-              <strong>일반 사용자(User)</strong>: 관리 기능 접근 불가, 발주 상태
-              변경 불가
-            </p>
-          </div>
-          <div className="flex gap-2 items-start">
-            <FaTimes className="flex-shrink-0 mt-1 text-red-500" />
-            <p className="text-gray-700">
-              <strong>외부업체(Supplier)</strong>: 내부 관리 기능 접근 불가,
-              발주 상태 변경 불가
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* 발주 워크플로우 */}
       <div className="p-6 mt-8 bg-blue-50 rounded-xl border-2 border-blue-200">
         <h2 className="mb-4 text-xl font-bold text-gray-800">
@@ -851,25 +715,6 @@ const HowToUsePage = () => {
           권한에 따라 상태 변경이 제한됩니다. 1차승인권자는 초기 승인만,
           관리자는 출고 단계만 담당합니다.
         </p>
-      </div>
-
-      {/* 도움말 */}
-      <div className="p-6 mt-8 bg-gray-50 rounded-xl border-2 border-gray-200">
-        <h2 className="mb-4 text-xl font-bold text-gray-800">
-          도움이 필요하신가요?
-        </h2>
-        <div className="space-y-2 text-gray-600">
-          <p>
-            • 각 메뉴의 물음표 아이콘을 클릭하면 상세한 사용법을 확인할 수
-            있습니다.
-          </p>
-          <p>• 권한 관련 문제가 있다면 관리자에게 문의하세요.</p>
-          <p>• 시스템 오류나 버그 발견 시 즉시 관리자에게 보고해주세요.</p>
-          <p>
-            • <strong>시연 관련 기능</strong>은 현재 개발 중이며, 추후
-            업데이트를 통해 제공될 예정입니다.
-          </p>
-        </div>
       </div>
     </div>
   );

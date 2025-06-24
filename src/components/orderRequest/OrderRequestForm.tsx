@@ -46,6 +46,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const selectedFiles = useRef<HTMLInputElement>(null);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
   const [isRequesterManuallySet, setIsRequesterManuallySet] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const auth = authStore((state) => state.user);
   const { user } = useCurrentUser();
 
@@ -207,9 +208,28 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   // 파일 선택 핸들러
   const handleFileSelection = () => {
     if (selectedFiles.current && selectedFiles.current.files) {
-      const fileList = Array.from(selectedFiles.current.files);
-      setFiles(fileList);
+      const newFiles = Array.from(selectedFiles.current.files);
+      setFiles((prevFiles) => [...prevFiles, ...newFiles]);
     }
+  };
+
+  // 드래그 앤 드롭 핸들러들
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
   };
 
   // 초기 날짜 설정
@@ -699,6 +719,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
   };
 
+  // 파일 제거 핸들러
+  const handleRemoveFile = (index: number) => {
+    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="container p-4 mx-auto">
       <h1 className="mb-4 text-2xl font-bold text-center">{title}</h1>
@@ -1040,12 +1065,31 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         <div className="mb-2 text-xs text-amber-600">
           * 파일 크기는 최대 50MB까지 업로드 가능합니다.
         </div>
+        <div className="mb-2 text-xs text-red-600">
+          * 발주서, 견적서 등 필요증빙 필수 첨부
+        </div>
         <div
           onClick={() => selectedFiles.current?.click()}
-          className="flex flex-row gap-2 items-center p-2 rounded border hover:bg-blue-100"
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`flex flex-col gap-2 items-center justify-center p-6 rounded-lg border-2 border-dashed transition-colors cursor-pointer ${
+            isDragOver
+              ? "border-blue-500 bg-blue-50"
+              : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+          }`}
         >
-          <Paperclip className="w-4 h-4" />
-          파일 업로드
+          <Paperclip className="w-8 h-8 text-gray-400" />
+          <div className="text-center">
+            <p className="text-sm font-medium text-gray-700">
+              {isDragOver
+                ? "파일을 여기에 놓으세요"
+                : "클릭하여 파일 선택 또는 파일을 여기로 드래그"}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              PDF, 이미지, 문서 파일 등
+            </p>
+          </div>
         </div>
         <input
           ref={selectedFiles}
@@ -1061,10 +1105,23 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               <div className="text-sm text-gray-400">
                 업로드 항목이 없습니다.
               </div>
-            ) : null}
-            {files.map((file, index) => (
-              <li key={index}>{file.name}</li>
-            ))}
+            ) : (
+              files.map((file, index) => (
+                <li
+                  key={index}
+                  className="flex justify-between items-center py-1"
+                >
+                  <span className="text-sm">{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFile(index)}
+                    className="p-1 text-red-600 hover:text-red-800"
+                  >
+                    <X size={14} />
+                  </button>
+                </li>
+              ))
+            )}
           </ul>
         </div>
 

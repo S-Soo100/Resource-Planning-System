@@ -638,10 +638,11 @@ export default function OrderGuidePage() {
               {currentStep === steps.length - 1 ? (
                 <Button
                   onClick={handleStartOrder}
-                  className="flex gap-2 items-center bg-green-600 hover:bg-green-700"
+                  className="flex gap-2 items-center px-8 py-4 text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg border-0 shadow-lg transition-all duration-200 transform hover:from-blue-700 hover:to-purple-700 hover:shadow-xl hover:scale-105"
                 >
+                  <ShoppingCart className="w-6 h-6" />
                   발주 시작하기
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-6 h-6" />
                 </Button>
               ) : (
                 <Button

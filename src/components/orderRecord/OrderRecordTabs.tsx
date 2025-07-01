@@ -30,6 +30,7 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import dynamic from "next/dynamic";
 import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import OrderEditModal from "./OrderEditModal";
 
 // 사용자 접근 레벨 타입 추가
 type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
@@ -73,9 +74,12 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
       ? {
           id: order.package.id,
           packageName: order.package.packageName || "개별 품목",
-          itemlist: Array.isArray(order.package.itemlist)
-            ? order.package.itemlist
-            : [],
+          itemlist:
+            typeof order.package.itemlist === "string"
+              ? order.package.itemlist.split(", ").filter(Boolean)
+              : Array.isArray(order.package.itemlist)
+              ? order.package.itemlist
+              : [],
         }
       : undefined,
     orderItems: order.orderItems || [],
@@ -125,12 +129,16 @@ const OrderRecordTabs = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<number | null>(null);
   const [userAccessLevel, setUserAccessLevel] =
     useState<UserAccessLevel>("user");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedOrderForEdit, setSelectedOrderForEdit] =
+    useState<IOrderRecord | null>(null);
 
   const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
   const { refetchAll: refetchWarehouseItems, items: warehouseItems } =
     useWarehouseItems();
   const { user: currentUser } = useCurrentUser();
+  const auth = authStore((state) => state.user);
   // const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -622,6 +630,32 @@ const OrderRecordTabs = () => {
     return userAccessLevel === "admin" || userAccessLevel === "moderator";
   };
 
+  // 수정 권한 확인 함수 추가
+  const hasPermissionToEdit = (record: IOrderRecord) => {
+    if (!auth) return false;
+
+    // admin이거나 작성자인 경우만 수정 가능
+    const isAdmin = auth.isAdmin;
+    const isAuthor = record.userId === auth.id;
+
+    // 상태가 '요청'인 경우만 수정 가능
+    const isRequestedStatus = record.status === OrderStatus.requested;
+
+    return (isAdmin || isAuthor) && isRequestedStatus;
+  };
+
+  // 수정 모달 열기 핸들러
+  const handleEditClick = (record: IOrderRecord) => {
+    setSelectedOrderForEdit(record);
+    setIsEditModalOpen(true);
+  };
+
+  // 수정 모달 닫기 핸들러
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setSelectedOrderForEdit(null);
+  };
+
   // 상태 변경 드롭다운 컴포넌트
   const StatusDropdown = ({ record }: { record: IOrderRecord }) => {
     // 권한이 없는 경우 상태만 표시
@@ -935,6 +969,8 @@ const OrderRecordTabs = () => {
             formatDate={formatDate}
             getStatusText={getStatusText}
             getStatusColorClass={getStatusColorClass}
+            hasPermissionToEdit={hasPermissionToEdit}
+            onEditClick={handleEditClick}
           />
         ) : (
           <>
@@ -1138,6 +1174,33 @@ const OrderRecordTabs = () => {
                                   <StatusDropdown record={record} />
                                 </div>
                               </div>
+
+                              {/* 수정 버튼 섹션 */}
+                              {hasPermissionToEdit(record) && (
+                                <div className="p-3 mb-4 bg-white rounded-xl border border-gray-100 shadow-sm sm:mb-6 sm:p-6">
+                                  <div className="flex justify-between items-center">
+                                    <div className="flex items-center">
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="mr-2 w-5 h-5 text-blue-500 sm:h-6 sm:w-6 sm:mr-3"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                      >
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                      </svg>
+                                      <h3 className="text-base font-semibold text-gray-700 sm:text-lg">
+                                        주문 수정
+                                      </h3>
+                                    </div>
+                                    <button
+                                      onClick={() => handleEditClick(record)}
+                                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm font-medium"
+                                    >
+                                      수정하기
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
 
                               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 sm:gap-6 animate-fadeIn">
                                 {/* 왼쪽: 발주 상세 정보 */}
@@ -1451,6 +1514,13 @@ const OrderRecordTabs = () => {
           </>
         )}
       </div>
+
+      {/* 주문 수정 모달 */}
+      <OrderEditModal
+        isOpen={isEditModalOpen}
+        onClose={handleEditModalClose}
+        orderRecord={selectedOrderForEdit}
+      />
     </div>
   );
 };
@@ -1503,7 +1573,7 @@ const getStatusIcon = (status: string): JSX.Element => {
         >
           <path
             fillRule="evenodd"
-            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 1.414l2 2a1 1 0 010 1.414l-4 4z"
             clipRule="evenodd"
           />
         </svg>

@@ -184,3 +184,28 @@ export const uploadMultipleOrderFileById = async (
     };
   }
 };
+
+// 파일 삭제 API
+export const deleteOrderFile = async (
+  orderId: number,
+  fileId: number
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.delete<ApiResponse>(
+      `/order/${orderId}/files/${fileId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("파일 삭제 실패:", error);
+    if (error instanceof AxiosError && error.response) {
+      return {
+        success: false,
+        error: error.response.data.message || "파일 삭제에 실패했습니다.",
+      };
+    }
+    return {
+      success: false,
+      error: "파일 삭제에 실패했습니다.",
+    };
+  }
+};

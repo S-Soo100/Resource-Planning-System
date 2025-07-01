@@ -9,6 +9,8 @@ interface Props {
   formatDate: (date: string) => string;
   getStatusText: (status: string) => string;
   getStatusColorClass: (status: string) => string;
+  hasPermissionToEdit: (record: IOrderRecord) => boolean;
+  onEditClick: (record: IOrderRecord) => void;
 }
 
 const OrderRecordTabsMobile: React.FC<Props> = ({
@@ -18,6 +20,8 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
   formatDate,
   getStatusText,
   getStatusColorClass,
+  hasPermissionToEdit,
+  onEditClick,
 }) => {
   return (
     <div className="flex flex-col divide-y">
@@ -263,6 +267,23 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {/* 수정 버튼 */}
+              {hasPermissionToEdit(record) && (
+                <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                  <div className="flex justify-center">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditClick(record);
+                      }}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm font-medium"
+                    >
+                      수정
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

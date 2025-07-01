@@ -543,411 +543,6 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     }
   };
 
-  // 파일명 안전화 함수
-  const sanitizeFileName = (fileName: string): string => {
-    // 한글 파일명을 안전한 영문 파일명으로 변환
-    const timestamp = new Date().getTime();
-    const extension = fileName.split(".").pop() || "";
-    const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf("."));
-
-    // 한글 파일명을 영문으로 변환 (간단한 매핑)
-    const koreanToEnglish: { [key: string]: string } = {
-      가: "ga",
-      나: "na",
-      다: "da",
-      라: "ra",
-      마: "ma",
-      바: "ba",
-      사: "sa",
-      아: "a",
-      자: "ja",
-      차: "cha",
-      카: "ka",
-      타: "ta",
-      파: "pa",
-      하: "ha",
-      거: "geo",
-      너: "neo",
-      더: "deo",
-      러: "reo",
-      머: "meo",
-      버: "beo",
-      서: "seo",
-      어: "eo",
-      저: "jeo",
-      처: "cheo",
-      커: "keo",
-      터: "teo",
-      퍼: "peo",
-      허: "heo",
-      고: "go",
-      노: "no",
-      도: "do",
-      로: "ro",
-      모: "mo",
-      보: "bo",
-      소: "so",
-      오: "o",
-      조: "jo",
-      초: "cho",
-      코: "ko",
-      토: "to",
-      포: "po",
-      호: "ho",
-      구: "gu",
-      누: "nu",
-      두: "du",
-      루: "ru",
-      무: "mu",
-      부: "bu",
-      수: "su",
-      우: "u",
-      주: "ju",
-      추: "chu",
-      쿠: "ku",
-      투: "tu",
-      푸: "pu",
-      후: "hu",
-      기: "gi",
-      니: "ni",
-      디: "di",
-      리: "ri",
-      미: "mi",
-      비: "bi",
-      시: "si",
-      이: "i",
-      지: "ji",
-      치: "chi",
-      키: "ki",
-      티: "ti",
-      피: "pi",
-      히: "hi",
-      개: "gae",
-      내: "nae",
-      대: "dae",
-      래: "rae",
-      매: "mae",
-      배: "bae",
-      새: "sae",
-      애: "ae",
-      재: "jae",
-      채: "chae",
-      캐: "kae",
-      태: "tae",
-      패: "pae",
-      해: "hae",
-      게: "ge",
-      네: "ne",
-      데: "de",
-      레: "re",
-      메: "me",
-      베: "be",
-      세: "se",
-      에: "e",
-      제: "je",
-      체: "che",
-      케: "ke",
-      테: "te",
-      페: "pe",
-      헤: "he",
-      교: "gyo",
-      뇨: "nyo",
-      됴: "dyo",
-      료: "ryo",
-      묘: "myo",
-      뵤: "byo",
-      쇼: "syo",
-      요: "yo",
-      죠: "jyo",
-      쵸: "chyo",
-      쿄: "kyo",
-      툐: "tyo",
-      푸: "pyo",
-      효: "hyo",
-      구: "gu",
-      누: "nu",
-      두: "du",
-      루: "ru",
-      무: "mu",
-      부: "bu",
-      수: "su",
-      우: "u",
-      주: "ju",
-      추: "chu",
-      쿠: "ku",
-      투: "tu",
-      푸: "pu",
-      후: "hu",
-      글: "geul",
-      늘: "neul",
-      들: "deul",
-      를: "reul",
-      물: "mul",
-      불: "bul",
-      슬: "seul",
-      을: "eul",
-      즐: "jeul",
-      츨: "cheul",
-      클: "keul",
-      틀: "teul",
-      플: "peul",
-      흘: "heul",
-      금: "geum",
-      늠: "neum",
-      듬: "deum",
-      름: "reum",
-      믐: "meum",
-      븜: "beum",
-      슴: "seum",
-      음: "eum",
-      즘: "jeum",
-      츰: "cheum",
-      큼: "keum",
-      틈: "teum",
-      품: "peum",
-      흠: "heum",
-      급: "geup",
-      늡: "neup",
-      듭: "deup",
-      릅: "reup",
-      믑: "meup",
-      븝: "beup",
-      습: "seup",
-      읍: "eup",
-      즙: "jeup",
-      츱: "cheup",
-      큽: "keup",
-      튭: "teup",
-      픕: "peup",
-      흡: "heup",
-      긔: "geui",
-      늬: "neui",
-      듸: "deui",
-      릐: "reui",
-      미: "mi",
-      비: "bi",
-      시: "si",
-      의: "ui",
-      지: "ji",
-      치: "chi",
-      키: "ki",
-      티: "ti",
-      피: "pi",
-      히: "hi",
-      긴: "gin",
-      닌: "nin",
-      딘: "din",
-      린: "rin",
-      민: "min",
-      빈: "bin",
-      신: "sin",
-      인: "in",
-      진: "jin",
-      친: "chin",
-      킨: "kin",
-      틴: "tin",
-      핀: "pin",
-      힌: "hin",
-      길: "gil",
-      닐: "nil",
-      딜: "dil",
-      릴: "ril",
-      밀: "mil",
-      빌: "bil",
-      실: "sil",
-      일: "il",
-      질: "jil",
-      칠: "chil",
-      킬: "kil",
-      틸: "til",
-      필: "pil",
-      힐: "hil",
-      김: "gim",
-      님: "nim",
-      딤: "dim",
-      림: "rim",
-      밈: "mim",
-      빔: "bim",
-      심: "sim",
-      임: "im",
-      짐: "jim",
-      침: "chim",
-      킴: "kim",
-      팀: "tim",
-      핌: "pim",
-      힘: "him",
-      깁: "gip",
-      닙: "nip",
-      딥: "dip",
-      립: "rip",
-      밉: "mip",
-      빕: "bip",
-      십: "sip",
-      입: "ip",
-      집: "jip",
-      칩: "chip",
-      킵: "kip",
-      팁: "tip",
-      핍: "pip",
-      힙: "hip",
-      깃: "git",
-      닛: "nit",
-      딧: "dit",
-      릿: "rit",
-      밋: "mit",
-      빗: "bit",
-      싯: "sit",
-      잇: "it",
-      짓: "jit",
-      칫: "chit",
-      킷: "kit",
-      팃: "tit",
-      핏: "pit",
-      힛: "hit",
-      발: "bal",
-      찰: "chal",
-      갈: "gal",
-      날: "nal",
-      달: "dal",
-      랄: "ral",
-      말: "mal",
-      발: "bal",
-      살: "sal",
-      알: "al",
-      잘: "jal",
-      찰: "chal",
-      칼: "kal",
-      탈: "tal",
-      팔: "pal",
-      할: "hal",
-      밤: "bam",
-      참: "cham",
-      감: "gam",
-      남: "nam",
-      담: "dam",
-      람: "ram",
-      맘: "mam",
-      밤: "bam",
-      삼: "sam",
-      암: "am",
-      잠: "jam",
-      참: "cham",
-      캄: "kam",
-      탐: "tam",
-      팜: "pam",
-      함: "ham",
-      밥: "bap",
-      찹: "chap",
-      갑: "gap",
-      납: "nap",
-      답: "dap",
-      랍: "rap",
-      맙: "map",
-      밥: "bap",
-      삽: "sap",
-      압: "ap",
-      잡: "jap",
-      찹: "chap",
-      캅: "kap",
-      탑: "tap",
-      팝: "pap",
-      합: "hap",
-      받: "bat",
-      찯: "chat",
-      갇: "gat",
-      낟: "nat",
-      닫: "dat",
-      랃: "rat",
-      맏: "mat",
-      받: "bat",
-      삿: "sat",
-      앗: "at",
-      잗: "jat",
-      찯: "chat",
-      캇: "kat",
-      탇: "tat",
-      팟: "pat",
-      핫: "hat",
-      발: "bal",
-      찰: "chal",
-      갈: "gal",
-      날: "nal",
-      달: "dal",
-      랄: "ral",
-      말: "mal",
-      발: "bal",
-      살: "sal",
-      알: "al",
-      잘: "jal",
-      찰: "chal",
-      칼: "kal",
-      탈: "tal",
-      팔: "pal",
-      할: "hal",
-      밤: "bam",
-      참: "cham",
-      감: "gam",
-      남: "nam",
-      담: "dam",
-      람: "ram",
-      맘: "mam",
-      밤: "bam",
-      삼: "sam",
-      암: "am",
-      잠: "jam",
-      참: "cham",
-      캄: "kam",
-      탐: "tam",
-      팜: "pam",
-      함: "ham",
-      밥: "bap",
-      찹: "chap",
-      갑: "gap",
-      납: "nap",
-      답: "dap",
-      랍: "rap",
-      맙: "map",
-      밥: "bap",
-      삽: "sap",
-      압: "ap",
-      잡: "jap",
-      찹: "chap",
-      캅: "kap",
-      탑: "tap",
-      팝: "pap",
-      합: "hap",
-      받: "bat",
-      찯: "chat",
-      갇: "gat",
-      낟: "nat",
-      닫: "dat",
-      랃: "rat",
-      맏: "mat",
-      받: "bat",
-      삿: "sat",
-      앗: "at",
-      잗: "jat",
-      찯: "chat",
-      캇: "kat",
-      탇: "tat",
-      팟: "pat",
-      핫: "hat",
-    };
-
-    let convertedName = nameWithoutExt;
-    for (const [korean, english] of Object.entries(koreanToEnglish)) {
-      convertedName = convertedName.replace(new RegExp(korean, "g"), english);
-    }
-
-    // 특수문자 제거 및 공백을 언더스코어로 변경
-    const sanitized = convertedName
-      .replace(/[^a-zA-Z0-9가-힣\s]/g, "") // 한글, 영문, 숫자, 공백만 허용
-      .replace(/\s+/g, "_") // 공백을 언더스코어로 변경
-      .substring(0, 50); // 최대 50자로 제한
-
-    return `${sanitized}_${timestamp}.${extension}`;
-  };
-
   // 파일 다운로드
   const handleDownloadFile = (file: OrderFile) => {
     const link = document.createElement("a");
@@ -1089,17 +684,10 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
             if (files.length > 0) {
               setIsFileUploading(true);
 
-              // 파일명을 안전하게 처리 (한글 인코딩 문제 해결)
-              const sanitizedFiles = files.map((file) => {
-                const timestamp = new Date().getTime();
-                const extension = file.name.split(".").pop() || "";
-                const sanitizedFileName = `file_${timestamp}.${extension}`;
-                return new File([file], sanitizedFileName, { type: file.type });
-              });
-
+              // 원본 파일명 그대로 사용
               const uploadResponse = await uploadMultipleOrderFileById(
                 orderRecord!.id,
-                sanitizedFiles
+                files
               );
               setIsFileUploading(false);
 
@@ -1185,7 +773,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               <select
                 name="warehouseId"
                 value={formData.warehouseId || 0}
-                className="px-3 py-2 w-full rounded-md border bg-gray-100"
+                className="px-3 py-2 w-full bg-gray-100 rounded-md border"
                 disabled={true} // 읽기 전용으로 변경
               >
                 <option value="0">창고 선택</option>
@@ -1687,15 +1275,15 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
             {/* 기존 파일 목록 */}
             {existingFiles.length > 0 && (
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block mb-2 text-sm font-medium">
                   기존 첨부 파일
                 </label>
-                <div className="p-3 rounded-md border bg-gray-50">
+                <div className="p-3 bg-gray-50 rounded-md border">
                   <ul className="space-y-2">
                     {existingFiles.map((file) => (
                       <li
                         key={file.id}
-                        className="flex items-center justify-between p-2 bg-white rounded border"
+                        className="flex justify-between items-center p-2 bg-white rounded border"
                       >
                         <div className="flex items-center space-x-2">
                           <svg
@@ -1720,7 +1308,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                           <button
                             type="button"
                             onClick={() => handleDownloadFile(file)}
-                            className="p-1 text-blue-600 hover:text-blue-800 rounded"
+                            className="p-1 text-blue-600 rounded hover:text-blue-800"
                             title="다운로드"
                           >
                             <svg
@@ -1741,7 +1329,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                           <button
                             type="button"
                             onClick={() => handleDeleteExistingFile(file.id)}
-                            className="p-1 text-red-600 hover:text-red-800 rounded"
+                            className="p-1 text-red-600 rounded hover:text-red-800"
                             title="삭제"
                           >
                             <X size={14} />
@@ -1757,10 +1345,10 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
             {/* 삭제 예정 파일 목록 */}
             {filesToDelete.length > 0 && (
               <div>
-                <label className="block text-sm font-medium mb-2 text-red-600">
+                <label className="block mb-2 text-sm font-medium text-red-600">
                   삭제 예정 파일
                 </label>
-                <div className="p-3 rounded-md border bg-red-50">
+                <div className="p-3 bg-red-50 rounded-md border">
                   <ul className="space-y-2">
                     {filesToDelete.map((fileId) => {
                       const originalFile = orderRecord?.files?.find(
@@ -1771,7 +1359,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                       return (
                         <li
                           key={fileId}
-                          className="flex items-center justify-between p-2 bg-white rounded border border-red-200"
+                          className="flex justify-between items-center p-2 bg-white rounded border border-red-200"
                         >
                           <div className="flex items-center space-x-2">
                             <svg
@@ -1795,7 +1383,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                           <button
                             type="button"
                             onClick={() => handleCancelDeleteFile(fileId)}
-                            className="p-1 text-green-600 hover:text-green-800 rounded"
+                            className="p-1 text-green-600 rounded hover:text-green-800"
                             title="삭제 취소"
                           >
                             <svg

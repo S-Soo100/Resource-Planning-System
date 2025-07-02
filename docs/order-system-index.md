@@ -21,9 +21,14 @@ src/components/
 ├── orderRecord/
 │   ├── OrderRecordTabs.tsx       # 발주 기록 탭 (데스크톱)
 │   ├── OrderRecordTabsMobile.tsx # 발주 기록 탭 (모바일)
-│   └── OrderEditModal.tsx        # 발주 수정 모달
-└── demonstration/
-    └── DemonstrationRequestForm.tsx # 시연 요청 폼
+│   ├── OrderEditModal.tsx        # 발주 수정 모달
+│   └── OrderCommentModal.tsx     # 발주 댓글 모달 (예정)
+├── demonstration/
+│   └── DemonstrationRequestForm.tsx # 시연 요청 폼
+└── comment/
+    ├── CommentList.tsx           # 댓글 목록 (예정)
+    ├── CommentForm.tsx           # 댓글 작성 폼 (예정)
+    └── CommentItem.tsx           # 댓글 아이템 (예정)
 ```
 
 ### 타입 정의
@@ -32,7 +37,8 @@ src/components/
 src/types/(order)/
 ├── order.ts                    # 발주 기본 타입
 ├── orderRecord.ts              # 발주 기록 타입
-└── orderRequestFormData.ts     # 발주 요청 폼 데이터 타입
+├── orderRequestFormData.ts     # 발주 요청 폼 데이터 타입
+└── orderComment.ts             # 발주 댓글 타입
 ```
 
 ### 훅 및 서비스
@@ -49,7 +55,8 @@ src/services/
 └── orderService.ts             # 발주 서비스 로직
 
 src/api/
-└── order-api.ts                # 발주 관련 API 호출
+├── order-api.ts                # 발주 관련 API 호출
+└── comment-api.ts              # 댓글 관련 API 호출 (예정)
 ```
 
 ## 🔧 핵심 타입 정의
@@ -64,6 +71,20 @@ enum OrderStatus {
   confirmedByShipper = "confirmedByShipper", // 출고자 확인 (관리자)
   shipmentCompleted = "shipmentCompleted", // 출고 완료 (관리자)
   rejectedByShipper = "rejectedByShipper", // 출고자 반려 (관리자)
+}
+```
+
+### OrderComment 인터페이스
+
+```typescript
+interface OrderComment {
+  id: number;
+  orderId: number;
+  userId: number;
+  userName: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
 }
 ```
 
@@ -92,9 +113,10 @@ interface Order {
   user: OrderUser;
   supplier: OrderSupplier;
   package: OrderPackage;
-  warehouse: OrderWarehouse;
+  warehouse: OrderWarehouse; // 출고 창고 정보
   orderItems: OrderItem[];
   files: OrderFile[];
+  comments?: OrderComment[]; // 발주 댓글 목록
 }
 ```
 
@@ -132,12 +154,14 @@ type OrderRequestFormData = {
 - **탭**: 전체/내 발주/거래처별 발주
 - **기능**: 필터링, 페이지네이션, 상태 변경, 수정 모달
 - **권한**: 사용자별 접근 제한 및 기능 제어
+- **창고 정보**: 출고팀이 확인할 수 있도록 출고 창고명 표시
 
 ### OrderRecordTabsMobile.tsx
 
 - **역할**: 발주 기록 조회 (모바일)
 - **레이아웃**: 카드 형태, 확장/축소 가능
 - **최적화**: 모바일 화면에 맞는 간소화된 정보 표시
+- **창고 정보**: 모바일에서도 출고 창고명 표시
 
 ### OrderEditModal.tsx
 
@@ -182,10 +206,26 @@ type OrderRequestFormData = {
 - 패키지 수량 변경 시 모든 패키지 아이템 수량 동기화
 - 패키지 내 개별 품목 수정 불가 (비즈니스 규칙)
 
-### 창고 변경 제한
+### 창고 관리
 
-- 기존 발주 건의 창고 변경 금지 (비즈니스 규칙)
-- 창고 변경 시 재고 확인 및 권한 검증
+- **창고 정보 표시**: 발주 기록에서 출고 창고명을 명확히 표시
+- **창고 변경 제한**: 기존 발주 건의 창고 변경 금지 (비즈니스 규칙)
+- **창고 권한**: 창고별 접근 권한 확인 및 검증
+- **출고 프로세스**: 출고팀이 올바른 창고에서 물품을 출고할 수 있도록 지원
+
+### 댓글 기능 권한별 제한
+
+- **Admin**: 모든 댓글 조회/작성/수정/삭제 가능
+- **Moderator**: 모든 댓글 조회/작성 가능, 자신의 댓글만 수정/삭제 가능
+- **User**: 관련 발주의 댓글 조회/작성 가능, 자신의 댓글만 수정/삭제 가능
+- **Supplier**: 자신이 관련된 발주의 댓글 조회/작성 가능, 자신의 댓글만 수정/삭제 가능
+
+### 댓글 관리 로직
+
+- **댓글 작성**: 로그인한 사용자만 댓글 작성 가능
+- **댓글 수정/삭제**: 작성자 본인 또는 Admin만 가능
+- **댓글 조회**: 해당 발주에 접근 권한이 있는 사용자만 조회 가능
+- **실시간 업데이트**: 댓글 작성/수정/삭제 시 관련 사용자들에게 실시간 반영
 
 ## 📊 상태 관리
 
@@ -207,6 +247,22 @@ const { mutate: updateOrder } = useUpdateOrder();
 // 발주 상태 변경
 const { useUpdateOrderStatus } = useOrder();
 const { mutate: updateOrderStatus } = useUpdateOrderStatus();
+
+// 댓글 조회 (예정)
+const { useGetOrderComments } = useOrderComments();
+const { data: comments, isLoading } = useGetOrderComments(orderId);
+
+// 댓글 작성 (예정)
+const { useCreateComment } = useOrderComments();
+const { mutate: createComment } = useCreateComment();
+
+// 댓글 수정 (예정)
+const { useUpdateComment } = useOrderComments();
+const { mutate: updateComment } = useUpdateComment();
+
+// 댓글 삭제 (예정)
+const { useDeleteComment } = useOrderComments();
+const { mutate: deleteComment } = useDeleteComment();
 ```
 
 ### 캐시 관리
@@ -214,6 +270,12 @@ const { mutate: updateOrderStatus } = useUpdateOrderStatus();
 - 쿼리 키: `["orders", "team", teamId]`
 - 발주 생성/수정/삭제 시 관련 쿼리 무효화
 - 팀별 데이터 격리
+
+### 댓글 캐시 관리
+
+- 쿼리 키: `["comments", "order", orderId]`
+- 댓글 생성/수정/삭제 시 관련 댓글 쿼리 무효화
+- 발주별 댓글 데이터 격리
 
 ## 🔐 보안 및 권한
 

@@ -8,6 +8,10 @@ import {
   OrderFile as OrderFileResponse,
 } from "../types/(order)/order";
 import { AxiosError } from "axios";
+import {
+  CreateOrderCommentDto,
+  UpdateOrderCommentDto,
+} from "@/types/(order)/orderComment";
 
 // 주문 생성
 export const createOrder = async (
@@ -207,5 +211,64 @@ export const deleteOrderFile = async (
       success: false,
       error: "파일 삭제에 실패했습니다.",
     };
+  }
+};
+
+// # 댓글 생성, orderId에 있는 댓글 생성
+export const createOrderComment = async (
+  orderId: number,
+  data: CreateOrderCommentDto
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.post<ApiResponse>(
+      `/order/${orderId}/comments`,
+      data
+    );
+    return response.data;
+  } catch {
+    return { success: false, message: "댓글 생성에 실패했습니다." };
+  }
+};
+
+// # 댓글 조회, orderId에 있는 댓글 모두 조회
+export const getOrderComments = async (
+  orderId: number
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.get<ApiResponse>(`/order/${orderId}/comments`);
+    return response.data;
+  } catch {
+    return { success: false, message: "댓글 조회에 실패했습니다." };
+  }
+};
+
+// # 댓글 수정, 내가 작성한 댓글 1개만 단일 수정 가능
+export const updateOrderComment = async (
+  commentId: number,
+  data: UpdateOrderCommentDto
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.patch<ApiResponse>(
+      `/order/comments/${commentId}`,
+      data
+    );
+    return response.data;
+  } catch {
+    return { success: false, message: "댓글 수정에 실패했습니다." };
+  }
+};
+
+// # 댓글 삭제, 내가 작성한 댓글 1개만 단일 삭제 가능
+export const deleteOrderComment = async (
+  orderId: number,
+  commentId: number
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.delete<ApiResponse>(
+      `/order/comments/${commentId}`
+    );
+    return response.data;
+  } catch {
+    return { success: false, message: "댓글 삭제에 실패했습니다." };
   }
 };

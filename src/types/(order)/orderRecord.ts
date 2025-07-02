@@ -1,4 +1,5 @@
 import { OrderItem, OrderFile } from "../(order)/order";
+import { OrderComment } from "./orderComment";
 
 export interface IOrderRecord {
   id: number;
@@ -34,6 +35,11 @@ export interface IOrderRecord {
     packageName: string;
     itemlist: string[];
   };
+  warehouse?: {
+    id: number;
+    warehouseName: string;
+  };
   orderItems?: OrderItem[];
   files?: OrderFile[];
+  comments?: OrderComment[];
 }

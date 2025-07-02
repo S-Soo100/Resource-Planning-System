@@ -854,8 +854,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 name="item"
                 onChange={handleItemSelect}
                 className={`px-3 py-2 w-full rounded-md border ${
-                  isPackageSelected ? "bg-gray-100" : ""
-                }`}
+                  isPackageSelected ? "bg-gray-100" : ""}`}
                 disabled={!formData.warehouseId || isPackageSelected}
               >
                 <option value="0">품목 선택</option>

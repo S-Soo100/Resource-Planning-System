@@ -26,71 +26,77 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
   return (
     <div className="flex flex-col divide-y">
       {records.map((record) => (
-        <div
-          key={record.id}
-          className="py-3 px-2 cursor-pointer hover:bg-gray-50"
-          onClick={() => onRowClick(record.id)}
-        >
-          {/* 1번째 줄 */}
-          <div className="flex items-center gap-2">
-            <span className="flex items-center text-gray-500 text-xs">
-              <Calendar size={14} className="mr-1" />
-              {formatDate(record.createdAt)}
-            </span>
-            <span className="flex-1 text-xs text-gray-700 truncate">
-              {record.package?.packageName &&
-              record.package.packageName !== "개별 품목"
-                ? record.package.packageName
-                : record.orderItems && record.orderItems.length > 0
-                ? record.orderItems
-                    .slice(0, 1)
-                    .map(
-                      (item) =>
-                        `${item.item?.teamItem?.itemName || "알 수 없는 품목"}${
-                          item.quantity
-                        }개`
-                    )
-                    .join(", ") + (record.orderItems.length > 1 ? " 외" : "")
-                : "품목 없음"}
-            </span>
-            <span
-              className="text-xs text-gray-700 truncate max-w-[60px]"
-              title={record.receiver}
-            >
-              {record.receiver.length > 6
-                ? `${record.receiver.slice(0, 6)}...`
-                : record.receiver}
-            </span>
-          </div>
-          {/* 2번째 줄 */}
-          <div className="flex items-center justify-between mt-1">
-            <span className="text-xs text-gray-600">{record.requester}</span>
-            <span className="flex items-center gap-1">
+        <div key={record.id}>
+          {/* 클릭 가능한 헤더 영역 */}
+          <div
+            className="px-2 py-3 cursor-pointer hover:bg-gray-50"
+            onClick={() => onRowClick(record.id)}
+          >
+            {/* 1번째 줄 */}
+            <div className="flex gap-2 items-center">
+              <span className="flex items-center text-xs text-gray-500">
+                <Calendar size={14} className="mr-1" />
+                {formatDate(record.createdAt)}
+              </span>
+              <span className="flex-1 text-xs text-gray-700 truncate">
+                {record.package?.packageName &&
+                record.package.packageName !== "개별 품목"
+                  ? record.package.packageName
+                  : record.orderItems && record.orderItems.length > 0
+                  ? record.orderItems
+                      .slice(0, 1)
+                      .map(
+                        (item) =>
+                          `${
+                            item.item?.teamItem?.itemName || "알 수 없는 품목"
+                          }${item.quantity}개`
+                      )
+                      .join(", ") + (record.orderItems.length > 1 ? " 외" : "")
+                  : "품목 없음"}
+              </span>
               <span
-                className={`px-2 py-0.5 text-xs rounded-full ${getStatusColorClass(
-                  record.status
-                )}`}
+                className="text-xs text-gray-700 truncate max-w-[60px]"
+                title={record.receiver}
               >
-                {getStatusText(record.status)}
+                {record.receiver.length > 6
+                  ? `${record.receiver.slice(0, 6)}...`
+                  : record.receiver}
               </span>
-              <span className="w-5 h-5 rounded-full flex items-center justify-center bg-gray-100">
-                {expandedRowId === record.id ? (
-                  <ChevronUp size={14} className="text-gray-500" />
-                ) : (
-                  <ChevronDown size={14} className="text-gray-500" />
-                )}
+            </div>
+            {/* 2번째 줄 */}
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-xs text-gray-600">{record.requester}</span>
+              <span className="flex gap-1 items-center">
+                <span
+                  className={`px-2 py-0.5 text-xs rounded-full ${getStatusColorClass(
+                    record.status
+                  )}`}
+                >
+                  {getStatusText(record.status)}
+                </span>
+                <span className="flex justify-center items-center w-5 h-5 bg-gray-100 rounded-full">
+                  {expandedRowId === record.id ? (
+                    <ChevronUp size={14} className="text-gray-500" />
+                  ) : (
+                    <ChevronDown size={14} className="text-gray-500" />
+                  )}
+                </span>
               </span>
-            </span>
+            </div>
           </div>
-          {/* 확장 행 등은 필요시 추가 */}
+
+          {/* 확장된 내용 영역 - 클릭 이벤트 차단 */}
           {expandedRowId === record.id && (
-            <div className="mt-3 space-y-3 animate-fadeIn">
+            <div
+              className="px-2 pb-3 space-y-3 animate-fadeIn"
+              onClick={(e) => e.stopPropagation()}
+            >
               {/* 발주 상세 정보 */}
-              <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                <div className="font-bold mb-2 text-gray-700 border-b pb-1 flex items-center text-sm">
+              <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                <div className="flex items-center pb-1 mb-2 text-sm font-bold text-gray-700 border-b">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2 text-gray-500"
+                    className="mr-2 w-4 h-4 text-gray-500"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -103,60 +109,68 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                   발주 상세 정보
                 </div>
                 <div className="space-y-1 text-xs">
-                  <div className="flex justify-between items-center border-b border-gray-100 py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">생성일:</span>
-                    <span className="text-gray-800 bg-gray-50 px-2 py-1 rounded-md">
+                    <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {formatDate(record.createdAt)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center border-b border-gray-100 py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">구매일:</span>
-                    <span className="text-gray-800 bg-gray-50 px-2 py-1 rounded-md">
+                    <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.purchaseDate
                         ? formatDate(record.purchaseDate)
                         : "-"}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center border-b border-gray-100 py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">
                       출고예정일:
                     </span>
-                    <span className="text-gray-800 bg-gray-50 px-2 py-1 rounded-md">
+                    <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.outboundDate
                         ? formatDate(record.outboundDate)
                         : "-"}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center border-b border-gray-100 py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">
                       설치요청일:
                     </span>
-                    <span className="text-gray-800 bg-gray-50 px-2 py-1 rounded-md">
+                    <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.installationDate
                         ? formatDate(record.installationDate)
                         : "-"}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center border-b border-gray-100 py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">발주자:</span>
-                    <span className="text-gray-800 bg-gray-50 px-2 py-1 rounded-md">
+                    <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.requester}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center border-b border-gray-100 py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">담당자:</span>
-                    <span className="text-gray-800 bg-gray-50 px-2 py-1 rounded-md">
+                    <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.manager || "-"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                    <span className="font-medium text-gray-600">
+                      출고 창고:
+                    </span>
+                    <span className="px-2 py-1 font-medium text-white bg-blue-500 rounded-md">
+                      {record.warehouse?.warehouseName || "창고 정보 없음"}
                     </span>
                   </div>
                 </div>
               </div>
               {/* 배송 정보 */}
-              <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                <div className="font-bold mb-2 text-gray-700 border-b pb-1 flex items-center text-sm">
+              <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                <div className="flex items-center pb-1 mb-2 text-sm font-bold text-gray-700 border-b">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2 text-gray-500"
+                    className="mr-2 w-4 h-4 text-gray-500"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -166,23 +180,23 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                   배송 정보
                 </div>
                 <div className="space-y-1 text-xs">
-                  <div className="flex justify-between items-center border-b border-gray-100 py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">수령자:</span>
-                    <span className="text-gray-800 bg-gray-50 px-2 py-1 rounded-md">
+                    <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.receiver}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center border-b border-gray-100 py-1">
+                  <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">연락처:</span>
-                    <span className="text-gray-800 bg-gray-50 px-2 py-1 rounded-md">
+                    <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.receiverPhone}
                     </span>
                   </div>
-                  <div className="flex flex-col border-b border-gray-100 py-1">
-                    <span className="font-medium text-gray-600 mb-1">
+                  <div className="flex flex-col py-1 border-b border-gray-100">
+                    <span className="mb-1 font-medium text-gray-600">
                       주소:
                     </span>
-                    <span className="text-gray-800 bg-gray-50 p-2 rounded-md break-words">
+                    <span className="p-2 text-gray-800 break-words bg-gray-50 rounded-md">
                       {record.receiverAddress}
                     </span>
                   </div>
@@ -190,11 +204,11 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
               </div>
               {/* 주문 품목 목록 */}
               {record.orderItems && record.orderItems.length > 0 && (
-                <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                  <div className="font-bold mb-2 text-gray-700 border-b pb-1 flex items-center text-sm">
+                <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center pb-1 mb-2 text-sm font-bold text-gray-700 border-b">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-2 text-gray-500"
+                      className="mr-2 w-4 h-4 text-gray-500"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -202,32 +216,32 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                     </svg>
                     주문 품목 목록
                   </div>
-                  <div className="bg-gray-50 rounded-lg overflow-hidden">
-                    <div className="px-2 py-1 bg-gray-100 text-xs font-medium text-gray-600 flex justify-between">
+                  <div className="overflow-hidden bg-gray-50 rounded-lg">
+                    <div className="flex justify-between px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100">
                       <span>품목</span>
                       <span>수량</span>
                     </div>
-                    <ul className="divide-y divide-gray-200 max-h-40 overflow-y-auto">
+                    <ul className="overflow-y-auto max-h-40 divide-y divide-gray-200">
                       {record.orderItems.map((item) => (
                         <li
                           key={item.id}
-                          className="py-1 px-2 flex justify-between items-center"
+                          className="flex justify-between items-center px-2 py-1"
                         >
-                          <span className="font-medium text-gray-700 text-xs">
+                          <span className="text-xs font-medium text-gray-700">
                             {item.item?.teamItem?.itemName || "알 수 없는 품목"}
                           </span>
-                          <span className="text-gray-600 bg-white px-2 py-1 rounded-md text-xs">
+                          <span className="px-2 py-1 text-xs text-gray-600 bg-white rounded-md">
                             {item.quantity}개
                           </span>
                         </li>
                       ))}
                     </ul>
                     {record.memo && (
-                      <div className="py-1 px-2 bg-gray-100">
-                        <span className="font-medium text-gray-600 text-xs">
+                      <div className="px-2 py-1 bg-gray-100">
+                        <span className="text-xs font-medium text-gray-600">
                           추가 요청사항:{" "}
                         </span>
-                        <span className="text-gray-800 text-xs italic">
+                        <span className="text-xs italic text-gray-800">
                           {record.memo}
                         </span>
                       </div>
@@ -237,11 +251,11 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
               )}
               {/* 첨부 파일 */}
               {record.files && record.files.length > 0 && (
-                <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                  <div className="font-bold mb-2 text-gray-700 border-b pb-1 flex items-center text-sm">
+                <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center pb-1 mb-2 text-sm font-bold text-gray-700 border-b">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-2 text-gray-500"
+                      className="mr-2 w-4 h-4 text-gray-500"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -255,12 +269,12 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                   </div>
                   <ul className="bg-gray-50 rounded-lg divide-y divide-gray-200">
                     {record.files.map((file) => (
-                      <li key={file.id} className="py-1 px-2">
+                      <li key={file.id} className="px-2 py-1">
                         <a
                           href={file.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-500 hover:text-blue-700 hover:underline text-xs"
+                          className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
                         >
                           {file.fileName}
                         </a>
@@ -272,14 +286,14 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
 
               {/* 수정 버튼 */}
               {hasPermissionToEdit(record) && (
-                <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
                   <div className="flex justify-center">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onEditClick(record);
                       }}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm font-medium"
+                      className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md transition-colors hover:bg-blue-600"
                     >
                       수정
                     </button>

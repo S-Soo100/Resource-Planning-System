@@ -15,7 +15,6 @@ import {
 import {
   PiNewspaperClippingFill,
   PiShoppingCartFill,
-  PiPackageFill,
   PiHandCoinsFill,
   PiClipboardTextFill,
 } from "react-icons/pi";
@@ -68,13 +67,13 @@ const MainMenu = () => {
       onClick: () => checkAccess(`/ioHistory`, ["admin", "user", "moderator"]),
       accessLevel: ["user", "admin", "moderator"],
     },
-    {
-      title: "품목 관리",
-      subtitle: "품목 정보를 조회하고 관리합니다",
-      icon: <PiPackageFill className="text-3xl" />,
-      onClick: () => checkAccess(`/item`, ["admin", "user", "moderator"]),
-      accessLevel: ["user", "admin", "moderator"],
-    },
+    // {
+    //   title: "품목 관리",
+    //   subtitle: "품목 정보를 조회하고 관리합니다",
+    //   icon: <PiPackageFill className="text-3xl" />,
+    //   onClick: () => checkAccess(`/item`, ["admin", "user", "moderator"]),
+    //   accessLevel: ["user", "admin", "moderator"],
+    // },
     {
       title: "업체 관리",
       subtitle: "협력업체 정보를 등록하고 관리합니다",
@@ -277,14 +276,14 @@ const MainMenu = () => {
   return (
     <div className="container p-6 mx-auto max-w-6xl">
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex justify-between items-center">
           <h1 className="flex items-center text-3xl font-bold text-gray-900">
             <FaUser className="mr-3 text-blue-600" />
             {user.name}님, 환영합니다!
           </h1>
           <button
             onClick={() => router.push("/how-to-use")}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+            className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg transition-colors duration-200 hover:bg-blue-100"
           >
             <FaQuestionCircle className="text-lg" />
             사용법 안내

@@ -15,7 +15,6 @@ import {
 import {
   PiNewspaperClippingFill,
   PiShoppingCartFill,
-  PiPackageFill,
   PiHandCoinsFill,
   PiClipboardTextFill,
 } from "react-icons/pi";
@@ -80,12 +79,12 @@ const HowToUsePage = () => {
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <FaClipboardList className="text-lg" />,
         },
-        {
-          title: "품목 관리",
-          description: "품목 정보를 조회하고 관리합니다",
-          accessLevels: ["admin", "moderator", "user", "supplier"],
-          icon: <PiPackageFill className="text-lg" />,
-        },
+        // {
+        //   title: "품목 관리",
+        //   description: "품목 정보를 조회하고 관리합니다",
+        //   accessLevels: ["admin", "moderator", "user", "supplier"],
+        //   icon: <PiPackageFill className="text-lg" />,
+        // },
         {
           title: "업체 관리",
           description: "협력업체 정보를 등록하고 관리합니다",

@@ -736,14 +736,15 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   const canEdit = () => {
     if (!orderRecord || !auth) return false;
 
-    // admin이거나 작성자인 경우만 수정 가능
     const isAdmin = auth.isAdmin;
     const isAuthor = orderRecord.userId === auth.id;
 
-    // 상태가 '요청'인 경우만 수정 가능
-    const isRequestedStatus = orderRecord.status === OrderStatus.requested;
+    // admin인 경우 상태에 상관없이 수정 가능
+    if (isAdmin) return true;
 
-    return (isAdmin || isAuthor) && isRequestedStatus;
+    // 일반 사용자는 자신이 작성한 requested 상태의 발주만 수정 가능
+    const isRequestedStatus = orderRecord.status === OrderStatus.requested;
+    return isAuthor && isRequestedStatus;
   };
 
   if (!orderRecord) return null;
@@ -854,7 +855,8 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 name="item"
                 onChange={handleItemSelect}
                 className={`px-3 py-2 w-full rounded-md border ${
-                  isPackageSelected ? "bg-gray-100" : ""}`}
+                  isPackageSelected ? "bg-gray-100" : ""
+                }`}
                 disabled={!formData.warehouseId || isPackageSelected}
               >
                 <option value="0">품목 선택</option>

@@ -651,29 +651,31 @@ const OrderRecordTabs = () => {
   const hasPermissionToEdit = (record: IOrderRecord) => {
     if (!auth) return false;
 
-    // admin이거나 작성자인 경우만 수정 가능
     const isAdmin = auth.isAdmin;
     const isAuthor = record.userId === auth.id;
 
-    // 상태가 '요청'인 경우만 수정 가능
-    const isRequestedStatus = record.status === OrderStatus.requested;
+    // admin인 경우 상태에 상관없이 수정 가능
+    if (isAdmin) return true;
 
-    return (isAdmin || isAuthor) && isRequestedStatus;
+    // 일반 사용자는 자신이 작성한 requested 상태의 발주만 수정 가능
+    const isRequestedStatus = record.status === OrderStatus.requested;
+    return isAuthor && isRequestedStatus;
   };
 
   // 삭제 권한 확인 함수 추가
   const canDeleteOrder = (record: IOrderRecord) => {
     if (!auth) return false;
 
-    // admin이거나 작성자인 경우만 삭제 가능
     const isAdmin = auth.isAdmin;
     const isAuthor = record.userId === auth.id;
 
-    // 상태가 '요청'인 경우만 삭제 가능 (승인 이전)
+    // admin인 경우 상태에 상관없이 삭제 가능
+    if (isAdmin) return true;
+
+    // 일반 사용자는 자신이 작성한 requested 상태의 발주만 삭제 가능
     const isRequestedStatus =
       record.status === OrderStatus.requested || record.status === "주문 접수";
-
-    return (isAdmin || isAuthor) && isRequestedStatus;
+    return isAuthor && isRequestedStatus;
   };
 
   // 수정 모달 열기 핸들러

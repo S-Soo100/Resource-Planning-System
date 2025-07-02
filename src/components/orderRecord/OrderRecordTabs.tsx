@@ -37,6 +37,7 @@ import {
   type CreateOrderCommentDto,
   type UpdateOrderCommentDto,
 } from "@/hooks/useOrderComments";
+import { useDeleteOrder } from "@/hooks/(useOrder)/useOrderMutations";
 import OrderEditModal from "./OrderEditModal";
 
 // 사용자 접근 레벨 타입 추가
@@ -157,6 +158,9 @@ const OrderRecordTabs = () => {
 
   // 주문 상태 업데이트 hook 추가
   const updateOrderStatusMutation = useUpdateOrderStatus();
+
+  // 주문 삭제 hook 추가
+  const deleteOrderMutation = useDeleteOrder();
 
   // 현재 로그인한 사용자 ID 가져오기
   useEffect(() => {
@@ -657,6 +661,21 @@ const OrderRecordTabs = () => {
     return (isAdmin || isAuthor) && isRequestedStatus;
   };
 
+  // 삭제 권한 확인 함수 추가
+  const canDeleteOrder = (record: IOrderRecord) => {
+    if (!auth) return false;
+
+    // admin이거나 작성자인 경우만 삭제 가능
+    const isAdmin = auth.isAdmin;
+    const isAuthor = record.userId === auth.id;
+
+    // 상태가 '요청'인 경우만 삭제 가능 (승인 이전)
+    const isRequestedStatus =
+      record.status === OrderStatus.requested || record.status === "주문 접수";
+
+    return (isAdmin || isAuthor) && isRequestedStatus;
+  };
+
   // 수정 모달 열기 핸들러
   const handleEditClick = (record: IOrderRecord) => {
     setSelectedOrderForEdit(record);
@@ -667,6 +686,27 @@ const OrderRecordTabs = () => {
   const handleEditModalClose = () => {
     setIsEditModalOpen(false);
     setSelectedOrderForEdit(null);
+  };
+
+  // 발주 삭제 핸들러
+  const handleDeleteOrder = async (record: IOrderRecord) => {
+    if (
+      !confirm(
+        `발주 건을 삭제하시겠습니까?\n\n발주자: ${record.requester}\n수령자: ${
+          record.receiver
+        }\n상태: ${getStatusText(record.status)}`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteOrderMutation.mutateAsync(record.id.toString());
+      toast.success("발주가 삭제되었습니다.");
+    } catch (error) {
+      toast.error("발주 삭제에 실패했습니다.");
+      console.error("발주 삭제 오류:", error);
+    }
   };
 
   // 상태 변경 드롭다운 컴포넌트
@@ -1188,8 +1228,9 @@ const OrderRecordTabs = () => {
                                 </div>
                               </div>
 
-                              {/* 수정 버튼 섹션 */}
-                              {hasPermissionToEdit(record) && (
+                              {/* 수정/삭제 버튼 섹션 */}
+                              {(hasPermissionToEdit(record) ||
+                                canDeleteOrder(record)) && (
                                 <div className="p-3 mb-4 bg-white rounded-xl border border-gray-100 shadow-sm sm:mb-6 sm:p-6">
                                   <div className="flex justify-between items-center">
                                     <div className="flex items-center">
@@ -1202,15 +1243,36 @@ const OrderRecordTabs = () => {
                                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                       </svg>
                                       <h3 className="text-base font-semibold text-gray-700 sm:text-lg">
-                                        주문 수정
+                                        주문 관리
                                       </h3>
                                     </div>
-                                    <button
-                                      onClick={() => handleEditClick(record)}
-                                      className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md transition-colors hover:bg-blue-600"
-                                    >
-                                      수정하기
-                                    </button>
+                                    <div className="flex gap-2">
+                                      {hasPermissionToEdit(record) && (
+                                        <button
+                                          onClick={() =>
+                                            handleEditClick(record)
+                                          }
+                                          className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md transition-colors hover:bg-blue-600"
+                                        >
+                                          수정하기
+                                        </button>
+                                      )}
+                                      {canDeleteOrder(record) && (
+                                        <button
+                                          onClick={() =>
+                                            handleDeleteOrder(record)
+                                          }
+                                          disabled={
+                                            deleteOrderMutation.isPending
+                                          }
+                                          className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-md transition-colors hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                        >
+                                          {deleteOrderMutation.isPending
+                                            ? "삭제 중..."
+                                            : "삭제하기"}
+                                        </button>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               )}

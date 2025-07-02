@@ -1701,11 +1701,18 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
     isDeleting,
   } = useOrderComments(record.id);
 
-  // 권한 확인 함수
-  const canModifyComment = (comment: OrderComment) => {
+  // 권한 확인 함수들
+  const canEditComment = (comment: OrderComment) => {
     if (!currentUser) return false;
+    // 수정은 오직 본인 댓글만 가능 (Admin도 본인 댓글만)
+    return comment.userId === currentUser.id;
+  };
+
+  const canDeleteComment = (comment: OrderComment) => {
+    if (!currentUser) return false;
+    // 삭제는 본인 댓글 + Admin은 모든 댓글 가능
     return (
-      currentUser.accessLevel === "admin" || comment.userId === currentUser.id
+      comment.userId === currentUser.id || currentUser.accessLevel === "admin"
     );
   };
 
@@ -1804,25 +1811,29 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
                   )}
                 </div>
 
-                {canModifyComment(comment) && (
+                {(canEditComment(comment) || canDeleteComment(comment)) && (
                   <div className="flex space-x-1">
-                    <button
-                      onClick={() => {
-                        setEditingCommentId(comment.id);
-                        setEditingContent(comment.content);
-                      }}
-                      disabled={isUpdating || isDeleting}
-                      className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400"
-                    >
-                      수정
-                    </button>
-                    <button
-                      onClick={() => handleDeleteComment(comment.id)}
-                      disabled={isUpdating || isDeleting}
-                      className="text-xs text-red-600 hover:text-red-800 disabled:text-gray-400"
-                    >
-                      {isDeleting ? "삭제중..." : "삭제"}
-                    </button>
+                    {canEditComment(comment) && (
+                      <button
+                        onClick={() => {
+                          setEditingCommentId(comment.id);
+                          setEditingContent(comment.content);
+                        }}
+                        disabled={isUpdating || isDeleting}
+                        className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400"
+                      >
+                        수정
+                      </button>
+                    )}
+                    {canDeleteComment(comment) && (
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        disabled={isUpdating || isDeleting}
+                        className="text-xs text-red-600 hover:text-red-800 disabled:text-gray-400"
+                      >
+                        {isDeleting ? "삭제중..." : "삭제"}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

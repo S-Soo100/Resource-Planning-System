@@ -2,9 +2,18 @@
 
 import { useEffect, useState, ReactNode, useCallback } from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { User, Edit, Lock } from "lucide-react";
+import {
+  User,
+  Edit,
+  Lock,
+  Shield,
+  Users,
+  Truck,
+  UserCheck,
+} from "lucide-react";
 import { IUserTeam } from "@/types/team";
 import { useRouter } from "next/navigation";
+import { teamApi } from "@/api/team-api";
 
 // UI 컴포넌트 정의
 const Card = ({
@@ -115,43 +124,76 @@ export default function AccountPage() {
   const user = currentUser as ExtendedUser | null;
 
   const fetchUserTeams = useCallback(async () => {
+    if (!user?.id) return;
+
     try {
-      // 임시 데이터
-      setUserTeams([
-        {
-          id: 1,
-          teamName: "개발팀",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: 2,
-          teamName: "운영팀",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ]);
+      // 모든 팀 조회
+      const response = await teamApi.getAllTeams();
+
+      if (response.success && response.data) {
+        // 현재 사용자가 소속된 팀만 필터링
+        const userTeams = response.data
+          .filter((team) =>
+            team.teamUserMap?.some((mapping) => mapping.userId === user.id)
+          )
+          .map((team) => ({
+            id: team.id,
+            teamName: team.teamName,
+            createdAt: team.createdAt,
+            updatedAt: team.updatedAt,
+          }));
+
+        setUserTeams(userTeams);
+      } else {
+        console.error("팀 목록 조회 실패:", response.error);
+        setUserTeams([]);
+      }
     } catch (error) {
       console.error("팀 목록을 가져오는데 실패했습니다:", error);
+      setUserTeams([]);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && !isLoading) {
       // 사용자의 팀 목록 가져오기
       fetchUserTeams();
     }
-  }, [user?.id, fetchUserTeams]);
+  }, [user?.id, isLoading, fetchUserTeams]);
 
-  // 권한 레벨 한글화
-  const getAccessLevelKorean = (level: AccessLevel): string => {
-    const levelMap: Record<AccessLevel, string> = {
-      admin: "관리자",
-      user: "일반 사용자",
-      supplier: "거래처",
-      moderator: "1차승인권자",
+  // 권한 레벨별 아이콘 및 색상
+  const getAccessLevelDisplay = (level: AccessLevel) => {
+    const displays = {
+      admin: {
+        icon: Shield,
+        label: "관리자",
+        bgColor: "bg-red-100",
+        textColor: "text-red-800",
+        iconColor: "text-red-600",
+      },
+      moderator: {
+        icon: UserCheck,
+        label: "1차승인권자",
+        bgColor: "bg-yellow-100",
+        textColor: "text-yellow-800",
+        iconColor: "text-yellow-600",
+      },
+      user: {
+        icon: Users,
+        label: "일반 사용자",
+        bgColor: "bg-blue-100",
+        textColor: "text-blue-800",
+        iconColor: "text-blue-600",
+      },
+      supplier: {
+        icon: Truck,
+        label: "외부업체",
+        bgColor: "bg-green-100",
+        textColor: "text-green-800",
+        iconColor: "text-green-600",
+      },
     };
-    return levelMap[level];
+    return displays[level];
   };
 
   if (isLoading) {
@@ -199,9 +241,20 @@ export default function AccountPage() {
                   </p>
                   {user?.accessLevel && (
                     <div className="mt-3">
-                      <span className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">
-                        {getAccessLevelKorean(user.accessLevel)}
-                      </span>
+                      {(() => {
+                        const display = getAccessLevelDisplay(user.accessLevel);
+                        const IconComponent = display.icon;
+                        return (
+                          <span
+                            className={`inline-flex items-center px-3 py-1 text-sm font-medium rounded-full ${display.bgColor} ${display.textColor}`}
+                          >
+                            <IconComponent
+                              className={`mr-2 w-4 h-4 ${display.iconColor}`}
+                            />
+                            {display.label}
+                          </span>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
@@ -266,13 +319,35 @@ export default function AccountPage() {
                     <h3 className="mb-2 text-sm font-medium text-gray-900">
                       권한 레벨
                     </h3>
-                    <div className="flex items-center space-x-2">
-                      {user?.isAdmin && (
-                        <span className="inline-block px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">
-                          관리자
+                    <div className="p-3 bg-gray-50 rounded-md">
+                      {user?.accessLevel ? (
+                        (() => {
+                          const display = getAccessLevelDisplay(
+                            user.accessLevel
+                          );
+                          const IconComponent = display.icon;
+                          return (
+                            <div className="flex items-center">
+                              <span
+                                className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full ${display.bgColor} ${display.textColor}`}
+                              >
+                                <IconComponent
+                                  className={`mr-2 w-4 h-4 ${display.iconColor}`}
+                                />
+                                {display.label}
+                              </span>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <span className="text-sm text-gray-500">
+                          권한 정보 없음
                         </span>
                       )}
                     </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      권한 레벨은 관리자만 변경할 수 있습니다.
+                    </p>
                   </div>
                 </div>
               </CardContent>

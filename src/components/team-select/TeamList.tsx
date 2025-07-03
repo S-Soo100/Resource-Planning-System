@@ -59,8 +59,8 @@ export const TeamList: React.FC<TeamListDisplayProps> = ({
 
   return (
     <div className="mb-8">
-      <h2 className="text-xl font-semibold mb-4">소속 팀 목록</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <h2 className="mb-4 text-xl font-semibold">소속 팀 목록</h2>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {userTeams.map((team, index) => (
           <button
             key={index}
@@ -73,8 +73,8 @@ export const TeamList: React.FC<TeamListDisplayProps> = ({
             <h3 className="text-lg font-medium text-gray-900">
               {team.teamName}
             </h3>
-            <p className="text-sm text-gray-500 mt-1">팀 ID: {team.id}</p>
-            {/* <p className="text-sm text-gray-500 mt-1">
+            <p className="mt-1 text-sm text-gray-500">팀 ID: {team.id}</p>
+            {/* <p className="mt-1 text-sm text-gray-500">
               생성일: {team.createdAt.split("T")[0]}
             </p> */}
           </button>

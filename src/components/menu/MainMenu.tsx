@@ -250,6 +250,21 @@ const MainMenu = () => {
     });
   }
 
+  // 리다이렉트 로직을 useEffect로 분리
+  useEffect(() => {
+    if (!userLoading && !categoriesLoading) {
+      if (!user) {
+        router.push("/signin");
+        return;
+      }
+
+      if (!selectedTeam) {
+        router.push("/team-select");
+        return;
+      }
+    }
+  }, [user, selectedTeam, userLoading, categoriesLoading, router]);
+
   if (userLoading || categoriesLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -261,13 +276,8 @@ const MainMenu = () => {
     );
   }
 
-  if (!user) {
-    router.push("/signin");
-    return null;
-  }
-
-  if (!selectedTeam) {
-    router.push("/team-select");
+  // 로딩이 끝났는데 사용자나 팀이 없으면 null 반환 (리다이렉트 진행 중)
+  if (!user || !selectedTeam) {
     return null;
   }
 

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState, ReactNode, useCallback } from "react";
-import { authStore } from "@/store/authStore";
-import { User } from "lucide-react";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { User, Edit, Lock } from "lucide-react";
 import { IUserTeam } from "@/types/team";
+import { useRouter } from "next/navigation";
 
 // UI 컴포넌트 정의
 const Card = ({
@@ -14,7 +15,7 @@ const Card = ({
   className?: string;
 }) => (
   <div
-    className={`rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}
+    className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`}
   >
     {children}
   </div>
@@ -54,7 +55,7 @@ const Avatar = ({
   className?: string;
 }) => (
   <div
-    className={`relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full ${className}`}
+    className={`flex overflow-hidden relative w-10 h-10 rounded-full shrink-0 ${className}`}
   >
     {children}
   </div>
@@ -73,7 +74,7 @@ const AvatarImage = ({
     <img
       src={src}
       alt={alt}
-      className={`aspect-square h-full w-full ${className}`}
+      className={`w-full h-full aspect-square ${className}`}
     />
   ) : null;
 
@@ -85,7 +86,7 @@ const AvatarFallback = ({
   className?: string;
 }) => (
   <div
-    className={`flex h-full w-full items-center justify-center rounded-full bg-gray-800 text-gray-500 ${className}`}
+    className={`flex justify-center items-center w-full h-full text-gray-500 bg-gray-800 rounded-full ${className}`}
   >
     {children}
   </div>
@@ -106,11 +107,12 @@ interface ExtendedUser {
 }
 
 export default function AccountPage() {
-  const [loading, setLoading] = useState(true);
   const [userTeams, setUserTeams] = useState<IUserTeam[]>([]);
+  const router = useRouter();
 
-  // 직접 authStore에서 사용자 정보 가져오기
-  const user = authStore((state) => state.user) as ExtendedUser | null;
+  // useCurrentUser 훅을 사용하여 사용자 정보 가져오기 (React Query와 동기화)
+  const { user: currentUser, isLoading } = useCurrentUser();
+  const user = currentUser as ExtendedUser | null;
 
   const fetchUserTeams = useCallback(async () => {
     try {
@@ -135,14 +137,11 @@ export default function AccountPage() {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      setLoading(false);
+    if (user?.id) {
       // 사용자의 팀 목록 가져오기
-      if (user.id) {
-        fetchUserTeams();
-      }
+      fetchUserTeams();
     }
-  }, [user, fetchUserTeams]);
+  }, [user?.id, fetchUserTeams]);
 
   // 권한 레벨 한글화
   const getAccessLevelKorean = (level: AccessLevel): string => {
@@ -155,17 +154,20 @@ export default function AccountPage() {
     return levelMap[level];
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        로딩중...
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="mx-auto mb-4 w-8 h-8 rounded-full border-b-2 border-blue-600 animate-spin"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl px-4 py-8 mx-auto sm:px-6 lg:px-8 sm:py-12">
+      <div className="px-4 py-8 mx-auto max-w-4xl sm:px-6 lg:px-8 sm:py-12">
         <div className="mb-8 sm:mb-12">
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
             내 계정
@@ -218,9 +220,46 @@ export default function AccountPage() {
                     <h3 className="mb-2 text-sm font-medium text-gray-900">
                       이메일
                     </h3>
-                    <p className="px-3 py-2 text-sm text-gray-600 rounded-md bg-gray-50">
+                    <p className="px-3 py-2 text-sm text-gray-600 bg-gray-50 rounded-md">
                       {user?.email || "이메일 정보 없음"}
                     </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      이메일은 변경할 수 없습니다.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="mb-2 text-sm font-medium text-gray-900">
+                      이름
+                    </h3>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                      <span className="text-sm text-gray-600">
+                        {user?.name || "이름 없음"}
+                      </span>
+                      <button
+                        onClick={() => router.push("/account/edit-profile")}
+                        className="flex items-center px-3 py-1 text-sm font-medium text-blue-600 bg-white rounded-lg border border-blue-200 transition-colors hover:bg-blue-50 hover:border-blue-300"
+                      >
+                        <Edit className="mr-1 w-4 h-4" />
+                        변경
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="mb-2 text-sm font-medium text-gray-900">
+                      비밀번호
+                    </h3>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                      <span className="text-sm text-gray-600">••••••••</span>
+                      <button
+                        onClick={() => router.push("/account/change-password")}
+                        className="flex items-center px-3 py-1 text-sm font-medium text-blue-600 bg-white rounded-lg border border-blue-200 transition-colors hover:bg-blue-50 hover:border-blue-300"
+                      >
+                        <Lock className="mr-1 w-4 h-4" />
+                        변경
+                      </button>
+                    </div>
                   </div>
 
                   <div>
@@ -249,9 +288,9 @@ export default function AccountPage() {
                     {userTeams.map((team) => (
                       <div
                         key={team.id}
-                        className="p-4 transition-colors border border-gray-200 rounded-lg hover:bg-gray-50"
+                        className="p-4 rounded-lg border border-gray-200 transition-colors hover:bg-gray-50"
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex justify-between items-center">
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-gray-900 truncate">
                               {team.teamName}
@@ -269,7 +308,7 @@ export default function AccountPage() {
                   </div>
                 ) : (
                   <div className="py-8 text-center">
-                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-gray-100 rounded-full">
+                    <div className="flex justify-center items-center mx-auto mb-4 w-12 h-12 bg-gray-100 rounded-full">
                       <User className="w-6 h-6 text-gray-400" />
                     </div>
                     <p className="text-sm text-gray-500">

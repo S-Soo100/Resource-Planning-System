@@ -14,6 +14,7 @@ interface AuthState {
   // Actions
   login: (user: IAuth) => void;
   logout: () => void;
+  updateUser: (user: IAuth) => void;
   setTeam: (team: Team) => void;
   resetTeam: () => void;
   setLoading: (loading: boolean) => void;
@@ -58,6 +59,14 @@ export const authStore = create<AuthState>()(
         emitEvent(EVENTS.AUTH_LOGOUT);
         // 모든 데이터 초기화 이벤트 발행
         emitEvent(EVENTS.DATA_RESET_ALL);
+      },
+
+      updateUser: (user) => {
+        set((state) => ({
+          ...state,
+          user,
+          error: null,
+        }));
       },
 
       setTeam: (team: Team) => {
@@ -125,6 +134,7 @@ export const useAuthStore = () => {
     error: store.error,
     login: store.login,
     logout: store.logout,
+    updateUser: store.updateUser,
     setTeam: store.setTeam,
     resetTeam: store.resetTeam,
     setLoading: store.setLoading,

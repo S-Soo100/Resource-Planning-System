@@ -13,7 +13,6 @@ export default function EditProfilePage() {
   const { user, isLoading } = useCurrentUser();
   const [name, setName] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
   // 사용자 정보가 로드되면 현재 이름을 설정
   useEffect(() => {
@@ -41,10 +40,9 @@ export default function EditProfilePage() {
           });
         }
 
-        setSuccess(true);
-        setTimeout(() => {
-          router.push("/account");
-        }, 1500);
+        // 변경 완료 안내 및 새로고침 요청
+        alert("변경 완료했습니다. 새로고침을 해주세요.");
+        window.location.reload();
       } else {
         setError(response.error || "이름 변경에 실패했습니다.");
       }
@@ -123,35 +121,6 @@ export default function EditProfilePage() {
             계정에 표시될 이름을 변경하세요.
           </p>
         </div>
-
-        {/* 성공 메시지 */}
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-3 h-3 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-green-800">
-                  이름이 성공적으로 변경되었습니다. 잠시 후 계정 페이지로
-                  이동합니다.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* 폼 */}
         <div className="bg-white shadow-sm rounded-lg">

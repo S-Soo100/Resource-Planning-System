@@ -40,6 +40,7 @@ export interface UpdateUserRequest {
   restrictedWhs?: string;
   accessLevel?: "user" | "admin" | "supplier" | "moderator";
   isAdmin?: boolean;
+  password?: string;
 }
 
 export interface WarehouseAccessRequest {

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import DemonstrationRequestForm from "@/components/demonstration/DemonstrationRequestForm";
+import SimpleDemonstrationForm from "@/components/demonstration/SimpleDemonstrationForm";
 
 export default function DemonstrationPage() {
   const router = useRouter();
@@ -46,7 +46,7 @@ export default function DemonstrationPage() {
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">
-      <DemonstrationRequestForm />
+      <SimpleDemonstrationForm />
     </div>
   );
 }

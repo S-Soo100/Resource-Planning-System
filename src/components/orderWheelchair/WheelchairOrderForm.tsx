@@ -50,7 +50,6 @@ export default function WheelchairOrderForm() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [requestDate, setRequestDate] = useState("");
   const [setupDate, setSetupDate] = useState("");
-  const [isRequesterManuallySet, setIsRequesterManuallySet] = useState(false);
 
   // 공통 훅 사용
   const fileUpload = useFileUpload();
@@ -148,24 +147,28 @@ export default function WheelchairOrderForm() {
 
   // 사용자 이름 자동 설정
   useEffect(() => {
-    if (auth?.name && !formData.requester && !isRequesterManuallySet) {
+    if (auth?.name) {
       setFormData((prev) => ({
         ...prev,
         requester: auth.name,
+        manager:
+          user?.accessLevel === "supplier"
+            ? "조정흠(010-3338-2722)"
+            : prev.manager,
       }));
     }
-  }, [auth, formData.requester, isRequesterManuallySet]);
+  }, [auth, user?.accessLevel]);
 
   // 사용자 권한에 따른 예외 처리 (0.2초 후 실행)
   useEffect(() => {
     const timer = setTimeout(() => {
       if (user && auth?.name) {
         if (user.accessLevel === "supplier") {
-          // supplier인 경우
+          // supplier인 경우에도 requester는 본인 이름 유지
           setFormData((prev) => ({
             ...prev,
-            requester: "", // requester 기본값 제거
-            manager: auth.name, // manager에 auth.name 설정
+            requester: auth.name, // requester에 본인 이름 설정
+            manager: "조정흠(010-3338-2722)", // manager에 캥스터즈 담당자 설정
           }));
         }
       }
@@ -279,10 +282,6 @@ export default function WheelchairOrderForm() {
     >
   ) => {
     const { name, value } = e.target;
-
-    if (name === "requester") {
-      setIsRequesterManuallySet(true);
-    }
 
     setFormData({
       ...formData,
@@ -689,6 +688,7 @@ export default function WheelchairOrderForm() {
           manager={formData.manager}
           onChange={handleChange}
           focusRingColor="purple"
+          userAccessLevel={user?.accessLevel}
         />
 
         {/* 날짜 정보 */}

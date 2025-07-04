@@ -6,6 +6,7 @@ interface ContactInfoSectionProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRequesterChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   focusRingColor?: string;
+  userAccessLevel?: string;
 }
 
 const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({
@@ -14,11 +15,19 @@ const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({
   onChange,
   onRequesterChange,
   focusRingColor = "blue",
+  userAccessLevel,
 }) => {
   const focusRingClass =
     focusRingColor === "purple"
       ? "focus:ring-purple-500"
       : "focus:ring-blue-500";
+
+  const getManagerTitle = () => {
+    if (userAccessLevel === "supplier") {
+      return "캥스터즈 담당자";
+    }
+    return "업체 담당자";
+  };
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -27,7 +36,7 @@ const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({
           htmlFor="requester"
           className="block mb-2 text-sm font-medium text-gray-700"
         >
-          캥스터즈 영업 담당자 이름 <span className="text-red-500">*</span>
+          요청자 <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -45,7 +54,7 @@ const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({
           htmlFor="manager"
           className="block mb-2 text-sm font-medium text-gray-700"
         >
-          업체 발주 담당자 <span className="text-red-500">*</span>
+          {getManagerTitle()} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"

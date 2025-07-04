@@ -13,21 +13,31 @@ export function hasWarehouseAccess(user: IUser, warehouseId: number): boolean {
     return true;
   }
 
-  // restrictedWhs가 없거나 빈 배열인 경우 모든 창고 접근 가능
-  if (!user.restrictedWhs || user.restrictedWhs.length === 0) {
+  // restrictedWhs가 없거나 빈 문자열이거나 빈 배열인 경우 모든 창고 접근 가능
+  if (
+    !user.restrictedWhs ||
+    user.restrictedWhs === "" ||
+    (Array.isArray(user.restrictedWhs) && user.restrictedWhs.length === 0)
+  ) {
     return true;
   }
 
   // restrictedWhs 배열을 number[]로 변환하여 체크
-  const restrictedWarehouseIds = Array.isArray(user.restrictedWhs)
-    ? user.restrictedWhs.map((id) =>
-        typeof id === "string" ? parseInt(id) : id
-      )
-    : [
-        typeof user.restrictedWhs === "string"
-          ? parseInt(user.restrictedWhs)
-          : user.restrictedWhs,
-      ];
+  let restrictedWarehouseIds: number[] = [];
+
+  if (typeof user.restrictedWhs === "string") {
+    if (user.restrictedWhs.trim() === "") {
+      return true; // 빈 문자열인 경우 제한 없음
+    }
+    restrictedWarehouseIds = user.restrictedWhs
+      .split(",")
+      .map((id) => parseInt(id.trim()))
+      .filter((id) => !isNaN(id));
+  } else if (Array.isArray(user.restrictedWhs)) {
+    restrictedWarehouseIds = user.restrictedWhs.map((id) =>
+      typeof id === "string" ? parseInt(id) : id
+    );
+  }
 
   // 제한된 창고 목록에 포함되어 있으면 접근 불가
   return !restrictedWarehouseIds.includes(warehouseId);
@@ -58,19 +68,29 @@ export function filterAccessibleWarehouses(
  * @returns 제한된 창고 ID 목록
  */
 export function getRestrictedWarehouseIds(user: IUser): number[] {
-  if (!user.restrictedWhs || user.restrictedWhs.length === 0) {
+  if (
+    !user.restrictedWhs ||
+    user.restrictedWhs === "" ||
+    (Array.isArray(user.restrictedWhs) && user.restrictedWhs.length === 0)
+  ) {
     return [];
   }
 
-  return Array.isArray(user.restrictedWhs)
-    ? user.restrictedWhs.map((id) =>
-        typeof id === "string" ? parseInt(id) : id
-      )
-    : [
-        typeof user.restrictedWhs === "string"
-          ? parseInt(user.restrictedWhs)
-          : user.restrictedWhs,
-      ];
+  if (typeof user.restrictedWhs === "string") {
+    if (user.restrictedWhs.trim() === "") {
+      return [];
+    }
+    return user.restrictedWhs
+      .split(",")
+      .map((id) => parseInt(id.trim()))
+      .filter((id) => !isNaN(id));
+  } else if (Array.isArray(user.restrictedWhs)) {
+    return user.restrictedWhs.map((id) =>
+      typeof id === "string" ? parseInt(id) : id
+    );
+  }
+
+  return [];
 }
 
 /**

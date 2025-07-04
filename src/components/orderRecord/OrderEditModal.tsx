@@ -17,6 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Modal } from "@/components/ui";
+import { ItemSelectionModal } from "@/components/ui";
 import { useWarehouseWithItems } from "@/hooks/useWarehouseWithItems";
 import { Item } from "@/types/(item)/item";
 import { Warehouse } from "@/types/warehouse";
@@ -66,6 +67,9 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   >([]);
   const [packageQuantity, setPackageQuantity] = useState(1);
 
+  // ItemSelectionModal 상태 추가
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+
   const [formData, setFormData] = useState({
     manager: "",
     requester: "",
@@ -97,13 +101,19 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     return warehouseItems[formData.warehouseId.toString()] || [];
   }, [formData.warehouseId, warehouseItems]);
 
-  // 패키지 선택 여부 확인
-  const isPackageSelected = formData.packageId !== null;
-
   // 모든 주문 아이템 (패키지 + 개별)
   const allOrderItems = useMemo(() => {
     return [...packageItems, ...individualItems];
   }, [packageItems, individualItems]);
+
+  // ItemSelectionModal용 orderItems 형식 변환
+  const modalOrderItems = useMemo(() => {
+    return allOrderItems.map((item) => ({
+      ...item,
+      item: { teamItem: item.teamItem },
+      itemId: item.warehouseItemId,
+    }));
+  }, [allOrderItems]);
 
   // 패키지 선택 시 창고 아이템이 로드될 때까지 기다리는 useEffect
   useEffect(() => {
@@ -323,28 +333,12 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     []
   );
 
-  // 아이템 선택 핸들러 - 패키지 선택 시 비활성화
+  // 아이템 선택 핸들러 - ItemSelectionModal 사용
   const handleItemSelect = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      if (isPackageSelected) {
-        toast.error("패키지가 선택된 경우 개별 품목을 추가할 수 없습니다.");
-        return;
-      }
-
-      const itemId = parseInt(e.target.value);
-      if (itemId === 0) {
-        return;
-      }
-
-      const selected = currentWarehouseItems.find(
-        (item: Item) => item.id === itemId
-      );
-      if (!selected) {
-        return;
-      }
-
-      const isItemExists = individualItems.some(
-        (item) => item.teamItem.itemCode === selected.teamItem.itemCode
+    (selectedItem: Item) => {
+      // 패키지 아이템과 개별 아이템 모두에서 중복 체크
+      const isItemExists = allOrderItems.some(
+        (item) => item.warehouseItemId === selectedItem.id
       );
 
       if (isItemExists) {
@@ -355,32 +349,31 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
       setIndividualItems((prev) => [
         ...prev,
         {
-          teamItem: selected.teamItem,
+          teamItem: selectedItem.teamItem,
           quantity: 1,
-          stockAvailable: selected.itemQuantity >= 1,
-          stockQuantity: selected.itemQuantity,
-          warehouseItemId: selected.id,
+          stockAvailable: selectedItem.itemQuantity >= 1,
+          stockQuantity: selectedItem.itemQuantity,
+          warehouseItemId: selectedItem.id,
         },
       ]);
-
-      e.target.value = "0";
     },
-    [isPackageSelected, currentWarehouseItems, individualItems]
+    [allOrderItems]
   );
 
-  // 아이템 제거 핸들러 - 패키지 아이템은 제거 불가
+  // 아이템 제거 핸들러 - 패키지 아이템도 제거 가능
   const handleRemoveItem = useCallback(
     (itemId: number, isPackageItem: boolean = false) => {
       if (isPackageItem) {
-        toast.error(
-          "패키지 내 개별 품목은 제거할 수 없습니다. 패키지 전체를 변경하거나 수량을 조정하세요."
+        // 패키지 아이템의 경우 패키지 아이템 목록에서 제거
+        setPackageItems((prev) =>
+          prev.filter((item) => item.warehouseItemId !== itemId)
         );
-        return;
+      } else {
+        // 개별 아이템의 경우 개별 아이템 목록에서 제거
+        setIndividualItems((prev) =>
+          prev.filter((item) => item.warehouseItemId !== itemId)
+        );
       }
-
-      setIndividualItems((prev) =>
-        prev.filter((item) => item.warehouseItemId !== itemId)
-      );
     },
     []
   );
@@ -913,38 +906,22 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               </div>
             </div>
 
-            {/* 개별품목 선택 - 패키지 선택 시 비활성화 */}
+            {/* 개별품목 선택 - ItemSelectionModal 사용 */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 품목 선택
-                {isPackageSelected && (
-                  <span className="ml-2 text-xs text-red-500">
-                    (패키지 선택 시 불가)
-                  </span>
-                )}
               </label>
-              <select
-                name="item"
-                onChange={handleItemSelect}
-                className={`px-3 py-2 w-full rounded-md border ${
-                  isPackageSelected ? "bg-gray-100" : ""
-                }`}
-                disabled={!formData.warehouseId || isPackageSelected}
+              <button
+                type="button"
+                onClick={() => setIsItemModalOpen(true)}
+                disabled={!formData.warehouseId}
+                className="px-4 py-2 w-full rounded-md border text-left transition-colors bg-white hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"
               >
-                <option value="0">품목 선택</option>
-                {!isPackageSelected &&
-                  currentWarehouseItems.map((item: Item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.teamItem.itemName} ({item.teamItem.itemCode}) -
-                      재고: {item.itemQuantity}개
-                    </option>
-                  ))}
-              </select>
-              {isPackageSelected && (
-                <p className="text-xs text-gray-500">
-                  패키지가 선택된 경우 개별 품목을 추가로 선택할 수 없습니다.
-                </p>
-              )}
+                <span className="text-gray-500">클릭하여 품목 선택</span>
+              </button>
+              <p className="text-xs text-gray-500">
+                패키지와 개별 품목을 함께 선택할 수 있습니다.
+              </p>
             </div>
 
             {/* 선택된 품목 목록 */}
@@ -1009,8 +986,8 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                           onClick={() =>
                             handleRemoveItem(item.warehouseItemId, true)
                           }
-                          className="p-1 text-gray-400 bg-gray-100 rounded cursor-not-allowed"
-                          title="패키지 내 개별 품목은 제거할 수 없습니다"
+                          className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
+                          title="품목 제거"
                         >
                           <X size={16} />
                         </button>
@@ -1522,6 +1499,16 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
             </button>
           </div>
         )}
+
+        {/* ItemSelectionModal */}
+        <ItemSelectionModal
+          isOpen={isItemModalOpen}
+          onClose={() => setIsItemModalOpen(false)}
+          onAddItem={handleItemSelect}
+          currentWarehouseItems={currentWarehouseItems}
+          orderItems={modalOrderItems}
+          title="품목 추가"
+        />
       </div>
     </Modal>
   );

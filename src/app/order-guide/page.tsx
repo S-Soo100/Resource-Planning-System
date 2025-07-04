@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -16,14 +17,24 @@ import {
   Users,
   MapPin,
   Phone,
+  Accessibility,
 } from "lucide-react";
 
 export default function OrderGuidePage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedType, setSelectedType] = useState<
-    "package" | "individual" | null
+    "package" | "wheelchair" | "individual" | null
   >(null);
+
+  // 현재 팀 정보 가져오기
+  const { team: currentTeam } = useCurrentTeam();
+
+  // 휠체어 관련 창고가 있는지 확인
+  const hasWheelchairWarehouses =
+    currentTeam?.warehouses?.some((warehouse) =>
+      warehouse.warehouseName.includes("휠체어")
+    ) || false;
 
   const steps = [
     {
@@ -31,7 +42,12 @@ export default function OrderGuidePage() {
       title: "발주 유형 선택",
       description: "어떤 방식으로 발주하시겠습니까?",
       content: (
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
+        <div
+          className={`grid grid-cols-1 gap-4 sm:gap-6 ${
+            hasWheelchairWarehouses ? "lg:grid-cols-3" : "lg:grid-cols-2"
+          }`}
+        >
+          {/* 휠리엑스 패키지 발주 */}
           <Card
             className={`p-4 sm:p-6 cursor-pointer transition-all hover:shadow-lg ${
               selectedType === "package"
@@ -43,7 +59,7 @@ export default function OrderGuidePage() {
             <div className="text-center">
               <Package className="mx-auto mb-2 w-12 h-12 text-blue-600 sm:mb-4 sm:w-16 sm:h-16" />
               <h3 className="mb-1 text-lg font-semibold sm:mb-2 sm:text-xl">
-                패키지 발주
+                휠리엑스 패키지 발주
               </h3>
               <p className="mb-2 text-sm text-gray-600 sm:mb-4 sm:text-base">
                 미리 구성된 패키지 단위로 발주합니다
@@ -65,6 +81,86 @@ export default function OrderGuidePage() {
             </div>
           </Card>
 
+          {/* 휠체어 발주 - 휠체어 관련 창고가 있을 때만 표시 */}
+          {hasWheelchairWarehouses && (
+            <Card
+              className={`p-4 sm:p-6 cursor-pointer transition-all transform hover:scale-105 hover:shadow-2xl ${
+                selectedType === "wheelchair"
+                  ? "ring-4 ring-purple-500 bg-gradient-to-br from-purple-50 via-indigo-50 to-pink-50 border-purple-300 shadow-2xl"
+                  : "border-purple-200 hover:border-purple-400 bg-gradient-to-br from-purple-25 to-indigo-25"
+              }`}
+              onClick={() => setSelectedType("wheelchair")}
+            >
+              <div className="relative text-center">
+                {selectedType === "wheelchair" && (
+                  <div className="absolute -top-2 -right-2 px-2 py-1 text-xs font-bold text-white bg-purple-600 rounded-full shadow-lg">
+                    추천
+                  </div>
+                )}
+                <div className="flex justify-center items-center mx-auto mb-2 w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl shadow-lg sm:mb-4 sm:w-18 sm:h-18">
+                  <Accessibility className="w-8 h-8 text-purple-700 sm:w-12 sm:h-12" />
+                </div>
+                <h3 className="mb-1 text-lg font-bold text-purple-800 sm:mb-2 sm:text-xl">
+                  휠체어 발주
+                </h3>
+                <p className="mb-2 text-sm font-medium text-purple-700 sm:mb-4 sm:text-base">
+                  휠체어 전용 품목을 선택하여 발주합니다
+                </p>
+                <div className="space-y-1 text-xs text-purple-800 sm:text-sm">
+                  <div className="flex gap-1 justify-center items-center sm:gap-2">
+                    <div className="flex justify-center items-center w-4 h-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full shadow-sm">
+                      <svg
+                        className="w-2.5 h-2.5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <span className="font-bold">휠체어 전용 품목</span>
+                  </div>
+                  <div className="flex gap-1 justify-center items-center sm:gap-2">
+                    <div className="flex justify-center items-center w-4 h-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full shadow-sm">
+                      <svg
+                        className="w-2.5 h-2.5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <span className="font-bold">빠른 선택 도구</span>
+                  </div>
+                  <div className="flex gap-1 justify-center items-center sm:gap-2">
+                    <div className="flex justify-center items-center w-4 h-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full shadow-sm">
+                      <svg
+                        className="w-2.5 h-2.5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <span className="font-bold">맞춤형 수량</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* 개별 품목 발주 */}
           <Card
             className={`p-4 sm:p-6 cursor-pointer transition-all hover:shadow-lg ${
               selectedType === "individual"
@@ -79,7 +175,7 @@ export default function OrderGuidePage() {
                 개별 품목 발주
               </h3>
               <p className="mb-2 text-sm text-gray-600 sm:mb-4 sm:text-base">
-                필요한 품목을 개별적으로 선택하여 발주합니다
+                원하는 품목을 개별적으로 선택하여 발주합니다
               </p>
               <div className="space-y-1 text-xs text-gray-500 sm:text-sm">
                 <div className="flex gap-1 justify-center items-center sm:gap-2">
@@ -103,10 +199,16 @@ export default function OrderGuidePage() {
     {
       id: 1,
       title:
-        selectedType === "package" ? "패키지 발주 방법" : "개별 품목 발주 방법",
+        selectedType === "package"
+          ? "패키지 발주 방법"
+          : selectedType === "wheelchair"
+          ? "휠체어 발주 방법"
+          : "개별 품목 발주 방법",
       description:
         selectedType === "package"
           ? "패키지 발주의 단계별 사용법을 안내합니다"
+          : selectedType === "wheelchair"
+          ? "휠체어 발주의 단계별 사용법을 안내합니다"
           : "개별 품목 발주의 단계별 사용법을 안내합니다",
       content:
         selectedType === "package" ? (
@@ -233,6 +335,137 @@ export default function OrderGuidePage() {
                   <div className="p-2 mt-2 text-xs text-blue-700 bg-blue-50 rounded border border-blue-200">
                     📧 <strong>알림:</strong> 요청자, 승인권자, 관리자에게
                     이메일 알림이 자동 발송됩니다.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : selectedType === "wheelchair" ? (
+          <div className="space-y-6">
+            <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+              <div className="flex gap-3 items-start">
+                <div className="flex justify-center items-center w-6 h-6 bg-purple-100 rounded-full">
+                  🦽
+                </div>
+                <div>
+                  <h4 className="mb-2 font-semibold text-purple-800">
+                    휠체어 발주란?
+                  </h4>
+                  <p className="text-sm text-purple-700">
+                    휠체어 관련 전용 품목을 쉽고 빠르게 선택하여 발주하는
+                    방식입니다. 휠체어 부품, 악세서리, 정비용품 등을 효율적으로
+                    관리할 수 있습니다.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex gap-4 items-start p-4 rounded-lg border border-purple-200 bg-purple-25">
+                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+                  1
+                </div>
+                <div className="flex-1">
+                  <h4 className="mb-2 font-semibold text-purple-800">
+                    휠체어 본체 품목 선택
+                  </h4>
+                  <p className="mb-2 text-sm text-gray-600">
+                    휠체어 본체 관련 품목을 선택합니다.
+                  </p>
+                  <div className="p-3 text-sm bg-purple-50 rounded border border-purple-100">
+                    <span className="font-medium">예시:</span> &quot;K-MS2 42/42
+                    - 재고: 8개&quot;
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 items-start p-4 rounded-lg border border-purple-200 bg-purple-25">
+                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+                  2
+                </div>
+                <div className="flex-1">
+                  <h4 className="mb-2 font-semibold text-purple-800">
+                    악세사리품 선택
+                  </h4>
+                  <p className="mb-2 text-sm text-gray-600">
+                    휠체어 악세사리 및 부가 옵션 품목을 선택합니다. 쿠션, 벨트
+                    등 다양한 옵션을 추가할 수 있습니다.
+                  </p>
+                  <div className="p-3 text-sm bg-purple-50 rounded border border-purple-100">
+                    <span className="font-medium">예시:</span> 등받이 쿠션 1개,
+                    안전벨트 1개, 수납 가방 1개
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 items-start p-4 rounded-lg border border-purple-200 bg-purple-25">
+                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+                  3
+                </div>
+                <div className="flex-1">
+                  <h4 className="mb-2 font-semibold text-purple-800">
+                    배송 정보 입력
+                  </h4>
+                  <p className="mb-2 text-sm text-gray-600">
+                    수령인, 연락처, 배송지 주소를 입력합니다. 휠체어 사용자의
+                    특별 요청사항도 기록할 수 있습니다.
+                  </p>
+                  <div className="p-3 space-y-1 text-sm bg-purple-50 rounded border border-purple-100">
+                    <div>
+                      <span className="font-medium">수령인:</span> 김휠체어
+                    </div>
+                    <div>
+                      <span className="font-medium">연락처:</span> 010-1234-5678
+                    </div>
+                    <div>
+                      <span className="font-medium">주소:</span> 서울시
+                      강남구...
+                    </div>
+                    <div>
+                      <span className="font-medium">특별요청:</span> 1층 현관
+                      배송 요청
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 items-start p-4 rounded-lg border border-purple-200 bg-purple-25">
+                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+                  4
+                </div>
+                <div className="flex-1">
+                  <h4 className="mb-2 font-semibold text-purple-800">
+                    증빙서류 업로드
+                  </h4>
+                  <p className="mb-2 text-sm text-gray-600">
+                    발주서, 견적서, 휠체어 사용자 확인서 등 필요한 증빙서류를
+                    업로드합니다.
+                  </p>
+                  <div className="p-3 text-sm bg-purple-50 rounded border border-purple-100">
+                    <span className="font-medium">필수:</span> 발주서, 견적서,
+                    휠체어 사용자 확인서
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 items-start p-4 rounded-lg border border-purple-200 bg-purple-25">
+                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+                  5
+                </div>
+                <div className="flex-1">
+                  <h4 className="mb-2 font-semibold text-purple-800">
+                    발주 요청
+                  </h4>
+                  <p className="mb-2 text-sm text-gray-600">
+                    모든 정보를 확인한 후 휠체어 전용 발주를 요청합니다.
+                  </p>
+                  <div className="p-3 text-sm text-purple-700 bg-purple-100 rounded border border-purple-200">
+                    <span className="font-medium">완료:</span> 휠체어 발주
+                    요청이 접수되었습니다. 🦽
+                  </div>
+                  <div className="p-2 mt-2 text-xs text-purple-700 bg-purple-50 rounded border border-purple-200">
+                    📧 <strong>알림:</strong> 요청자, 승인권자, 관리자, 휠체어
+                    전담팀에게 이메일 알림이 자동 발송됩니다.
                   </div>
                 </div>
               </div>
@@ -573,6 +806,8 @@ export default function OrderGuidePage() {
   const handleStartOrder = () => {
     if (selectedType === "package") {
       router.push("/packageOrder");
+    } else if (selectedType === "wheelchair") {
+      router.push("/orderWheelchair");
     } else {
       router.push("/orderRequest");
     }
@@ -658,31 +893,41 @@ export default function OrderGuidePage() {
         </Card>
 
         {/* 빠른 이동 버튼 */}
-        <div className="text-center">
-          <div className="flex flex-col gap-4 justify-center sm:flex-row sm:gap-2">
+        <div className="w-full">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Button
               variant="outline"
               onClick={() => router.push("/packageOrder")}
-              className="flex gap-2 items-center"
+              className="flex gap-2 justify-center items-center px-4 py-3 text-sm font-medium text-blue-700 whitespace-nowrap border-blue-200 transition-all duration-200 hover:bg-blue-50 hover:border-blue-300"
             >
-              <Package className="w-4 h-4" />
-              패키지 발주 바로가기
+              <Package className="flex-shrink-0 w-4 h-4" />
+              <span className="truncate">패키지 발주 바로가기</span>
             </Button>
+            {hasWheelchairWarehouses && (
+              <Button
+                variant="outline"
+                onClick={() => router.push("/orderWheelchair")}
+                className="flex gap-2 justify-center items-center px-4 py-3 text-sm font-medium text-purple-700 whitespace-nowrap border-purple-200 transition-all duration-200 hover:bg-purple-50 hover:border-purple-300"
+              >
+                <Accessibility className="flex-shrink-0 w-4 h-4" />
+                <span className="truncate">휠체어 발주 바로가기</span>
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => router.push("/orderRequest")}
-              className="flex gap-2 items-center"
+              className="flex gap-2 justify-center items-center px-4 py-3 text-sm font-medium text-green-700 whitespace-nowrap border-green-200 transition-all duration-200 hover:bg-green-50 hover:border-green-300"
             >
-              <ShoppingCart className="w-4 h-4" />
-              개별 품목 발주 바로가기
+              <ShoppingCart className="flex-shrink-0 w-4 h-4" />
+              <span className="truncate">개별 품목 발주 바로가기</span>
             </Button>
             <Button
               variant="outline"
               onClick={() => router.push("/orderRecord")}
-              className="flex gap-2 items-center"
+              className="flex gap-2 justify-center items-center px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
             >
-              <FileText className="w-4 h-4" />
-              발주 기록 보기
+              <FileText className="flex-shrink-0 w-4 h-4" />
+              <span className="truncate">발주 기록 보기</span>
             </Button>
           </div>
         </div>

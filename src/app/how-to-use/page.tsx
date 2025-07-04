@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 import {
   PiNewspaperClippingFill,
-  PiShoppingCartFill,
+  // PiShoppingCartFill,
   PiHandCoinsFill,
   PiClipboardTextFill,
 } from "react-icons/pi";
@@ -105,18 +105,18 @@ const HowToUsePage = () => {
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <FaTruck className="text-lg" />,
         },
-        {
-          title: "패키지 발주",
-          description: "패키지 단위로 발주를 요청합니다",
-          accessLevels: ["admin", "moderator", "user", "supplier"],
-          icon: <FaTruck className="text-lg" />,
-        },
-        {
-          title: "개별 품목 발주",
-          description: "개별 소모품류 발주를 요청합니다",
-          accessLevels: ["admin", "moderator", "user", "supplier"],
-          icon: <PiShoppingCartFill className="text-lg" />,
-        },
+        // {
+        //   title: "패키지 발주",
+        //   description: "패키지 단위로 발주를 요청합니다",
+        //   accessLevels: ["admin", "moderator", "user", "supplier"],
+        //   icon: <FaTruck className="text-lg" />,
+        // },
+        // {
+        //   title: "개별 품목 발주",
+        //   description: "개별 소모품류 발주를 요청합니다",
+        //   accessLevels: ["admin", "moderator", "user", "supplier"],
+        //   icon: <PiShoppingCartFill className="text-lg" />,
+        // },
         {
           title: "발주 기록",
           description: "발주건의 기록과 상태를 확인합니다",

@@ -7,6 +7,7 @@
 ```
 src/app/
 ├── order-guide/          # 발주 가이드 페이지
+├── orderWheelchair/      # 휠체어 전용 발주 요청 페이지
 ├── orderRequest/         # 개별 품목 발주 요청 페이지
 ├── packageOrder/         # 패키지 발주 요청 페이지
 └── orderRecord/          # 발주 기록 조회 페이지
@@ -18,6 +19,8 @@ src/app/
 src/components/
 ├── orderRequest/
 │   └── OrderRequestForm.tsx      # 발주 요청 폼 (공통)
+├── orderWheelchair/
+│   └── WheelchairOrderForm.tsx   # 휠체어 발주 요청 폼 (개별 품목 발주와 동일한 구조)
 ├── orderRecord/
 │   ├── OrderRecordTabs.tsx       # 발주 기록 탭 (데스크톱)
 │   ├── OrderRecordTabsMobile.tsx # 발주 기록 탭 (모바일)
@@ -143,10 +146,11 @@ type OrderRequestFormData = {
 
 ### OrderRequestForm.tsx
 
-- **역할**: 패키지/개별 품목 발주 공통 폼
-- **Props**: `isPackageOrder`, `title`, `warehousesList`, `warehouseItems`
+- **역할**: 패키지/개별 품목/휠체어 발주 공통 폼
+- **Props**: `isPackageOrder`, `title`, `warehousesList`, `warehouseItems`, `restrictedWarehouseId`, `restrictedCategoryId`
 - **상태**: `formData`, `orderItems`, `files`, `isSubmitting`
 - **검증**: 필수 입력 항목, 최소 품목 선택, 재고 확인
+- **제한사항**: 특정 창고/카테고리로 제한 가능 (휠체어 발주 시 사용)
 
 ### OrderRecordTabs.tsx
 
@@ -167,8 +171,11 @@ type OrderRequestFormData = {
 
 - **역할**: 발주 정보 수정 모달
 - **수정 가능**: 수령인 정보, 배송 정보, 품목/수량, 메모
-- **권한**: Admin 또는 작성자만 수정 가능 (requested 상태만)
+- **권한**:
+  - **Admin**: 모든 발주 수정 가능 (상태 무관)
+  - **일반 사용자**: 자신의 requested 상태 발주만 수정 가능
 - **파일 관리**: 기존 파일 삭제/다운로드, 새 파일 업로드
+- **창고 제한**: 기존 발주의 창고 변경 불가 (비즈니스 규칙)
 
 ## 🔄 비즈니스 로직
 
@@ -186,6 +193,41 @@ type OrderRequestFormData = {
    ├─ 출고 완료 (shipmentCompleted) ← 일반 사용자: 수정/삭제 불가 | Admin: 수정/삭제 가능
    └─ 출고 반려 (rejectedByShipper) ← 일반 사용자: 수정/삭제 불가 | Admin: 수정/삭제 가능
 ```
+
+### 휠체어 발주 시스템
+
+휠체어 발주는 기존 개별 품목 발주 시스템과 동일한 구조를 사용하되, 다음과 같은 제한사항을 가집니다:
+
+#### 휠체어 발주 특징
+
+- **창고 제한**: 휠체어 전용 창고로만 발주 가능
+- **카테고리 제한**: 휠체어 카테고리의 품목만 선택 가능
+- **워크플로우**: 기존 발주 시스템과 동일한 승인 프로세스
+- **권한**: 기존 발주 시스템과 동일한 권한 체계 적용
+
+#### 휠체어 발주 구현 방식
+
+```typescript
+// WheelchairOrderForm.tsx에서 OrderRequestForm 컴포넌트를 재사용
+<OrderRequestForm
+  isPackageOrder={false}
+  title="휠체어 발주"
+  warehousesList={wheelchairWarehouses} // 휠체어 전용 창고만 필터링
+  warehouseItems={wheelchairItems} // 휠체어 카테고리 품목만 필터링
+  restrictedWarehouseId={WHEELCHAIR_WAREHOUSE_ID} // 특정 창고 ID로 제한
+  restrictedCategoryId={WHEELCHAIR_CATEGORY_ID} // 특정 카테고리 ID로 제한
+/>
+```
+
+#### 휠체어 발주 페이지 구현
+
+- **경로**: `/orderWheelchair`
+- **컴포넌트**: `WheelchairOrderForm.tsx`
+- **기능**: 기존 `OrderRequestForm` 컴포넌트 재사용
+- **제한사항**:
+  - 창고 선택 불가 (휠체어 전용 창고로 고정)
+  - 카테고리 선택 불가 (휠체어 카테고리로 고정)
+  - 해당 창고의 휠체어 카테고리 품목만 표시
 
 ### 발주 수정/삭제 권한 제어
 
@@ -210,6 +252,21 @@ type OrderRequestFormData = {
 
 - **삭제 확인**: 발주자, 수령자, 상태 정보와 함께 확인 다이얼로그 표시
 - **실시간 반영**: 수정/삭제 후 발주 목록 자동 새로고침
+
+#### 모달 접근 권한 세부 사항
+
+**OrderEditModal 진입 조건:**
+
+- **Admin**: 모든 발주에 대해 수정 모달 진입 가능
+- **일반 사용자**: 자신의 requested 상태 발주만 수정 모달 진입 가능
+
+**권한 검증 흐름:**
+
+1. **OrderRecordTabs**: 수정 버튼 표시 여부 결정
+2. **OrderEditModal**: 모달 내부에서 재검증 후 폼 활성화
+3. **에러 메시지**:
+   - **Admin**: 모든 발주에서 수정 폼 활성화 (에러 메시지 없음)
+   - **일반 사용자**: 권한 없는 경우 "수정 권한이 없습니다." 또는 "요청 상태가 아닌 주문은 수정할 수 없습니다." 표시
 
 ### 권한별 기능 제한
 

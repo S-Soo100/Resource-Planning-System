@@ -10,10 +10,8 @@ import { Supplier } from "@/types/supplier";
 import {
   OrderItemWithDetails,
   OrderRequestFormData,
-  OrderRequestFormProps,
 } from "@/types/(order)/orderRequestFormData";
-import { usePackages } from "@/hooks/usePackages";
-import { PackageApi } from "@/types/(item)/package";
+// 패키지 관련 기능은 휠체어 발주에서 사용하지 않으므로 제거
 import { authStore } from "@/store/authStore";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
@@ -21,10 +19,7 @@ import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { Item } from "@/types/(item)/item";
 import { uploadMultipleOrderFileById } from "@/api/order-api";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  hasWarehouseAccess,
-  getWarehouseAccessDeniedMessage,
-} from "@/utils/warehousePermissions";
+import { useCategory } from "@/hooks/useCategory";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import ItemSelectionModal from "../ui/ItemSelectionModal";
 import {
@@ -40,13 +35,15 @@ import {
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 
-const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
-  isPackageOrder = false,
-  title = "발주 요청",
-  warehousesList: propWarehousesList,
-  warehouseItems: propWarehouseItems,
-  onWarehouseChange,
-}) => {
+// 휠체어 전용 창고명 및 카테고리
+const WHEELCHAIR_WAREHOUSE_NAME = "캥스터즈 안산 연구소/휠체어";
+const WHEELCHAIR_CATEGORY_NAMES = [
+  "휠체어",
+  "K-MS2 휠체어 옵션품",
+  "휠체어 악세사리",
+];
+
+export default function WheelchairOrderForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +57,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const addressSearch = useAddressSearch();
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const auth = authStore((state) => state.user);
-  const { user } = useCurrentUser();
 
   // 아이템 관련 상태
   const [orderItems, setOrderItems] = useState<
@@ -81,77 +77,60 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     warehouseId: null,
   });
 
-  // auth가 변경될 때 requester 업데이트 (초기에만)
-  useEffect(() => {
-    if (auth?.name && !formData.requester && !isRequesterManuallySet) {
-      setFormData((prev) => ({
-        ...prev,
-        requester: auth.name,
-      }));
-    }
-  }, [auth, formData.requester, isRequesterManuallySet]);
-
-  // 훅 호출
-  const { useGetPackages } = usePackages();
-  const { packages } = useGetPackages();
-  const { useCreateOrder } = useOrder();
-  const {
-    mutate: createOrder,
-    // data: createOrderResponse
-  } = useCreateOrder();
+  // 훅들
   const { useGetSuppliers } = useSuppliers();
   const { suppliers: suppliersResponse } = useGetSuppliers();
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-
-  // 창고 관련 상태와 훅 - props가 없을 경우에만 사용
   const { warehouses } = useWarehouseItems();
-  const [warehousesList, setWarehousesList] = useState<Warehouse[]>([]);
-
-  // 창고별 아이템 재고 조회 - props가 없을 경우에만 사용
+  const [wheelchairWarehouse, setWheelchairWarehouse] =
+    useState<Warehouse | null>(null);
+  const { categories } = useCategory();
   const { useGetItemsByWarehouse } = useItemStockManagement();
   const warehouseId = formData.warehouseId?.toString() || "";
   const { data: warehouseItemsData } = useGetItemsByWarehouse(warehouseId);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const { useCreateOrder } = useOrder();
+  const { mutate: createOrder } = useCreateOrder();
+  const { user } = useCurrentUser();
 
-  // 실제 사용할 창고 목록과 아이템 데이터 (props 우선)
-  const effectiveWarehousesList = propWarehousesList || warehousesList;
-
-  // 현재 선택된 창고의 아이템 목록
+  // 현재 창고의 휠체어 관련 카테고리 아이템들
   const currentWarehouseItems = useMemo(() => {
-    if (propWarehouseItems && warehouseId) {
-      return propWarehouseItems[warehouseId] || [];
-    }
-    return (warehouseItemsData?.data as Item[]) || [];
-  }, [propWarehouseItems, warehouseId, warehouseItemsData]);
+    const items = (warehouseItemsData?.data as Item[]) || [];
 
-  // 창고 목록 설정 (props가 없을 경우에만)
+    if (!categories || categories.length === 0) return items;
+
+    // 휠체어 관련 카테고리들을 찾기
+    const wheelchairCategories = categories.filter((category) =>
+      WHEELCHAIR_CATEGORY_NAMES.includes(category.name)
+    );
+
+    if (wheelchairCategories.length === 0) return items;
+
+    // 휠체어 관련 카테고리 ID들
+    const wheelchairCategoryIds = wheelchairCategories.map((cat) => cat.id);
+
+    return items.filter(
+      (item) =>
+        item.teamItem?.categoryId &&
+        wheelchairCategoryIds.includes(item.teamItem.categoryId)
+    );
+  }, [warehouseItemsData, categories]);
+
+  // 휠체어 창고 자동 설정
   useEffect(() => {
-    if (!propWarehousesList && warehouses) {
-      setWarehousesList(warehouses);
-    }
-  }, [propWarehousesList, warehouses]);
-  //     // 창고 목록이 있으면 첫 번째 창고를 자동으로 선택
-  //     if (warehouses.length > 0 && !formData.warehouseId) {
-  //       setFormData((prev) => ({
-  //         ...prev,
-  //         warehouseId: warehouses[0].id,
-  //       }));
-  //     }
-  //   }
-  // }, [propWarehousesList, warehouses, formData.warehouseId]);
+    if (warehouses && !formData.warehouseId) {
+      const targetWarehouse = warehouses.find(
+        (warehouse) => warehouse.warehouseName === WHEELCHAIR_WAREHOUSE_NAME
+      );
 
-  // // props로 전달된 창고 목록이 있으면 첫 번째 창고를 자동으로 선택
-  // useEffect(() => {
-  //   if (
-  //     propWarehousesList &&
-  //     propWarehousesList.length > 0 &&
-  //     !formData.warehouseId
-  //   ) {
-  //     setFormData((prev) => ({
-  //       ...prev,
-  //       warehouseId: propWarehousesList[0].id,
-  //     }));
-  //   }
-  // }, [propWarehousesList, formData.warehouseId]);
+      if (targetWarehouse) {
+        setWheelchairWarehouse(targetWarehouse);
+        setFormData((prev) => ({
+          ...prev,
+          warehouseId: targetWarehouse.id,
+        }));
+      }
+    }
+  }, [warehouses, formData.warehouseId]);
 
   // 거래처 목록 설정
   useEffect(() => {
@@ -167,6 +146,34 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
   }, [suppliersResponse]);
 
+  // 사용자 이름 자동 설정
+  useEffect(() => {
+    if (auth?.name && !formData.requester && !isRequesterManuallySet) {
+      setFormData((prev) => ({
+        ...prev,
+        requester: auth.name,
+      }));
+    }
+  }, [auth, formData.requester, isRequesterManuallySet]);
+
+  // 사용자 권한에 따른 예외 처리 (0.2초 후 실행)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (user && auth?.name) {
+        if (user.accessLevel === "supplier") {
+          // supplier인 경우
+          setFormData((prev) => ({
+            ...prev,
+            requester: "", // requester 기본값 제거
+            manager: auth.name, // manager에 auth.name 설정
+          }));
+        }
+      }
+    }, 200); // 0.2초 후 실행
+
+    return () => clearTimeout(timer);
+  }, [user, auth?.name]);
+
   // 현재 창고의 아이템 데이터가 변경되면 재고 상태 업데이트
   useEffect(() => {
     if (
@@ -178,18 +185,15 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
 
     const updatedItems = orderItems.map((item) => {
-      // 현재 창고에 있는 아이템 중 일치하는 코드 찾기
       const stockItem = currentWarehouseItems.find(
         (stockItem) => stockItem.teamItem.itemCode === item.teamItem.itemCode
       );
 
-      // 재고 상태 계산
       const stockAvailable = stockItem
         ? stockItem.itemQuantity >= item.quantity
         : false;
       const stockQuantity = stockItem?.itemQuantity || 0;
 
-      // 재고 상태가 이미 동일하면 객체를 새로 생성하지 않고 그대로 반환
       if (
         item.stockAvailable === stockAvailable &&
         item.stockQuantity === stockQuantity
@@ -197,7 +201,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         return item;
       }
 
-      // 재고 상태가 변경된 경우에만 새 객체 생성
       return {
         ...item,
         stockAvailable,
@@ -205,7 +208,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       };
     });
 
-    // 변경된 항목이 있는 경우에만 상태 업데이트
     const hasChanges = updatedItems.some(
       (item, index) =>
         item.stockAvailable !== orderItems[index].stockAvailable ||
@@ -219,7 +221,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
   // 초기 날짜 설정
   useEffect(() => {
-    // 현재 날짜를 ISO 형식(YYYY-MM-DD)으로 변환
     const now = new Date();
     const formattedDate = now.toISOString().split("T")[0];
     setRequestDate(formattedDate);
@@ -231,83 +232,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       setupDate: formattedDate,
     }));
   }, []);
-
-  const [packageQuantity, setPackageQuantity] = useState(1);
-
-  // 패키지 수량 변경 핸들러
-  const handlePackageQuantityChange = (increment: boolean) => {
-    setPackageQuantity((prev) => {
-      const newQuantity = increment ? prev + 1 : prev > 1 ? prev - 1 : prev;
-
-      // 패키지 아이템들의 수량도 함께 업데이트
-      setOrderItems((prevItems) =>
-        prevItems.map((item) => {
-          const stockItem = currentWarehouseItems?.find(
-            (stockItem) =>
-              stockItem.teamItem.itemCode === item.teamItem.itemCode
-          );
-
-          return {
-            ...item,
-            quantity: newQuantity,
-            stockAvailable: stockItem
-              ? stockItem.itemQuantity >= newQuantity
-              : false,
-          };
-        })
-      );
-
-      return newQuantity;
-    });
-  };
-
-  // 패키지 선택 핸들러 수정
-  const handlePackageSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const packageId = parseInt(e.target.value);
-    if (packageId === 0) {
-      setTimeout(() => {
-        setOrderItems([]);
-        setPackageQuantity(1);
-      }, 0);
-      setFormData((prev) => ({
-        ...prev,
-        packageId: null,
-      }));
-      return;
-    }
-
-    setFormData((prev) => ({
-      ...prev,
-      packageId,
-    }));
-
-    const selectedPackage = packages?.find(
-      (pkg: PackageApi) => pkg.id === packageId
-    );
-    if (!selectedPackage) return;
-
-    const itemCodes = selectedPackage.itemlist.split(", ");
-    const newItems = itemCodes
-      .map((itemCode) => {
-        const warehouseItem = currentWarehouseItems.find(
-          (item) => item.teamItem.itemCode === itemCode
-        );
-        if (!warehouseItem) return null;
-
-        return {
-          teamItem: warehouseItem.teamItem,
-          quantity: packageQuantity,
-          stockAvailable: warehouseItem.itemQuantity >= packageQuantity,
-          stockQuantity: warehouseItem.itemQuantity,
-          warehouseItemId: warehouseItem.id,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
-
-    setTimeout(() => {
-      setOrderItems(newItems);
-    }, 0);
-  };
 
   // 아이템 제거 핸들러
   const handleRemoveItem = (itemId: number) => {
@@ -329,7 +253,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             ? item.quantity - 1
             : item.quantity;
 
-          // 현재 창고의 아이템에서 재고 확인
           const stockItem = currentWarehouseItems.find(
             (stockItem) =>
               stockItem.teamItem.itemCode === item.teamItem.itemCode
@@ -357,7 +280,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   ) => {
     const { name, value } = e.target;
 
-    // requester 필드가 변경되면 수동 입력 플래그 설정
     if (name === "requester") {
       setIsRequesterManuallySet(true);
     }
@@ -412,42 +334,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
   };
 
-  // 창고 선택 핸들러
-  const handleWarehouseChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const warehouseId = parseInt(e.target.value);
-
-    // 창고 접근 권한 체크
-    if (warehouseId !== 0 && user && !hasWarehouseAccess(user, warehouseId)) {
-      const warehouseName =
-        effectiveWarehousesList.find((w) => w.id === warehouseId)
-          ?.warehouseName || `창고 ${warehouseId}`;
-      toast.error(getWarehouseAccessDeniedMessage(warehouseName));
-      e.target.value = formData.warehouseId?.toString() || "0"; // 이전 값으로 복원
-      return;
-    }
-
-    setFormData({
-      ...formData,
-      warehouseId: warehouseId,
-    });
-
-    // 창고가 변경되면 선택된 아이템을 완전히 초기화
-    setTimeout(() => {
-      setOrderItems([]);
-    }, 0);
-
-    if (warehouseId !== 0 && onWarehouseChange) {
-      // 부모 컴포넌트에서 제공한 onWarehouseChange 함수 사용
-      try {
-        await onWarehouseChange(warehouseId);
-      } catch (error) {
-        console.error("창고 아이템 조회 실패:", error);
-      }
-    }
-  };
-
   const validateForm = (): boolean => {
     if (orderItems.length === 0) {
       toast.error("최소 하나 이상의 품목을 선택해주세요");
@@ -487,7 +373,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       return;
     }
 
-    // 확인 메시지 표시
     const isConfirmed = window.confirm(
       "발주서, 견적서 등 필요한 증빙을 모두 업로드 하셨나요?"
     );
@@ -522,53 +407,43 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             memo: formData.notes,
           })),
       };
-      console.log(orderData);
+
       createOrder(orderData, {
         onSuccess: async (response) => {
           if (response.success && response.data) {
-            //! 파일이 첨부된 경우 추가 처리
             if (fileUpload.files.length > 0) {
               try {
                 const orderId = response.data.id;
 
                 if (!orderId) {
-                  console.error("주문 ID가 없습니다:", response.data);
                   toast.error(
                     "발주 요청은 성공했으나 주문 ID를 찾을 수 없어 파일 업로드를 진행할 수 없습니다"
                   );
                 } else {
-                  // orderId가 string 타입일 가능성이 있으므로 명시적으로 숫자 변환
                   const orderIdAsNumber =
                     typeof orderId === "string"
                       ? parseInt(orderId, 10)
                       : orderId;
 
                   if (isNaN(orderIdAsNumber)) {
-                    console.error("주문 ID가 유효한 숫자가 아닙니다:", orderId);
                     toast.error(
                       "발주 요청은 성공했으나 유효하지 않은 주문 ID로 인해 파일 업로드를 진행할 수 없습니다"
                     );
                     return;
                   }
 
-                  // 파일 크기 검사 (50MB 제한)
                   const maxFileSize = 50 * 1024 * 1024; // 50MB
                   const oversizedFiles = fileUpload.files.filter(
                     (file) => file.size > maxFileSize
                   );
 
                   if (oversizedFiles.length > 0) {
-                    console.error(
-                      "파일 크기가 너무 큰 파일이 있습니다:",
-                      oversizedFiles.map((f) => f.name)
-                    );
                     toast.error(
                       "50MB를 초과하는 파일이 있어 업로드할 수 없습니다"
                     );
                     return;
                   }
 
-                  // uploadMultipleOrderFileById API 호출
                   try {
                     toast.loading("파일 업로드 중...");
                     const uploadResponse = await uploadMultipleOrderFileById(
@@ -578,59 +453,49 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                     toast.dismiss();
 
                     if (uploadResponse.success) {
-                      console.log("파일 업로드 성공:", uploadResponse.data);
                       const uploadedFileNames = uploadResponse.data
                         ?.map((file) => file.fileName)
                         .join(", ");
                       toast.success(
-                        `발주 요청 및 파일 '${uploadedFileNames}' 업로드가 완료되었습니다`
+                        `휠체어 발주 요청 및 파일 '${uploadedFileNames}' 업로드가 완료되었습니다`
                       );
                     } else {
-                      console.error("파일 업로드 실패:", uploadResponse.error);
                       toast.error(
                         `발주 요청은 성공했으나 파일 업로드에 실패했습니다: ${
                           uploadResponse.error || "알 수 없는 오류"
                         }`
                       );
                     }
-                  } catch (uploadApiError) {
-                    console.error(
-                      "파일 업로드 API 호출 중 오류:",
-                      uploadApiError
-                    );
+                  } catch (error) {
+                    console.error("파일 업로드 API 오류:", error);
                     toast.error("파일 업로드 과정에서 오류가 발생했습니다");
                   }
                 }
-              } catch (uploadError) {
-                console.error("파일 업로드 전체 과정 중 오류:", uploadError);
+              } catch (error) {
+                console.error("파일 업로드 전체 과정 오류:", error);
                 toast.error(
                   "발주 요청은 성공했으나 파일 업로드 중 오류가 발생했습니다"
                 );
               }
             } else {
-              toast.success("발주 요청이 완료되었습니다");
+              toast.success("휠체어 발주 요청이 완료되었습니다");
             }
 
-            // 처리 중 상태로 변경
             setIsProcessing(true);
             toast.loading("처리 중... 잠시만 기다려주세요.");
 
-            // 2초 후 캐시 갱신 및 페이지 이동
             setTimeout(async () => {
               try {
-                // React Query 캐시 무효화
                 const currentTeamId =
                   authStore.getState().selectedTeam?.id || 1;
                 await queryClient.invalidateQueries({
                   queryKey: ["orders", "team", currentTeamId],
                 });
 
-                // 발주 목록 데이터 다시 가져오기
                 await queryClient.refetchQueries({
                   queryKey: ["orders", "team", currentTeamId],
                 });
 
-                // 페이지 이동
                 router.replace("/orderRecord");
               } catch (error) {
                 console.error("처리 중 오류 발생:", error);
@@ -642,19 +507,19 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             }, 2000);
           } else {
             setIsSubmitting(false);
-            toast.error(response.message || "발주 요청에 실패했습니다");
+            toast.error(response.message || "휠체어 발주 요청에 실패했습니다");
           }
         },
         onError: (error) => {
           setIsSubmitting(false);
           console.error("발주 요청 실패:", error);
-          toast.error("발주 요청에 실패했습니다");
+          toast.error("휠체어 발주 요청에 실패했습니다");
         },
       });
     } catch (error) {
       setIsSubmitting(false);
       console.error("발주 요청 실패:", error);
-      toast.error("발주 요청에 실패했습니다");
+      toast.error("휠체어 발주 요청에 실패했습니다");
     }
   };
 
@@ -679,193 +544,128 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
 
     // 아이템 추가
-    setTimeout(() => {
-      setOrderItems((prev) => [
-        ...prev,
-        {
-          teamItem: item.teamItem,
-          quantity: 1,
-          stockAvailable: item.itemQuantity >= 1,
-          stockQuantity: item.itemQuantity,
-          warehouseItemId: item.id,
-        },
-      ]);
-    }, 0);
+    setOrderItems((prev) => [
+      ...prev,
+      {
+        teamItem: item.teamItem,
+        quantity: 1,
+        stockAvailable: item.itemQuantity >= 1,
+        stockQuantity: item.itemQuantity,
+        warehouseItemId: item.id,
+      },
+    ]);
 
     toast.success(`${item.teamItem.itemName}이 추가되었습니다`);
   };
 
   return (
-    <div className="container p-4 mx-auto">
-      <h1 className="mb-4 text-2xl font-bold text-center">{title}</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
-        {/* 창고 선택 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            발주 창고 선택 <span className="text-red-500">*</span>
-          </label>
-          <select
-            name="warehouseId"
-            onChange={handleWarehouseChange}
-            value={formData.warehouseId || 0}
-            className="px-3 py-2 w-full rounded-md border"
-            required
-          >
-            <option value="0">창고 선택</option>
-            {effectiveWarehousesList.map((warehouse) => {
-              const hasAccess = !user || hasWarehouseAccess(user, warehouse.id);
-              return (
-                <option
-                  key={warehouse.id}
-                  value={warehouse.id}
-                  disabled={!hasAccess}
-                  style={{ color: hasAccess ? "inherit" : "#9CA3AF" }}
-                >
-                  {warehouse.warehouseName}
-                  {!hasAccess ? " (접근 불가)" : ""}
-                </option>
-              );
-            })}
-          </select>
-          {user &&
-            effectiveWarehousesList.some(
-              (w) => !hasWarehouseAccess(user, w.id)
-            ) && (
-              <p className="text-xs text-amber-600">
-                일부 창고는 접근 권한이 제한되어 있습니다.
-              </p>
-            )}
+    <div className="container p-4 mx-auto max-w-2xl">
+      <div className="p-2 mb-6 text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg">
+        <h1 className="mb-2 text-2xl font-bold text-center">
+          휠체어 발주 요청
+        </h1>
+        {/* <p className="text-center text-purple-100">전문 휠체어 발주 시스템</p> */}
+      </div>
+
+      {/* 창고 정보 표시 */}
+      {wheelchairWarehouse && (
+        <div className="p-4 mb-6 bg-purple-50 rounded-lg border border-purple-200 shadow-sm">
+          <div className="flex gap-3 items-center">
+            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+            <div>
+              <span className="text-sm font-medium text-purple-800">
+                발주 창고:
+              </span>
+              <span className="ml-2 text-sm font-semibold text-purple-700">
+                {wheelchairWarehouse.warehouseName}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* 품목 추가 버튼 */}
+        <div className="p-4 bg-white rounded-lg border shadow-sm">
+          <div className="flex justify-between items-center mb-2">
+            {/* <label className="block text-sm font-medium text-gray-700">
+              휠체어 관련 품목 <span className="text-red-500">*</span>
+            </label> */}
+            <button
+              type="button"
+              onClick={handleOpenItemModal}
+              disabled={!formData.warehouseId}
+              className="px-4 py-2 text-white bg-purple-500 rounded-md transition-colors hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus size={16} className="inline mr-1" />
+              품목 추가
+            </button>
+          </div>
+          {!formData.warehouseId && (
+            <p className="text-xs text-amber-600">창고 설정을 기다리는 중...</p>
+          )}
+          {orderItems.length === 0 && formData.warehouseId && (
+            <p className="text-xs text-gray-500">
+              품목 추가 버튼을 클릭하여 휠체어 관련 품목을 추가하세요.
+            </p>
+          )}
         </div>
 
-        {/* 패키지 선택 (패키지 발주 요청인 경우에만 표시) */}
-        {isPackageOrder && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              패키지 선택
-            </label>
-            <div className="flex gap-2 items-center">
-              <select
-                name="packageId"
-                onChange={handlePackageSelect}
-                className="flex-1 px-3 py-2 rounded-md border"
-                required={isPackageOrder}
-                disabled={!formData.warehouseId}
-              >
-                <option value="0">패키지 선택</option>
-                {packages?.map((pkg: PackageApi) => (
-                  <option key={pkg.id} value={pkg.id}>
-                    {pkg.packageName}
-                  </option>
-                ))}
-              </select>
-              {formData.packageId && (
-                <div className="flex gap-2 items-center">
-                  <button
-                    type="button"
-                    onClick={() => handlePackageQuantityChange(false)}
-                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                  >
-                    <Minus size={16} />
-                  </button>
-                  <span className="w-8 text-center">{packageQuantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => handlePackageQuantityChange(true)}
-                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-              )}
-            </div>
-            {!formData.warehouseId && (
-              <p className="text-xs text-amber-600">
-                창고를 먼저 선택해주세요.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* 개별품목 선택 (개별품목 발주 요청인 경우에만 표시) */}
-        {!isPackageOrder && (
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <label className="block text-sm font-medium text-gray-700">
-                품목 선택
-              </label>
-              <button
-                type="button"
-                onClick={handleOpenItemModal}
-                disabled={!formData.warehouseId}
-                className="px-4 py-2 text-white bg-blue-500 rounded-md transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Plus size={16} className="inline mr-1" />
-                품목 추가
-              </button>
-            </div>
-            {!formData.warehouseId && (
-              <p className="text-xs text-amber-600">
-                창고를 먼저 선택해주세요.
-              </p>
-            )}
-            {orderItems.length === 0 && formData.warehouseId && (
-              <p className="text-xs text-gray-500">
-                품목 추가 버튼을 클릭하여 품목을 선택하세요.
-              </p>
-            )}
-          </div>
-        )}
-
+        {/* 선택된 품목 목록 */}
         {orderItems.length > 0 && (
-          <div className="mt-4">
-            <h3 className="mb-2 font-medium">선택된 품목</h3>
-            <div className="p-3 rounded-md border">
+          <div className="p-4 bg-white rounded-lg border shadow-sm">
+            <h3 className="mb-3 font-medium text-gray-800">
+              선택된 휠체어 관련 품목
+            </h3>
+            <div className="space-y-3">
               {orderItems.map((item, index) => (
                 <div
                   key={item.warehouseItemId}
-                  className="flex justify-between items-center py-2 border-b last:border-0"
+                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
                 >
                   <div className="flex-1">
                     <div className="flex gap-2 items-center">
-                      <p className="font-medium">{item.teamItem.itemName}</p>
-                      {formData.warehouseId &&
-                        item.stockAvailable === false && (
-                          <div className="flex items-center text-xs text-red-500">
-                            <AlertCircle size={14} className="mr-1" />
-                            재고 부족
-                          </div>
-                        )}
+                      <p className="font-medium text-gray-800">
+                        {item.teamItem.itemName}
+                      </p>
+                      {item.stockAvailable === false && (
+                        <div className="flex items-center text-xs text-red-500">
+                          <AlertCircle size={14} className="mr-1" />
+                          재고 부족
+                        </div>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-gray-500">
                       코드: {item.teamItem.itemCode}
-                      {formData.warehouseId &&
-                        item.stockQuantity !== undefined && (
-                          <span className="ml-2">
-                            (재고: {item.stockQuantity}개)
-                          </span>
-                        )}
+                      {item.stockQuantity !== undefined && (
+                        <span className="ml-2">
+                          (재고: {item.stockQuantity}개)
+                        </span>
+                      )}
                     </p>
                   </div>
                   <div className="flex gap-2 items-center">
                     <button
                       type="button"
                       onClick={() => handleQuantityChange(index, false)}
-                      className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                      className="p-1 bg-gray-200 rounded transition-colors hover:bg-gray-300"
                     >
                       <Minus size={16} />
                     </button>
-                    <span className="w-8 text-center">{item.quantity}</span>
+                    <span className="w-8 font-medium text-center">
+                      {item.quantity}
+                    </span>
                     <button
                       type="button"
                       onClick={() => handleQuantityChange(index, true)}
-                      className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                      className="p-1 bg-gray-200 rounded transition-colors hover:bg-gray-300"
                     >
                       <Plus size={16} />
                     </button>
                     <button
                       type="button"
                       onClick={() => handleRemoveItem(item.warehouseItemId)}
-                      className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
+                      className="p-1 ml-2 text-red-600 bg-red-100 rounded transition-colors hover:bg-red-200"
                     >
                       <X size={16} />
                     </button>
@@ -880,7 +680,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         <NotesSection
           notes={formData.notes}
           onChange={handleChange}
-          focusRingColor="blue"
+          focusRingColor="purple"
         />
 
         {/* 담당자 정보 */}
@@ -888,7 +688,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           requester={formData.requester}
           manager={formData.manager}
           onChange={handleChange}
-          focusRingColor="blue"
+          focusRingColor="purple"
         />
 
         {/* 날짜 정보 */}
@@ -896,14 +696,14 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           requestDate={requestDate}
           setupDate={setupDate}
           onDateChange={handleDateChange}
-          focusRingColor="blue"
+          focusRingColor="purple"
         />
 
         {/* 거래처 선택 */}
         <SupplierSection
           suppliers={suppliers}
           onChange={handleSupplierChange}
-          focusRingColor="blue"
+          focusRingColor="purple"
         />
 
         {/* 수령인 정보 */}
@@ -911,7 +711,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           receiver={formData.receiver}
           receiverPhone={formData.receiverPhone}
           onChange={handleChange}
-          focusRingColor="blue"
+          focusRingColor="purple"
         />
 
         {/* 수령지 주소 */}
@@ -925,7 +725,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           }
           onToggleAddressModal={addressSearch.handleToggleAddressModal}
           onCloseAddressModal={addressSearch.handleCloseAddressModal}
-          focusRingColor="blue"
+          focusRingColor="purple"
         />
 
         {/* 파일 업로드 */}
@@ -944,15 +744,12 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         <SubmitButton
           isSubmitting={isSubmitting}
           isProcessing={isProcessing}
-          buttonText="발주 요청하기"
-          processingText="발주 처리 중..."
+          buttonText="휠체어 발주 요청하기"
+          processingText="휠체어 발주 처리 중..."
           completingText="완료 처리 중..."
-          color="blue"
+          color="purple"
         />
       </form>
-      <div className="flex flex-col mb-12 h-32 text-white"> - </div>
-      <div className="flex flex-col mb-12 h-32 text-white"> - </div>
-      <div className="flex flex-col mb-12 h-32 text-white"> - </div>
 
       {/* 품목 추가 모달 */}
       <ItemSelectionModal
@@ -961,10 +758,12 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         onAddItem={handleAddItemFromModal}
         currentWarehouseItems={currentWarehouseItems}
         orderItems={orderItems}
-        title="품목 추가"
+        title="휠체어 관련 품목 추가"
+        categoryNames={WHEELCHAIR_CATEGORY_NAMES}
       />
+
+      {/* 하단 여백 */}
+      <div className="h-20"></div>
     </div>
   );
-};
-
-export default OrderRequestForm;
+}

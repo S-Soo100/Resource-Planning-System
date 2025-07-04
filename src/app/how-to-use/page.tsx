@@ -18,6 +18,7 @@ import {
   PiHandCoinsFill,
   PiClipboardTextFill,
 } from "react-icons/pi";
+import { Accessibility } from "lucide-react";
 
 const HowToUsePage = () => {
   const router = useRouter();
@@ -105,18 +106,24 @@ const HowToUsePage = () => {
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <FaTruck className="text-lg" />,
         },
-        // {
-        //   title: "패키지 발주",
-        //   description: "패키지 단위로 발주를 요청합니다",
-        //   accessLevels: ["admin", "moderator", "user", "supplier"],
-        //   icon: <FaTruck className="text-lg" />,
-        // },
-        // {
-        //   title: "개별 품목 발주",
-        //   description: "개별 소모품류 발주를 요청합니다",
-        //   accessLevels: ["admin", "moderator", "user", "supplier"],
-        //   icon: <PiShoppingCartFill className="text-lg" />,
-        // },
+        {
+          title: "휠리엑스 패키지 발주",
+          description: "미리 구성된 패키지 단위로 발주를 요청합니다",
+          accessLevels: ["admin", "moderator", "user", "supplier"],
+          icon: <FaTruck className="text-lg" />,
+        },
+        {
+          title: "휠체어 발주",
+          description: "휠체어 전용 품목을 선택하여 발주합니다",
+          accessLevels: ["admin", "moderator", "user", "supplier"],
+          icon: <Accessibility className="text-lg" />,
+        },
+        {
+          title: "개별 품목 발주",
+          description: "원하는 품목을 개별적으로 선택하여 발주합니다",
+          accessLevels: ["admin", "moderator", "user", "supplier"],
+          icon: <FaBox className="text-lg" />,
+        },
         {
           title: "발주 기록",
           description: "발주건의 기록과 상태를 확인합니다",
@@ -124,16 +131,15 @@ const HowToUsePage = () => {
           icon: <PiNewspaperClippingFill className="text-lg" />,
         },
         {
-          title: "시연 요청",
-          description: "시연품 출고를 요청합니다 (관리자만) - 현재 개발 중",
-          accessLevels: ["admin"],
+          title: "데모 시연 요청",
+          description: "제품 시연을 위한 전용 발주를 요청합니다",
+          accessLevels: ["admin", "moderator", "user"],
           icon: <PiHandCoinsFill className="text-lg" />,
         },
         {
-          title: "시연 기록",
-          description:
-            "시연품 출고 기록을 확인합니다 (관리자만) - 현재 개발 중",
-          accessLevels: ["admin"],
+          title: "데모 시연 기록",
+          description: "시연품 출고 및 복귀 기록을 확인합니다",
+          accessLevels: ["admin", "moderator", "user"],
           icon: <PiClipboardTextFill className="text-lg" />,
         },
       ],
@@ -207,7 +213,8 @@ const HowToUsePage = () => {
         <p className="text-lg text-gray-600">
           KARS(Kangsters Auto Resource-management System)는 다양한 품목을
           효율적으로 분류하고 자동으로 재고 관리 하기 위한 통합 재고 관리
-          시스템입니다.
+          시스템입니다. v1.5.0부터 데모 시연 시스템과 휠체어 전용 발주 기능이
+          추가되었습니다.
         </p>
       </div>
 
@@ -409,11 +416,10 @@ const HowToUsePage = () => {
             <div className="p-4 bg-white rounded-lg border border-orange-200">
               <h4 className="mb-2 font-semibold text-orange-800">🛞 휠체어</h4>
               <ul className="space-y-1 text-sm text-gray-600">
-                <li>• 사이즈별 휠체어 제품</li>
-                <li>• 휠체어 악세사리 전반</li>
-                <li>• 기타 관련 제품군</li>
-                {/* <li>• 브레이크호스</li>
-                <li>• 캘리퍼</li> */}
+                <li>• K-MS2 휠체어 본체</li>
+                <li>• K-MS2 휠체어 옵션품</li>
+                <li>• 휠체어 악세사리</li>
+                <li>• 쿠션, 벨트 등 부가품</li>
               </ul>
             </div>
             <div className="p-4 bg-white rounded-lg border border-orange-200">
@@ -524,10 +530,11 @@ const HowToUsePage = () => {
             <div className="p-4 text-center bg-white rounded-lg border border-green-200">
               <div className="mb-2 text-2xl">🛒</div>
               <h4 className="mb-2 font-semibold text-green-800">
-                7. 발주 혹은 시연
+                7. 발주 및 데모 시연
               </h4>
               <p className="text-sm text-gray-600">
-                발주 혹은 시연을 통해 물품의 출고를 정확히 기록하고 재고에 반영
+                패키지/개별/휠체어 발주 또는 데모 시연을 통해 물품 출고를 정확히
+                기록하고 재고에 반영
               </p>
             </div>
           </div>
@@ -545,7 +552,7 @@ const HowToUsePage = () => {
           <h3 className="mb-4 text-lg font-semibold text-gray-800">
             🎯 발주 시스템 콘셉트
           </h3>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <div className="p-4 text-center bg-white rounded-lg shadow-sm">
               <div className="mb-2 text-3xl">📦</div>
               <h4 className="mb-2 font-semibold text-green-800">패키지 발주</h4>
@@ -555,10 +562,24 @@ const HowToUsePage = () => {
               </p>
             </div>
             <div className="p-4 text-center bg-white rounded-lg shadow-sm">
+              <div className="mb-2 text-3xl">🦽</div>
+              <h4 className="mb-2 font-semibold text-green-800">휠체어 발주</h4>
+              <p className="text-sm text-gray-600">
+                휠체어 전용 창고의 품목만 선택하여 발주하는 전문 시스템
+              </p>
+            </div>
+            <div className="p-4 text-center bg-white rounded-lg shadow-sm">
               <div className="mb-2 text-3xl">🛍️</div>
               <h4 className="mb-2 font-semibold text-green-800">개별 발주</h4>
               <p className="text-sm text-gray-600">
                 특정 물품이 부족할 때 개별적으로 발주하는 유연한 방식
+              </p>
+            </div>
+            <div className="p-4 text-center bg-white rounded-lg shadow-sm">
+              <div className="mb-2 text-3xl">🎭</div>
+              <h4 className="mb-2 font-semibold text-green-800">데모 시연</h4>
+              <p className="text-sm text-gray-600">
+                제품 시연을 위한 전용 관리 시스템으로 출고와 복귀 모두 관리
               </p>
             </div>
             <div className="p-4 text-center bg-white rounded-lg shadow-sm">
@@ -573,7 +594,7 @@ const HowToUsePage = () => {
             <div className="p-4 text-center bg-white rounded-lg shadow-sm">
               <div className="mb-2 text-3xl">📧</div>
               <h4 className="mb-2 font-semibold text-green-800">
-                자동으로 재고 반영 및 이메일 전송
+                자동 재고 반영
               </h4>
               <p className="text-sm text-gray-600">
                 발주 완료 시 자동으로 재고에 반영되고 이메일로 상세 안내
@@ -587,45 +608,94 @@ const HowToUsePage = () => {
           <h3 className="mb-4 text-lg font-semibold text-gray-800">
             🔄 발주 워크플로우 상세
           </h3>
-          <div className="space-y-4">
-            <div className="flex gap-4 items-center p-4 bg-white rounded-lg border border-purple-200">
-              <div className="text-2xl">1️⃣</div>
-              <div>
-                <h4 className="font-semibold text-purple-800">발주 요청</h4>
-                <p className="text-sm text-gray-600">
-                  사용자가 패키지 또는 개별 물품 발주를 요청합니다.
-                </p>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* 일반 발주 워크플로우 */}
+            <div>
+              <h4 className="mb-3 text-md font-semibold text-purple-800">
+                📦 일반 발주 워크플로우
+              </h4>
+              <div className="space-y-3">
+                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
+                  <div className="text-lg">1️⃣</div>
+                  <div>
+                    <h5 className="font-semibold text-purple-800">발주 요청</h5>
+                    <p className="text-xs text-gray-600">
+                      패키지/개별/휠체어 발주 요청
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
+                  <div className="text-lg">2️⃣</div>
+                  <div>
+                    <h5 className="font-semibold text-purple-800">1차 승인</h5>
+                    <p className="text-xs text-gray-600">
+                      1차승인권자가 검토 후 승인/거부
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
+                  <div className="text-lg">3️⃣</div>
+                  <div>
+                    <h5 className="font-semibold text-purple-800">출고 확인</h5>
+                    <p className="text-xs text-gray-600">
+                      관리자가 재고 확인 후 출고 진행
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
+                  <div className="text-lg">4️⃣</div>
+                  <div>
+                    <h5 className="font-semibold text-purple-800">배송 완료</h5>
+                    <p className="text-xs text-gray-600">
+                      물품 배송 완료 및 재고 반영
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex gap-4 items-center p-4 bg-white rounded-lg border border-purple-200">
-              <div className="text-2xl">2️⃣</div>
-              <div>
-                <h4 className="font-semibold text-purple-800">
-                  1차 승인 (1차승인권자)
-                </h4>
-                <p className="text-sm text-gray-600">
-                  1차승인권자가 발주 요청을 검토하고 승인 또는 거부합니다.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-center p-4 bg-white rounded-lg border border-purple-200">
-              <div className="text-2xl">3️⃣</div>
-              <div>
-                <h4 className="font-semibold text-purple-800">
-                  출고 확인 (관리자)
-                </h4>
-                <p className="text-sm text-gray-600">
-                  관리자가 재고를 확인하고 출고를 진행합니다.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4 items-center p-4 bg-white rounded-lg border border-purple-200">
-              <div className="text-2xl">4️⃣</div>
-              <div>
-                <h4 className="font-semibold text-purple-800">배송 완료</h4>
-                <p className="text-sm text-gray-600">
-                  물품이 배송되어 발주가 완료됩니다.
-                </p>
+
+            {/* 데모 시연 워크플로우 */}
+            <div>
+              <h4 className="mb-3 text-md font-semibold text-purple-800">
+                🎭 데모 시연 워크플로우
+              </h4>
+              <div className="space-y-3">
+                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
+                  <div className="text-lg">1️⃣</div>
+                  <div>
+                    <h5 className="font-semibold text-purple-800">시연 요청</h5>
+                    <p className="text-xs text-gray-600">
+                      제품 시연을 위한 전용 요청
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
+                  <div className="text-lg">2️⃣</div>
+                  <div>
+                    <h5 className="font-semibold text-purple-800">시연 승인</h5>
+                    <p className="text-xs text-gray-600">
+                      1차승인권자가 시연 요청 승인
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
+                  <div className="text-lg">3️⃣</div>
+                  <div>
+                    <h5 className="font-semibold text-purple-800">시연 출고</h5>
+                    <p className="text-xs text-gray-600">
+                      관리자가 시연품 출고 처리
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
+                  <div className="text-lg">4️⃣</div>
+                  <div>
+                    <h5 className="font-semibold text-purple-800">시연 복귀</h5>
+                    <p className="text-xs text-gray-600">
+                      시연 완료 후 제품 복귀 처리
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -688,32 +758,67 @@ const HowToUsePage = () => {
         ))}
       </div>
 
-      {/* 발주 워크플로우 */}
-      <div className="p-6 mt-8 bg-blue-50 rounded-xl border-2 border-blue-200">
-        <h2 className="mb-4 text-xl font-bold text-gray-800">
-          발주 워크플로우
-        </h2>
-        <div className="flex flex-wrap gap-2 items-center text-sm">
-          <span className="px-3 py-1 text-blue-800 bg-blue-100 rounded-full">
-            요청됨
-          </span>
-          <span className="text-gray-400">→</span>
-          <span className="px-3 py-1 text-yellow-800 bg-yellow-100 rounded-full">
-            승인/거부
-          </span>
-          <span className="text-gray-400">→</span>
-          <span className="px-3 py-1 text-green-800 bg-green-100 rounded-full">
-            출고 확인
-          </span>
-          <span className="text-gray-400">→</span>
-          <span className="px-3 py-1 text-purple-800 bg-purple-100 rounded-full">
-            배송 완료
-          </span>
+      {/* 발주 워크플로우 요약 */}
+      <div className="mt-8 space-y-6">
+        {/* 일반 발주 워크플로우 */}
+        <div className="p-6 bg-blue-50 rounded-xl border-2 border-blue-200">
+          <h2 className="mb-4 text-xl font-bold text-gray-800">
+            📦 일반 발주 워크플로우
+          </h2>
+          <div className="flex flex-wrap gap-2 items-center text-sm">
+            <span className="px-3 py-1 text-blue-800 bg-blue-100 rounded-full">
+              요청됨
+            </span>
+            <span className="text-gray-400">→</span>
+            <span className="px-3 py-1 text-yellow-800 bg-yellow-100 rounded-full">
+              승인/거부
+            </span>
+            <span className="text-gray-400">→</span>
+            <span className="px-3 py-1 text-green-800 bg-green-100 rounded-full">
+              출고 확인
+            </span>
+            <span className="text-gray-400">→</span>
+            <span className="px-3 py-1 text-purple-800 bg-purple-100 rounded-full">
+              배송 완료
+            </span>
+          </div>
+          <p className="mt-3 text-sm text-gray-600">
+            권한에 따라 상태 변경이 제한됩니다. 1차승인권자는 초기 승인만,
+            관리자는 출고 단계만 담당합니다.
+          </p>
         </div>
-        <p className="mt-3 text-sm text-gray-600">
-          권한에 따라 상태 변경이 제한됩니다. 1차승인권자는 초기 승인만,
-          관리자는 출고 단계만 담당합니다.
-        </p>
+
+        {/* 데모 시연 워크플로우 */}
+        <div className="p-6 bg-purple-50 rounded-xl border-2 border-purple-200">
+          <h2 className="mb-4 text-xl font-bold text-gray-800">
+            🎭 데모 시연 워크플로우
+          </h2>
+          <div className="flex flex-wrap gap-2 items-center text-sm">
+            <span className="px-3 py-1 text-blue-800 bg-blue-100 rounded-full">
+              시연 요청
+            </span>
+            <span className="text-gray-400">→</span>
+            <span className="px-3 py-1 text-yellow-800 bg-yellow-100 rounded-full">
+              시연 승인
+            </span>
+            <span className="text-gray-400">→</span>
+            <span className="px-3 py-1 text-green-800 bg-green-100 rounded-full">
+              시연팀 확인
+            </span>
+            <span className="text-gray-400">→</span>
+            <span className="px-3 py-1 text-orange-800 bg-orange-100 rounded-full">
+              시연 출고
+            </span>
+            <span className="text-gray-400">→</span>
+            <span className="px-3 py-1 text-purple-800 bg-purple-100 rounded-full">
+              시연 복귀
+            </span>
+          </div>
+          <p className="mt-3 text-sm text-gray-600">
+            데모 시연은 일반 발주와 별도로 관리되며, 출고 후 반드시 복귀 처리가
+            필요합니다. 재고는 시연 출고 시 차감되고 복귀 시 다시 복구됩니다.
+          </p>
+        </div>
       </div>
     </div>
   );

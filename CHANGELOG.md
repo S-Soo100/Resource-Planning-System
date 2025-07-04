@@ -5,6 +5,52 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## [1.5.0] - 2025-07-04
+
+### 추가됨 (Added)
+
+- 데모 시스템 구축
+  - 데모 요청/승인 시스템 추가
+  - 데모 상태 관리 시스템 (6단계 상태: requested, approved, rejected, confirmedByShipper, demoShipmentCompleted, demoCompletedAndReturned)
+  - 데모 API 및 훅 (`demo-api.ts`, `useDemoMutations.ts`, `useDemoQueries.ts`, `useDemo.ts`) 추가
+  - 데모 타입 정의 (`demo.ts`) 추가
+  - 30분 캐싱 전략 및 재고 연동 로직 구현
+- 휠체어 발주 시스템 추가
+  - 휠체어 전용 발주 페이지 (`/orderWheelchair`) 및 컴포넌트 (`WheelchairOrderForm.tsx`) 추가
+  - 휠체어 전용 창고 및 카테고리 제한 기능
+  - 휠체어 관련 카테고리: "휠체어", "K-MS2 휠체어 옵션품", "휠체어 악세사리"
+  - 보라색 테마 적용
+- 공통 컴포넌트 시스템 구축
+  - 8개 공통 컴포넌트 추가 (AddressSection, ContactInfoSection, DateInfoSection, FileUploadSection, NotesSection, RecipientInfoSection, SupplierSection, SubmitButton)
+  - 파일 업로드 훅 (`useFileUpload.ts`) 및 드래그 앤 드롭 지원
+  - 주소 검색 훅 (`useAddressSearch.ts`) 및 모달 시스템
+  - 품목 선택 모달 (`ItemSelectionModal.tsx`) 및 카테고리 필터링 기능
+- 데모 시스템 비즈니스 로직 문서 (`demo-system-business-logic.md`) 추가
+- 발주 가이드 페이지에 휠체어 발주 옵션 추가
+- how-to-use 페이지 v1.5.0 업데이트
+
+### 변경됨 (Changed)
+
+- 발주 시스템 콘셉트를 4개에서 6개로 확장 (휠체어 발주, 데모 시연 추가)
+- 발주 & 시연 카테고리 기능 목록 업데이트
+- 데모 시연 기능을 "개발 중"에서 정식 기능으로 변경
+- 카테고리 분류 체계에서 휠체어 관련 내용 구체화
+- 워크플로우 설명을 일반 발주와 데모 시연으로 분리
+
+### 개선됨 (Improved)
+
+- 공통 컴포넌트 재사용으로 코드 중복 제거 및 일관성 향상
+- 색상 테마 시스템으로 발주 유형별 시각적 구분 강화
+- 반응형 디자인 및 모바일 환경 최적화
+- 접근성 향상: 모든 입력 필드에 적절한 라벨 및 접근성 속성 추가
+- 사용자 경험 향상: 새로운 기능들로 다양한 업무 요구사항 지원
+
+### 보안 (Security)
+
+- 데모 시스템 권한별 상태 변경 제한 강화
+- 팀 기반 데이터 격리 및 권한 관리 유지
+- 휠체어 발주 시스템 창고 및 카테고리 접근 제한
+
 ## [1.4.1] - 2025-06-20
 
 ### 변경됨 (Changed)

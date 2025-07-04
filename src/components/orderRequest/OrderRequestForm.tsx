@@ -53,7 +53,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [requestDate, setRequestDate] = useState("");
   const [setupDate, setSetupDate] = useState("");
-  const [isRequesterManuallySet, setIsRequesterManuallySet] = useState(false);
 
   // 공통 훅 사용
   const fileUpload = useFileUpload();
@@ -81,15 +80,19 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     warehouseId: null,
   });
 
-  // auth가 변경될 때 requester 업데이트 (초기에만)
+  // auth가 변경될 때 requester와 manager 업데이트
   useEffect(() => {
-    if (auth?.name && !formData.requester && !isRequesterManuallySet) {
+    if (auth?.name) {
       setFormData((prev) => ({
         ...prev,
         requester: auth.name,
+        manager:
+          user?.accessLevel === "supplier"
+            ? "조정흠(010-3338-2722)"
+            : prev.manager,
       }));
     }
-  }, [auth, formData.requester, isRequesterManuallySet]);
+  }, [auth, user?.accessLevel]);
 
   // 훅 호출
   const { useGetPackages } = usePackages();
@@ -356,11 +359,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     >
   ) => {
     const { name, value } = e.target;
-
-    // requester 필드가 변경되면 수동 입력 플래그 설정
-    if (name === "requester") {
-      setIsRequesterManuallySet(true);
-    }
 
     setFormData({
       ...formData,
@@ -889,6 +887,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           manager={formData.manager}
           onChange={handleChange}
           focusRingColor="blue"
+          userAccessLevel={user?.accessLevel}
         />
 
         {/* 날짜 정보 */}

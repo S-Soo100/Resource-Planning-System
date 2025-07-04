@@ -46,7 +46,7 @@ const DateInfoSection: React.FC<DateInfoSectionProps> = ({
           htmlFor="setupDate"
           className="block mb-2 text-sm font-medium text-gray-700"
         >
-          설치 기한 <span className="text-red-500">*</span>
+          배송 완료 희망일 <span className="text-red-500">*</span>
         </label>
         <input
           type="date"

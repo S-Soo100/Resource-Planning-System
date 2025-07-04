@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
 import { Paperclip, Plus, Minus, X, AlertCircle, Loader2 } from "lucide-react";
@@ -23,6 +23,7 @@ import { Warehouse } from "@/types/warehouse";
 import { ApiResponse } from "@/types/common";
 import { uploadMultipleOrderFileById, deleteOrderFile } from "@/api/order-api";
 import { OrderFile } from "@/types/(order)/order";
+import { TeamItem } from "@/types/(item)/team-item";
 
 interface OrderEditModalProps {
   isOpen: boolean;
@@ -30,16 +31,8 @@ interface OrderEditModalProps {
   orderRecord: IOrderRecord | null;
 }
 
-// 타입 안전성 개선: any 타입 제거
-interface TeamItem {
-  id: number;
-  itemCode: string;
-  itemName: string;
-  // 기타 필요한 필드들
-}
-
 interface OrderItemWithDetails {
-  teamItem: TeamItem; // any 대신 구체적인 타입 사용
+  teamItem: TeamItem;
   quantity: number;
   stockAvailable: boolean;
   stockQuantity: number;
@@ -54,8 +47,6 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [requestDate, setRequestDate] = useState("");
-  const [setupDate, setSetupDate] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const selectedFiles = useRef<HTMLInputElement>(null);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
@@ -126,11 +117,6 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
       );
 
       if (selectedPackage) {
-        console.log(
-          "창고 아이템 로드 완료, 패키지 아이템 자동 설정:",
-          selectedPackage
-        );
-
         const itemCodes = selectedPackage.itemlist.split(", ");
         const newPackageItems = itemCodes
           .map((itemCode) => {
@@ -146,7 +132,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
             }
 
             return {
-              teamItem: warehouseItem.teamItem as TeamItem,
+              teamItem: warehouseItem.teamItem,
               quantity: packageQuantity,
               stockAvailable: warehouseItem.itemQuantity >= packageQuantity,
               stockQuantity: warehouseItem.itemQuantity,
@@ -172,10 +158,6 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   // 주문 기록이 변경될 때 폼 데이터 초기화 - 창고 아이템 로딩 후 아이템 변환
   useEffect(() => {
     if (orderRecord) {
-      console.log("주문 기록 데이터:", orderRecord);
-      console.log("기존 requester:", orderRecord.requester);
-      console.log("현재 사용자 이름:", auth?.name);
-
       // 주소 분리 (기존 주소에서 상세주소 분리)
       const addressParts = orderRecord.receiverAddress?.split(" ") || [];
       const detailAddress =
@@ -184,7 +166,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
       const newFormData = {
         manager: orderRecord.manager || "",
-        requester: orderRecord.requester || "", // 기존 데이터 유지
+        requester: orderRecord.requester || "",
         receiver: orderRecord.receiver || "",
         receiverPhone: orderRecord.receiverPhone || "",
         address: baseAddress,
@@ -201,20 +183,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         packageId: orderRecord.packageId || null,
       };
 
-      console.log("설정할 폼 데이터:", newFormData);
       setFormData(newFormData);
-
-      // formData 상태 변경 추적
-      console.log("formData 상태 설정 완료");
-
-      setRequestDate(
-        orderRecord.purchaseDate ? orderRecord.purchaseDate.split("T")[0] : ""
-      );
-      setSetupDate(
-        orderRecord.installationDate
-          ? orderRecord.installationDate.split("T")[0]
-          : ""
-      );
 
       // 기존 파일 초기화
       setExistingFiles(orderRecord.files || []);
@@ -262,7 +231,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         }
       }
     }
-  }, [orderRecord, warehouseItems]); // warehouseItems 의존성 추가
+  }, [orderRecord, warehouseItems]);
 
   // 창고 아이템 수동 로드 - orderRecord의 창고 ID로 아이템 로드
   useEffect(() => {
@@ -270,14 +239,10 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
       orderRecord?.warehouseId &&
       !warehouseItems?.[orderRecord.warehouseId.toString()]
     ) {
-      console.log("창고 아이템 수동 로드 시작:", orderRecord.warehouseId);
-
       // handleWarehouseChange를 사용해서 창고 아이템 로드
       handleWarehouseChange(orderRecord.warehouseId).then(
         (response: ApiResponse) => {
-          if (response.success) {
-            console.log("창고 아이템 로드 완료:", response.data);
-          } else {
+          if (!response.success) {
             console.error("창고 아이템 로드 실패:", response.message);
           }
         }
@@ -285,181 +250,180 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     }
   }, [orderRecord?.warehouseId, warehouseItems, handleWarehouseChange]);
 
-  // 창고 변경은 비즈니스 규칙에 따라 금지됨
-  // const handleWarehouseChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-  //   toast.error("발주 건의 창고는 변경할 수 없습니다.");
-  //   return;
-  // };
-
   // 거래처 변경 핸들러
-  const handleSupplierChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const supplierId = parseInt(e.target.value);
-    setFormData((prev) => ({
-      ...prev,
-      supplierId: supplierId || null,
-    }));
-  };
-
-  // 패키지 수량 변경 핸들러 - 패키지 아이템만 업데이트
-  const handlePackageQuantityChange = (increment: boolean) => {
-    setPackageQuantity((prev) => {
-      const newQuantity = increment ? prev + 1 : Math.max(1, prev - 1);
-
-      // 패키지 아이템들의 수량만 업데이트 (개별 아이템은 유지)
-      if (formData.packageId && packages) {
-        const selectedPackage = packages.find(
-          (pkg: PackageApi) => pkg.id === formData.packageId
-        );
-        if (selectedPackage) {
-          const itemCodes = selectedPackage.itemlist.split(", ");
-          const updatedPackageItems = itemCodes
-            .map((itemCode) => {
-              const warehouseItem = currentWarehouseItems.find(
-                (item: Item) => item.teamItem.itemCode === itemCode
-              );
-              if (!warehouseItem) return null;
-
-              return {
-                teamItem: warehouseItem.teamItem as TeamItem,
-                quantity: newQuantity,
-                stockAvailable: warehouseItem.itemQuantity >= newQuantity,
-                stockQuantity: warehouseItem.itemQuantity,
-                warehouseItemId: warehouseItem.id,
-              };
-            })
-            .filter((item): item is NonNullable<typeof item> => item !== null);
-
-          setPackageItems(updatedPackageItems); // 개별 아이템은 유지
-        }
-      }
-
-      return newQuantity;
-    });
-  };
-
-  // 패키지 선택 핸들러 - 단순화
-  const handlePackageSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const packageId = parseInt(e.target.value);
-
-    if (packageId === 0) {
-      setPackageItems([]);
-      setPackageQuantity(1);
+  const handleSupplierChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const supplierId = parseInt(e.target.value) || null;
       setFormData((prev) => ({
         ...prev,
-        packageId: null,
+        supplierId,
       }));
-      return;
-    }
+    },
+    []
+  );
 
-    setFormData((prev) => ({
-      ...prev,
-      packageId,
-    }));
+  // 패키지 수량 변경 핸들러 - 패키지 아이템만 업데이트
+  const handlePackageQuantityChange = useCallback(
+    (increment: boolean) => {
+      setPackageQuantity((prev) => {
+        const newQuantity = increment ? prev + 1 : Math.max(1, prev - 1);
 
-    // 패키지 아이템 설정은 useEffect에서 자동으로 처리됨
-    console.log("패키지 선택됨:", packageId);
-  };
+        // 패키지 아이템들의 수량만 업데이트 (개별 아이템은 유지)
+        if (formData.packageId && packages) {
+          const selectedPackage = packages.find(
+            (pkg: PackageApi) => pkg.id === formData.packageId
+          );
+          if (selectedPackage) {
+            const itemCodes = selectedPackage.itemlist.split(", ");
+            const updatedPackageItems = itemCodes
+              .map((itemCode) => {
+                const warehouseItem = currentWarehouseItems.find(
+                  (item: Item) => item.teamItem.itemCode === itemCode
+                );
+                if (!warehouseItem) return null;
+
+                return {
+                  teamItem: warehouseItem.teamItem,
+                  quantity: newQuantity,
+                  stockAvailable: warehouseItem.itemQuantity >= newQuantity,
+                  stockQuantity: warehouseItem.itemQuantity,
+                  warehouseItemId: warehouseItem.id,
+                };
+              })
+              .filter(
+                (item): item is NonNullable<typeof item> => item !== null
+              );
+
+            setPackageItems(updatedPackageItems);
+          }
+        }
+
+        return newQuantity;
+      });
+    },
+    [formData.packageId, packages, currentWarehouseItems]
+  );
+
+  // 패키지 선택 핸들러 - 개선된 버전
+  const handlePackageSelect = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const packageId = parseInt(e.target.value) || null;
+
+      setFormData((prev) => ({
+        ...prev,
+        packageId,
+      }));
+
+      if (!packageId) {
+        // 패키지 선택 해제 시 패키지 아이템들 초기화
+        setPackageItems([]);
+        setPackageQuantity(1);
+      }
+    },
+    []
+  );
 
   // 아이템 선택 핸들러 - 패키지 선택 시 비활성화
-  const handleItemSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (isPackageSelected) {
-      toast.error("패키지가 선택된 경우 개별 품목을 추가할 수 없습니다.");
-      return;
-    }
+  const handleItemSelect = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      if (isPackageSelected) {
+        toast.error("패키지가 선택된 경우 개별 품목을 추가할 수 없습니다.");
+        return;
+      }
 
-    const itemId = parseInt(e.target.value);
-    if (itemId === 0) {
-      return;
-    }
+      const itemId = parseInt(e.target.value);
+      if (itemId === 0) {
+        return;
+      }
 
-    const selected = currentWarehouseItems.find(
-      (item: Item) => item.id === itemId
-    );
-    if (!selected) {
-      return;
-    }
+      const selected = currentWarehouseItems.find(
+        (item: Item) => item.id === itemId
+      );
+      if (!selected) {
+        return;
+      }
 
-    const isItemExists = individualItems.some(
-      (item) => item.teamItem.itemCode === selected.teamItem.itemCode
-    );
+      const isItemExists = individualItems.some(
+        (item) => item.teamItem.itemCode === selected.teamItem.itemCode
+      );
 
-    if (isItemExists) {
-      toast.error("이미 추가된 아이템입니다");
-      return;
-    }
+      if (isItemExists) {
+        toast.error("이미 추가된 아이템입니다");
+        return;
+      }
 
-    setTimeout(() => {
       setIndividualItems((prev) => [
         ...prev,
         {
-          teamItem: selected.teamItem as TeamItem,
+          teamItem: selected.teamItem,
           quantity: 1,
           stockAvailable: selected.itemQuantity >= 1,
           stockQuantity: selected.itemQuantity,
           warehouseItemId: selected.id,
         },
       ]);
-    }, 0);
 
-    e.target.value = "0";
-  };
+      e.target.value = "0";
+    },
+    [isPackageSelected, currentWarehouseItems, individualItems]
+  );
 
   // 아이템 제거 핸들러 - 패키지 아이템은 제거 불가
-  const handleRemoveItem = (itemId: number, isPackageItem: boolean = false) => {
-    if (isPackageItem) {
-      toast.error(
-        "패키지 내 개별 품목은 제거할 수 없습니다. 패키지 전체를 변경하거나 수량을 조정하세요."
-      );
-      return;
-    }
+  const handleRemoveItem = useCallback(
+    (itemId: number, isPackageItem: boolean = false) => {
+      if (isPackageItem) {
+        toast.error(
+          "패키지 내 개별 품목은 제거할 수 없습니다. 패키지 전체를 변경하거나 수량을 조정하세요."
+        );
+        return;
+      }
 
-    setTimeout(() => {
       setIndividualItems((prev) =>
         prev.filter((item) => item.warehouseItemId !== itemId)
       );
-    }, 0);
-  };
+    },
+    []
+  );
 
   // 아이템 수량 변경 핸들러
-  const handleQuantityChange = (
-    index: number,
-    increment: boolean,
-    isPackageItem: boolean = false
-  ) => {
-    if (isPackageItem) {
-      // 패키지 아이템의 경우 패키지 수량 변경
-      handlePackageQuantityChange(increment);
-      return;
-    }
+  const handleQuantityChange = useCallback(
+    (index: number, increment: boolean, isPackageItem: boolean = false) => {
+      if (isPackageItem) {
+        // 패키지 아이템의 경우 패키지 수량 변경
+        handlePackageQuantityChange(increment);
+        return;
+      }
 
-    setIndividualItems((prev) => {
-      const updated = prev.map((item, idx) => {
-        if (idx === index) {
-          const newQuantity = increment
-            ? item.quantity + 1
-            : item.quantity > 0
-            ? item.quantity - 1
-            : item.quantity;
+      setIndividualItems((prev) => {
+        const updated = prev.map((item, idx) => {
+          if (idx === index) {
+            const newQuantity = increment
+              ? item.quantity + 1
+              : item.quantity > 0
+              ? item.quantity - 1
+              : item.quantity;
 
-          const stockItem = currentWarehouseItems.find(
-            (stockItem: Item) =>
-              stockItem.teamItem.itemCode === item.teamItem.itemCode
-          );
+            const stockItem = currentWarehouseItems.find(
+              (stockItem: Item) =>
+                stockItem.teamItem.itemCode === item.teamItem.itemCode
+            );
 
-          return {
-            ...item,
-            quantity: newQuantity,
-            stockAvailable: stockItem
-              ? stockItem.itemQuantity >= newQuantity
-              : false,
-            stockQuantity: stockItem?.itemQuantity || 0,
-          };
-        }
-        return item;
+            return {
+              ...item,
+              quantity: newQuantity,
+              stockAvailable: stockItem
+                ? stockItem.itemQuantity >= newQuantity
+                : false,
+              stockQuantity: stockItem?.itemQuantity || 0,
+            };
+          }
+          return item;
+        });
+        return updated;
       });
-      return updated;
-    });
-  };
+    },
+    [currentWarehouseItems, handlePackageQuantityChange]
+  );
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -483,78 +447,80 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     type: "requestDate" | "setupDate"
   ) => {
     const { value } = e.target;
-    if (type === "requestDate") {
-      setRequestDate(value);
-    } else {
-      setSetupDate(value);
-    }
-
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [type]: value,
-    });
+    }));
   };
 
   // 파일 관련 핸들러들
-  const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (selectedFiles) {
-      const newFiles = Array.from(selectedFiles);
-      setFiles((prev) => [...prev, ...newFiles]);
-    }
-  };
+  const handleFileSelection = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFiles = e.target.files;
+      if (selectedFiles) {
+        const newFiles = Array.from(selectedFiles);
+        setFiles((prev) => [...prev, ...newFiles]);
+      }
+    },
+    []
+  );
 
-  const handleRemoveFile = (index: number) => {
+  const handleRemoveFile = useCallback((index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
-  };
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-  };
+  }, []);
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     const droppedFiles = Array.from(e.dataTransfer.files);
     setFiles((prev) => [...prev, ...droppedFiles]);
-  };
+  }, []);
 
   // 기존 파일 삭제 처리
-  const handleDeleteExistingFile = (fileId: number) => {
+  const handleDeleteExistingFile = useCallback((fileId: number) => {
     setFilesToDelete((prev) => [...prev, fileId]);
     setExistingFiles((prev) => prev.filter((file) => file.id !== fileId));
-  };
+  }, []);
 
   // 파일 삭제 취소
-  const handleCancelDeleteFile = (fileId: number) => {
-    setFilesToDelete((prev) => prev.filter((id) => id !== fileId));
-    // 원래 파일 목록에서 복원
-    if (orderRecord?.files) {
-      const originalFile = orderRecord.files.find((file) => file.id === fileId);
-      if (originalFile) {
-        setExistingFiles((prev) => [...prev, originalFile]);
+  const handleCancelDeleteFile = useCallback(
+    (fileId: number) => {
+      setFilesToDelete((prev) => prev.filter((id) => id !== fileId));
+      // 원래 파일 목록에서 복원
+      if (orderRecord?.files) {
+        const originalFile = orderRecord.files.find(
+          (file) => file.id === fileId
+        );
+        if (originalFile) {
+          setExistingFiles((prev) => [...prev, originalFile]);
+        }
       }
-    }
-  };
+    },
+    [orderRecord?.files]
+  );
 
   // 파일 다운로드
-  const handleDownloadFile = (file: OrderFile) => {
+  const handleDownloadFile = useCallback((file: OrderFile) => {
     const link = document.createElement("a");
     link.href = file.fileUrl;
     link.download = file.fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }, []);
 
-  // 재고 확인 로직 추가
-  const validateStockAvailability = (): {
+  // 재고 확인 로직
+  const validateStock = useCallback((): {
     isValid: boolean;
     insufficientItems: string[];
   } => {
@@ -572,51 +538,112 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
       isValid: insufficientItems.length === 0,
       insufficientItems,
     };
-  };
+  }, [allOrderItems]);
 
-  const validateForm = (): boolean => {
+  // 연락처 유효성 검사
+  const validatePhoneNumber = useCallback((phone: string): boolean => {
+    // 한국 전화번호 패턴 (010-xxxx-xxxx, 02-xxx-xxxx, 031-xxx-xxxx 등)
+    const phonePattern = /^(01[016789]|02|0[3-9]\d)-?\d{3,4}-?\d{4}$/;
+    return phonePattern.test(phone.replace(/\s/g, ""));
+  }, []);
+
+  // 날짜 유효성 검사
+  const validateDates = useCallback((): string | null => {
+    if (!formData.requestDate || !formData.setupDate) {
+      return null; // 날짜가 없으면 다른 검증에서 처리
+    }
+
+    const requestDate = new Date(formData.requestDate);
+    const setupDate = new Date(formData.setupDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 과거 날짜 검증 (요청일은 오늘 이후 가능)
+    if (requestDate < today) {
+      return "발주 요청일은 오늘 이후로 선택해주세요.";
+    }
+
+    // 설치 기한이 요청일보다 이전인지 검증
+    if (setupDate < requestDate) {
+      return "설치 기한은 발주 요청일과 같거나 이후로 설정해주세요.";
+    }
+
+    return null;
+  }, [formData.requestDate, formData.setupDate]);
+
+  const validateForm = useCallback((): boolean => {
+    // 품목 선택 검증
     if (allOrderItems.length === 0) {
-      toast.error("최소 하나 이상의 품목을 선택해주세요");
+      toast.error("최소 하나 이상의 품목을 선택해주세요.");
       return false;
     }
-    if (!formData.requester) {
-      toast.error("요청자를 입력해주세요");
-      return false;
+
+    // 필수 입력 항목 검증
+    const requiredFields = [
+      {
+        field: formData.requester,
+        message: "캥스터즈 영업 담당자 이름을 입력해주세요.",
+      },
+      { field: formData.receiver, message: "수령인을 입력해주세요." },
+      {
+        field: formData.receiverPhone,
+        message: "수령인 연락처를 입력해주세요.",
+      },
+      { field: formData.address, message: "배송지 주소를 입력해주세요." },
+      { field: formData.requestDate, message: "발주 요청일을 선택해주세요." },
+      { field: formData.setupDate, message: "설치 기한을 선택해주세요." },
+    ];
+
+    for (const { field, message } of requiredFields) {
+      if (!field?.trim()) {
+        toast.error(message);
+        return false;
+      }
     }
-    if (!formData.receiver) {
-      toast.error("수령인을 입력해주세요");
-      return false;
-    }
-    if (!formData.receiverPhone) {
-      toast.error("수령인 연락처를 입력해주세요");
-      return false;
-    }
-    if (!formData.address) {
-      toast.error("배송지를 입력해주세요");
-      return false;
-    }
-    if (!formData.requestDate) {
-      toast.error("배송일을 선택해주세요");
-      return false;
-    }
+
+    // 창고 선택 검증
     if (!formData.warehouseId) {
-      toast.error("발주할 창고를 선택해주세요");
+      toast.error("발주할 창고를 선택해주세요.");
+      return false;
+    }
+
+    // 연락처 유효성 검사
+    if (!validatePhoneNumber(formData.receiverPhone)) {
+      toast.error("올바른 연락처 형식을 입력해주세요. (예: 010-1234-5678)");
+      return false;
+    }
+
+    // 날짜 유효성 검사
+    const dateError = validateDates();
+    if (dateError) {
+      toast.error(dateError);
       return false;
     }
 
     // 재고 확인
-    const stockValidation = validateStockAvailability();
+    const stockValidation = validateStock();
     if (!stockValidation.isValid) {
+      const itemList = stockValidation.insufficientItems.join("\n• ");
       toast.error(
-        `재고가 부족한 품목이 있습니다:\n${stockValidation.insufficientItems.join(
-          "\n"
-        )}`
+        `다음 품목의 재고가 부족합니다:\n\n• ${itemList}\n\n수량을 조정하거나 담당자에게 문의하세요.`
       );
       return false;
     }
 
     return true;
-  };
+  }, [
+    allOrderItems.length,
+    formData.requester,
+    formData.receiver,
+    formData.receiverPhone,
+    formData.address,
+    formData.requestDate,
+    formData.setupDate,
+    formData.warehouseId,
+    validatePhoneNumber,
+    validateDates,
+    validateStock,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -625,9 +652,27 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
       return;
     }
 
-    const isConfirmed = window.confirm(
-      "발주서, 견적서 등 필요한 증빙을 모두 업로드 하셨나요?"
-    );
+    // 수정 내용 확인 다이얼로그 개선
+    const hasNewFiles = files.length > 0;
+    const hasDeletedFiles = filesToDelete.length > 0;
+    const hasFileChanges = hasNewFiles || hasDeletedFiles;
+
+    let confirmMessage = "주문 정보를 수정하시겠습니까?";
+
+    if (hasFileChanges) {
+      confirmMessage += "\n\n파일 변경사항:";
+      if (hasNewFiles) {
+        confirmMessage += `\n• 새 파일 ${files.length}개 추가`;
+      }
+      if (hasDeletedFiles) {
+        confirmMessage += `\n• 기존 파일 ${filesToDelete.length}개 삭제`;
+      }
+    }
+
+    confirmMessage +=
+      "\n\n※ 필요한 증빙서류(발주서, 견적서 등)가 모두 첨부되었는지 확인해주세요.";
+
+    const isConfirmed = window.confirm(confirmMessage);
 
     if (!isConfirmed) {
       return;
@@ -635,104 +680,115 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
     setIsSubmitting(true);
 
-    // 날짜 형식을 ISO-8601 DateTime으로 변환
-    const formatDateToISO = (dateString: string): string => {
-      if (!dateString) return "";
-      return new Date(dateString + "T00:00:00.000Z").toISOString();
-    };
+    try {
+      // 날짜 형식을 ISO-8601 DateTime으로 변환
+      const formatDateToISO = (dateString: string): string => {
+        if (!dateString) return "";
+        return new Date(dateString + "T00:00:00.000Z").toISOString();
+      };
 
-    const orderData = {
-      id: orderRecord.id.toString(),
-      data: {
-        userId: auth?.id ?? 0,
-        manager: formData.manager,
-        supplierId: formData.supplierId ?? null,
-        packageId: formData.packageId ?? null,
-        warehouseId: formData.warehouseId ?? 0,
-        requester: formData.requester,
-        receiver: formData.receiver,
-        receiverPhone: formData.receiverPhone,
-        receiverAddress: `${formData.address} ${formData.detailAddress}`.trim(),
-        purchaseDate: formatDateToISO(formData.requestDate),
-        outboundDate: formatDateToISO(formData.requestDate),
-        installationDate: formatDateToISO(formData.setupDate),
-        status: OrderStatus.requested,
-        memo: formData.notes,
-        orderItems: allOrderItems
-          .filter((item) => item.quantity > 0)
-          .map((item) => ({
-            itemId: item.warehouseItemId,
-            quantity: item.quantity,
-            memo: item.memo || formData.notes,
-          })),
-      },
-    };
+      const orderData = {
+        id: orderRecord.id.toString(),
+        data: {
+          userId: auth?.id ?? 0,
+          manager: formData.manager,
+          supplierId: formData.supplierId ?? null,
+          packageId: formData.packageId ?? null,
+          warehouseId: formData.warehouseId ?? 0,
+          requester: formData.requester,
+          receiver: formData.receiver,
+          receiverPhone: formData.receiverPhone,
+          receiverAddress:
+            `${formData.address} ${formData.detailAddress}`.trim(),
+          purchaseDate: formatDateToISO(formData.requestDate),
+          outboundDate: formatDateToISO(formData.requestDate),
+          installationDate: formatDateToISO(formData.setupDate),
+          status: OrderStatus.requested,
+          memo: formData.notes,
+          orderItems: allOrderItems
+            .filter((item) => item.quantity > 0)
+            .map((item) => ({
+              itemId: item.warehouseItemId,
+              quantity: item.quantity,
+              memo: item.memo || formData.notes,
+            })),
+        },
+      };
 
-    updateOrder(orderData, {
-      onSuccess: async (response) => {
-        if (response.success) {
-          // 파일 처리
-          try {
-            // 삭제할 파일들 처리
-            if (filesToDelete.length > 0) {
-              for (const fileId of filesToDelete) {
-                await deleteOrderFile(orderRecord!.id, fileId);
+      updateOrder(orderData, {
+        onSuccess: async (response) => {
+          if (response.success) {
+            // 파일 처리
+            try {
+              // 삭제할 파일들 처리
+              if (filesToDelete.length > 0) {
+                setIsFileUploading(true);
+                for (const fileId of filesToDelete) {
+                  await deleteOrderFile(orderRecord.id, fileId);
+                }
               }
-            }
 
-            // 새로 업로드할 파일들 처리
-            if (files.length > 0) {
-              setIsFileUploading(true);
+              // 새로 업로드할 파일들 처리
+              if (files.length > 0) {
+                setIsFileUploading(true);
+                const uploadResponse = await uploadMultipleOrderFileById(
+                  orderRecord.id,
+                  files
+                );
 
-              // 원본 파일명 그대로 사용
-              const uploadResponse = await uploadMultipleOrderFileById(
-                orderRecord!.id,
-                files
+                if (!uploadResponse.success) {
+                  throw new Error(
+                    uploadResponse.message || "파일 업로드에 실패했습니다."
+                  );
+                }
+              }
+
+              toast.success("주문이 성공적으로 수정되었습니다.");
+
+              // 모든 주문 관련 쿼리 무효화
+              await queryClient.invalidateQueries({
+                queryKey: ["orders"],
+                exact: false,
+              });
+
+              // 특정 주문 쿼리도 무효화
+              await queryClient.invalidateQueries({
+                queryKey: ["order", orderRecord.id.toString()],
+              });
+
+              onClose();
+            } catch (fileError) {
+              console.error("파일 처리 중 오류:", fileError);
+              toast.error(
+                "주문은 수정되었으나 파일 처리 중 오류가 발생했습니다. 다시 시도해주세요."
               );
-              setIsFileUploading(false);
-
-              if (!uploadResponse.success) {
-                toast.error("파일 업로드에 실패했습니다.");
-                return;
-              }
             }
-
-            toast.success("주문이 성공적으로 수정되었습니다.");
-
-            // 모든 주문 관련 쿼리 무효화
-            await queryClient.invalidateQueries({
-              queryKey: ["orders"],
-              exact: false,
-            });
-
-            // 특정 주문 쿼리도 무효화
-            await queryClient.invalidateQueries({
-              queryKey: ["order", orderRecord.id.toString()],
-            });
-
-            onClose();
-          } catch (fileError) {
-            console.error("파일 처리 중 오류:", fileError);
-            toast.error(
-              "주문은 수정되었으나 파일 처리 중 오류가 발생했습니다."
-            );
+          } else {
+            throw new Error(response.message || "주문 수정에 실패했습니다.");
           }
-        } else {
-          toast.error(response.message || "주문 수정에 실패했습니다.");
-        }
-      },
-      onError: (error) => {
-        console.error("주문 수정 오류:", error);
-        toast.error("주문 수정 중 오류가 발생했습니다.");
-      },
-      onSettled: () => {
-        setIsSubmitting(false);
-        setIsFileUploading(false);
-      },
-    });
+        },
+        onError: (error) => {
+          console.error("주문 수정 오류:", error);
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : "주문 수정 중 오류가 발생했습니다.";
+          toast.error(errorMessage);
+        },
+        onSettled: () => {
+          setIsSubmitting(false);
+          setIsFileUploading(false);
+        },
+      });
+    } catch (error) {
+      console.error("주문 수정 처리 중 오류:", error);
+      toast.error("주문 수정 처리 중 오류가 발생했습니다.");
+      setIsSubmitting(false);
+      setIsFileUploading(false);
+    }
   };
 
-  // 권한 확인
+  // 권한 확인 - 개선된 버전
   const canEdit = () => {
     if (!orderRecord || !auth) return false;
 
@@ -747,6 +803,26 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     return isAuthor && isRequestedStatus;
   };
 
+  // 권한 없음 메시지 개선
+  const getPermissionMessage = () => {
+    if (!orderRecord || !auth) return "수정 권한이 없습니다.";
+
+    const isAdmin = auth.isAdmin;
+    const isAuthor = orderRecord.userId === auth.id;
+
+    if (isAdmin) return ""; // Admin은 메시지 표시 안함
+
+    if (!isAuthor) {
+      return "자신이 작성한 주문만 수정할 수 있습니다.";
+    }
+
+    if (orderRecord.status !== OrderStatus.requested) {
+      return "요청 상태가 아닌 주문은 수정할 수 없습니다.";
+    }
+
+    return "수정 권한이 없습니다.";
+  };
+
   if (!orderRecord) return null;
 
   return (
@@ -755,11 +831,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">주문 수정</h2>
           {!canEdit() && (
-            <div className="text-sm text-red-600">
-              {orderRecord.status !== OrderStatus.requested
-                ? "요청 상태가 아닌 주문은 수정할 수 없습니다."
-                : "수정 권한이 없습니다."}
-            </div>
+            <div className="text-sm text-red-600">{getPermissionMessage()}</div>
           )}
         </div>
 
@@ -1070,7 +1142,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 type="date"
                 id="requestDate"
                 name="requestDate"
-                value={requestDate}
+                value={formData.requestDate}
                 onChange={(e) => handleDateChange(e, "requestDate")}
                 className="p-2 w-full rounded border"
                 required
@@ -1086,7 +1158,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 type="date"
                 id="setupDate"
                 name="setupDate"
-                value={setupDate}
+                value={formData.setupDate}
                 onChange={(e) => handleDateChange(e, "setupDate")}
                 className="p-2 w-full rounded border"
                 required

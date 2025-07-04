@@ -19,7 +19,6 @@ import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { Item } from "@/types/(item)/item";
 import { uploadMultipleOrderFileById } from "@/api/order-api";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCategory } from "@/hooks/useCategory";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import ItemSelectionModal from "../ui/ItemSelectionModal";
 import {
@@ -35,13 +34,8 @@ import {
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 
-// 휠체어 전용 창고명 및 카테고리
+// 휠체어 전용 창고명
 const WHEELCHAIR_WAREHOUSE_NAME = "캥스터즈 안산 연구소/휠체어";
-const WHEELCHAIR_CATEGORY_NAMES = [
-  "휠체어",
-  "K-MS2 휠체어 옵션품",
-  "휠체어 악세사리",
-];
 
 export default function WheelchairOrderForm() {
   const router = useRouter();
@@ -82,7 +76,7 @@ export default function WheelchairOrderForm() {
   const { warehouses } = useWarehouseItems();
   const [wheelchairWarehouse, setWheelchairWarehouse] =
     useState<Warehouse | null>(null);
-  const { categories } = useCategory();
+
   const { useGetItemsByWarehouse } = useItemStockManagement();
   const warehouseId = formData.warehouseId?.toString() || "";
   const { data: warehouseItemsData } = useGetItemsByWarehouse(warehouseId);
@@ -91,28 +85,23 @@ export default function WheelchairOrderForm() {
   const { mutate: createOrder } = useCreateOrder();
   const { user } = useCurrentUser();
 
-  // 현재 창고의 휠체어 관련 카테고리 아이템들
+  // 현재 창고의 모든 아이템들 (카테고리 제한 없음)
   const currentWarehouseItems = useMemo(() => {
-    const items = (warehouseItemsData?.data as Item[]) || [];
+    try {
+      const items = (warehouseItemsData?.data as Item[]) || [];
 
-    if (!categories || categories.length === 0) return items;
+      // 아이템 유효성 검사만 수행하고 카테고리 필터링은 제거
+      const validItems = items.filter((item) => {
+        // 아이템이 유효한지 확인
+        if (!item || !item.teamItem) return false;
+        return true;
+      });
 
-    // 휠체어 관련 카테고리들을 찾기
-    const wheelchairCategories = categories.filter((category) =>
-      WHEELCHAIR_CATEGORY_NAMES.includes(category.name)
-    );
-
-    if (wheelchairCategories.length === 0) return items;
-
-    // 휠체어 관련 카테고리 ID들
-    const wheelchairCategoryIds = wheelchairCategories.map((cat) => cat.id);
-
-    return items.filter(
-      (item) =>
-        item.teamItem?.categoryId &&
-        wheelchairCategoryIds.includes(item.teamItem.categoryId)
-    );
-  }, [warehouseItemsData, categories]);
+      return validItems;
+    } catch {
+      return [];
+    }
+  }, [warehouseItemsData]);
 
   // 휠체어 창고 자동 설정
   useEffect(() => {
@@ -238,11 +227,9 @@ export default function WheelchairOrderForm() {
 
   // 아이템 제거 핸들러
   const handleRemoveItem = (itemId: number) => {
-    setTimeout(() => {
-      setOrderItems((prev) =>
-        prev.filter((item) => item.warehouseItemId !== itemId)
-      );
-    }, 0);
+    setOrderItems((prev) =>
+      prev.filter((item) => item.warehouseItemId !== itemId)
+    );
   };
 
   // 아이템 수량 변경 핸들러
@@ -534,7 +521,10 @@ export default function WheelchairOrderForm() {
   const handleAddItemFromModal = (item: Item) => {
     // 이미 추가된 아이템인지 확인
     const isItemExists = orderItems.some(
-      (orderItem) => orderItem.teamItem.itemCode === item.teamItem.itemCode
+      (orderItem) =>
+        orderItem.teamItem?.itemCode &&
+        item.teamItem?.itemCode &&
+        orderItem.teamItem.itemCode === item.teamItem.itemCode
     );
 
     if (isItemExists) {
@@ -605,7 +595,7 @@ export default function WheelchairOrderForm() {
           )}
           {orderItems.length === 0 && formData.warehouseId && (
             <p className="text-xs text-gray-500">
-              품목 추가 버튼을 클릭하여 휠체어 관련 품목을 추가하세요.
+              품목 추가 버튼을 클릭하여 품목을 추가하세요.
             </p>
           )}
         </div>
@@ -613,9 +603,7 @@ export default function WheelchairOrderForm() {
         {/* 선택된 품목 목록 */}
         {orderItems.length > 0 && (
           <div className="p-4 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-3 font-medium text-gray-800">
-              선택된 휠체어 관련 품목
-            </h3>
+            <h3 className="mb-3 font-medium text-gray-800">선택된 품목</h3>
             <div className="space-y-3">
               {orderItems.map((item, index) => (
                 <div
@@ -760,8 +748,7 @@ export default function WheelchairOrderForm() {
         onAddItem={handleAddItemFromModal}
         currentWarehouseItems={currentWarehouseItems}
         orderItems={orderItems}
-        title="휠체어 관련 품목 추가"
-        categoryNames={WHEELCHAIR_CATEGORY_NAMES}
+        title="품목 추가"
       />
 
       {/* 하단 여백 */}

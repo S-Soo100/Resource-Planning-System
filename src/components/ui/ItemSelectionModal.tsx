@@ -84,14 +84,30 @@ export default function ItemSelectionModal({
 
   // 선택된 카테고리의 품목들
   const categoryItems = useMemo(() => {
-    if (!selectedCategory || !categories || !filteredWarehouseItems) return [];
+    try {
+      if (!selectedCategory || !categories || !filteredWarehouseItems)
+        return [];
 
-    const category = categories.find((cat) => cat.name === selectedCategory);
-    if (!category) return [];
+      const category = categories.find(
+        (cat) => cat.name.trim() === selectedCategory.trim()
+      );
+      if (!category) {
+        return [];
+      }
 
-    return filteredWarehouseItems.filter(
-      (item) => item.teamItem?.categoryId === category.id
-    );
+      return filteredWarehouseItems.filter((item) => {
+        // 아이템이 유효한지 확인
+        if (!item || !item.teamItem) return false;
+
+        // categoryId가 유효한지 확인
+        const categoryId = item.teamItem.categoryId;
+        if (!categoryId) return false;
+
+        return categoryId === category.id;
+      });
+    } catch {
+      return [];
+    }
   }, [selectedCategory, categories, filteredWarehouseItems]);
 
   // 실제 표시할 품목들
@@ -104,9 +120,17 @@ export default function ItemSelectionModal({
   };
 
   const handleAddItemFromModal = (item: Item) => {
+    // 아이템이 유효한지 확인
+    if (!item || !item.teamItem) {
+      return;
+    }
+
     // 이미 추가된 아이템인지 확인
     const isItemExists = orderItems.some(
-      (orderItem) => orderItem.teamItem.itemCode === item.teamItem.itemCode
+      (orderItem) =>
+        orderItem.teamItem?.itemCode &&
+        item.teamItem?.itemCode &&
+        orderItem.teamItem.itemCode === item.teamItem.itemCode
     );
 
     if (isItemExists) {
@@ -182,6 +206,8 @@ export default function ItemSelectionModal({
                 {displayItems.map((item) => {
                   const isAlreadyAdded = orderItems.some(
                     (orderItem) =>
+                      orderItem.teamItem?.itemCode &&
+                      item.teamItem?.itemCode &&
                       orderItem.teamItem.itemCode === item.teamItem.itemCode
                   );
 

@@ -268,10 +268,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const handlePackageSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const packageId = parseInt(e.target.value);
     if (packageId === 0) {
-      setTimeout(() => {
-        setOrderItems([]);
-        setPackageQuantity(1);
-      }, 0);
+      setOrderItems([]);
+      setPackageQuantity(1);
       setFormData((prev) => ({
         ...prev,
         packageId: null,
@@ -307,18 +305,14 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
 
-    setTimeout(() => {
-      setOrderItems(newItems);
-    }, 0);
+    setOrderItems(newItems);
   };
 
   // 아이템 제거 핸들러
   const handleRemoveItem = (itemId: number) => {
-    setTimeout(() => {
-      setOrderItems((prev) =>
-        prev.filter((item) => item.warehouseItemId !== itemId)
-      );
-    }, 0);
+    setOrderItems((prev) =>
+      prev.filter((item) => item.warehouseItemId !== itemId)
+    );
   };
 
   // 아이템 수량 변경 핸들러
@@ -432,9 +426,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     });
 
     // 창고가 변경되면 선택된 아이템을 완전히 초기화
-    setTimeout(() => {
-      setOrderItems([]);
-    }, 0);
+    setOrderItems([]);
 
     if (warehouseId !== 0 && onWarehouseChange) {
       // 부모 컴포넌트에서 제공한 onWarehouseChange 함수 사용
@@ -668,7 +660,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const handleAddItemFromModal = (item: Item) => {
     // 이미 추가된 아이템인지 확인
     const isItemExists = orderItems.some(
-      (orderItem) => orderItem.teamItem.itemCode === item.teamItem.itemCode
+      (orderItem) =>
+        orderItem.teamItem?.itemCode &&
+        item.teamItem?.itemCode &&
+        orderItem.teamItem.itemCode === item.teamItem.itemCode
     );
 
     if (isItemExists) {
@@ -677,18 +672,16 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
 
     // 아이템 추가
-    setTimeout(() => {
-      setOrderItems((prev) => [
-        ...prev,
-        {
-          teamItem: item.teamItem,
-          quantity: 1,
-          stockAvailable: item.itemQuantity >= 1,
-          stockQuantity: item.itemQuantity,
-          warehouseItemId: item.id,
-        },
-      ]);
-    }, 0);
+    setOrderItems((prev) => [
+      ...prev,
+      {
+        teamItem: item.teamItem,
+        quantity: 1,
+        stockAvailable: item.itemQuantity >= 1,
+        stockQuantity: item.itemQuantity,
+        warehouseItemId: item.id,
+      },
+    ]);
 
     toast.success(`${item.teamItem.itemName}이 추가되었습니다`);
   };

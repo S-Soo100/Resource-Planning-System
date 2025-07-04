@@ -21,6 +21,7 @@ import {
   User,
   Package,
   Truck,
+  Trash2,
   // ArrowLeft,
 } from "lucide-react";
 // import { useRouter } from "next/navigation";
@@ -44,6 +45,7 @@ import OrderEditModal from "./OrderEditModal";
 type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
 
 type TabType = "all" | "user" | "supplier";
+type ShipmentTabType = "pending" | "completed";
 
 interface OrderResponse extends ApiResponse {
   data: Order[];
@@ -130,6 +132,7 @@ function useMediaQuery(query: string) {
 
 const OrderRecordTabs = () => {
   const [activeTab, setActiveTab] = useState<TabType>("all");
+  const [shipmentTab, setShipmentTab] = useState<ShipmentTabType>("pending");
   const [userId, setUserId] = useState<string>("");
   const [supplierId, setSupplierId] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -325,6 +328,26 @@ const OrderRecordTabs = () => {
     //   `검색어 "${searchTerm}"로 ${orderRecords.length}개 항목 필터링`
     // );
     return orderRecords.filter((order: IOrderRecord) => {
+      // 출고 상태별 필터링 추가
+      const isShipmentPending = [
+        OrderStatus.requested,
+        OrderStatus.approved,
+        OrderStatus.confirmedByShipper,
+        OrderStatus.rejectedByShipper,
+        "주문 접수", // 서버 응답 호환성
+      ].includes(order.status as OrderStatus);
+
+      const isShipmentCompleted =
+        order.status === OrderStatus.shipmentCompleted;
+
+      // 현재 선택된 출고 탭에 따라 필터링
+      if (shipmentTab === "pending" && !isShipmentPending) {
+        return false;
+      }
+      if (shipmentTab === "completed" && !isShipmentCompleted) {
+        return false;
+      }
+
       // 창고 접근 권한 체크 (Admin이 아닌 경우에만)
       if (
         currentUser &&
@@ -354,7 +377,7 @@ const OrderRecordTabs = () => {
 
       return matchesSearch && matchesStatus;
     });
-  }, [orderRecords, searchTerm, statusFilter, currentUser]);
+  }, [orderRecords, searchTerm, statusFilter, currentUser, shipmentTab]);
 
   // 페이지네이션 계산 (useMemo로 최적화)
   const { totalPages, currentRecords } = useMemo(() => {
@@ -377,6 +400,13 @@ const OrderRecordTabs = () => {
   const handleTabChange = (tab: TabType) => {
     console.log(`탭 변경: ${activeTab} -> ${tab}`);
     setActiveTab(tab);
+    setCurrentPage(1); // 탭 변경 시 첫 페이지로 이동
+  };
+
+  // 출고 상태 탭 변경 핸들러 추가
+  const handleShipmentTabChange = (tab: ShipmentTabType) => {
+    console.log(`출고 상태 탭 변경: ${shipmentTab} -> ${tab}`);
+    setShipmentTab(tab);
     setCurrentPage(1); // 탭 변경 시 첫 페이지로 이동
   };
 
@@ -847,54 +877,108 @@ const OrderRecordTabs = () => {
     // supplier인 경우 '내 발주 기록' 탭만 표시
     if (userAccessLevel === "supplier") {
       return (
-        <div className="flex mb-4 border-b sm:mb-6">
-          <button className="px-3 py-2 text-xs font-medium text-blue-600 border-b-2 border-blue-500 transition-colors sm:py-3 sm:px-5 sm:text-sm">
-            <User size={16} className="inline-block mr-1" />
-            <span className="hidden sm:inline">내 발주 기록</span>
-            <span className="sm:hidden">내 발주</span>
-          </button>
+        <div className="flex gap-2 mb-4 sm:mb-6">
+          <div className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium shadow-sm">
+            <User size={16} className="mr-2" />내 발주 기록
+          </div>
         </div>
       );
     }
 
     // supplier가 아닌 경우 모든 탭 표시
     return (
-      <div className="flex mb-4 border-b sm:mb-6">
+      <div className="flex gap-2 mb-4 sm:mb-6">
         <button
           onClick={() => handleTabChange("all")}
-          className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
+          className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
             activeTab === "all"
-              ? "border-b-2 border-blue-500 text-blue-600"
-              : "text-gray-600 hover:text-blue-500"
+              ? "bg-blue-500 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
-          <Package size={16} className="inline-block mr-1" />
-          <span className="hidden sm:inline">전체 발주 기록</span>
-          <span className="sm:hidden">전체</span>
+          <Package size={16} className="mr-2" />
+          전체
         </button>
         <button
           onClick={() => handleTabChange("user")}
-          className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
+          className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
             activeTab === "user"
-              ? "border-b-2 border-blue-500 text-blue-600"
-              : "text-gray-600 hover:text-blue-500"
+              ? "bg-blue-500 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
-          <User size={16} className="inline-block mr-1" />
-          <span className="hidden sm:inline">내 발주 기록</span>
-          <span className="sm:hidden">내 발주</span>
+          <User size={16} className="mr-2" />내 발주
         </button>
         <button
           onClick={() => handleTabChange("supplier")}
-          className={`py-2 sm:py-3 px-3 sm:px-5 font-medium text-xs sm:text-sm transition-colors ${
+          className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
             activeTab === "supplier"
-              ? "border-b-2 border-blue-500 text-blue-600"
-              : "text-gray-600 hover:text-blue-500"
+              ? "bg-blue-500 text-white shadow-md"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
-          <Truck size={16} className="inline-block mr-1" />
-          <span className="hidden sm:inline">거래처별 발주 기록</span>
-          <span className="sm:hidden">거래처</span>
+          <Truck size={16} className="mr-2" />
+          거래처별
+        </button>
+      </div>
+    );
+  };
+
+  // 출고 상태 탭 렌더링
+  const renderShipmentTabs = () => {
+    return (
+      <div className="flex gap-3 mb-4 sm:mb-6">
+        <button
+          onClick={() => handleShipmentTabChange("pending")}
+          className={`flex-1 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+            shipmentTab === "pending"
+              ? "bg-orange-500 text-white shadow-lg"
+              : "bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200"
+          }`}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            출고 전
+          </div>
+        </button>
+        <button
+          onClick={() => handleShipmentTabChange("completed")}
+          className={`flex-1 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+            shipmentTab === "completed"
+              ? "bg-green-500 text-white shadow-lg"
+              : "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
+          }`}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            출고 완료
+          </div>
         </button>
       </div>
     );
@@ -934,80 +1018,89 @@ const OrderRecordTabs = () => {
           </button>
         </div>
 
-        {/* 탭 버튼 */}
+        {/* 기존 탭 버튼 (최상위 탭) */}
         {renderTabs()}
 
+        {/* 출고 상태 탭 (중간 탭) */}
+        {renderShipmentTabs()}
+
         {/* 검색 및 필터 */}
-        <div className="p-1 mb-4 bg-gray-50 rounded-lg sm:p-4 sm:mb-6">
-          <div className="flex flex-col gap-1 items-start md:flex-row md:items-center sm:gap-4">
-            <div className="relative flex-grow">
-              <Search
-                size={16}
-                className="absolute left-2 top-1/2 text-gray-400 transform -translate-y-1/2 sm:left-3"
-              />
-              <input
-                type="text"
-                placeholder="검색..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              />
-            </div>
-
-            {/* 상태 필터 추가 */}
-            <div className="flex items-center gap-1 sm:gap-2 min-w-[100px] sm:min-w-[150px]">
-              <Filter size={14} className="text-gray-500" />
-              <select
-                value={statusFilter}
-                onChange={handleStatusFilterChange}
-                className="px-1 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              >
-                <option value="">모든 상태</option>
-                <option value={OrderStatus.requested}>요청</option>
-                <option value={OrderStatus.approved}>승인</option>
-                <option value={OrderStatus.rejected}>반려</option>
-                <option value={OrderStatus.confirmedByShipper}>
-                  출고팀 확인
-                </option>
-                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
-                <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
-              </select>
-            </div>
-
-            {activeTab === "user" && (
-              <div className="flex items-center px-1 sm:px-4 py-1.5 sm:py-2 bg-blue-50 border border-blue-100 rounded-md">
-                <User size={14} className="mr-1 text-blue-500 sm:mr-2" />
-                <span className="text-xs font-medium text-blue-700 sm:text-sm">
-                  {authStore.getState().user?.name || "사용자"}의 발주
-                </span>
-              </div>
-            )}
-
-            {activeTab === "supplier" && (
-              <div className="flex items-center gap-1 sm:gap-2 min-w-[100px] sm:min-w-[200px]">
-                <Filter size={14} className="text-gray-500" />
-                {isLoadingSuppliers ? (
-                  <div className="flex items-center text-xs text-gray-500 sm:text-sm">
-                    <div className="mr-1 w-3 h-3 rounded-full border-2 animate-spin sm:w-4 sm:h-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent sm:mr-2"></div>
-                    로딩중...
-                  </div>
-                ) : (
-                  <select
-                    value={supplierId}
-                    onChange={handleSupplierChange}
-                    className="px-1 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  >
-                    <option value="">거래처 선택</option>
-                    {suppliers.map((supplier) => (
-                      <option key={supplier.id} value={supplier.id.toString()}>
-                        {supplier.supplierName}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            )}
+        <div className="flex flex-wrap gap-3 mb-6 items-center">
+          {/* 검색 */}
+          <div className="relative flex-1 min-w-[200px]">
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 text-gray-400 transform -translate-y-1/2"
+            />
+            <input
+              type="text"
+              placeholder="검색어 입력..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+            />
           </div>
+
+          {/* 상태 필터 */}
+          <div className="flex items-center gap-2">
+            <Filter size={16} className="text-gray-500" />
+            <select
+              value={statusFilter}
+              onChange={handleStatusFilterChange}
+              className="px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm min-w-[120px]"
+            >
+              <option value="">모든 상태</option>
+              {shipmentTab === "pending" ? (
+                <>
+                  <option value={OrderStatus.requested}>요청</option>
+                  <option value={OrderStatus.approved}>승인</option>
+                  <option value={OrderStatus.rejected}>반려</option>
+                  <option value={OrderStatus.confirmedByShipper}>
+                    출고팀 확인
+                  </option>
+                  <option value={OrderStatus.rejectedByShipper}>
+                    출고 보류
+                  </option>
+                </>
+              ) : (
+                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+              )}
+            </select>
+          </div>
+
+          {/* 사용자 표시 */}
+          {activeTab === "user" && (
+            <div className="flex items-center px-3 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium">
+              <User size={16} className="mr-2" />
+              {authStore.getState().user?.name || "사용자"}님의 발주
+            </div>
+          )}
+
+          {/* 거래처 선택 */}
+          {activeTab === "supplier" && (
+            <div className="flex items-center gap-2">
+              <Truck size={16} className="text-gray-500" />
+              {isLoadingSuppliers ? (
+                <div className="flex items-center px-3 py-2 text-sm text-gray-500">
+                  <div className="mr-2 w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
+                  로딩중...
+                </div>
+              ) : (
+                <select
+                  value={supplierId}
+                  onChange={handleSupplierChange}
+                  className="px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm min-w-[150px]"
+                >
+                  <option value="">거래처 선택</option>
+                  {suppliers.map((supplier) => (
+                    <option key={supplier.id} value={supplier.id.toString()}>
+                      {supplier.supplierName}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 데이터 테이블 */}
@@ -1267,11 +1360,18 @@ const OrderRecordTabs = () => {
                                           disabled={
                                             deleteOrderMutation.isPending
                                           }
-                                          className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-md transition-colors hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                          className="p-2 text-white bg-red-500 rounded-md transition-colors hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                          title={
+                                            deleteOrderMutation.isPending
+                                              ? "삭제 중..."
+                                              : "삭제하기"
+                                          }
                                         >
-                                          {deleteOrderMutation.isPending
-                                            ? "삭제 중..."
-                                            : "삭제하기"}
+                                          {deleteOrderMutation.isPending ? (
+                                            <RefreshCw className="w-5 h-5 animate-spin" />
+                                          ) : (
+                                            <Trash2 className="w-5 h-5" />
+                                          )}
                                         </button>
                                       )}
                                     </div>

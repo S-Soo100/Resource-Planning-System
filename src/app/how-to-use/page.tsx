@@ -541,162 +541,77 @@ const HowToUsePage = () => {
         </div>
       </div>
 
-      {/* 발주 시스템 안내 */}
+      {/* 발주 시스템 */}
       <div className="mb-8">
-        <h2 className="mb-4 text-2xl font-bold text-gray-900">
-          🛒 발주 시스템 안내
+        <h2 className="mb-4 text-2xl font-bold text-gray-800">
+          📋 발주 시스템
         </h2>
-
-        {/* 발주 콘셉트 */}
-        <div className="p-6 mb-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
-          <h3 className="mb-4 text-lg font-semibold text-gray-800">
-            🎯 발주 시스템 콘셉트
+        <div className="p-6 bg-white rounded-lg shadow-md">
+          <h3 className="mb-3 text-xl font-semibold text-gray-700">
+            발주 시스템 개요
           </h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <div className="p-4 text-center bg-white rounded-lg shadow-sm">
-              <div className="mb-2 text-3xl">📦</div>
-              <h4 className="mb-2 font-semibold text-green-800">패키지 발주</h4>
-              <p className="text-sm text-gray-600">
-                자주 사용되는 물품들을 미리 묶어서 한 번에 발주하는 효율적인
-                방식
-              </p>
-            </div>
-            <div className="p-4 text-center bg-white rounded-lg shadow-sm">
-              <div className="mb-2 text-3xl">🦽</div>
-              <h4 className="mb-2 font-semibold text-green-800">휠체어 발주</h4>
-              <p className="text-sm text-gray-600">
-                휠체어 전용 창고의 품목만 선택하여 발주하는 전문 시스템
-              </p>
-            </div>
-            <div className="p-4 text-center bg-white rounded-lg shadow-sm">
-              <div className="mb-2 text-3xl">🛍️</div>
-              <h4 className="mb-2 font-semibold text-green-800">개별 발주</h4>
-              <p className="text-sm text-gray-600">
-                특정 물품이 부족할 때 개별적으로 발주하는 유연한 방식
-              </p>
-            </div>
-            <div className="p-4 text-center bg-white rounded-lg shadow-sm">
-              <div className="mb-2 text-3xl">🎭</div>
-              <h4 className="mb-2 font-semibold text-green-800">데모 시연</h4>
-              <p className="text-sm text-gray-600">
-                제품 시연을 위한 전용 관리 시스템으로 출고와 복귀 모두 관리
-              </p>
-            </div>
-            <div className="p-4 text-center bg-white rounded-lg shadow-sm">
-              <div className="mb-2 text-3xl">✅</div>
-              <h4 className="mb-2 font-semibold text-green-800">
-                승인 워크플로우
-              </h4>
-              <p className="text-sm text-gray-600">
-                권한별로 구분된 승인 과정을 통한 체계적인 발주 관리
-              </p>
-            </div>
-            <div className="p-4 text-center bg-white rounded-lg shadow-sm">
-              <div className="mb-2 text-3xl">📧</div>
-              <h4 className="mb-2 font-semibold text-green-800">
-                자동 재고 반영
-              </h4>
-              <p className="text-sm text-gray-600">
-                발주 완료 시 자동으로 재고에 반영되고 이메일로 상세 안내
-              </p>
-            </div>
-          </div>
-        </div>
+          <p className="mb-4 text-gray-600">
+            KARS의 발주 시스템은 다양한 유형의 발주를 지원하는 통합 관리
+            시스템입니다. 개별 품목 발주, 패키지 발주, 휠체어 전용 발주, 그리고
+            제품 시연을 위한 데모 시스템까지 모든 발주 프로세스를 효율적으로
+            관리할 수 있습니다.
+          </p>
 
-        {/* 발주 워크플로우 상세 */}
-        <div className="p-6 mb-6 bg-purple-50 rounded-xl border-2 border-purple-200">
-          <h3 className="mb-4 text-lg font-semibold text-gray-800">
-            🔄 발주 워크플로우 상세
-          </h3>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* 일반 발주 워크플로우 */}
-            <div>
-              <h4 className="mb-3 text-md font-semibold text-purple-800">
-                📦 일반 발주 워크플로우
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* 일반 발주 */}
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h4 className="mb-2 text-lg font-semibold text-blue-800">
+                🛒 일반 발주
               </h4>
-              <div className="space-y-3">
-                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
-                  <div className="text-lg">1️⃣</div>
-                  <div>
-                    <h5 className="font-semibold text-purple-800">발주 요청</h5>
-                    <p className="text-xs text-gray-600">
-                      패키지/개별/휠체어 발주 요청
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
-                  <div className="text-lg">2️⃣</div>
-                  <div>
-                    <h5 className="font-semibold text-purple-800">1차 승인</h5>
-                    <p className="text-xs text-gray-600">
-                      1차승인권자가 검토 후 승인/거부
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
-                  <div className="text-lg">3️⃣</div>
-                  <div>
-                    <h5 className="font-semibold text-purple-800">출고 확인</h5>
-                    <p className="text-xs text-gray-600">
-                      관리자가 재고 확인 후 출고 진행
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
-                  <div className="text-lg">4️⃣</div>
-                  <div>
-                    <h5 className="font-semibold text-purple-800">배송 완료</h5>
-                    <p className="text-xs text-gray-600">
-                      물품 배송 완료 및 재고 반영
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <ul className="space-y-1 text-sm text-blue-700">
+                <li>• 개별 품목 및 패키지 발주</li>
+                <li>• 실시간 재고 확인</li>
+                <li>• 권한별 승인 워크플로우</li>
+                <li>• 댓글을 통한 소통 및 협업</li>
+                <li>• 파일 첨부 지원</li>
+              </ul>
             </div>
 
-            {/* 데모 시연 워크플로우 */}
-            <div>
-              <h4 className="mb-3 text-md font-semibold text-purple-800">
-                🎭 데모 시연 워크플로우
+            {/* 휠체어 발주 */}
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <h4 className="mb-2 text-lg font-semibold text-purple-800">
+                🦽 휠체어 발주
               </h4>
-              <div className="space-y-3">
-                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
-                  <div className="text-lg">1️⃣</div>
-                  <div>
-                    <h5 className="font-semibold text-purple-800">시연 요청</h5>
-                    <p className="text-xs text-gray-600">
-                      제품 시연을 위한 전용 요청
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
-                  <div className="text-lg">2️⃣</div>
-                  <div>
-                    <h5 className="font-semibold text-purple-800">시연 승인</h5>
-                    <p className="text-xs text-gray-600">
-                      1차승인권자가 시연 요청 승인
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
-                  <div className="text-lg">3️⃣</div>
-                  <div>
-                    <h5 className="font-semibold text-purple-800">시연 출고</h5>
-                    <p className="text-xs text-gray-600">
-                      관리자가 시연품 출고 처리
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3 items-center p-3 bg-white rounded-lg border border-purple-200">
-                  <div className="text-lg">4️⃣</div>
-                  <div>
-                    <h5 className="font-semibold text-purple-800">시연 복귀</h5>
-                    <p className="text-xs text-gray-600">
-                      시연 완료 후 제품 복귀 처리
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <ul className="space-y-1 text-sm text-purple-700">
+                <li>• 휠체어 전용 창고로 제한</li>
+                <li>• 휠체어 관련 카테고리만 선택</li>
+                <li>• 보라색 테마로 구분</li>
+                <li>• 일반 발주와 동일한 워크플로우</li>
+                <li>• 댓글 시스템 지원</li>
+              </ul>
+            </div>
+
+            {/* 데모 시스템 */}
+            <div className="p-4 bg-green-50 rounded-lg">
+              <h4 className="mb-2 text-lg font-semibold text-green-800">
+                🎯 데모 시스템
+              </h4>
+              <ul className="space-y-1 text-sm text-green-700">
+                <li>• 제품 시연 전용 프로세스</li>
+                <li>• 시연 출고 시 자동 재고 차감</li>
+                <li>• 시연 완료 후 재고 자동 복구</li>
+                <li>• 시연 전용 상태 관리</li>
+                <li>• 댓글을 통한 시연 피드백</li>
+              </ul>
+            </div>
+
+            {/* 공통 기능 */}
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h4 className="mb-2 text-lg font-semibold text-gray-800">
+                🔧 공통 기능
+              </h4>
+              <ul className="space-y-1 text-sm text-gray-700">
+                <li>• 주소 검색 및 입력</li>
+                <li>• 파일 업로드 (50MB 이하)</li>
+                <li>• 담당자 정보 관리</li>
+                <li>• 실시간 상태 추적</li>
+                <li>• 권한별 접근 제어</li>
+              </ul>
             </div>
           </div>
         </div>

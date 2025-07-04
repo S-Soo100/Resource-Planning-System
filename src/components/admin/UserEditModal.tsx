@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui";
 import { IUser, UpdateUserRequest } from "@/types/(auth)/user";
 import { userApi } from "@/api/user-api";
-import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+import { warehouseApi } from "@/api/warehouse-api";
+import { useCurrentTeam } from "@/hooks/useCurrentTeam";
+import { Warehouse } from "@/types/warehouse";
 
 interface UserEditModalProps {
   isOpen: boolean;
@@ -19,15 +21,54 @@ export default function UserEditModal({
   onUserUpdated,
   isReadOnly = false,
 }: UserEditModalProps) {
-  const { warehouses } = useWarehouseItems();
+  const { team } = useCurrentTeam();
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(false);
   const [formData, setFormData] = useState<UpdateUserRequest>({});
   const [isUpdating, setIsUpdating] = useState(false);
 
   const [selectedWarehouses, setSelectedWarehouses] = useState<number[]>([]);
 
+  // 팀의 모든 창고 목록 로딩
+  useEffect(() => {
+    const loadAllWarehouses = async () => {
+      if (!team?.id) return;
+
+      setIsLoadingWarehouses(true);
+      try {
+        const response = await warehouseApi.getTeamWarehouses(team.id);
+        if (response.success && response.data) {
+          console.log("🟡 [UserEditModal] 팀의 모든 창고 로딩:", response.data);
+          setWarehouses(response.data);
+        } else {
+          console.error("🔴 [UserEditModal] 창고 로딩 실패:", response.error);
+          setWarehouses([]);
+        }
+      } catch (error) {
+        console.error("🔴 [UserEditModal] 창고 로딩 예외:", error);
+        setWarehouses([]);
+      } finally {
+        setIsLoadingWarehouses(false);
+      }
+    };
+
+    if (isOpen && team?.id) {
+      loadAllWarehouses();
+    }
+  }, [isOpen, team?.id]);
+
   // 사용자 정보가 변경될 때 폼 데이터 초기화
   useEffect(() => {
     if (user) {
+      console.log("🔵 [UserEditModal] 사용자 정보 로딩:", {
+        name: user.name,
+        email: user.email,
+        accessLevel: user.accessLevel,
+        restrictedWhs: user.restrictedWhs,
+        restrictedWhsType: typeof user.restrictedWhs,
+        restrictedWhsRaw: JSON.stringify(user.restrictedWhs),
+      });
+
       setFormData({
         name: user.name,
         email: user.email,
@@ -37,27 +78,78 @@ export default function UserEditModal({
 
       // restrictedWhs 파싱
       if (user.restrictedWhs) {
-        const restrictedIds =
-          typeof user.restrictedWhs === "string"
-            ? user.restrictedWhs
-                .split(",")
-                .map((id) => parseInt(id.trim()))
-                .filter((id) => !isNaN(id))
-            : Array.isArray(user.restrictedWhs)
-            ? user.restrictedWhs.map((id) =>
-                typeof id === "number" ? id : parseInt(id)
-              )
-            : [];
+        let restrictedIds: number[] = [];
+
+        console.log("🔵 [UserEditModal] restrictedWhs 파싱 시작:", {
+          original: user.restrictedWhs,
+          type: typeof user.restrictedWhs,
+          isArray: Array.isArray(user.restrictedWhs),
+          length: user.restrictedWhs.length,
+        });
+
+        if (typeof user.restrictedWhs === "string") {
+          if (user.restrictedWhs.trim() === "") {
+            restrictedIds = [];
+            console.log("🔵 [UserEditModal] 빈 문자열 처리");
+          } else {
+            const splitResult = user.restrictedWhs.split(",");
+            console.log("🔵 [UserEditModal] 문자열 분할 결과:", splitResult);
+
+            restrictedIds = splitResult
+              .map((id) => {
+                const trimmed = id.trim();
+                const parsed = parseInt(trimmed);
+                console.log("🔵 [UserEditModal] ID 파싱:", {
+                  original: id,
+                  trimmed,
+                  parsed,
+                  isNaN: isNaN(parsed),
+                });
+                return parsed;
+              })
+              .filter((id) => !isNaN(id));
+          }
+        } else if (Array.isArray(user.restrictedWhs)) {
+          restrictedIds = user.restrictedWhs.map((id) => {
+            const result = typeof id === "number" ? id : parseInt(id);
+            console.log("🔵 [UserEditModal] 배열 요소 파싱:", {
+              original: id,
+              type: typeof id,
+              result,
+            });
+            return result;
+          });
+        }
+
+        console.log("🔵 [UserEditModal] 최종 파싱된 제한 창고:", restrictedIds);
         setSelectedWarehouses(restrictedIds);
       } else {
+        console.log("🔵 [UserEditModal] 제한 창고 없음 (falsy 값)");
         setSelectedWarehouses([]);
       }
     }
   }, [user]);
 
+  // 창고 목록 로딩 상태 로그
+  useEffect(() => {
+    console.log("🟡 [UserEditModal] 창고 목록 상태:", {
+      warehousesCount: warehouses?.length || 0,
+      warehouses:
+        warehouses?.map((w) => ({ id: w.id, name: w.warehouseName })) || [],
+      isLoadingWarehouses,
+      selectedWarehouses,
+    });
+  }, [warehouses, isLoadingWarehouses, selectedWarehouses]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || isReadOnly) return;
+
+    console.log("🟢 [UserEditModal] 제출 시작:", {
+      userId: user.id,
+      selectedWarehouses,
+      formData,
+    });
 
     setIsUpdating(true);
     try {
@@ -65,6 +157,8 @@ export default function UserEditModal({
         ...formData,
         restrictedWhs: selectedWarehouses.join(","),
       };
+
+      console.log("🟢 [UserEditModal] API 요청 데이터:", updateData);
 
       // 빈 필드는 제거
       Object.keys(updateData).forEach((key) => {
@@ -74,17 +168,22 @@ export default function UserEditModal({
         }
       });
 
+      console.log("🟢 [UserEditModal] 정리된 API 요청 데이터:", updateData);
+
       const result = await userApi.updateUser(user.id.toString(), updateData);
+
+      console.log("🟢 [UserEditModal] API 응답:", result);
 
       if (result.success) {
         alert("사용자 정보가 성공적으로 수정되었습니다.");
         onUserUpdated();
         onClose();
       } else {
+        console.error("🔴 [UserEditModal] API 에러:", result.error);
         alert(result.error || "사용자 정보 수정에 실패했습니다.");
       }
     } catch (error) {
-      console.error("사용자 수정 오류:", error);
+      console.error("🔴 [UserEditModal] 예외 발생:", error);
       alert("사용자 정보 수정 중 오류가 발생했습니다.");
     } finally {
       setIsUpdating(false);
@@ -94,15 +193,25 @@ export default function UserEditModal({
   const handleWarehouseToggle = (warehouseId: number) => {
     if (isReadOnly) return;
 
-    setSelectedWarehouses((prev) =>
-      prev.includes(warehouseId)
+    console.log("🟡 [UserEditModal] 창고 토글:", {
+      warehouseId,
+      currentSelected: selectedWarehouses,
+    });
+
+    setSelectedWarehouses((prev) => {
+      const newSelected = prev.includes(warehouseId)
         ? prev.filter((id) => id !== warehouseId)
-        : [...prev, warehouseId]
-    );
+        : [...prev, warehouseId];
+
+      console.log("🟡 [UserEditModal] 새로운 선택:", newSelected);
+      return newSelected;
+    });
   };
 
   const handleAccessLevelChange = (accessLevel: string) => {
     if (isReadOnly) return;
+
+    console.log("🟡 [UserEditModal] 권한 레벨 변경:", accessLevel);
 
     setFormData((prev) => ({
       ...prev,
@@ -212,28 +321,64 @@ export default function UserEditModal({
                 가능)
               </p>
 
-              <div className="p-3 space-y-2 overflow-y-auto border border-gray-200 rounded-md max-h-40">
-                {warehouses && warehouses.length > 0 ? (
-                  warehouses.map((warehouse) => (
-                    <label key={warehouse.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedWarehouses.includes(warehouse.id)}
-                        onChange={() => handleWarehouseToggle(warehouse.id)}
-                        className="mr-2"
-                        disabled={isReadOnly}
-                      />
-                      <span className="text-sm text-gray-700">
-                        {warehouse.warehouseName} - {warehouse.warehouseAddress}
-                      </span>
-                    </label>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500">
-                    등록된 창고가 없습니다.
-                  </p>
-                )}
-              </div>
+              {/* 디버깅 정보 표시 (개발 환경에서만) */}
+              {process.env.NODE_ENV === "development" && (
+                <div className="p-2 text-xs bg-gray-100 rounded">
+                  <div>창고 목록 개수: {warehouses?.length || 0}</div>
+                  <div>선택된 창고: [{selectedWarehouses.join(", ")}]</div>
+                  <div>
+                    창고 로딩 중: {isLoadingWarehouses ? "예" : "아니오"}
+                  </div>
+                </div>
+              )}
+
+              {isLoadingWarehouses ? (
+                <div className="p-3 text-center text-gray-500">
+                  창고 목록을 불러오는 중...
+                </div>
+              ) : (
+                <div className="p-3 space-y-2 overflow-y-auto border border-gray-200 rounded-md max-h-40">
+                  {warehouses && warehouses.length > 0 ? (
+                    warehouses.map((warehouse) => {
+                      const isChecked = selectedWarehouses.includes(
+                        warehouse.id
+                      );
+                      console.log("🟢 [UserEditModal] 체크박스 렌더링:", {
+                        warehouseId: warehouse.id,
+                        warehouseIdType: typeof warehouse.id,
+                        selectedWarehouses,
+                        selectedWarehousesTypes: selectedWarehouses.map(
+                          (id) => typeof id
+                        ),
+                        isChecked,
+                        includesCheck: selectedWarehouses.includes(
+                          warehouse.id
+                        ),
+                      });
+
+                      return (
+                        <label key={warehouse.id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleWarehouseToggle(warehouse.id)}
+                            className="mr-2"
+                            disabled={isReadOnly}
+                          />
+                          <span className="text-sm text-gray-700">
+                            {warehouse.warehouseName} -{" "}
+                            {warehouse.warehouseAddress}
+                          </span>
+                        </label>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      등록된 창고가 없습니다.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {selectedWarehouses.length > 0 && (
                 <div className="text-sm text-gray-600">

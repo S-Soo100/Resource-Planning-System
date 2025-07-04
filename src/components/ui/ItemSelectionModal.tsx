@@ -125,12 +125,9 @@ export default function ItemSelectionModal({
       return;
     }
 
-    // 이미 추가된 아이템인지 확인
+    // 이미 추가된 아이템인지 확인 (itemCode가 중복되는 경우를 대비하여 warehouseItemId로 체크)
     const isItemExists = orderItems.some(
-      (orderItem) =>
-        orderItem.teamItem?.itemCode &&
-        item.teamItem?.itemCode &&
-        orderItem.teamItem.itemCode === item.teamItem.itemCode
+      (orderItem) => orderItem.warehouseItemId === item.id
     );
 
     if (isItemExists) {
@@ -204,11 +201,9 @@ export default function ItemSelectionModal({
             ) : (
               <div className="grid overflow-y-auto gap-2 max-h-96">
                 {displayItems.map((item) => {
+                  // itemCode가 중복되는 경우를 대비하여 warehouseItemId로 중복 체크
                   const isAlreadyAdded = orderItems.some(
-                    (orderItem) =>
-                      orderItem.teamItem?.itemCode &&
-                      item.teamItem?.itemCode &&
-                      orderItem.teamItem.itemCode === item.teamItem.itemCode
+                    (orderItem) => orderItem.warehouseItemId === item.id
                   );
 
                   return (

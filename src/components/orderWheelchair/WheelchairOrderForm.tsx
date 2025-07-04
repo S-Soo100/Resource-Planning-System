@@ -700,11 +700,13 @@ export default function WheelchairOrderForm() {
         />
 
         {/* 거래처 선택 */}
-        <SupplierSection
-          suppliers={suppliers}
-          onChange={handleSupplierChange}
-          focusRingColor="purple"
-        />
+        {user?.accessLevel !== "supplier" && (
+          <SupplierSection
+            suppliers={suppliers}
+            onChange={handleSupplierChange}
+            focusRingColor="purple"
+          />
+        )}
 
         {/* 수령인 정보 */}
         <RecipientInfoSection

@@ -900,11 +900,13 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         />
 
         {/* 거래처 선택 */}
-        <SupplierSection
-          suppliers={suppliers}
-          onChange={handleSupplierChange}
-          focusRingColor="blue"
-        />
+        {user?.accessLevel !== "supplier" && (
+          <SupplierSection
+            suppliers={suppliers}
+            onChange={handleSupplierChange}
+            focusRingColor="blue"
+          />
+        )}
 
         {/* 수령인 정보 */}
         <RecipientInfoSection

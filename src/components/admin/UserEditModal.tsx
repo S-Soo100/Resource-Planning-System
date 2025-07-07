@@ -22,7 +22,7 @@ export default function UserEditModal({
   isReadOnly = false,
 }: UserEditModalProps) {
   const { team } = useCurrentTeam();
-  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[] | null>(null);
   const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(false);
   const [formData, setFormData] = useState<UpdateUserRequest>({});
   const [isUpdating, setIsUpdating] = useState(false);
@@ -42,11 +42,11 @@ export default function UserEditModal({
           setWarehouses(response.data);
         } else {
           console.error("🔴 [UserEditModal] 창고 로딩 실패:", response.error);
-          setWarehouses([]);
+          setWarehouses(null);
         }
       } catch (error) {
         console.error("🔴 [UserEditModal] 창고 로딩 예외:", error);
-        setWarehouses([]);
+        setWarehouses(null);
       } finally {
         setIsLoadingWarehouses(false);
       }
@@ -133,9 +133,10 @@ export default function UserEditModal({
   // 창고 목록 로딩 상태 로그
   useEffect(() => {
     console.log("🟡 [UserEditModal] 창고 목록 상태:", {
-      warehousesCount: warehouses?.length || 0,
-      warehouses:
-        warehouses?.map((w) => ({ id: w.id, name: w.warehouseName })) || [],
+      warehousesCount: Array.isArray(warehouses) ? warehouses.length : 0,
+      warehouses: Array.isArray(warehouses)
+        ? warehouses.map((w) => ({ id: w.id, name: w.warehouseName }))
+        : [],
       isLoadingWarehouses,
       selectedWarehouses,
     });
@@ -324,7 +325,10 @@ export default function UserEditModal({
               {/* 디버깅 정보 표시 (개발 환경에서만) */}
               {process.env.NODE_ENV === "development" && (
                 <div className="p-2 text-xs bg-gray-100 rounded">
-                  <div>창고 목록 개수: {warehouses?.length || 0}</div>
+                  <div>
+                    창고 목록 개수:{" "}
+                    {Array.isArray(warehouses) ? warehouses.length : 0}
+                  </div>
                   <div>선택된 창고: [{selectedWarehouses.join(", ")}]</div>
                   <div>
                     창고 로딩 중: {isLoadingWarehouses ? "예" : "아니오"}
@@ -338,7 +342,7 @@ export default function UserEditModal({
                 </div>
               ) : (
                 <div className="p-3 space-y-2 overflow-y-auto border border-gray-200 rounded-md max-h-40">
-                  {warehouses && warehouses.length > 0 ? (
+                  {Array.isArray(warehouses) && warehouses.length > 0 ? (
                     warehouses.map((warehouse) => {
                       const isChecked = selectedWarehouses.includes(
                         warehouse.id

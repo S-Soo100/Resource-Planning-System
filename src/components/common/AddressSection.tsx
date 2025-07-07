@@ -11,6 +11,7 @@ interface AddressSectionProps {
   onToggleAddressModal: () => void;
   onCloseAddressModal: () => void;
   focusRingColor?: string;
+  label?: string;
 }
 
 const AddressSection: React.FC<AddressSectionProps> = ({
@@ -22,6 +23,7 @@ const AddressSection: React.FC<AddressSectionProps> = ({
   onToggleAddressModal,
   onCloseAddressModal,
   focusRingColor = "blue",
+  label = "수령지 주소",
 }) => {
   const focusRingClass =
     focusRingColor === "purple"
@@ -40,7 +42,7 @@ const AddressSection: React.FC<AddressSectionProps> = ({
           htmlFor="address"
           className="block mb-2 text-sm font-medium text-gray-700"
         >
-          수령지 주소 <span className="text-red-500">*</span>
+          {label} <span className="text-red-500">*</span>
         </label>
         <div className="flex gap-2 mb-2">
           <input

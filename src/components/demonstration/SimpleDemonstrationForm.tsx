@@ -8,6 +8,9 @@ import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { toast } from "react-hot-toast";
 import { CreateDemoDto } from "@/types/demo/demo";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import AddressSection from "@/components/common/AddressSection";
+import { useAddressSearch } from "@/hooks/useAddressSearch";
+import { Address } from "react-daum-postcode";
 
 // CreateDemoDto를 기반으로 하되 UI에 필요한 추가 필드들을 포함
 interface DemonstrationFormData
@@ -21,13 +24,17 @@ interface DemonstrationFormData
     | "status"
   > {
   // UI에서 추가로 필요한 필드들
-  email: string;
   eventName: string;
   demonstrationStartDate: string;
+  demonstrationStartTime: string;
   demonstrationEndDate: string;
+  demonstrationEndTime: string;
   managerPhone: string;
   deliveryMethod: string;
   retrievalMethod: string;
+  // 주소 관련 필드 추가
+  address: string;
+  detailAddress: string;
 }
 
 const SimpleDemonstrationForm: React.FC = () => {
@@ -44,15 +51,27 @@ const SimpleDemonstrationForm: React.FC = () => {
     manager: "",
     memo: "",
     // UI 추가 필드들
-    email: "",
     eventName: "",
     demonstrationStartDate: "",
+    demonstrationStartTime: "",
     demonstrationEndDate: "",
+    demonstrationEndTime: "",
     managerPhone: "",
     deliveryMethod: "",
     retrievalMethod: "",
+    // 주소 관련 필드
+    address: "",
+    detailAddress: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 주소 검색 훅 사용
+  const {
+    isAddressOpen,
+    handleAddressChange: handleAddressChangeFromHook,
+    handleToggleAddressModal,
+    handleCloseAddressModal,
+  } = useAddressSearch();
 
   // 현재 사용자 정보로 신청자 설정
   React.useEffect(() => {
@@ -77,14 +96,21 @@ const SimpleDemonstrationForm: React.FC = () => {
     }));
   };
 
+  // 주소 변경 핸들러
+  const handleAddressChange = (data: Address) => {
+    handleAddressChangeFromHook(data, setFormData);
+  };
+
   // 폼 검증
   const validateForm = (): boolean => {
     const requiredFields = [
       { field: formData.managerPhone, name: "담당자 연락처" },
       { field: formData.eventName, name: "행사 명" },
-      { field: formData.demonstrationStartDate, name: "시연 시작일" },
+      { field: formData.demonstrationStartDate, name: "물품 배송일" },
+      { field: formData.demonstrationStartTime, name: "물품 배송 시간" },
       { field: formData.demonstrationEndDate, name: "시연 종료일" },
-      { field: formData.receiverAddress, name: "시연 장소" },
+      { field: formData.demonstrationEndTime, name: "물품 회수 시간" },
+      { field: formData.address, name: "물품 이동 장소" },
     ];
 
     for (const { field, name } of requiredFields) {
@@ -111,14 +137,24 @@ const SimpleDemonstrationForm: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // 주소 정보를 receiverAddress에 결합
+      const fullAddress = formData.detailAddress
+        ? `${formData.address} ${formData.detailAddress}`
+        : formData.address;
+
       // 여기에 실제 API 호출 로직을 구현
       const submitData = {
         ...formData,
         receiver: formData.manager, // 행사 담당자를 수령인으로 사용
         receiverPhone: formData.managerPhone, // 담당자 연락처를 수령인 연락처로 사용
+        receiverAddress: fullAddress, // 주소와 세부주소를 결합
         purchaseDate: formData.demonstrationStartDate, // 시연 시작일을 구매 요청일로 사용
         outboundDate: formData.demonstrationEndDate, // 시연 종료일을 출고 예정일로 사용
-        selectedItems,
+        selectedItems: selectedItems.map((item) => ({
+          category: "demo", // 카테고리 정보가 제거되었으므로 기본값 설정
+          itemName: item.itemName,
+          quantity: item.quantity,
+        })),
         submittedAt: new Date().toISOString(),
       };
 
@@ -140,13 +176,16 @@ const SimpleDemonstrationForm: React.FC = () => {
         installationDate: "",
         manager: "",
         memo: "",
-        email: "",
         eventName: "",
         demonstrationStartDate: "",
+        demonstrationStartTime: "",
         demonstrationEndDate: "",
+        demonstrationEndTime: "",
         managerPhone: "",
         deliveryMethod: "",
         retrievalMethod: "",
+        address: "",
+        detailAddress: "",
       });
       setSelectedItems([]);
     } catch (error) {
@@ -193,8 +232,21 @@ const SimpleDemonstrationForm: React.FC = () => {
         {/* 행사 담당자 정보 */}
         <Card className="p-6">
           <h2 className="mb-4 text-xl font-semibold text-gray-800">
-            행사 담당자 정보
+            행사 정보
           </h2>
+          <div className="mb-4 md:col-span-2">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
+              행사 명 <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              name="eventName"
+              value={formData.eventName}
+              onChange={handleInputChange}
+              placeholder="행사명을 입력하세요"
+              required
+            />
+          </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
@@ -223,19 +275,6 @@ const SimpleDemonstrationForm: React.FC = () => {
                 required
               />
             </div>
-
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                행사 담당자 이메일
-              </label>
-              <Input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="example@email.com"
-              />
-            </div>
           </div>
         </Card>
 
@@ -243,27 +282,14 @@ const SimpleDemonstrationForm: React.FC = () => {
         <Card className="p-6">
           <h2 className="flex items-center mb-4 text-xl font-semibold text-gray-800">
             <Calendar className="mr-2 w-5 h-5" />
-            시연 정보
+            물품 이동 정보
           </h2>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="md:col-span-2">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                행사 명 <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="text"
-                name="eventName"
-                value={formData.eventName}
-                onChange={handleInputChange}
-                placeholder="행사명을 입력하세요"
-                required
-              />
-            </div>
-
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                시연 시작일 <span className="text-red-500">*</span>
+                물품 배송일(행사장소 배송날짜)
+                <span className="text-red-500">*</span>
               </label>
               <Input
                 type="date"
@@ -276,31 +302,17 @@ const SimpleDemonstrationForm: React.FC = () => {
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                시연 종료일 <span className="text-red-500">*</span>
+                물품 배송 시간(공장에서 배송 시작하는 시간)
+                <span className="text-red-500">*</span>
               </label>
               <Input
-                type="date"
-                name="demonstrationEndDate"
-                value={formData.demonstrationEndDate}
+                type="time"
+                name="demonstrationStartTime"
+                value={formData.demonstrationStartTime}
                 onChange={handleInputChange}
                 required
               />
             </div>
-
-            <div className="md:col-span-2">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                시연 장소 <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="text"
-                name="receiverAddress"
-                value={formData.receiverAddress}
-                onChange={handleInputChange}
-                placeholder="시연이 진행될 장소를 입력하세요"
-                required
-              />
-            </div>
-
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
                 물품 이동 방식
@@ -316,6 +328,48 @@ const SimpleDemonstrationForm: React.FC = () => {
                 <option value="택배">택배</option>
                 <option value="직접">직접</option>
               </select>
+            </div>
+
+            {/* 시연 장소 - 주소 검색으로 변경 */}
+            <div className="md:col-span-2">
+              <AddressSection
+                address={formData.address}
+                detailAddress={formData.detailAddress}
+                isAddressOpen={isAddressOpen}
+                onChange={handleInputChange}
+                onAddressChange={handleAddressChange}
+                onToggleAddressModal={handleToggleAddressModal}
+                onCloseAddressModal={handleCloseAddressModal}
+                focusRingColor="blue"
+                label="물품 이동 장소"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                시연 종료일(회수날짜) <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="date"
+                name="demonstrationEndDate"
+                value={formData.demonstrationEndDate}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                물품 회수 시간(공장에서 회수하는 시간)
+                <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="time"
+                name="demonstrationEndTime"
+                value={formData.demonstrationEndTime}
+                onChange={handleInputChange}
+                required
+              />
             </div>
 
             <div>

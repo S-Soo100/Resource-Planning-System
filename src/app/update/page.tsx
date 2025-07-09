@@ -67,6 +67,89 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.5.1 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.5.1
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-07-05
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                시연 신청 폼 및 데모 시스템 UI/UX 개선, 창고별 아이템 동적 선택,
+                체크박스 로직 개선, 문서화 등
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 개선됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("개선됨")}
+                  <h3 className="font-medium text-gray-900">개선됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    시연 신청 폼 UI/UX 개선 (창고 선택 드롭다운 단일화, 자동
+                    선택 로직 개선)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    창고별 실제 재고 아이템 목록 기반 동적 선택 UI 제공
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    체크박스 및 수량 조절 로직 개선 (teamItem 기준 일원화)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    불필요한 정보(창고 주소 등) 제거, 드롭다운만 노출
+                  </li>
+                </ul>
+              </div>
+              {/* 수정됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("수정됨")}
+                  <h3 className="font-medium text-gray-900">수정됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    체크박스 동작 오류 및 전체 선택/해제 동작 오류 수정
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    선택된 아이템 요약 표시 오류 수정
+                  </li>
+                </ul>
+              </div>
+              {/* 문서화 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("문서화")}
+                  <h3 className="font-medium text-gray-900">문서화</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    CHANGELOG, 데모 시스템 비즈니스 로직, 업데이트 내역 등 문서
+                    최신화
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* v1.5.0 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">

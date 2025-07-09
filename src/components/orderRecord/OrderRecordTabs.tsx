@@ -511,6 +511,23 @@ const OrderRecordTabs = () => {
     orderId: number,
     newStatus: OrderStatus
   ) => {
+    // moderator 권한 사용자가 본인이 생성한 발주를 승인/반려하려고 할 때 제한
+    if (userAccessLevel === "moderator") {
+      const currentOrder = currentRecords.find(
+        (record) => record.id === orderId
+      );
+
+      if (currentOrder && currentOrder.userId === auth?.id) {
+        if (
+          newStatus === OrderStatus.approved ||
+          newStatus === OrderStatus.rejected
+        ) {
+          alert("요청자 본인 이외의 승인권자가 승인해야 합니다");
+          return;
+        }
+      }
+    }
+
     // 사용자에게 확인 요청
     if (
       !window.confirm(
@@ -828,11 +845,21 @@ const OrderRecordTabs = () => {
           >
             {/* 권한에 따라 다른 선택지 표시 */}
             {userAccessLevel === "moderator" ? (
-              // Moderator: 요청, 승인, 반려만 가능
+              // Moderator: 요청, 승인, 반려만 가능 (단, 본인 발주는 승인/반려 불가)
               <>
                 <option value={OrderStatus.requested}>요청</option>
-                <option value={OrderStatus.approved}>승인</option>
-                <option value={OrderStatus.rejected}>반려</option>
+                <option
+                  value={OrderStatus.approved}
+                  disabled={record.userId === auth?.id}
+                >
+                  승인{record.userId === auth?.id ? " (본인 발주)" : ""}
+                </option>
+                <option
+                  value={OrderStatus.rejected}
+                  disabled={record.userId === auth?.id}
+                >
+                  반려{record.userId === auth?.id ? " (본인 발주)" : ""}
+                </option>
               </>
             ) : userAccessLevel === "admin" ? (
               // Admin: 출고팀 확인, 출고 완료, 출고 보류만 가능
@@ -878,7 +905,7 @@ const OrderRecordTabs = () => {
     if (userAccessLevel === "supplier") {
       return (
         <div className="flex gap-2 mb-4 sm:mb-6">
-          <div className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-full text-sm font-medium shadow-sm">
+          <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-full shadow-sm">
             <User size={16} className="mr-2" />내 발주 기록
           </div>
         </div>
@@ -936,7 +963,7 @@ const OrderRecordTabs = () => {
               : "bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200"
           }`}
         >
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex gap-2 justify-center items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-5 h-5"
@@ -962,7 +989,7 @@ const OrderRecordTabs = () => {
               : "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
           }`}
         >
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex gap-2 justify-center items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-5 h-5"
@@ -1025,7 +1052,7 @@ const OrderRecordTabs = () => {
         {renderShipmentTabs()}
 
         {/* 검색 및 필터 */}
-        <div className="flex flex-wrap gap-3 mb-6 items-center">
+        <div className="flex flex-wrap gap-3 items-center mb-6">
           {/* 검색 */}
           <div className="relative flex-1 min-w-[200px]">
             <Search
@@ -1042,7 +1069,7 @@ const OrderRecordTabs = () => {
           </div>
 
           {/* 상태 필터 */}
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2 items-center">
             <Filter size={16} className="text-gray-500" />
             <select
               value={statusFilter}
@@ -1070,7 +1097,7 @@ const OrderRecordTabs = () => {
 
           {/* 사용자 표시 */}
           {activeTab === "user" && (
-            <div className="flex items-center px-3 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium">
+            <div className="flex items-center px-3 py-2 text-sm font-medium text-blue-800 bg-blue-100 rounded-lg">
               <User size={16} className="mr-2" />
               {authStore.getState().user?.name || "사용자"}님의 발주
             </div>
@@ -1078,7 +1105,7 @@ const OrderRecordTabs = () => {
 
           {/* 거래처 선택 */}
           {activeTab === "supplier" && (
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               <Truck size={16} className="text-gray-500" />
               {isLoadingSuppliers ? (
                 <div className="flex items-center px-3 py-2 text-sm text-gray-500">

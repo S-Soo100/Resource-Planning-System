@@ -1,13 +1,6 @@
-import { InventoryRecord } from "../(inventoryRecord)/inventory-record";
-import {
-  CreateOrderItemRequest,
-  OrderFile,
-  OrderItem,
-  OrderPackage,
-  OrderSupplier,
-  OrderUser,
-  OrderWarehouse,
-} from "../(order)/order";
+import { CreateOrderItemRequest } from "../(order)/order";
+import { Item } from "../(item)/item";
+import { IUser } from "../(auth)/user";
 
 export enum DemoStatus {
   //! 주문 데모 상태
@@ -21,32 +14,31 @@ export enum DemoStatus {
 }
 
 export interface Demo {
-  id: number;
-  userId: number;
-  supplierId: number;
-  packageId: number;
-  warehouseId: number;
-  countryCode: string;
-  requester: string;
-  receiver: string;
-  receiverPhone: string;
-  receiverAddress: string;
-  purchaseDate: string;
-  outboundDate: string;
-  installationDate: string;
-  manager: string;
-  status: DemoStatus;
+  requester: string; // 나
+  handler: string; // 행사 담당자 in 우리팀
+  demoManager: string;
+  demoManagerPhone: string;
   memo: string;
-  createdAt: string;
-  updatedAt: string;
-  deletedAt: string | null;
-  user: OrderUser;
-  supplier: OrderSupplier;
-  package: OrderPackage;
-  warehouse: OrderWarehouse;
-  orderItems: OrderItem[];
-  inventoryRecords: InventoryRecord[];
-  files: OrderFile[];
+  // UI 추가 필드들
+  demoTitle: string;
+  demoNationType: string; // 국내행사 해외행사 구분
+  demoAddress: string; // address 와 detailAddress 를 합친 값
+  demoPaymentType: string; // 유료 무료
+  demoPrice?: number;
+  demoPaymentDate?: number; //결제 예정일
+  demoCurrencyUnit: string; // 화폐 단위
+  // 행사 물품 보내는 날짜
+  demoStartDate: string; // 며칠에 상차 하는지
+  demoStartTime: string; // 몇시에 상차 하는지
+  demoStartDeliveryMethod: string; // 보내는 방법
+  demoEndDate: string; // 며칠에 다시 안산에 받아서 하차 하는지
+  demoEndTime: string; // 몇시에 다시 안산에 받아서 하차 하는지
+  demoEndDeliveryMethod: string; // 회수 방법
+  userId: number; // 나
+  warehouseId: number; // 시연품 창고
+  demoItems: Item[];
+  user: IUser; // 나
+  files: File[]; // 첨부된 파일들
 }
 
 export interface DemoResponse {
@@ -62,11 +54,11 @@ export interface CreateDemoDto {
   requester: string;
   receiver: string;
   receiverPhone: string;
-  receiverAddress: string;
+  demoAddress: string;
   purchaseDate: string;
   outboundDate: string;
   installationDate: string;
-  manager: string;
+  demoManager: string;
   status: DemoStatus;
   memo: string;
   orderItems: CreateOrderItemRequest[];

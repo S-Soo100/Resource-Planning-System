@@ -1,6 +1,7 @@
 import React from "react";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
+import { Search } from "lucide-react";
 
 interface AddressSectionProps {
   address: string;
@@ -57,10 +58,11 @@ const AddressSection: React.FC<AddressSectionProps> = ({
           />
           <button
             type="button"
-            className={`px-4 py-2 text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${buttonColor}`}
+            className={`px-3 md:px-4 py-2 text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${buttonColor}`}
             onClick={onToggleAddressModal}
           >
-            주소 검색
+            <Search className="w-4 h-4 md:hidden" />
+            <span className="hidden md:inline">주소 검색</span>
           </button>
         </div>
         <input

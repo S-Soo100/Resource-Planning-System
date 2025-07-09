@@ -26,7 +26,6 @@ export default function UserEditModal({
   const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(false);
   const [formData, setFormData] = useState<UpdateUserRequest>({});
   const [isUpdating, setIsUpdating] = useState(false);
-
   const [selectedWarehouses, setSelectedWarehouses] = useState<number[]>([]);
 
   // 팀의 모든 창고 목록 로딩
@@ -314,83 +313,133 @@ export default function UserEditModal({
           </div>
 
           {/* 창고 접근 제한 */}
-          {formData.accessLevel !== "admin" && (
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">창고 접근 제한</h4>
-              <p className="text-sm text-gray-600">
-                선택된 창고는 접근이 제한됩니다. (관리자는 모든 창고에 접근
-                가능)
-              </p>
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-900">창고 접근 권한</h4>
 
-              {/* 디버깅 정보 표시 (개발 환경에서만) */}
-              {process.env.NODE_ENV === "development" && (
-                <div className="p-2 text-xs bg-gray-100 rounded">
-                  <div>
-                    창고 목록 개수:{" "}
-                    {Array.isArray(warehouses) ? warehouses.length : 0}
-                  </div>
-                  <div>선택된 창고: [{selectedWarehouses.join(", ")}]</div>
-                  <div>
-                    창고 로딩 중: {isLoadingWarehouses ? "예" : "아니오"}
+            {formData.accessLevel === "admin" ? (
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+                <p className="text-sm text-gray-600">
+                  관리자는 모든 창고에 접근 가능하므로 창고 접근 제한이 적용되지
+                  않습니다.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-500">
+                      접근 가능한 창고
+                    </span>
+                    <span className="text-sm font-medium text-blue-600">
+                      {Array.isArray(warehouses)
+                        ? warehouses.length - selectedWarehouses.length
+                        : 0}
+                      개
+                    </span>
                   </div>
                 </div>
-              )}
 
-              {isLoadingWarehouses ? (
-                <div className="p-3 text-center text-gray-500">
-                  창고 목록을 불러오는 중...
+                {/* 권한 레벨별 안내 */}
+                <div className="p-3 bg-blue-50 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    체크된 창고는 접근이 제한됩니다. 관리자는 모든 창고에 접근
+                    가능합니다.
+                  </p>
                 </div>
-              ) : (
-                <div className="p-3 space-y-2 overflow-y-auto border border-gray-200 rounded-md max-h-40">
-                  {Array.isArray(warehouses) && warehouses.length > 0 ? (
-                    warehouses.map((warehouse) => {
-                      const isChecked = selectedWarehouses.includes(
-                        warehouse.id
-                      );
-                      console.log("🟢 [UserEditModal] 체크박스 렌더링:", {
-                        warehouseId: warehouse.id,
-                        warehouseIdType: typeof warehouse.id,
-                        selectedWarehouses,
-                        selectedWarehousesTypes: selectedWarehouses.map(
-                          (id) => typeof id
-                        ),
-                        isChecked,
-                        includesCheck: selectedWarehouses.includes(
+
+                {/* 디버깅 정보 표시 (개발 환경에서만) */}
+                {process.env.NODE_ENV === "development" && (
+                  <div className="p-2 text-xs bg-gray-100 rounded">
+                    <div>
+                      창고 목록 개수:{" "}
+                      {Array.isArray(warehouses) ? warehouses.length : 0}
+                    </div>
+                    <div>선택된 창고: [{selectedWarehouses.join(", ")}]</div>
+                    <div>
+                      창고 로딩 중: {isLoadingWarehouses ? "예" : "아니오"}
+                    </div>
+                  </div>
+                )}
+
+                {isLoadingWarehouses ? (
+                  <div className="p-3 text-center text-gray-500">
+                    창고 목록을 불러오는 중...
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {Array.isArray(warehouses) && warehouses.length > 0 ? (
+                      warehouses.map((warehouse) => {
+                        const isRestricted = selectedWarehouses.includes(
                           warehouse.id
-                        ),
-                      });
+                        );
 
-                      return (
-                        <label key={warehouse.id} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => handleWarehouseToggle(warehouse.id)}
-                            className="mr-2"
-                            disabled={isReadOnly}
-                          />
-                          <span className="text-sm text-gray-700">
-                            {warehouse.warehouseName} -{" "}
-                            {warehouse.warehouseAddress}
-                          </span>
-                        </label>
-                      );
-                    })
-                  ) : (
-                    <p className="text-sm text-gray-500">
-                      등록된 창고가 없습니다.
+                        return (
+                          <div
+                            key={warehouse.id}
+                            className={`
+                              flex items-center p-3 rounded-md border transition-colors
+                              ${
+                                isRestricted
+                                  ? "bg-red-50 border-red-200"
+                                  : "bg-green-50 border-green-200"
+                              }
+                              ${
+                                isReadOnly
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : "cursor-pointer hover:bg-gray-50"
+                              }
+                            `}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isRestricted}
+                              onChange={() =>
+                                handleWarehouseToggle(warehouse.id)
+                              }
+                              disabled={isReadOnly}
+                              className="mr-3"
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900">
+                                {warehouse.warehouseName}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {warehouse.warehouseAddress}
+                              </div>
+                            </div>
+                            <div
+                              className={`
+                              px-2 py-1 text-xs rounded-full
+                              ${
+                                isRestricted
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-green-100 text-green-700"
+                              }
+                            `}
+                            >
+                              {isRestricted ? "접근 제한" : "접근 가능"}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="p-3 text-center text-gray-500 border border-gray-200 rounded-md">
+                        등록된 창고가 없습니다.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {selectedWarehouses.length > 0 && (
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-md">
+                    <p className="text-sm text-amber-800">
+                      ⚠️ {selectedWarehouses.length}개 창고에 접근이 제한됩니다.
                     </p>
-                  )}
-                </div>
-              )}
-
-              {selectedWarehouses.length > 0 && (
-                <div className="text-sm text-gray-600">
-                  선택된 제한 창고: {selectedWarehouses.length}개
-                </div>
-              )}
-            </div>
-          )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
 
           {/* 버튼 영역 */}
           <div className="flex justify-end pt-6 space-x-3 border-t">

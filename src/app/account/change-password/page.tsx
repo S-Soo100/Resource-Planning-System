@@ -26,6 +26,12 @@ export default function ChangePasswordPage() {
     email: string,
     password: string
   ): Promise<boolean> => {
+    // 개발 모드에서는 현재 비밀번호 검사를 건너뜀
+    if (process.env.NODE_ENV === "development") {
+      console.log("개발 모드: 현재 비밀번호 검사를 건너뜁니다.");
+      return true;
+    }
+
     try {
       const response = await authApi.validatePassword({
         email,
@@ -115,9 +121,9 @@ export default function ChangePasswordPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 w-8 h-8 rounded-full border-b-2 border-blue-600 animate-spin"></div>
           <p className="text-gray-600">로딩 중...</p>
         </div>
       </div>
@@ -126,12 +132,12 @@ export default function ChangePasswordPage() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <p className="text-red-600">사용자 정보를 찾을 수 없습니다.</p>
           <button
             onClick={() => router.push("/account")}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 mt-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
           >
             돌아가기
           </button>
@@ -142,14 +148,14 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="px-4 py-8 mx-auto max-w-2xl sm:px-6 lg:px-8">
         {/* 헤더 */}
         <div className="mb-8">
           <button
             onClick={() => router.push("/account")}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center mb-4 text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="mr-2 w-4 h-4" />
             계정으로 돌아가기
           </button>
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
@@ -162,10 +168,10 @@ export default function ChangePasswordPage() {
 
         {/* 성공 메시지 */}
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="p-4 mb-6 bg-green-50 rounded-lg border border-green-200">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
+                <div className="flex justify-center items-center w-5 h-5 bg-green-400 rounded-full">
                   <svg
                     className="w-3 h-3 text-white"
                     fill="currentColor"
@@ -190,7 +196,7 @@ export default function ChangePasswordPage() {
         )}
 
         {/* 폼 */}
-        <div className="bg-white shadow-sm rounded-lg">
+        <div className="bg-white rounded-lg shadow-sm">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-medium text-gray-900">비밀번호 보안</h2>
           </div>
@@ -200,7 +206,7 @@ export default function ChangePasswordPage() {
             <div>
               <label
                 htmlFor="currentPassword"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block mb-2 text-sm font-medium text-gray-700"
               >
                 현재 비밀번호
               </label>
@@ -210,7 +216,7 @@ export default function ChangePasswordPage() {
                   id="currentPassword"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100"
+                  className="px-3 py-2 pr-10 w-full rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100"
                   placeholder="현재 비밀번호를 입력하세요"
                   required
                   disabled={isSubmitting || isValidatingPassword || success}
@@ -218,7 +224,7 @@ export default function ChangePasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex absolute inset-y-0 right-0 items-center pr-3 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting || isValidatingPassword || success}
                 >
                   {showCurrentPassword ? (
@@ -234,7 +240,7 @@ export default function ChangePasswordPage() {
             <div>
               <label
                 htmlFor="newPassword"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block mb-2 text-sm font-medium text-gray-700"
               >
                 새 비밀번호
               </label>
@@ -244,7 +250,7 @@ export default function ChangePasswordPage() {
                   id="newPassword"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100"
+                  className="px-3 py-2 pr-10 w-full rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100"
                   placeholder="새 비밀번호를 입력하세요"
                   required
                   minLength={6}
@@ -253,7 +259,7 @@ export default function ChangePasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex absolute inset-y-0 right-0 items-center pr-3 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting || isValidatingPassword || success}
                 >
                   {showNewPassword ? (
@@ -272,7 +278,7 @@ export default function ChangePasswordPage() {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block mb-2 text-sm font-medium text-gray-700"
               >
                 새 비밀번호 확인
               </label>
@@ -282,7 +288,7 @@ export default function ChangePasswordPage() {
                   id="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100"
+                  className="px-3 py-2 pr-10 w-full rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100"
                   placeholder="새 비밀번호를 다시 입력하세요"
                   required
                   disabled={isSubmitting || isValidatingPassword || success}
@@ -290,7 +296,7 @@ export default function ChangePasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex absolute inset-y-0 right-0 items-center pr-3 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting || isValidatingPassword || success}
                 >
                   {showConfirmPassword ? (
@@ -303,14 +309,14 @@ export default function ChangePasswordPage() {
             </div>
 
             {/* 보안 가이드 */}
-            <div className="bg-blue-50 p-4 rounded-lg">
+            <div className="p-4 bg-blue-50 rounded-lg">
               <div className="flex items-start">
                 <Lock className="w-5 h-5 mt-0.5 text-blue-600 flex-shrink-0" />
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-blue-800">
                     비밀번호 보안 가이드
                   </h3>
-                  <ul className="mt-2 text-xs text-blue-700 space-y-1">
+                  <ul className="mt-2 space-y-1 text-xs text-blue-700">
                     <li>• 최소 6자 이상의 길이</li>
                     <li>• 영문, 숫자, 특수문자 조합 권장</li>
                     <li>• 개인정보(이름, 생년월일 등) 사용 금지</li>
@@ -322,17 +328,17 @@ export default function ChangePasswordPage() {
 
             {/* 에러 메시지 */}
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="p-3 bg-red-50 rounded-lg border border-red-200">
                 <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
 
             {/* 버튼 */}
-            <div className="flex items-center justify-end space-x-3 pt-4">
+            <div className="flex justify-end items-center pt-4 space-x-3">
               <button
                 type="button"
                 onClick={() => router.push("/account")}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isSubmitting || isValidatingPassword || success}
               >
                 취소
@@ -355,7 +361,7 @@ export default function ChangePasswordPage() {
               >
                 {success ? (
                   <>
-                    <div className="w-4 h-4 mr-2 bg-green-500 rounded-full flex items-center justify-center">
+                    <div className="flex justify-center items-center mr-2 w-4 h-4 bg-green-500 rounded-full">
                       <svg
                         className="w-2 h-2 text-white"
                         fill="currentColor"
@@ -372,17 +378,17 @@ export default function ChangePasswordPage() {
                   </>
                 ) : isValidatingPassword ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="mr-2 w-4 h-4 rounded-full border-b-2 border-white animate-spin"></div>
                     현재 비밀번호 확인 중...
                   </>
                 ) : isSubmitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="mr-2 w-4 h-4 rounded-full border-b-2 border-white animate-spin"></div>
                     변경 중...
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4 mr-2" />
+                    <Save className="mr-2 w-4 h-4" />
                     변경하기
                   </>
                 )}

@@ -1,103 +1,113 @@
 import React from "react";
-import { DemoItemListForTeam57 } from "@/types/demo/demo-item-list-for-team-57";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Minus, Plus } from "lucide-react";
+import { Item } from "@/types/(item)/item";
+import { useItemStockManagement } from "@/hooks/useItemStockManagement";
+import { TeamItem } from "@/types/(item)/team-item";
 
 // 선택된 아이템의 타입 정의
 export interface SelectedDemoItem {
   itemName: string;
   quantity: number;
+  teamItem: TeamItem;
 }
 
 interface DemoItemSelectorProps {
   selectedItems: SelectedDemoItem[];
   onItemsChange: (items: SelectedDemoItem[]) => void;
+  warehouseId: number; // 현재 선택된 창고 ID
 }
-
-// DemoItemListForTeam57 타입 파일에 정의된 데이터를 직접 사용
-const demoItems: DemoItemListForTeam57 = {
-  wheelyx_box: ["휠리엑스"],
-  basic_kiosk: ["베이직 터치패널 키오스크"],
-  lap_top: ["시연용 노트북"],
-  display: [`55" TV`, "스탠바이미 고"],
-  accessory: ["악세사리 박스"],
-};
 
 const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
   selectedItems,
   onItemsChange,
+  warehouseId,
 }) => {
-  // 모든 아이템을 하나의 배열로 평면화
-  const allItems = Object.values(demoItems).flat();
+  // 현재 창고의 아이템 조회
+  const { useGetItemsByWarehouse } = useItemStockManagement(
+    warehouseId.toString()
+  );
+  const { data: warehouseItemsResponse, isLoading } = useGetItemsByWarehouse();
+
+  // 창고 아이템 목록
+  const warehouseItems: Item[] = warehouseItemsResponse?.data || [];
 
   // 아이템이 선택되었는지 확인
-  const isItemSelected = (itemName: string): boolean => {
-    return selectedItems.some((item) => item.itemName === itemName);
+  const isItemSelected = (teamItemName: string): boolean => {
+    return selectedItems.some(
+      (item) => item.teamItem.itemName === teamItemName
+    );
   };
 
   // 선택된 아이템의 수량 가져오기
-  const getItemQuantity = (itemName: string): number => {
-    const item = selectedItems.find((item) => item.itemName === itemName);
+  const getItemQuantity = (teamItemName: string): number => {
+    const item = selectedItems.find(
+      (item) => item.teamItem.itemName === teamItemName
+    );
     return item ? item.quantity : 1;
   };
 
   // 체크박스 변경 핸들러
-  const handleCheckboxChange = (itemName: string, checked: boolean) => {
+  const handleCheckboxChange = (teamItemName: string, checked: boolean) => {
     if (checked) {
-      // 아이템 추가
+      const warehouseItem = warehouseItems.find(
+        (item) => item.teamItem.itemName === teamItemName
+      );
+      if (!warehouseItem) return;
       const newItem: SelectedDemoItem = {
-        itemName,
+        itemName: warehouseItem.itemName,
         quantity: 1,
+        teamItem: warehouseItem.teamItem,
       };
       onItemsChange([...selectedItems, newItem]);
     } else {
-      // 아이템 제거
       const updatedItems = selectedItems.filter(
-        (item) => item.itemName !== itemName
+        (item) => item.teamItem.itemName !== teamItemName
       );
       onItemsChange(updatedItems);
     }
   };
 
   // 수량 변경 핸들러
-  const handleQuantityChange = (itemName: string, newQuantity: number) => {
+  const handleQuantityChange = (teamItemName: string, newQuantity: number) => {
     if (newQuantity < 1) return;
-
     const updatedItems = selectedItems.map((item) =>
-      item.itemName === itemName ? { ...item, quantity: newQuantity } : item
+      item.teamItem.itemName === teamItemName
+        ? { ...item, quantity: newQuantity }
+        : item
     );
     onItemsChange(updatedItems);
   };
 
   // 수량 증가/감소 핸들러
-  const handleQuantityAdjust = (itemName: string, increment: boolean) => {
-    const currentQuantity = getItemQuantity(itemName);
+  const handleQuantityAdjust = (teamItemName: string, increment: boolean) => {
+    const currentQuantity = getItemQuantity(teamItemName);
     const newQuantity = increment ? currentQuantity + 1 : currentQuantity - 1;
-
     if (newQuantity >= 1) {
-      handleQuantityChange(itemName, newQuantity);
+      handleQuantityChange(teamItemName, newQuantity);
     }
   };
 
   // 전체 선택/해제 핸들러
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      // 모든 아이템 선택
-      const newItems: SelectedDemoItem[] = allItems.map((itemName) => ({
-        itemName,
+      const newItems: SelectedDemoItem[] = warehouseItems.map((item) => ({
+        itemName: item.itemName,
         quantity: 1,
+        teamItem: item.teamItem,
       }));
       onItemsChange(newItems);
     } else {
-      // 모든 아이템 해제
       onItemsChange([]);
     }
   };
 
   // 전체 선택 여부 확인
-  const isAllSelected = allItems.every((itemName) => isItemSelected(itemName));
+  const isAllSelected = warehouseItems.every((item) =>
+    isItemSelected(item.teamItem.itemName)
+  );
 
   return (
     <div className="space-y-6">
@@ -132,96 +142,109 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {allItems.map((itemName) => {
-            const isSelected = isItemSelected(itemName);
-            const quantity = getItemQuantity(itemName);
-
-            return (
-              <div
-                key={itemName}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg transition-colors hover:bg-gray-100"
-              >
-                <div className="flex flex-1 items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id={`item-${itemName}`}
-                    checked={isSelected}
-                    onChange={(e) =>
-                      handleCheckboxChange(itemName, e.target.checked)
-                    }
-                    className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 focus:ring-2"
-                  />
-                  <label
-                    htmlFor={`item-${itemName}`}
-                    className="flex-1 text-sm font-medium text-gray-700 cursor-pointer"
-                  >
-                    {itemName}
-                  </label>
-                </div>
-
-                {isSelected && (
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuantityAdjust(itemName, false)}
-                      className="p-0 w-8 h-8"
-                      disabled={quantity <= 1}
-                    >
-                      <Minus className="w-4 h-4" />
-                    </Button>
-
-                    <Input
-                      type="number"
-                      value={quantity}
+        {isLoading ? (
+          <div className="py-8 text-center">
+            <div className="text-gray-500">창고 아이템을 불러오는 중...</div>
+          </div>
+        ) : warehouseItems.length === 0 ? (
+          <div className="py-8 text-center">
+            <div className="text-gray-500">
+              이 창고에 등록된 아이템이 없습니다.
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {warehouseItems.map((item) => {
+              const teamItemName = item.teamItem.itemName;
+              const isSelected = isItemSelected(teamItemName);
+              const quantity = getItemQuantity(teamItemName);
+              return (
+                <div
+                  key={item.id}
+                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg transition-colors hover:bg-gray-100"
+                >
+                  <div className="flex flex-1 items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id={`item-${teamItemName}`}
+                      checked={isSelected}
                       onChange={(e) =>
-                        handleQuantityChange(
-                          itemName,
-                          parseInt(e.target.value) || 1
-                        )
+                        handleCheckboxChange(teamItemName, e.target.checked)
                       }
-                      className="w-16 text-center"
-                      min="1"
+                      className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 focus:ring-2"
                     />
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuantityAdjust(itemName, true)}
-                      className="p-0 w-8 h-8"
+                    <label
+                      htmlFor={`item-${teamItemName}`}
+                      className="flex-1 text-sm font-medium text-gray-700 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4" />
-                    </Button>
+                      {teamItemName}
+                    </label>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+
+                  {isSelected && (
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          handleQuantityAdjust(teamItemName, false)
+                        }
+                        className="p-0 w-8 h-8"
+                        disabled={quantity <= 1}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+
+                      <Input
+                        type="number"
+                        value={quantity}
+                        onChange={(e) =>
+                          handleQuantityChange(
+                            teamItemName,
+                            parseInt(e.target.value) || 1
+                          )
+                        }
+                        className="w-16 text-center"
+                        min="1"
+                      />
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleQuantityAdjust(teamItemName, true)}
+                        className="p-0 w-8 h-8"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Card>
 
+      {/* 선택된 아이템 요약 */}
       {selectedItems.length > 0 && (
-        <Card className="p-6 bg-blue-50 border-blue-200">
-          <h3 className="mb-3 text-lg font-semibold text-blue-800">
+        <div className="p-4 mt-6 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="mb-2 font-semibold text-blue-900">
             선택된 아이템 ({selectedItems.length}개)
-          </h3>
-          <div className="space-y-2">
-            {selectedItems.map((item, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-center text-sm"
-              >
-                <span className="text-gray-700">{item.itemName}</span>
-                <span className="font-medium text-blue-800">
-                  {item.quantity}개
-                </span>
-              </div>
-            ))}
           </div>
-        </Card>
+          {selectedItems.map((item) => (
+            <div
+              key={item.teamItem.itemName}
+              className="flex justify-between items-center text-sm"
+            >
+              <span className="text-gray-700">{item.teamItem.itemName}</span>
+              <span className="font-medium text-blue-800">
+                {item.quantity}개
+              </span>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

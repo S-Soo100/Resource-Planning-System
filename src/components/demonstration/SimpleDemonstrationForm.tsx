@@ -6,64 +6,56 @@ import { Input } from "@/components/ui/input";
 import { Send, Calendar, User, Paperclip, X } from "lucide-react";
 import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { toast } from "react-hot-toast";
-import { CreateDemoDto } from "@/types/demo/demo";
+import { Demo } from "@/types/demo/demo";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import AddressSection from "@/components/common/AddressSection";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Address } from "react-daum-postcode";
+import { Item } from "@/types/(item)/item";
+import { IUser } from "@/types/(auth)/user";
 
-// CreateDemoDto를 기반으로 하되 UI에 필요한 추가 필드들을 포함
+// Demo 인터페이스를 기반으로 한 폼 데이터
 interface DemonstrationFormData
-  extends Omit<
-    CreateDemoDto,
-    | "orderItems"
-    | "userId"
-    | "supplierId"
-    | "packageId"
-    | "warehouseId"
-    | "status"
-  > {
-  // UI에서 추가로 필요한 필드들
-  eventName: string;
-  eventType: string;
-  eventPrice?: number;
-  demonstrationStartDate: string;
-  demonstrationStartTime: string;
-  demonstrationEndDate: string;
-  demonstrationEndTime: string;
-  managerPhone: string;
-  deliveryMethod: string;
-  retrievalMethod: string;
-  // 주소 관련 필드 추가
+  extends Omit<Demo, "demoItems" | "user" | "files"> {
+  demoItems?: Item[];
+  user?: IUser | null;
+  files?: File[];
+  // 주소 관련 필드 (기존 호환성을 위해 유지)
   address: string;
   detailAddress: string;
 }
 
 const SimpleDemonstrationForm: React.FC = () => {
   const { user } = useCurrentUser();
+  const { warehouses } = useWarehouseItems();
   const [selectedItems, setSelectedItems] = useState<SelectedDemoItem[]>([]);
+  const [isHandlerSelf, setIsHandlerSelf] = useState(false);
   const [formData, setFormData] = useState<DemonstrationFormData>({
-    requester: "",
-    receiver: "",
-    receiverPhone: "",
-    receiverAddress: "",
-    purchaseDate: "",
-    outboundDate: "",
-    installationDate: "",
-    manager: "",
+    requester: user?.name || "",
+    handler: "",
+    demoManager: "",
+    demoManagerPhone: "",
     memo: "",
-    // UI 추가 필드들
-    eventName: "",
-    eventType: "",
-    eventPrice: undefined,
-    demonstrationStartDate: "",
-    demonstrationStartTime: "",
-    demonstrationEndDate: "",
-    demonstrationEndTime: "",
-    managerPhone: "",
-    deliveryMethod: "",
-    retrievalMethod: "",
+    demoTitle: "",
+    demoNationType: "국내",
+    demoAddress: "",
+    demoPaymentType: "",
+    demoPrice: undefined,
+    demoPaymentDate: undefined,
+    demoCurrencyUnit: "KRW",
+    demoStartDate: "",
+    demoStartTime: "",
+    demoStartDeliveryMethod: "",
+    demoEndDate: "",
+    demoEndTime: "",
+    demoEndDeliveryMethod: "",
+    userId: user?.id || 0,
+    warehouseId: 0,
+    demoItems: [],
+    user: user || null,
+    files: [],
     // 주소 관련 필드
     address: "",
     detailAddress: "",
@@ -81,15 +73,58 @@ const SimpleDemonstrationForm: React.FC = () => {
   // 파일 업로드 훅 사용
   const fileUpload = useFileUpload();
 
+  // 시연 창고 필터링 및 자동 선택
+  const demoWarehouses = React.useMemo(() => {
+    if (!warehouses) return [];
+    return warehouses.filter((warehouse) =>
+      warehouse.warehouseName.includes("시연")
+    );
+  }, [warehouses]);
+
+  // 사용 가능한 창고 목록 (시연 창고가 있으면 시연 창고, 없으면 모든 창고)
+  const availableWarehouses = React.useMemo(() => {
+    if (demoWarehouses.length > 0) {
+      return demoWarehouses;
+    }
+    return warehouses || [];
+  }, [demoWarehouses, warehouses]);
+
   // 현재 사용자 정보로 신청자 설정
   React.useEffect(() => {
     if (user?.name) {
       setFormData((prev) => ({
         ...prev,
         requester: user.name,
+        userId: user.id,
+        user: user,
       }));
     }
   }, [user]);
+
+  // 창고 자동 선택 (시연 창고 우선, 없으면 첫 번째 창고)
+  React.useEffect(() => {
+    if (availableWarehouses.length > 0 && formData.warehouseId === 0) {
+      setFormData((prev) => ({
+        ...prev,
+        warehouseId: availableWarehouses[0].id,
+      }));
+    }
+  }, [availableWarehouses, formData.warehouseId]);
+
+  // 사내 담당자 체크박스 상태에 따라 handler 필드 자동 설정
+  React.useEffect(() => {
+    if (isHandlerSelf && user?.name) {
+      setFormData((prev) => ({
+        ...prev,
+        handler: user.name,
+      }));
+    } else if (!isHandlerSelf) {
+      setFormData((prev) => ({
+        ...prev,
+        handler: "",
+      }));
+    }
+  }, [isHandlerSelf, user]);
 
   // 폼 입력 변경 핸들러
   const handleInputChange = (
@@ -99,8 +134,13 @@ const SimpleDemonstrationForm: React.FC = () => {
   ) => {
     const { name, value } = e.target;
 
-    // eventPrice는 숫자로 변환
-    if (name === "eventPrice") {
+    // 숫자 필드들
+    if (
+      name === "demoPrice" ||
+      name === "demoPaymentDate" ||
+      name === "userId" ||
+      name === "warehouseId"
+    ) {
       setFormData((prev) => ({
         ...prev,
         [name]: value === "" ? undefined : Number(value),
@@ -115,24 +155,33 @@ const SimpleDemonstrationForm: React.FC = () => {
 
   // 주소 변경 핸들러
   const handleAddressChange = (data: Address) => {
+    const fullAddress = `${data.address} ${data.buildingName || ""}`.trim();
+    setFormData((prev) => ({
+      ...prev,
+      address: data.address,
+      demoAddress: fullAddress,
+    }));
     handleAddressChangeFromHook(data, setFormData);
   };
 
   // 폼 검증
   const validateForm = (): boolean => {
     const requiredFields = [
-      { field: formData.eventName, name: "행사 명" },
-      { field: formData.eventType, name: "행사 유형" },
-      { field: formData.managerPhone, name: "담당자 연락처" },
-      { field: formData.demonstrationStartDate, name: "물품 배송일" },
-      { field: formData.demonstrationStartTime, name: "물품 배송 시간" },
-      { field: formData.demonstrationEndDate, name: "시연 종료일" },
-      { field: formData.demonstrationEndTime, name: "물품 회수 시간" },
-      { field: formData.address, name: "물품 이동 장소" },
+      { field: formData.warehouseId, name: "시연 창고" },
+      { field: formData.demoTitle, name: "시연 제목" },
+      { field: formData.demoNationType, name: "시연 유형" },
+      { field: formData.demoPaymentType, name: "결제 유형" },
+      { field: formData.demoManager, name: "현지 담당자" },
+      { field: formData.demoManagerPhone, name: "현지 담당자 연락처" },
+      { field: formData.demoStartDate, name: "시연 시작일" },
+      { field: formData.demoStartTime, name: "시연 시작 시간" },
+      { field: formData.demoEndDate, name: "시연 종료일" },
+      { field: formData.demoEndTime, name: "시연 종료 시간" },
+      { field: formData.demoAddress || formData.address, name: "시연 장소" },
     ];
 
     for (const { field, name } of requiredFields) {
-      if (!field.trim()) {
+      if (!field || !field.toString().trim()) {
         toast.error(`${name}을 입력해주세요.`);
         return false;
       }
@@ -155,32 +204,44 @@ const SimpleDemonstrationForm: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // 주소 정보를 receiverAddress에 결합
+      // 주소 정보를 demoAddress에 결합
       const fullAddress = formData.detailAddress
         ? `${formData.address} ${formData.detailAddress}`
         : formData.address;
 
-      // 여기에 실제 API 호출 로직을 구현
-      const submitData = {
+      const submitData: Demo = {
         ...formData,
-        eventType: formData.eventType,
-        eventPrice: formData.eventPrice,
-        receiver: formData.manager, // 행사 담당자를 수령인으로 사용
-        receiverPhone: formData.managerPhone, // 담당자 연락처를 수령인 연락처로 사용
-        receiverAddress: fullAddress, // 주소와 세부주소를 결합
-        purchaseDate: formData.demonstrationStartDate, // 시연 시작일을 구매 요청일로 사용
-        outboundDate: formData.demonstrationEndDate, // 시연 종료일을 출고 예정일로 사용
-        selectedItems: selectedItems.map((item) => ({
-          category: "demo", // 카테고리 정보가 제거되었으므로 기본값 설정
+        demoAddress: fullAddress,
+        userId: user?.id || 0,
+        warehouseId: formData.warehouseId || 0,
+        user: user!,
+        demoItems: selectedItems.map((item, index) => ({
+          id: index + 1, // 임시 ID
           itemName: item.itemName,
-          quantity: item.quantity,
-        })),
-        submittedAt: new Date().toISOString(),
-        files: fileUpload.files.map((f) => ({
-          name: f.name,
-          size: f.size,
-          type: f.type,
-        })),
+          itemQuantity: item.quantity,
+          itemCode: `DEMO-${index + 1}`, // 임시 코드
+          teamItem: {
+            id: index + 1,
+            itemName: item.itemName,
+            itemCode: `DEMO-${index + 1}`,
+            teamId: 0,
+            memo: "",
+            category: {
+              id: 1,
+              name: "데모 아이템",
+              priority: 1,
+              teamId: 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          warehouseId: formData.warehouseId || 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })) as Item[],
+        files: fileUpload.files,
       };
 
       console.log("시연 신청 데이터:", submitData);
@@ -190,32 +251,36 @@ const SimpleDemonstrationForm: React.FC = () => {
 
       toast.success("시연 신청이 완료되었습니다!");
 
-      // 폼 초기화 (신청자는 유지)
+      // 폼 초기화
       setFormData({
         requester: user?.name || "",
-        receiver: "",
-        receiverPhone: "",
-        receiverAddress: "",
-        purchaseDate: "",
-        outboundDate: "",
-        installationDate: "",
-        manager: "",
+        handler: "",
+        demoManager: "",
+        demoManagerPhone: "",
         memo: "",
-        eventName: "",
-        eventType: "",
-        eventPrice: undefined,
-        demonstrationStartDate: "",
-        demonstrationStartTime: "",
-        demonstrationEndDate: "",
-        demonstrationEndTime: "",
-        managerPhone: "",
-        deliveryMethod: "",
-        retrievalMethod: "",
+        demoTitle: "",
+        demoNationType: "국내",
+        demoAddress: "",
+        demoPaymentType: "",
+        demoPrice: undefined,
+        demoPaymentDate: undefined,
+        demoCurrencyUnit: "KRW",
+        demoStartDate: "",
+        demoStartTime: "",
+        demoStartDeliveryMethod: "",
+        demoEndDate: "",
+        demoEndTime: "",
+        demoEndDeliveryMethod: "",
+        userId: user?.id || 0,
+        warehouseId: 0,
+        demoItems: [],
+        user: user || null,
+        files: [],
         address: "",
         detailAddress: "",
       });
       setSelectedItems([]);
-      fileUpload.resetFiles(); // 파일 업로드 훅 초기화
+      fileUpload.resetFiles();
     } catch (error) {
       console.error("시연 신청 오류:", error);
       toast.error("시연 신청 중 오류가 발생했습니다.");
@@ -227,13 +292,60 @@ const SimpleDemonstrationForm: React.FC = () => {
   return (
     <div className="p-6 mx-auto space-y-8 max-w-4xl">
       <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold text-gray-800">시연 신청</h1>
+        <h1 className="mb-2 text-3xl font-bold text-gray-800">
+          제품 시연 신청
+        </h1>
         <p className="text-gray-600">
-          제품 시연을 위한 아이템 선택 및 신청 정보를 입력해주세요.
+          제품 시연을 위한 상세 정보를 입력해주세요.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
+        {/* 시연 창고 선택 */}
+        <Card className="p-6">
+          <h2 className="mb-4 text-xl font-semibold text-gray-800">
+            시연 창고 선택
+          </h2>
+
+          {availableWarehouses.length > 0 ? (
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                {demoWarehouses.length > 0 ? "시연 창고" : "창고"}{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="warehouseId"
+                value={formData.warehouseId}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    warehouseId: Number(e.target.value),
+                  }))
+                }
+                className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                {availableWarehouses.map((warehouse) => (
+                  <option key={warehouse.id} value={warehouse.id}>
+                    {warehouse.warehouseName}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-sm text-gray-500">
+                {demoWarehouses.length > 0
+                  ? "현재 팀에서 사용 가능한 시연 창고가 자동으로 선택됩니다."
+                  : "시연 창고가 없어 모든 창고 중 첫 번째 창고가 자동으로 선택됩니다."}
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-sm text-yellow-800">
+                ⚠️ 현재 팀에 사용 가능한 창고가 없습니다. 관리자에게 문의하세요.
+              </p>
+            </div>
+          )}
+        </Card>
+
         {/* 신청자 정보 */}
         <Card className="p-6">
           <h2 className="flex items-center mb-4 text-xl font-semibold text-gray-800">
@@ -241,39 +353,78 @@ const SimpleDemonstrationForm: React.FC = () => {
             신청자 정보
           </h2>
 
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">
-              신청자
-            </label>
-            <Input
-              type="text"
-              name="requester"
-              value={formData.requester}
-              onChange={handleInputChange}
-              placeholder="신청자명이 자동으로 설정됩니다"
-              disabled
-              className="bg-gray-50"
-            />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                신청자
+              </label>
+              <Input
+                type="text"
+                name="requester"
+                value={formData.requester}
+                onChange={handleInputChange}
+                placeholder="신청자명이 자동으로 설정됩니다"
+                disabled
+                className="bg-gray-50"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                사내 담당자 <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-3 items-center">
+                <Input
+                  type="text"
+                  name="handler"
+                  value={formData.handler}
+                  onChange={handleInputChange}
+                  placeholder={
+                    isHandlerSelf
+                      ? "사내 담당자명"
+                      : "사내 담당자명을 입력하세요"
+                  }
+                  disabled={isHandlerSelf}
+                  className={isHandlerSelf ? "flex-1 bg-gray-100" : "flex-1"}
+                  required
+                />
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="isHandlerSelf"
+                    checked={isHandlerSelf}
+                    onChange={(e) => setIsHandlerSelf(e.target.checked)}
+                    className="mr-2 w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  />
+                  <label
+                    htmlFor="isHandlerSelf"
+                    className="text-sm text-gray-700 whitespace-nowrap"
+                  >
+                    본인
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
         </Card>
 
-        {/* 행사 담당자 정보 */}
+        {/* 시연 기본 정보 */}
         <Card className="p-6">
           <h2 className="mb-4 text-xl font-semibold text-gray-800">
-            행사 정보
+            시연 기본 정보
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                행사 명 <span className="text-red-500">*</span>
+                시연 제목 <span className="text-red-500">*</span>
               </label>
               <Input
                 type="text"
-                name="eventName"
-                value={formData.eventName}
+                name="demoTitle"
+                value={formData.demoTitle}
                 onChange={handleInputChange}
-                placeholder="행사명을 입력하세요"
+                placeholder="시연 제목을 입력하세요"
                 required
               />
             </div>
@@ -281,11 +432,27 @@ const SimpleDemonstrationForm: React.FC = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">
-                  행사 유형 <span className="text-red-500">*</span>
+                  시연 유형 <span className="text-red-500">*</span>
                 </label>
                 <select
-                  name="eventType"
-                  value={formData.eventType}
+                  name="demoNationType"
+                  value={formData.demoNationType}
+                  onChange={handleInputChange}
+                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="국내">국내 시연</option>
+                  <option value="해외">해외 시연</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  결제 유형 <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="demoPaymentType"
+                  value={formData.demoPaymentType}
                   onChange={handleInputChange}
                   className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
@@ -295,252 +462,308 @@ const SimpleDemonstrationForm: React.FC = () => {
                   <option value="유료">유료</option>
                 </select>
               </div>
+            </div>
 
-              {formData.eventType === "유료" && (
+            {formData.demoPaymentType === "유료" && (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
-                    행사비 (원)
+                    화폐 단위
+                  </label>
+                  <select
+                    name="demoCurrencyUnit"
+                    value={formData.demoCurrencyUnit}
+                    onChange={handleInputChange}
+                    className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="KRW">KRW (원)</option>
+                    <option value="USD">USD (달러)</option>
+                    <option value="EUR">EUR (유로)</option>
+                    <option value="JPY">JPY (엔)</option>
+                    <option value="CNY">CNY (위안)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    시연 비용
                   </label>
                   <Input
                     type="number"
-                    name="eventPrice"
-                    value={formData.eventPrice || ""}
+                    name="demoPrice"
+                    value={formData.demoPrice || ""}
                     onChange={handleInputChange}
-                    placeholder="행사비를 입력하세요"
+                    placeholder="시연 비용을 입력하세요"
                     min="0"
                   />
                 </div>
-              )}
-            </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  행사 담당자
-                </label>
-                <Input
-                  type="text"
-                  name="manager"
-                  value={formData.manager}
-                  onChange={handleInputChange}
-                  placeholder="행사 담당자명을 입력하세요"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  담당자 연락처 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="tel"
-                  name="managerPhone"
-                  value={formData.managerPhone}
-                  onChange={handleInputChange}
-                  placeholder="010-1234-5678"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* 첨부파일 업로드 */}
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                첨부파일
-              </label>
-              <div className="mb-2 text-xs text-amber-600">
-                * 파일 크기는 최대 50MB까지 업로드 가능합니다.
-              </div>
-              <div className="mb-3 text-xs text-gray-500">
-                * 시연 관련 자료나 참고 문서를 첨부해주세요.
-              </div>
-              <div
-                onClick={() => fileUpload.selectedFiles.current?.click()}
-                onDragOver={fileUpload.handleDragOver}
-                onDragLeave={fileUpload.handleDragLeave}
-                onDrop={fileUpload.handleDrop}
-                className={`flex flex-col items-center justify-center p-6 rounded-lg border-2 border-dashed transition-colors cursor-pointer ${
-                  fileUpload.isDragOver
-                    ? "bg-blue-50 border-blue-500"
-                    : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
-                }`}
-              >
-                <Paperclip className="mb-2 w-8 h-8 text-gray-400" />
-                <div className="text-center">
-                  <p className="text-sm font-medium text-gray-700">
-                    {fileUpload.isDragOver
-                      ? "파일을 여기에 놓으세요"
-                      : "클릭하여 파일 선택 또는 파일을 여기로 드래그"}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    PDF, 이미지, 문서 파일 등
-                  </p>
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    결제 예정일
+                  </label>
+                  <Input
+                    type="number"
+                    name="demoPaymentDate"
+                    value={formData.demoPaymentDate || ""}
+                    onChange={handleInputChange}
+                    placeholder="결제 예정일 (일)"
+                    min="1"
+                    max="31"
+                  />
                 </div>
               </div>
-              <input
-                ref={fileUpload.selectedFiles}
-                type="file"
-                hidden
-                multiple
-                onChange={fileUpload.handleFileSelection}
-              />
-
-              {/* 업로드된 파일 목록 */}
-              <div className="p-3 mt-4 bg-gray-50 rounded-lg">
-                <div className="mb-2 text-sm font-medium text-gray-700">
-                  업로드된 파일
-                </div>
-                <div className="space-y-1">
-                  {fileUpload.files.length === 0 ? (
-                    <div className="text-sm text-gray-400">
-                      업로드 항목이 없습니다.
-                    </div>
-                  ) : (
-                    fileUpload.files.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-center p-2 bg-white rounded border"
-                      >
-                        <span className="text-sm truncate">{file.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => fileUpload.handleRemoveFile(index)}
-                          className="p-1 text-red-600 transition-colors hover:text-red-800"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </Card>
 
-        {/* 시연 정보 */}
+        {/* 현지 담당자 정보 */}
         <Card className="p-6">
-          <h2 className="flex items-center mb-4 text-xl font-semibold text-gray-800">
-            <Calendar className="mr-2 w-5 h-5" />
-            물품 이동 정보
+          <h2 className="mb-4 text-xl font-semibold text-gray-800">
+            현지 담당자 정보
           </h2>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                물품 배송일(행사장소 배송날짜)
-                <span className="text-red-500">*</span>
+                현지 담당자 <span className="text-red-500">*</span>
               </label>
               <Input
-                type="date"
-                name="demonstrationStartDate"
-                value={formData.demonstrationStartDate}
+                type="text"
+                name="demoManager"
+                value={formData.demoManager}
                 onChange={handleInputChange}
+                placeholder="현지 담당자명을 입력하세요"
                 required
               />
             </div>
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                물품 배송 시간(공장에서 배송 시작하는 시간)
-                <span className="text-red-500">*</span>
+                현지 담당자 연락처 <span className="text-red-500">*</span>
               </label>
               <Input
-                type="time"
-                name="demonstrationStartTime"
-                value={formData.demonstrationStartTime}
+                type="tel"
+                name="demoManagerPhone"
+                value={formData.demoManagerPhone}
                 onChange={handleInputChange}
+                placeholder="현지 담당자 연락처를 입력하세요"
                 required
               />
             </div>
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                물품 이동 방식
-              </label>
-              <select
-                name="deliveryMethod"
-                value={formData.deliveryMethod}
-                onChange={handleInputChange}
-                className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">선택해주세요</option>
-                <option value="용차">용차</option>
-                <option value="택배">택배</option>
-                <option value="직접">직접</option>
-              </select>
+          </div>
+
+          {/* 시연 장소 */}
+          <div className="mt-4">
+            <AddressSection
+              address={formData.address}
+              detailAddress={formData.detailAddress}
+              isAddressOpen={isAddressOpen}
+              onChange={handleInputChange}
+              onAddressChange={handleAddressChange}
+              onToggleAddressModal={handleToggleAddressModal}
+              onCloseAddressModal={handleCloseAddressModal}
+              focusRingColor="blue"
+              label="시연 장소"
+            />
+          </div>
+
+          {/* 첨부파일 업로드 */}
+          <div className="mt-6">
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              첨부파일
+            </label>
+            <div className="mb-2 text-xs text-amber-600">
+              * 파일 크기는 최대 50MB까지 업로드 가능합니다.
+            </div>
+            <div className="mb-3 text-xs text-gray-500">
+              * 시연 관련 자료나 참고 문서를 첨부해주세요.
+            </div>
+            <div
+              onClick={() => fileUpload.selectedFiles.current?.click()}
+              onDragOver={fileUpload.handleDragOver}
+              onDragLeave={fileUpload.handleDragLeave}
+              onDrop={fileUpload.handleDrop}
+              className={`flex flex-col items-center justify-center p-6 rounded-lg border-2 border-dashed transition-colors cursor-pointer ${
+                fileUpload.isDragOver
+                  ? "bg-blue-50 border-blue-500"
+                  : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+              }`}
+            >
+              <Paperclip className="mb-2 w-8 h-8 text-gray-400" />
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-700">
+                  {fileUpload.isDragOver
+                    ? "파일을 여기에 놓으세요"
+                    : "클릭하여 파일 선택 또는 파일을 여기로 드래그"}
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                  PDF, 이미지, 문서 파일 등
+                </p>
+              </div>
+            </div>
+            <input
+              ref={fileUpload.selectedFiles}
+              type="file"
+              hidden
+              multiple
+              onChange={fileUpload.handleFileSelection}
+            />
+
+            {/* 업로드된 파일 목록 */}
+            <div className="p-3 mt-4 bg-gray-50 rounded-lg">
+              <div className="mb-2 text-sm font-medium text-gray-700">
+                업로드된 파일
+              </div>
+              <div className="space-y-1">
+                {fileUpload.files.length === 0 ? (
+                  <div className="text-sm text-gray-400">
+                    업로드 항목이 없습니다.
+                  </div>
+                ) : (
+                  fileUpload.files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center p-2 bg-white rounded border"
+                    >
+                      <span className="text-sm truncate">{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => fileUpload.handleRemoveFile(index)}
+                        className="p-1 text-red-600 transition-colors hover:text-red-800"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* 시연 일정 */}
+        <Card className="p-6">
+          <h2 className="flex items-center mb-4 text-xl font-semibold text-gray-800">
+            <Calendar className="mr-2 w-5 h-5" />
+            시연 일정
+          </h2>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* 시연 시작 */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-700">시연 시작</h3>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  시작일 <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="date"
+                  name="demoStartDate"
+                  value={formData.demoStartDate}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  시작 시간 <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="time"
+                  name="demoStartTime"
+                  value={formData.demoStartTime}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  배송 방법
+                </label>
+                <select
+                  name="demoStartDeliveryMethod"
+                  value={formData.demoStartDeliveryMethod}
+                  onChange={handleInputChange}
+                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">선택해주세요</option>
+                  <option value="직접배송">직접배송</option>
+                  <option value="택배">택배</option>
+                  <option value="용차">용차</option>
+                  <option value="항공">항공</option>
+                  <option value="해운">해운</option>
+                </select>
+              </div>
             </div>
 
-            {/* 시연 장소 - 주소 검색으로 변경 */}
-            <div className="md:col-span-2">
-              <AddressSection
-                address={formData.address}
-                detailAddress={formData.detailAddress}
-                isAddressOpen={isAddressOpen}
-                onChange={handleInputChange}
-                onAddressChange={handleAddressChange}
-                onToggleAddressModal={handleToggleAddressModal}
-                onCloseAddressModal={handleCloseAddressModal}
-                focusRingColor="blue"
-                label="물품 이동 장소"
-              />
-            </div>
+            {/* 시연 종료 */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-700">시연 종료</h3>
 
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                시연 종료일(회수날짜) <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="date"
-                name="demonstrationEndDate"
-                value={formData.demonstrationEndDate}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  종료일 <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="date"
+                  name="demoEndDate"
+                  value={formData.demoEndDate}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                물품 회수 시간(공장에서 회수하는 시간)
-                <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="time"
-                name="demonstrationEndTime"
-                value={formData.demonstrationEndTime}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  회수 시간 <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="time"
+                  name="demoEndTime"
+                  value={formData.demoEndTime}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                물품 철수 방식
-              </label>
-              <select
-                name="retrievalMethod"
-                value={formData.retrievalMethod}
-                onChange={handleInputChange}
-                className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">선택해주세요</option>
-                <option value="용차">용차</option>
-                <option value="택배">택배</option>
-                <option value="직접">직접</option>
-              </select>
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  회수 방법
+                </label>
+                <select
+                  name="demoEndDeliveryMethod"
+                  value={formData.demoEndDeliveryMethod}
+                  onChange={handleInputChange}
+                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">선택해주세요</option>
+                  <option value="직접회수">직접회수</option>
+                  <option value="택배">택배</option>
+                  <option value="용차">용차</option>
+                  <option value="항공">항공</option>
+                  <option value="해운">해운</option>
+                </select>
+              </div>
             </div>
+          </div>
 
-            <div className="md:col-span-2">
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                특이사항
-              </label>
-              <textarea
-                name="memo"
-                value={formData.memo}
-                onChange={handleInputChange}
-                placeholder="시연과 관련된 특이사항이나 요청사항을 입력하세요"
-                rows={3}
-                className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+          {/* 특이사항 */}
+          <div className="mt-6">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
+              특이사항
+            </label>
+            <textarea
+              name="memo"
+              value={formData.memo}
+              onChange={handleInputChange}
+              placeholder="시연과 관련된 특이사항이나 요청사항을 입력하세요"
+              rows={3}
+              className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
         </Card>
 
@@ -548,6 +771,7 @@ const SimpleDemonstrationForm: React.FC = () => {
         <DemoItemSelector
           selectedItems={selectedItems}
           onItemsChange={setSelectedItems}
+          warehouseId={formData.warehouseId}
         />
 
         {/* 제출 버튼 */}
@@ -555,16 +779,16 @@ const SimpleDemonstrationForm: React.FC = () => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center space-x-2"
+            className="flex items-center px-8 py-3 space-x-2 text-lg"
           >
             {isSubmitting ? (
               <>
-                <div className="w-4 h-4 rounded-full border-b-2 border-white animate-spin" />
+                <div className="w-5 h-5 rounded-full border-b-2 border-white animate-spin" />
                 <span>제출 중...</span>
               </>
             ) : (
               <>
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
                 <span>시연 신청</span>
               </>
             )}

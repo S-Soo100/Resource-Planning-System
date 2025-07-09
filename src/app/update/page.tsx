@@ -706,21 +706,21 @@ export default function UpdatePage() {
 
           {/* 새로운 기능 소개 */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            <h2 className="mb-4 text-2xl font-bold text-gray-800">
               🆕 새로운 기능 소개
             </h2>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid gap-6 md:grid-cols-2">
               {/* 데모 시스템 */}
-              <div className="bg-green-50 rounded-lg p-6 border border-green-200">
-                <h3 className="text-lg font-semibold text-green-800 mb-3">
+              <div className="p-6 bg-green-50 rounded-lg border border-green-200">
+                <h3 className="mb-3 text-lg font-semibold text-green-800">
                   🎯 데모 시스템
                 </h3>
-                <p className="text-green-700 mb-4">
+                <p className="mb-4 text-green-700">
                   제품 시연을 위한 전용 관리 시스템이 추가되었습니다. 일반
                   발주와 구분된 시연 전용 워크플로우로 효율적인 제품 시연 관리가
                   가능합니다.
                 </p>
-                <ul className="text-sm text-green-600 space-y-1">
+                <ul className="space-y-1 text-sm text-green-600">
                   <li>• 시연 요청부터 복귀까지 전체 프로세스 관리</li>
                   <li>• 시연 출고 시 자동 재고 차감 및 복귀 시 복구</li>
                   <li>• 시연 전용 상태 관리 (6단계)</li>
@@ -729,15 +729,15 @@ export default function UpdatePage() {
               </div>
 
               {/* 휠체어 발주 */}
-              <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
-                <h3 className="text-lg font-semibold text-purple-800 mb-3">
+              <div className="p-6 bg-purple-50 rounded-lg border border-purple-200">
+                <h3 className="mb-3 text-lg font-semibold text-purple-800">
                   🦽 휠체어 발주 시스템
                 </h3>
-                <p className="text-purple-700 mb-4">
+                <p className="mb-4 text-purple-700">
                   휠체어 전용 창고와 카테고리로 제한된 전문 발주 시스템입니다.
                   보라색 테마로 일반 발주와 구분되어 사용하기 편리합니다.
                 </p>
-                <ul className="text-sm text-purple-600 space-y-1">
+                <ul className="space-y-1 text-sm text-purple-600">
                   <li>• 휠체어 전용 창고로만 발주 제한</li>
                   <li>• 휠체어 관련 카테고리만 선택 가능</li>
                   <li>• 보라색 테마로 시각적 구분</li>
@@ -746,16 +746,16 @@ export default function UpdatePage() {
               </div>
 
               {/* 댓글 시스템 */}
-              <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
-                <h3 className="text-lg font-semibold text-blue-800 mb-3">
+              <div className="p-6 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="mb-3 text-lg font-semibold text-blue-800">
                   💬 댓글 시스템
                 </h3>
-                <p className="text-blue-700 mb-4">
+                <p className="mb-4 text-blue-700">
                   발주 기록에 대한 실시간 소통과 협업을 위한 댓글 기능이
                   추가되었습니다. 발주 관련 이슈나 질문에 즉시 피드백할 수
                   있습니다.
                 </p>
-                <ul className="text-sm text-blue-600 space-y-1">
+                <ul className="space-y-1 text-sm text-blue-600">
                   <li>• 발주별 실시간 댓글 작성 및 관리</li>
                   <li>• 권한 기반 수정/삭제 (작성자 본인 + Admin)</li>
                   <li>• 상대적 시간 표시 (방금 전, N분 전 등)</li>
@@ -764,15 +764,15 @@ export default function UpdatePage() {
               </div>
 
               {/* 공통 컴포넌트 */}
-              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="mb-3 text-lg font-semibold text-gray-800">
                   🔧 공통 컴포넌트 시스템
                 </h3>
-                <p className="text-gray-700 mb-4">
+                <p className="mb-4 text-gray-700">
                   발주 관련 폼의 재사용 가능한 컴포넌트들이 추가되어 일관된
                   사용자 경험을 제공합니다.
                 </p>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <ul className="space-y-1 text-sm text-gray-600">
                   <li>• 주소 검색, 파일 업로드 등 8개 공통 컴포넌트</li>
                   <li>• 테마별 색상 지원 (파란색, 보라색)</li>
                   <li>• 반응형 디자인 및 접근성 향상</li>

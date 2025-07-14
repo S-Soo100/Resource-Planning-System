@@ -198,6 +198,18 @@ const OrderRecordTabs = () => {
     }
   }, []);
 
+  // URL 파라미터에서 orderId를 읽어서 해당 발주를 자동으로 확장
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderIdParam = urlParams.get("orderId");
+    if (orderIdParam) {
+      const orderId = parseInt(orderIdParam);
+      if (!isNaN(orderId)) {
+        setExpandedRowId(orderId);
+      }
+    }
+  }, []);
+
   // 거래처 목록 조회 훅 사용
   const { suppliers: suppliersResponse, isLoading: suppliersLoading } =
     useGetSuppliers();
@@ -480,6 +492,11 @@ const OrderRecordTabs = () => {
       // 다른 행을 클릭하면 해당 행 확장
       setExpandedRowId(recordId);
     }
+
+    // URL에 발주 ID 파라미터 추가
+    const url = new URL(window.location.href);
+    url.searchParams.set("orderId", recordId.toString());
+    window.history.pushState({}, "", url.toString());
   };
 
   // 데이터 새로고침 핸들러 수정
@@ -1146,6 +1163,15 @@ const OrderRecordTabs = () => {
             getStatusColorClass={getStatusColorClass}
             hasPermissionToEdit={hasPermissionToEdit}
             onEditClick={handleEditClick}
+            onDetailClick={(record) =>
+              window.open(`/orderRecord/${record.id}`, "_blank")
+            }
+            // 상태 변경 관련 props 추가
+            hasPermissionToChangeStatus={hasPermissionToChangeStatus}
+            handleStatusChange={handleStatusChange}
+            isUpdatingStatus={isUpdatingStatus}
+            userAccessLevel={userAccessLevel}
+            auth={currentUser}
           />
         ) : (
           <>
@@ -1369,6 +1395,17 @@ const OrderRecordTabs = () => {
                                       </h3>
                                     </div>
                                     <div className="flex gap-2">
+                                      <button
+                                        onClick={() =>
+                                          window.open(
+                                            `/orderRecord/${record.id}`,
+                                            "_blank"
+                                          )
+                                        }
+                                        className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md transition-colors hover:bg-green-600"
+                                      >
+                                        상세보기
+                                      </button>
                                       {hasPermissionToEdit(record) && (
                                         <button
                                           onClick={() =>

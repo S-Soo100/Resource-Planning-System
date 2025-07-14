@@ -131,13 +131,13 @@ const HowToUsePage = () => {
           icon: <PiNewspaperClippingFill className="text-lg" />,
         },
         {
-          title: "데모 시연 요청",
+          title: "시연 요청",
           description: "제품 시연을 위한 전용 발주를 요청합니다",
           accessLevels: ["admin", "moderator", "user"],
           icon: <PiHandCoinsFill className="text-lg" />,
         },
         {
-          title: "데모 시연 기록",
+          title: "시연 기록",
           description: "시연품 출고 및 복귀 기록을 확인합니다",
           accessLevels: ["admin", "moderator", "user"],
           icon: <PiClipboardTextFill className="text-lg" />,
@@ -213,7 +213,7 @@ const HowToUsePage = () => {
         <p className="text-lg text-gray-600">
           KARS(Kangsters Auto Resource-management System)는 다양한 품목을
           효율적으로 분류하고 자동으로 재고 관리 하기 위한 통합 재고 관리
-          시스템입니다. v1.5.0부터 데모 시연 시스템과 휠체어 전용 발주 기능이
+          시스템입니다. v1.5.0부터 시연 시스템과 휠체어 전용 발주 기능이
           추가되었습니다.
         </p>
       </div>
@@ -530,10 +530,10 @@ const HowToUsePage = () => {
             <div className="p-4 text-center bg-white rounded-lg border border-green-200">
               <div className="mb-2 text-2xl">🛒</div>
               <h4 className="mb-2 font-semibold text-green-800">
-                7. 발주 및 데모 시연
+                7. 발주 및 시연
               </h4>
               <p className="text-sm text-gray-600">
-                패키지/개별/휠체어 발주 또는 데모 시연을 통해 물품 출고를 정확히
+                패키지/개별/휠체어 발주 또는 시연을 통해 물품 출고를 정확히
                 기록하고 재고에 반영
               </p>
             </div>
@@ -553,7 +553,7 @@ const HowToUsePage = () => {
           <p className="mb-4 text-gray-600">
             KARS의 발주 시스템은 다양한 유형의 발주를 지원하는 통합 관리
             시스템입니다. 개별 품목 발주, 패키지 발주, 휠체어 전용 발주, 그리고
-            제품 시연을 위한 데모 시스템까지 모든 발주 프로세스를 효율적으로
+            제품 시연을 위한 시연 시스템까지 모든 발주 프로세스를 효율적으로
             관리할 수 있습니다.
           </p>
 
@@ -586,10 +586,10 @@ const HowToUsePage = () => {
               </ul>
             </div>
 
-            {/* 데모 시스템 */}
+            {/* 시연 시스템 */}
             <div className="p-4 bg-green-50 rounded-lg">
               <h4 className="mb-2 text-lg font-semibold text-green-800">
-                🎯 데모 시스템
+                🎯 시연 시스템
               </h4>
               <ul className="space-y-1 text-sm text-green-700">
                 <li>• 제품 시연 전용 프로세스</li>
@@ -703,10 +703,10 @@ const HowToUsePage = () => {
           </p>
         </div>
 
-        {/* 데모 시연 워크플로우 */}
+        {/* 시연 워크플로우 */}
         <div className="p-6 bg-purple-50 rounded-xl border-2 border-purple-200">
           <h2 className="mb-4 text-xl font-bold text-gray-800">
-            🎭 데모 시연 워크플로우
+            🎭 시연 워크플로우
           </h2>
           <div className="flex flex-wrap gap-2 items-center text-sm">
             <span className="px-3 py-1 text-blue-800 bg-blue-100 rounded-full">
@@ -730,7 +730,7 @@ const HowToUsePage = () => {
             </span>
           </div>
           <p className="mt-3 text-sm text-gray-600">
-            데모 시연은 일반 발주와 별도로 관리되며, 출고 후 반드시 복귀 처리가
+            시연은 일반 발주와 별도로 관리되며, 출고 후 반드시 복귀 처리가
             필요합니다. 재고는 시연 출고 시 차감되고 복귀 시 다시 복구됩니다.
           </p>
         </div>

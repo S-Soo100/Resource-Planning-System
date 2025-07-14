@@ -85,7 +85,7 @@ export default function UpdatePage() {
                 </div>
               </div>
               <p className="mt-2 text-gray-600">
-                시연 신청 폼 및 데모 시스템 UI/UX 개선, 창고별 아이템 동적 선택,
+                시연 신청 폼 및 시연 시스템 UI/UX 개선, 창고별 아이템 동적 선택,
                 체크박스 로직 개선, 문서화 등
               </p>
             </div>
@@ -142,7 +142,7 @@ export default function UpdatePage() {
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li className="flex items-start">
                     <span className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    CHANGELOG, 데모 시스템 비즈니스 로직, 업데이트 내역 등 문서
+                    CHANGELOG, 시연 시스템 비즈니스 로직, 업데이트 내역 등 문서
                     최신화
                   </li>
                 </ul>
@@ -168,7 +168,7 @@ export default function UpdatePage() {
                 </div>
               </div>
               <p className="mt-2 text-gray-600">
-                데모 시스템, 휠체어 발주 기능, 댓글 시스템 추가
+                시연 시스템, 휠체어 발주 기능, 댓글 시스템 추가
               </p>
             </div>
             <div className="p-6 space-y-6">
@@ -181,7 +181,7 @@ export default function UpdatePage() {
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li className="flex items-start">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    데모 시스템 구축 (요청/승인/시연출고/복귀 6단계 상태 관리)
+                    시연 시스템 구축 (요청/승인/시연출고/복귀 6단계 상태 관리)
                   </li>
                   <li className="flex items-start">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
@@ -224,11 +224,11 @@ export default function UpdatePage() {
                   </li>
                   <li className="flex items-start">
                     <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    데모 시연 기능을 &quot;개발 중&quot;에서 정식 기능으로 변경
+                    시연 기능을 &quot;개발 중&quot;에서 정식 기능으로 변경
                   </li>
                   <li className="flex items-start">
                     <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    워크플로우 설명을 일반 발주와 데모 시연으로 분리
+                    워크플로우 설명을 일반 발주와 시연으로 분리
                   </li>
                   <li className="flex items-start">
                     <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
@@ -277,7 +277,7 @@ export default function UpdatePage() {
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li className="flex items-start">
                     <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    데모 시스템 권한별 상태 변경 제한 강화
+                    시연 시스템 권한별 상태 변경 제한 강화
                   </li>
                   <li className="flex items-start">
                     <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
@@ -710,10 +710,10 @@ export default function UpdatePage() {
               🆕 새로운 기능 소개
             </h2>
             <div className="grid gap-6 md:grid-cols-2">
-              {/* 데모 시스템 */}
+              {/* 시연 시스템 */}
               <div className="p-6 bg-green-50 rounded-lg border border-green-200">
                 <h3 className="mb-3 text-lg font-semibold text-green-800">
-                  🎯 데모 시스템
+                  🎯 시연 시스템
                 </h3>
                 <p className="mb-4 text-green-700">
                   제품 시연을 위한 전용 관리 시스템이 추가되었습니다. 일반

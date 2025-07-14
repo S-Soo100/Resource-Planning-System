@@ -1163,9 +1163,11 @@ const OrderRecordTabs = () => {
             getStatusColorClass={getStatusColorClass}
             hasPermissionToEdit={hasPermissionToEdit}
             onEditClick={handleEditClick}
-            onDetailClick={(record) =>
-              window.open(`/orderRecord/${record.id}`, "_blank")
-            }
+            onDetailClick={(record) => {
+              const teamId = currentTeamId;
+              const url = `/orderRecord/${record.id}?teamId=${teamId}`;
+              window.open(url, "_blank");
+            }}
             // 상태 변경 관련 props 추가
             hasPermissionToChangeStatus={hasPermissionToChangeStatus}
             handleStatusChange={handleStatusChange}
@@ -1396,12 +1398,11 @@ const OrderRecordTabs = () => {
                                     </div>
                                     <div className="flex gap-2">
                                       <button
-                                        onClick={() =>
-                                          window.open(
-                                            `/orderRecord/${record.id}`,
-                                            "_blank"
-                                          )
-                                        }
+                                        onClick={() => {
+                                          const teamId = currentTeamId;
+                                          const url = `/orderRecord/${record.id}?teamId=${teamId}`;
+                                          window.open(url, "_blank");
+                                        }}
                                         className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md transition-colors hover:bg-green-600"
                                       >
                                         상세보기

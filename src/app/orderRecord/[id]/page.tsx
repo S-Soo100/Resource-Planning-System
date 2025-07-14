@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getOrder } from "@/api/order-api";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
@@ -12,6 +12,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import OrderEditModal from "@/components/orderRecord/OrderEditModal";
+import LoginModal from "@/components/login/LoginModal";
+import { IAuth } from "@/types/(auth)/auth";
+import { authService } from "@/services/authService";
+import { authStore } from "@/store/authStore";
 
 // 날짜 포맷팅 함수
 const formatDate = (dateString: string): string => {
@@ -112,27 +116,64 @@ const getStatusIcon = (status: string): JSX.Element => {
 const OrderRecordDetail = () => {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const orderId = params.id as string;
+  const teamId = searchParams.get("teamId");
 
   const [order, setOrder] = useState<IOrderRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const { user: auth } = useCurrentUser();
   const queryClient = useQueryClient();
   const updateOrderStatusMutation = useUpdateOrderStatus();
   const { refetchAll: refetchWarehouseItems } = useWarehouseItems();
 
+  // authStore에서 직접 로그인 상태 확인
+  const isAuthenticated = authStore.getState().isAuthenticated;
+
   useEffect(() => {
     const fetchOrder = async () => {
       setIsLoading(true);
-      const res = await getOrder(orderId);
-      if (res.success && res.data) {
-        setOrder(res.data as IOrderRecord);
-      } else {
-        alert("해당 발주를 찾을 수 없습니다.");
-        router.push("/orderRecord");
+
+      // authStore에서 직접 로그인 상태 확인
+      const currentAuth = authStore.getState();
+      console.log("🔍 로그인 상태 확인:", {
+        auth,
+        isAuthenticated,
+        currentAuth,
+        orderId,
+        teamId,
+      });
+
+      // 로그인되지 않은 상태에서는 모달을 먼저 표시
+      if (!currentAuth.isAuthenticated || !currentAuth.user) {
+        console.log("비로그인 상태 - 로그인 모달 표시");
+        setIsLoginModalOpen(true);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const res = await getOrder(orderId);
+        console.log("📋 발주 조회 결과:", res);
+        if (res.success && res.data) {
+          setOrder(res.data as IOrderRecord);
+        } else {
+          alert("해당 발주를 찾을 수 없습니다.");
+          router.push("/orderRecord");
+        }
+      } catch (error) {
+        console.error("발주 조회 중 오류:", error);
+        // API 호출 실패 시에도 로그인 모달 표시
+        if (!currentAuth.isAuthenticated || !currentAuth.user) {
+          setIsLoginModalOpen(true);
+        } else {
+          alert("발주 조회에 실패했습니다.");
+          router.push("/orderRecord");
+        }
       }
       setIsLoading(false);
     };
@@ -140,6 +181,27 @@ const OrderRecordDetail = () => {
       fetchOrder();
     }
   }, [orderId, router]);
+
+  // teamId가 있으면 콘솔에 출력 (디버깅용)
+  useEffect(() => {
+    if (teamId) {
+      console.log("Team ID from URL params:", teamId);
+    }
+  }, [teamId]);
+
+  // 로그인 성공 핸들러
+  const handleLoginSuccess = async (userData: IAuth) => {
+    console.log("로그인 성공:", userData);
+    if (teamId) {
+      // 팀 정보 설정
+      await authService.selectTeam(parseInt(teamId));
+
+      // 잠시 대기 후 페이지 새로고침
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  };
 
   // 상태 변경 핸들러
   const handleStatusChange = async (newStatus: OrderStatus) => {
@@ -340,284 +402,317 @@ const OrderRecordDetail = () => {
     );
   }
 
-  if (!order) {
-    return (
-      <div className="p-4 min-h-screen bg-gray-50">
-        <div className="mx-auto max-w-4xl">
-          <div className="py-8 text-center">
-            <h1 className="text-xl font-semibold text-gray-600">
-              발주를 찾을 수 없습니다
-            </h1>
-            <button
-              onClick={() => router.push("/orderRecord")}
-              className="px-4 py-2 mt-4 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
-            >
-              발주 목록으로 돌아가기
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-4 min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-4xl">
-        {/* 헤더 */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex gap-4 items-center">
-            <button
-              onClick={() => router.push("/orderRecord")}
-              className="flex gap-2 items-center px-3 py-2 text-gray-600 transition-colors hover:text-gray-800"
-            >
-              <ArrowLeft size={20} />
-              <span>목록으로</span>
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">발주 상세 정보</h1>
-          </div>
-        </div>
+    <div>
+      {/* 로그인 모달 */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+        teamId={teamId || undefined}
+      />
 
-        {/* 현재 상태 표시 */}
-        <div className="mb-6">
-          <div
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${getStatusColorClass(
-              order.status
-            )}`}
-          >
-            {getStatusIcon(order.status)}
-            <span className="font-medium">{getStatusText(order.status)}</span>
-          </div>
-        </div>
-
-        {/* 상태 변경 섹션 */}
-        {(() => {
-          const hasPermission = hasPermissionToChangeStatus();
-          const canChange = canChangeStatus(order.status);
-          console.log("🎯 상태 변경 섹션 조건 체크:", {
-            hasPermission,
-            canChange,
-            orderStatus: order.status,
-            authLevel: auth?.accessLevel,
-          });
-          return hasPermission && canChange;
-        })() && (
-          <div className="p-4 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5 text-gray-500"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+      {/* 비로그인 상태면 아래 UI를 렌더링하지 않음 */}
+      {!isLoginModalOpen && !authStore.getState().isAuthenticated ? null : (
+        <>
+          {/* order가 null이고 로그인 상태일 때만 '발주를 찾을 수 없습니다' */}
+          {!order && authStore.getState().isAuthenticated && (
+            <div className="flex flex-col items-center justify-center h-96">
+              <p className="mb-4 text-lg text-gray-600">
+                발주를 찾을 수 없습니다
+              </p>
+              <button
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+                onClick={() => router.push("/orderRecord")}
               >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              상태 변경
-            </h2>
-            <div className="flex gap-4 items-center">
-              <span className="text-sm font-medium text-gray-600">
-                현재 상태:
-              </span>
-              <div
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${getStatusColorClass(
-                  order.status
-                )}`}
-              >
-                {getStatusIcon(order.status)}
-                <span className="text-sm font-medium">
-                  {getStatusText(order.status)}
-                </span>
-              </div>
-              <span className="text-gray-400">→</span>
-              <select
-                value={order.status}
-                onChange={(e) =>
-                  handleStatusChange(e.target.value as OrderStatus)
-                }
-                disabled={isUpdatingStatus}
-                className="px-3 py-2 bg-white rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {getAvailableStatusOptions().map((option) => (
-                  <option
-                    key={option.value}
-                    value={option.value}
-                    disabled={option.disabled}
-                  >
-                    {option.label}
-                    {option.disabled &&
-                    auth?.accessLevel === "moderator" &&
-                    order?.userId === auth?.id
-                      ? " (본인 발주)"
-                      : ""}
-                  </option>
-                ))}
-              </select>
-              {isUpdatingStatus && (
-                <div className="w-4 h-4 rounded-full border-2 border-blue-500 animate-spin border-t-transparent"></div>
-              )}
+                발주 목록으로 돌아가기
+              </button>
             </div>
-            <div className="mt-3 text-xs text-gray-500">
-              {auth?.accessLevel === "moderator"
-                ? "1차승인권자는 초기 승인 단계만 담당합니다."
-                : auth?.accessLevel === "admin"
-                ? "관리자는 출고 단계를 담당합니다."
-                : "상태 변경 권한이 없습니다."}
-            </div>
-          </div>
-        )}
-
-        {/* 발주 정보 카드 */}
-        <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
-          {/* 기본 정보 */}
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
-              <Package size={20} />
-              기본 정보
-            </h2>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">발주 ID:</span>
-                <span className="font-medium">#{order.id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">생성일:</span>
-                <span className="font-medium">
-                  {formatDate(order.createdAt)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">발주자:</span>
-                <span className="font-medium">{order.requester}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">담당자:</span>
-                <span className="font-medium">{order.manager || "-"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">출고 창고:</span>
-                <span className="font-medium text-blue-600">
-                  {order.warehouse?.warehouseName || "창고 정보 없음"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 배송 정보 */}
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
-              <Truck size={20} />
-              배송 정보
-            </h2>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">수령자:</span>
-                <span className="font-medium">{order.receiver}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">연락처:</span>
-                <span className="font-medium">{order.receiverPhone}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">구매일:</span>
-                <span className="font-medium">
-                  {order.purchaseDate ? formatDate(order.purchaseDate) : "-"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">출고예정일:</span>
-                <span className="font-medium">
-                  {order.outboundDate ? formatDate(order.outboundDate) : "-"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">설치요청일:</span>
-                <span className="font-medium">
-                  {order.installationDate
-                    ? formatDate(order.installationDate)
-                    : "-"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 주소 정보 */}
-        <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">
-            배송 주소
-          </h2>
-          <p className="text-gray-800 break-words">{order.receiverAddress}</p>
-        </div>
-
-        {/* 품목 정보 */}
-        <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">
-            발주 품목
-          </h2>
-          {order.orderItems && order.orderItems.length > 0 ? (
-            <div className="space-y-3">
-              {order.orderItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
-                >
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">
-                      {item.item?.teamItem?.itemName || "알 수 없는 품목"}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {item.item?.teamItem?.itemCode || "코드 없음"}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium text-gray-900">
-                      {item.quantity}개
-                    </div>
-                    <div className="text-sm text-gray-500">가격 정보 없음</div>
+          )}
+          {/* 기존 order 상세 UI는 그대로 유지 */}
+          {order && (
+            <div className="p-4 min-h-screen bg-gray-50">
+              <div className="mx-auto max-w-4xl">
+                {/* 헤더 */}
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex gap-4 items-center">
+                    <button
+                      onClick={() => router.push("/orderRecord")}
+                      className="flex gap-2 items-center px-3 py-2 text-gray-600 transition-colors hover:text-gray-800"
+                    >
+                      <ArrowLeft size={20} />
+                      <span>목록으로</span>
+                    </button>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                      발주 상세 정보
+                    </h1>
                   </div>
                 </div>
-              ))}
+
+                {/* 현재 상태 표시 */}
+                <div className="mb-6">
+                  <div
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${getStatusColorClass(
+                      order.status
+                    )}`}
+                  >
+                    {getStatusIcon(order.status)}
+                    <span className="font-medium">
+                      {getStatusText(order.status)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 상태 변경 섹션 */}
+                {(() => {
+                  const hasPermission = hasPermissionToChangeStatus();
+                  const canChange = canChangeStatus(order.status);
+                  console.log("🎯 상태 변경 섹션 조건 체크:", {
+                    hasPermission,
+                    canChange,
+                    orderStatus: order.status,
+                    authLevel: auth?.accessLevel,
+                  });
+                  return hasPermission && canChange;
+                })() && (
+                  <div className="p-4 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-5 h-5 text-gray-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      상태 변경
+                    </h2>
+                    <div className="flex gap-4 items-center">
+                      <span className="text-sm font-medium text-gray-600">
+                        현재 상태:
+                      </span>
+                      <div
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md ${getStatusColorClass(
+                          order.status
+                        )}`}
+                      >
+                        {getStatusIcon(order.status)}
+                        <span className="text-sm font-medium">
+                          {getStatusText(order.status)}
+                        </span>
+                      </div>
+                      <span className="text-gray-400">→</span>
+                      <select
+                        value={order.status}
+                        onChange={(e) =>
+                          handleStatusChange(e.target.value as OrderStatus)
+                        }
+                        disabled={isUpdatingStatus}
+                        className="px-3 py-2 bg-white rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {getAvailableStatusOptions().map((option) => (
+                          <option
+                            key={option.value}
+                            value={option.value}
+                            disabled={option.disabled}
+                          >
+                            {option.label}
+                            {option.disabled &&
+                            auth?.accessLevel === "moderator" &&
+                            order?.userId === auth?.id
+                              ? " (본인 발주)"
+                              : ""}
+                          </option>
+                        ))}
+                      </select>
+                      {isUpdatingStatus && (
+                        <div className="w-4 h-4 rounded-full border-2 border-blue-500 animate-spin border-t-transparent"></div>
+                      )}
+                    </div>
+                    <div className="mt-3 text-xs text-gray-500">
+                      {auth?.accessLevel === "moderator"
+                        ? "1차승인권자는 초기 승인 단계만 담당합니다."
+                        : auth?.accessLevel === "admin"
+                        ? "관리자는 출고 단계를 담당합니다."
+                        : "상태 변경 권한이 없습니다."}
+                    </div>
+                  </div>
+                )}
+
+                {/* 발주 정보 카드 */}
+                <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
+                  {/* 기본 정보 */}
+                  <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
+                      <Package size={20} />
+                      기본 정보
+                    </h2>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">발주 ID:</span>
+                        <span className="font-medium">#{order.id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">생성일:</span>
+                        <span className="font-medium">
+                          {formatDate(order.createdAt)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">발주자:</span>
+                        <span className="font-medium">{order.requester}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">담당자:</span>
+                        <span className="font-medium">
+                          {order.manager || "-"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">출고 창고:</span>
+                        <span className="font-medium text-blue-600">
+                          {order.warehouse?.warehouseName || "창고 정보 없음"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 배송 정보 */}
+                  <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
+                      <Truck size={20} />
+                      배송 정보
+                    </h2>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">수령자:</span>
+                        <span className="font-medium">{order.receiver}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">연락처:</span>
+                        <span className="font-medium">
+                          {order.receiverPhone}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">구매일:</span>
+                        <span className="font-medium">
+                          {order.purchaseDate
+                            ? formatDate(order.purchaseDate)
+                            : "-"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">출고예정일:</span>
+                        <span className="font-medium">
+                          {order.outboundDate
+                            ? formatDate(order.outboundDate)
+                            : "-"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">설치요청일:</span>
+                        <span className="font-medium">
+                          {order.installationDate
+                            ? formatDate(order.installationDate)
+                            : "-"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 주소 정보 */}
+                <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                    배송 주소
+                  </h2>
+                  <p className="text-gray-800 break-words">
+                    {order.receiverAddress}
+                  </p>
+                </div>
+
+                {/* 품목 정보 */}
+                <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                    발주 품목
+                  </h2>
+                  {order.orderItems && order.orderItems.length > 0 ? (
+                    <div className="space-y-3">
+                      {order.orderItems.map((item, index) => (
+                        <div
+                          key={index}
+                          className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">
+                              {item.item?.teamItem?.itemName ||
+                                "알 수 없는 품목"}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {item.item?.teamItem?.itemCode || "코드 없음"}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-medium text-gray-900">
+                              {item.quantity}개
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              가격 정보 없음
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">발주 품목이 없습니다.</p>
+                  )}
+                </div>
+
+                {/* 메모 */}
+                {order.memo && (
+                  <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                      메모
+                    </h2>
+                    <p className="text-gray-800 whitespace-pre-wrap">
+                      {order.memo}
+                    </p>
+                  </div>
+                )}
+
+                {/* 수정 버튼 */}
+                {hasPermissionToEdit(order) && (
+                  <div className="flex justify-end mb-6">
+                    <button
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
+                    >
+                      발주 수정
+                    </button>
+                  </div>
+                )}
+
+                {/* 수정 모달 */}
+                {isEditModalOpen && order && (
+                  <OrderEditModal
+                    isOpen={isEditModalOpen}
+                    orderRecord={order}
+                    onClose={() => {
+                      setIsEditModalOpen(false);
+                      window.location.reload();
+                    }}
+                  />
+                )}
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-500">발주 품목이 없습니다.</p>
           )}
-        </div>
-
-        {/* 메모 */}
-        {order.memo && (
-          <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">메모</h2>
-            <p className="text-gray-800 whitespace-pre-wrap">{order.memo}</p>
-          </div>
-        )}
-
-        {/* 수정 버튼 */}
-        {hasPermissionToEdit(order) && (
-          <div className="flex justify-end mb-6">
-            <button
-              onClick={() => setIsEditModalOpen(true)}
-              className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
-            >
-              발주 수정
-            </button>
-          </div>
-        )}
-
-        {/* 수정 모달 */}
-        {isEditModalOpen && order && (
-          <OrderEditModal
-            isOpen={isEditModalOpen}
-            orderRecord={order}
-            onClose={() => {
-              setIsEditModalOpen(false);
-              window.location.reload();
-            }}
-          />
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 };

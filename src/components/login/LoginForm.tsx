@@ -8,8 +8,24 @@ import { authService } from "@/services/authService";
 import { Button, Input } from "@/components/ui";
 import { APP_VERSION } from "@/constants/version";
 import Link from "next/link";
+import { IAuth } from "@/types/(auth)/auth";
+import { authStore } from "@/store/authStore";
 
-export default function LoginForm() {
+interface LoginFormProps {
+  onLoginSuccess?: (userData: IAuth) => void;
+  redirectUrl?: string;
+  teamId?: string;
+  isModal?: boolean;
+  notice?: React.ReactNode;
+}
+
+export default function LoginForm({
+  onLoginSuccess,
+  redirectUrl,
+  teamId,
+  isModal = false,
+  notice,
+}: LoginFormProps = {}) {
   const [auth, setAuth] = useState<LoginAuth>({ email: "", password: "" });
   const router = useRouter();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -28,9 +44,20 @@ export default function LoginForm() {
     try {
       const userBool = await authService.login(auth);
       if (userBool) {
-        setTimeout(() => {
-          router.push("/team-select");
-        }, 2000);
+        // 모달에서 로그인한 경우 onLoginSuccess 콜백 호출
+        if (isModal && onLoginSuccess) {
+          // authStore에서 사용자 정보를 가져와서 콜백 호출
+          const userData = authStore.getState().user;
+          if (userData) {
+            onLoginSuccess(userData);
+          }
+          // 모달에서는 로딩 상태를 유지하지 않음
+        } else {
+          // 일반 로그인 플로우
+          setTimeout(() => {
+            router.push("/team-select");
+          }, 2000);
+        }
       } else {
         setLoginError(
           "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요."
@@ -47,6 +74,7 @@ export default function LoginForm() {
   return (
     <div className="relative flex items-center justify-center w-full min-h-screen bg-gray-50 min-w-96">
       <div className="w-full max-w-md p-8 mx-4 bg-white shadow-lg rounded-xl">
+        {notice}
         <div className="text-center">
           <div className="flex justify-center mb-6">
             <User className="w-12 h-12 text-blue-600" />

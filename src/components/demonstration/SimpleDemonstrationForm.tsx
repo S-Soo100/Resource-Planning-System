@@ -18,13 +18,15 @@ import { IUser } from "@/types/(auth)/user";
 
 // Demo 인터페이스를 기반으로 한 폼 데이터
 interface DemonstrationFormData
-  extends Omit<Demo, "demoItems" | "user" | "files"> {
+  extends Omit<Demo, "demoItems" | "user" | "files" | "demoPaymentDate"> {
   demoItems?: Item[];
   user?: IUser | null;
   files?: File[];
   // 주소 관련 필드 (기존 호환성을 위해 유지)
   address: string;
   detailAddress: string;
+  // 폼에서 사용할 문자열 타입의 결제 예정일
+  demoPaymentDate: string;
 }
 
 const SimpleDemonstrationForm: React.FC = () => {
@@ -43,7 +45,7 @@ const SimpleDemonstrationForm: React.FC = () => {
     demoAddress: "",
     demoPaymentType: "",
     demoPrice: undefined,
-    demoPaymentDate: undefined,
+    demoPaymentDate: "",
     demoCurrencyUnit: "KRW",
     demoStartDate: "",
     demoStartTime: "",
@@ -135,12 +137,7 @@ const SimpleDemonstrationForm: React.FC = () => {
     const { name, value } = e.target;
 
     // 숫자 필드들
-    if (
-      name === "demoPrice" ||
-      name === "demoPaymentDate" ||
-      name === "userId" ||
-      name === "warehouseId"
-    ) {
+    if (name === "demoPrice" || name === "userId" || name === "warehouseId") {
       setFormData((prev) => ({
         ...prev,
         [name]: value === "" ? undefined : Number(value),
@@ -168,15 +165,15 @@ const SimpleDemonstrationForm: React.FC = () => {
   const validateForm = (): boolean => {
     const requiredFields = [
       { field: formData.warehouseId, name: "시연 창고" },
-      { field: formData.demoTitle, name: "시연 제목" },
-      { field: formData.demoNationType, name: "시연 유형" },
+      { field: formData.demoTitle, name: "시연/행사 명" },
+      { field: formData.demoNationType, name: "국내/해외 시연" },
       { field: formData.demoPaymentType, name: "결제 유형" },
       { field: formData.demoManager, name: "현지 담당자" },
       { field: formData.demoManagerPhone, name: "현지 담당자 연락처" },
-      { field: formData.demoStartDate, name: "시연 시작일" },
-      { field: formData.demoStartTime, name: "시연 시작 시간" },
-      { field: formData.demoEndDate, name: "시연 종료일" },
-      { field: formData.demoEndTime, name: "시연 종료 시간" },
+      { field: formData.demoStartDate, name: "상차 일자" },
+      { field: formData.demoStartTime, name: "상차 시간" },
+      { field: formData.demoEndDate, name: "시연품 회수일" },
+      { field: formData.demoEndTime, name: "회수 시간" },
       { field: formData.demoAddress || formData.address, name: "시연 장소" },
     ];
 
@@ -215,6 +212,9 @@ const SimpleDemonstrationForm: React.FC = () => {
         userId: user?.id || 0,
         warehouseId: formData.warehouseId || 0,
         user: user!,
+        demoPaymentDate: formData.demoPaymentDate
+          ? new Date(formData.demoPaymentDate)
+          : undefined,
         demoItems: selectedItems.map((item, index) => ({
           id: index + 1, // 임시 ID
           itemName: item.itemName,
@@ -263,7 +263,7 @@ const SimpleDemonstrationForm: React.FC = () => {
         demoAddress: "",
         demoPaymentType: "",
         demoPrice: undefined,
-        demoPaymentDate: undefined,
+        demoPaymentDate: "",
         demoCurrencyUnit: "KRW",
         demoStartDate: "",
         demoStartTime: "",
@@ -411,13 +411,13 @@ const SimpleDemonstrationForm: React.FC = () => {
         {/* 시연 기본 정보 */}
         <Card className="p-6">
           <h2 className="mb-4 text-xl font-semibold text-gray-800">
-            시연 기본 정보
+            시연/행사 기본 정보
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                시연 제목 <span className="text-red-500">*</span>
+                시연/행사 명 <span className="text-red-500">*</span>
               </label>
               <Input
                 type="text"
@@ -432,7 +432,7 @@ const SimpleDemonstrationForm: React.FC = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">
-                  시연 유형 <span className="text-red-500">*</span>
+                  국내/해외 시연 <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="demoNationType"
@@ -503,13 +503,11 @@ const SimpleDemonstrationForm: React.FC = () => {
                     결제 예정일
                   </label>
                   <Input
-                    type="number"
+                    type="date"
                     name="demoPaymentDate"
                     value={formData.demoPaymentDate || ""}
                     onChange={handleInputChange}
-                    placeholder="결제 예정일 (일)"
-                    min="1"
-                    max="31"
+                    placeholder="결제 예정일을 선택하세요"
                   />
                 </div>
               </div>
@@ -517,44 +515,108 @@ const SimpleDemonstrationForm: React.FC = () => {
           </div>
         </Card>
 
-        {/* 현지 담당자 정보 */}
+        {/* 시연기관 담당자 정보 */}
         <Card className="p-6">
           <h2 className="mb-4 text-xl font-semibold text-gray-800">
-            현지 담당자 정보
+            시연기관 담당자 정보
           </h2>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                현지 담당자 <span className="text-red-500">*</span>
+                시연기관 담당자 <span className="text-red-500">*</span>
               </label>
               <Input
                 type="text"
                 name="demoManager"
                 value={formData.demoManager}
                 onChange={handleInputChange}
-                placeholder="현지 담당자명을 입력하세요"
+                placeholder="시연기관 담당자명을 입력하세요"
                 required
               />
             </div>
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                현지 담당자 연락처 <span className="text-red-500">*</span>
+                시연기관 담당자 연락처 <span className="text-red-500">*</span>
               </label>
               <Input
                 type="tel"
                 name="demoManagerPhone"
                 value={formData.demoManagerPhone}
                 onChange={handleInputChange}
-                placeholder="현지 담당자 연락처를 입력하세요"
+                placeholder="시연기관 담당자 연락처를 입력하세요"
                 required
               />
             </div>
           </div>
+        </Card>
+
+        {/* 시연 일정 */}
+        <Card className="p-6">
+          <h2 className="flex items-center mb-4 text-xl font-semibold text-gray-800">
+            <Calendar className="mr-2 w-5 h-5" />
+            시연 일정 및 장소
+          </h2>
+
+          {/* 시연 시작 */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-700">
+              시연품 상차 일정
+            </h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  상차 일자 <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="date"
+                  name="demoStartDate"
+                  value={formData.demoStartDate}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 text-sm font-medium text-gray-700">
+                  상차 시간 <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="time"
+                  name="demoStartTime"
+                  value={formData.demoStartTime}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  배송 방법
+                </label>
+                <select
+                  name="demoStartDeliveryMethod"
+                  value={formData.demoStartDeliveryMethod}
+                  onChange={handleInputChange}
+                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">선택해주세요</option>
+                  <option value="직접배송">직접배송</option>
+                  <option value="택배">택배</option>
+                  <option value="용차">용차</option>
+                  <option value="항공">항공</option>
+                  <option value="해운">해운</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
           {/* 시연 장소 */}
-          <div className="mt-4">
+          <div className="mt-8">
+            <h3 className="mb-4 text-lg font-medium text-gray-700">
+              시연 장소
+            </h3>
             <AddressSection
               address={formData.address}
               detailAddress={formData.detailAddress}
@@ -568,10 +630,63 @@ const SimpleDemonstrationForm: React.FC = () => {
             />
           </div>
 
-          {/* 첨부파일 업로드 */}
+          {/* 시연 종료 */}
+          <div className="mt-4 space-y-4">
+            <h3 className="text-lg font-medium text-gray-700">
+              시연품 창고 하차 일정
+            </h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  시연품 회수일 <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="date"
+                  name="demoEndDate"
+                  value={formData.demoEndDate}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  회수 시간 <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="time"
+                  name="demoEndTime"
+                  value={formData.demoEndTime}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  회수 방법
+                </label>
+                <select
+                  name="demoEndDeliveryMethod"
+                  value={formData.demoEndDeliveryMethod}
+                  onChange={handleInputChange}
+                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">선택해주세요</option>
+                  <option value="직접회수">직접회수</option>
+                  <option value="택배">택배</option>
+                  <option value="용차">용차</option>
+                  <option value="항공">항공</option>
+                  <option value="해운">해운</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* 시연 장소 */}
           <div className="mt-6">
             <label className="block mb-2 text-sm font-medium text-gray-700">
-              첨부파일
+              첨부파일(견적서 등)
             </label>
             <div className="mb-2 text-xs text-amber-600">
               * 파일 크기는 최대 50MB까지 업로드 가능합니다.
@@ -637,116 +752,6 @@ const SimpleDemonstrationForm: React.FC = () => {
                     </div>
                   ))
                 )}
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* 시연 일정 */}
-        <Card className="p-6">
-          <h2 className="flex items-center mb-4 text-xl font-semibold text-gray-800">
-            <Calendar className="mr-2 w-5 h-5" />
-            시연 일정
-          </h2>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* 시연 시작 */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-700">시연 시작</h3>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  시작일 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="date"
-                  name="demoStartDate"
-                  value={formData.demoStartDate}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  시작 시간 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="time"
-                  name="demoStartTime"
-                  value={formData.demoStartTime}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  배송 방법
-                </label>
-                <select
-                  name="demoStartDeliveryMethod"
-                  value={formData.demoStartDeliveryMethod}
-                  onChange={handleInputChange}
-                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">선택해주세요</option>
-                  <option value="직접배송">직접배송</option>
-                  <option value="택배">택배</option>
-                  <option value="용차">용차</option>
-                  <option value="항공">항공</option>
-                  <option value="해운">해운</option>
-                </select>
-              </div>
-            </div>
-
-            {/* 시연 종료 */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-700">시연 종료</h3>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  종료일 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="date"
-                  name="demoEndDate"
-                  value={formData.demoEndDate}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  회수 시간 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="time"
-                  name="demoEndTime"
-                  value={formData.demoEndTime}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  회수 방법
-                </label>
-                <select
-                  name="demoEndDeliveryMethod"
-                  value={formData.demoEndDeliveryMethod}
-                  onChange={handleInputChange}
-                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">선택해주세요</option>
-                  <option value="직접회수">직접회수</option>
-                  <option value="택배">택배</option>
-                  <option value="용차">용차</option>
-                  <option value="항공">항공</option>
-                  <option value="해운">해운</option>
-                </select>
               </div>
             </div>
           </div>

@@ -25,7 +25,7 @@ export interface Demo {
   demoAddress: string; // address 와 detailAddress 를 합친 값
   demoPaymentType: string; // 유료 무료
   demoPrice?: number;
-  demoPaymentDate?: number; //결제 예정일
+  demoPaymentDate?: Date; //결제 예정일
   demoCurrencyUnit: string; // 화폐 단위
   // 행사 물품 보내는 날짜
   demoStartDate: string; // 며칠에 상차 하는지

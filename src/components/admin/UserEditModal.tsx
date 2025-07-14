@@ -223,14 +223,14 @@ export default function UserEditModal({
   if (!isOpen || !user) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
       <div className="w-full max-w-2xl p-6 mx-4 bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-semibold text-gray-900">
             {isReadOnly ? "사용자 정보 조회" : "사용자 정보 수정"}
           </h3>
           {isReadOnly && (
-            <div className="px-3 py-1 text-sm text-yellow-700 rounded-md bg-yellow-50">
+            <div className="px-3 py-1 text-sm text-yellow-700 bg-yellow-50 rounded-md">
               읽기 전용
             </div>
           )}
@@ -257,7 +257,7 @@ export default function UserEditModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isReadOnly}
               />
             </div>
@@ -272,7 +272,7 @@ export default function UserEditModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, email: e.target.value }))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isReadOnly}
               />
             </div>
@@ -317,7 +317,7 @@ export default function UserEditModal({
             <h4 className="font-medium text-gray-900">창고 접근 권한</h4>
 
             {formData.accessLevel === "admin" ? (
-              <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+              <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
                 <p className="text-sm text-gray-600">
                   관리자는 모든 창고에 접근 가능하므로 창고 접근 제한이 적용되지
                   않습니다.
@@ -325,7 +325,7 @@ export default function UserEditModal({
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between">
+                <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-500">
                       접근 가능한 창고
@@ -412,8 +412,8 @@ export default function UserEditModal({
                               px-2 py-1 text-xs rounded-full
                               ${
                                 isRestricted
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-green-100 text-green-700"
+                                  ? "text-red-700 bg-red-100"
+                                  : "text-green-700 bg-green-100"
                               }
                             `}
                             >
@@ -423,7 +423,7 @@ export default function UserEditModal({
                         );
                       })
                     ) : (
-                      <div className="p-3 text-center text-gray-500 border border-gray-200 rounded-md">
+                      <div className="p-3 text-center text-gray-500 rounded-md border border-gray-200">
                         등록된 창고가 없습니다.
                       </div>
                     )}
@@ -431,7 +431,7 @@ export default function UserEditModal({
                 )}
 
                 {selectedWarehouses.length > 0 && (
-                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-md">
+                  <div className="p-2 bg-amber-50 rounded-md border border-amber-200">
                     <p className="text-sm text-amber-800">
                       ⚠️ {selectedWarehouses.length}개 창고에 접근이 제한됩니다.
                     </p>

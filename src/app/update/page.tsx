@@ -67,6 +67,69 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.5.2 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.5.2
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2024-07-16
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                발주 상세 비로그인 접근 시 로그인 모달 표시,
+                안내문구/오버레이/X버튼 조건부 노출 등 로그인 UX 대폭 개선
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 개선됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("개선됨")}
+                  <h3 className="font-medium text-gray-900">개선됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    발주 상세(/orderRecord/[id]) 비로그인 접근 시
+                    alert/리다이렉트 대신 로그인 모달 표시
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    안내문구를 로그인 카드 내부 상단에 명확하게 노출, UI 구조
+                    개선
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    오버레이(회색 배경) 클릭 시 모달이 닫히지 않도록 UX 개선
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    로그인하지 않은 상태에서는 X(닫기) 버튼이 보이지 않음,
+                    로그인 상태에서만 노출
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    LoginModal 컴포넌트의 변경은 해당 컴포넌트를 사용하는
+                    페이지에만 적용, 타 페이지에는 side effect 없음
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    버전 1.5.2로 상향
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* v1.5.1 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">

@@ -104,7 +104,7 @@ export default function UpdatePage() {
                   </li>
                   <li className="flex items-start">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    시연 비용 필드에 "VAT 포함" 표기 추가
+                    시연 비용 필드에 VAT 포함 표기 추가
                   </li>
                   <li className="flex items-start">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>

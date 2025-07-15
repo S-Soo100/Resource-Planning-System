@@ -67,6 +67,123 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.5.3 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.5.3
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-07-15
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                IO History 페이지네이션 기능 추가, 모바일 OrderRecord 댓글 기능,
+                Admin 발주 상태 변경 권한 확장
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 추가됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("추가됨")}
+                  <h3 className="font-medium text-gray-900">추가됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    IO History 페이지 페이지네이션 기능 (페이지당 10개 항목,
+                    필터 변경 시 자동 첫 페이지 이동)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    모바일 UI의 OrderRecord 댓글 기능 (댓글 작성/수정/삭제,
+                    상대적 시간 표시)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Admin 전용 발주 상태 변경 기능 (발주 수정 시 상태 직접 변경
+                    가능)
+                  </li>
+                </ul>
+              </div>
+
+              {/* 개선됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("개선됨")}
+                  <h3 className="font-medium text-gray-900">개선됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    IO History 페이지 UI/UX 개선 (조회 기간 30일→3개월 확장,
+                    반응형 레이아웃)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    OrderRecord 수정 기능 개선 (과거 날짜 검증 로직 제거, 더
+                    유연한 날짜 설정)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    페이지네이션 필터 동기화 (필터 변경 시 페이지네이션 자동
+                    초기화)
+                  </li>
+                </ul>
+              </div>
+
+              {/* 수정됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("수정됨")}
+                  <h3 className="font-medium text-gray-900">수정됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    발주 상태 편집 활성화 문제 해결 (Admin 사용자 상태 변경
+                    가능)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    오더 수정 시 상태 유지 문제 해결 (기존 발주 상태 올바르게
+                    유지)
+                  </li>
+                </ul>
+              </div>
+
+              {/* 변경됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("변경됨")}
+                  <h3 className="font-medium text-gray-900">변경됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    IO History 페이지 기본 조회 기간: 30일 → 3개월로 확장
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    OrderRecord 모바일 UI: 댓글 섹션이 모바일 환경에서도 표시
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Admin 권한 확장: 발주 상태 직접 변경 권한 추가
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* v1.5.2 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +192,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.5.2
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />
@@ -138,9 +252,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.5.1
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

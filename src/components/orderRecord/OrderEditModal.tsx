@@ -548,13 +548,6 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
     const requestDate = new Date(formData.requestDate);
     const setupDate = new Date(formData.setupDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // 과거 날짜 검증 (요청일은 오늘 이후 가능)
-    if (requestDate < today) {
-      return "발주 요청일은 오늘 이후로 선택해주세요.";
-    }
 
     // 설치 기한이 요청일보다 이전인지 검증
     if (setupDate < requestDate) {
@@ -696,7 +689,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           purchaseDate: formatDateToISO(formData.requestDate),
           outboundDate: formatDateToISO(formData.requestDate),
           installationDate: formatDateToISO(formData.setupDate),
-          status: OrderStatus.requested,
+          status: orderRecord.status, // 기존 상태 유지
           memo: formData.notes,
           orderItems: allOrderItems
             .filter((item) => item.quantity > 0)
@@ -915,7 +908,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 type="button"
                 onClick={() => setIsItemModalOpen(true)}
                 disabled={!formData.warehouseId}
-                className="px-4 py-2 w-full rounded-md border text-left transition-colors bg-white hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 w-full text-left bg-white rounded-md border transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"
               >
                 <span className="text-gray-500">클릭하여 품목 선택</span>
               </button>

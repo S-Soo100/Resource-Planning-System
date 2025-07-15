@@ -83,6 +83,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     supplierId: null as number | null,
     warehouseId: null as number | null,
     packageId: null as number | null,
+    status: "" as string,
   });
 
   // 훅 호출
@@ -191,6 +192,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         supplierId: orderRecord.supplierId || null,
         warehouseId: orderRecord.warehouseId || null,
         packageId: orderRecord.packageId || null,
+        status: orderRecord.status || "",
       };
 
       setFormData(newFormData);
@@ -689,7 +691,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           purchaseDate: formatDateToISO(formData.requestDate),
           outboundDate: formatDateToISO(formData.requestDate),
           installationDate: formatDateToISO(formData.setupDate),
-          status: orderRecord.status, // 기존 상태 유지
+          status: formData.status, // formData에서 상태 가져오기
           memo: formData.notes,
           orderItems: allOrderItems
             .filter((item) => item.quantity > 0)
@@ -1067,6 +1069,33 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 rows={3}
               />
             </div>
+
+            {/* Admin 전용: 상태 변경 */}
+            {auth?.isAdmin && (
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium">
+                  발주 상태{" "}
+                  <span className="text-xs text-gray-500">(Admin 전용)</span>
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="p-2 w-full rounded border"
+                >
+                  <option value="requested">요청</option>
+                  <option value="approved">승인</option>
+                  <option value="rejected">반려</option>
+                  <option value="confirmedByShipper">출고팀 확인</option>
+                  <option value="shipmentCompleted">출고 완료</option>
+                  <option value="rejectedByShipper">출고 보류</option>
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  현재 상태: {orderRecord?.status}
+                </p>
+              </div>
+            )}
 
             {/* 발주자 */}
             <div>

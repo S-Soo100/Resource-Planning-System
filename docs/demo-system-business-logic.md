@@ -20,33 +20,36 @@ KARS 시연 시스템은 제품 시연을 위한 전용 관리 시스템입니�
 - **시연 전용 프로세스**: 일반 주문과 구분된 시연 전용 상태 관리
 - **재고 연동**: 시연 출고 시 자동 재고 차감 및 복귀 시 재고 복구
 - **권한 기반 접근**: 사용자 권한에 따른 차별화된 기능 제공
-- **팀 단위 관리**: 팀별 데모 데이터 격리 및 관리
+- **팀 단위 관리**: 팀별 시연 데이터 격리 및 관리
 
-## 2. 데모 상태 관리
+## 2. 시연 상태 관리
 
-### 2.1 데모 상태 흐름
+### 2.1 시연 상태 흐름
 
 ```mermaid
 graph TD
-    A[requested<br/>시연 요청] --> B[approved<br/>시연 승인]
-    A --> C[rejected<br/>시연 반려]
-    B --> D[confirmedByShipper<br/>시연팀 확인]
-    B --> E[rejected<br/>시연 반려]
-    D --> F[demoShipmentCompleted<br/>시연 출고 완료]
-    D --> G[rejected<br/>시연 반려]
-    F --> H[demoCompletedAndReturned<br/>시연 복귀 완료]
+    A[requested<br/>요청] --> B[approved<br/>승인]
+    A --> C[rejected<br/>반려]
+    B --> D[confirmedByShipper<br/>출고팀 확인]
+    B --> E[rejected<br/>반려]
+    B --> F[demoShipmentCompleted<br/>시연 출고 완료]
+    D --> G[demoShipmentCompleted<br/>시연 출고 완료]
+    D --> H[demoShipmentRejected<br/>출고팀 반려]
+    F --> I[demoCompletedAndReturned<br/>시연 복귀 완료]
+    G --> I[demoCompletedAndReturned<br/>시연 복귀 완료]
 ```
 
 ### 2.2 상태별 설명
 
-| 상태                       | 의미                    | 다음 가능 상태                      | 권한             |
-| -------------------------- | ----------------------- | ----------------------------------- | ---------------- |
-| `requested`                | 시연 요청 (초기 상태)   | `approved`, `rejected`              | Moderator, Admin |
-| `approved`                 | 시연 승인 (1차승인권자) | `confirmedByShipper`, `rejected`    | Admin            |
-| `rejected`                 | 시연 반려               | -                                   | 최종 상태        |
-| `confirmedByShipper`       | 시연팀 확인 완료        | `demoShipmentCompleted`, `rejected` | Admin            |
-| `demoShipmentCompleted`    | 시연 출고 완료          | `demoCompletedAndReturned`          | Admin            |
-| `demoCompletedAndReturned` | 시연 복귀 완료          | -                                   | 최종 상태        |
+| 상태                       | 의미             | 다음 가능 상태                                            | 권한             |
+| -------------------------- | ---------------- | --------------------------------------------------------- | ---------------- |
+| `requested`                | 요청 (초기 상태) | `approved`, `rejected`                                    | Moderator, Admin |
+| `approved`                 | 승인             | `confirmedByShipper`, `demoShipmentCompleted`, `rejected` | Admin            |
+| `rejected`                 | 반려             | -                                                         | 최종 상태        |
+| `confirmedByShipper`       | 출고팀 확인      | `demoShipmentCompleted`, `demoShipmentRejected`           | Admin            |
+| `demoShipmentCompleted`    | 시연 출고 완료   | `demoCompletedAndReturned`                                | Admin            |
+| `demoShipmentRejected`     | 출고팀 반려      | -                                                         | 최종 상태        |
+| `demoCompletedAndReturned` | 시연 복귀 완료   | -                                                         | 최종 상태        |
 
 ### 2.3 상태 변경 규칙
 
@@ -55,8 +58,8 @@ graph TD
 - **Moderator**: 초기 승인 단계만 담당
   - `requested` → `approved`/`rejected`
 - **Admin**: 전체 시연 프로세스 관리
-  - `approved` → `confirmedByShipper`/`rejected`
-  - `confirmedByShipper` → `demoShipmentCompleted`/`rejected`
+  - `approved` → `confirmedByShipper`/`demoShipmentCompleted`/`rejected`
+  - `confirmedByShipper` → `demoShipmentCompleted`/`demoShipmentRejected`
   - `demoShipmentCompleted` → `demoCompletedAndReturned`
 
 ## 3. 권한 시스템 적용
@@ -65,29 +68,29 @@ graph TD
 
 #### Admin (관리자)
 
-- ✅ 모든 데모 조회/생성/수정
+- ✅ 모든 시연 조회/생성/수정
 - ✅ 모든 상태 변경 권한
-- ✅ 데모 삭제 권한
+- ✅ 시연 삭제 권한
 - ✅ 시연 관련 재고 관리
 
 #### Moderator (1차승인권자)
 
-- ✅ 데모 조회 (읽기 전용)
+- ✅ 시연 조회 (읽기 전용)
 - ✅ 초기 승인 단계 관리 (`requested` → `approved`/`rejected`)
 - ❌ 시연 진행 단계 관리 불가
 - ❌ 직접적인 재고 수정 불가
 
 #### User (일반 사용자)
 
-- ✅ 자신이 요청한 데모 조회
-- ✅ 데모 요청 생성
+- ✅ 자신이 요청한 시연 조회
+- ✅ 시연 요청 생성
 - ❌ 상태 변경 불가
-- ❌ 타인의 데모 조회 불가
+- ❌ 타인의 시연 조회 불가
 
 #### Supplier (외부업체)
 
-- ✅ 자신과 관련된 데모 조회
-- ❌ 데모 생성 불가
+- ✅ 자신과 관련된 시연 조회
+- ❌ 시연 생성 불가
 - ❌ 상태 변경 불가
 
 ### 3.2 데이터 접근 제어
@@ -106,9 +109,9 @@ const canManageShipment = user.accessLevel === "admin";
 
 ## 4. 비즈니스 로직 구현
 
-### 4.1 데모 조회 로직
+### 4.1 시연 조회 로직
 
-#### 팀별 데모 목록 조회
+#### 팀별 시연 목록 조회
 
 ```typescript
 // src/hooks/(useDemo)/useDemoQueries.ts
@@ -128,7 +131,7 @@ export const useDemosByTeam = (teamId: number) => {
 - 30분 캐싱으로 성능 최적화
 - 자동 refetch 방지로 네트워크 트래픽 최소화
 
-#### 단일 데모 조회
+#### 단일 시연 조회
 
 ```typescript
 export const useSingleDemo = (demoId: number) => {
@@ -141,7 +144,7 @@ export const useSingleDemo = (demoId: number) => {
 };
 ```
 
-### 4.2 데모 생성 로직
+### 4.2 시연 생성 로직
 
 ```typescript
 // src/hooks/(useDemo)/useDemoMutations.ts
@@ -159,12 +162,12 @@ export const useCreateDemo = () => {
 
 **생성 프로세스:**
 
-1. 데모 생성 요청 (`createDemo()`)
+1. 시연 생성 요청 (`createDemo()`)
 2. 초기 상태 `requested`로 설정
 3. 관련 캐시 무효화 (`["demos"]`)
 4. 자동 목록 새로고침
 
-### 4.3 데모 상태 변경 로직
+### 4.3 시연 상태 변경 로직
 
 ```typescript
 export const useUpdateDemoStatus = () => {
@@ -220,7 +223,7 @@ if (variables.data.status === DemoStatus.demoShipmentCompleted) {
 
 ### 5.2 재고 연동 규칙
 
-| 데모 상태                  | 재고 영향      | 처리 방식 |
+| 시연 상태                  | 재고 영향      | 처리 방식 |
 | -------------------------- | -------------- | --------- |
 | `demoShipmentCompleted`    | 재고 차감      | 자동 처리 |
 | `demoCompletedAndReturned` | 재고 복구      | 자동 처리 |
@@ -232,16 +235,16 @@ if (variables.data.status === DemoStatus.demoShipmentCompleted) {
 
 ```typescript
 // 캐시 키 명명 규칙
-["demos", "team", teamId][("demo", demoId)]["demos"]; // 팀별 데모 목록 // 단일 데모 // 모든 데모 (무효화용)
+["demos", "team", teamId][("demo", demoId)]["demos"]; // 팀별 시연 목록 // 단일 시연 // 모든 시연 (무효화용)
 ```
 
 ### 6.2 캐시 무효화 전략
 
 ```typescript
-// 데모 생성 시
+// 시연 생성 시
 queryClient.invalidateQueries({ queryKey: ["demos"] });
 
-// 데모 상태 변경 시
+// 시연 상태 변경 시
 queryClient.invalidateQueries({ queryKey: ["demos"] });
 queryClient.invalidateQueries({ queryKey: ["demo", demoId] });
 
@@ -272,7 +275,7 @@ export const getDemoByTeamId = async (teamId: number) => {
   } catch {
     return {
       success: false,
-      message: "주문 데모 목록 조회에 실패했습니다.",
+      message: "주문 시연 목록 조회에 실패했습니다.",
     };
   }
 };
@@ -285,7 +288,7 @@ export const getDemoByTeamId = async (teamId: number) => {
 const { data, error, isLoading } = useDemosByTeam(teamId);
 
 if (error) {
-  console.error("데모 조회 실패:", error);
+  console.error("시연 조회 실패:", error);
   // 에러 UI 표시
 }
 ```
@@ -303,38 +306,38 @@ const DemoComponent = () => {
   const { useDemosByTeam, useCreateDemo, useUpdateDemoStatus } = useDemo();
   const selectedTeamId = authStore((state) => state.selectedTeam?.id);
 
-  // 데모 목록 조회
+  // 시연 목록 조회
   const {
     data: demosResponse,
     isLoading,
     error,
   } = useDemosByTeam(selectedTeamId || 0);
 
-  // 데모 생성
+  // 시연 생성
   const createDemoMutation = useCreateDemo();
 
-  // 데모 상태 변경
+  // 시연 상태 변경
   const updateStatusMutation = useUpdateDemoStatus();
 
   const handleCreateDemo = async () => {
     try {
       await createDemoMutation.mutateAsync();
-      toast.success("데모가 생성되었습니다.");
+      toast.success("시연이 생성되었습니다.");
     } catch (error) {
-      toast.error("데모 생성에 실패했습니다.");
+      toast.error("시연 생성에 실패했습니다.");
     }
   };
 
   const handleUpdateStatus = async (demoId: number, status: DemoStatus) => {
     try {
       await updateStatusMutation.mutateAsync({ id: demoId, data: { status } });
-      toast.success("데모 상태가 변경되었습니다.");
+      toast.success("시연 상태가 변경되었습니다.");
     } catch (error) {
       toast.error("상태 변경에 실패했습니다.");
     }
   };
 
-  return <div>{/* 데모 목록 렌더링 */}</div>;
+  return <div>{/* 시연 목록 렌더링 */}</div>;
 };
 ```
 
@@ -351,7 +354,7 @@ const DemoManagement = () => {
 
   return (
     <div>
-      {canManageDemo && <button onClick={handleCreateDemo}>데모 생성</button>}
+      {canManageDemo && <button onClick={handleCreateDemo}>시연 생성</button>}
 
       {canManageShipment && (
         <button
@@ -380,9 +383,197 @@ const DemoManagement = () => {
 - **가비지 컬렉션**: gcTime 설정으로 사용하지 않는 캐시 자동 정리
 - **캐시 무효화**: 정확한 queryKey로 필요한 캐시만 무효화
 
-## 10. 향후 확장 가능성
+## 10. 시연 신청 시스템
 
-### 10.1 댓글 시스템
+### 10.1 시연 신청 폼 구조
+
+#### 기본 정보 필드
+
+```typescript
+// src/components/demonstration/DemonstrationRequestForm.tsx
+interface OrderRequestFormData {
+  manager: string; // 담당자
+  requester: string; // 요청자 (자동 설정)
+  receiver: string; // 수령자
+  receiverPhone: string; // 수령자 연락처
+  address: string; // 배송 주소
+  detailAddress: string; // 상세 주소
+  requestDate: string; // 요청일
+  setupDate: string; // 설치일
+  notes: string; // 비고
+  supplierId: number | null; // 공급업체 ID
+  warehouseId: number | null; // 창고 ID
+}
+```
+
+#### 시연 전용 필드 (Demo 인터페이스)
+
+```typescript
+// src/types/demo/demo.ts
+interface Demo {
+  requester: string; // 요청자
+  handler: string; // 행사 담당자
+  demoManager: string; // 시연 담당자
+  demoManagerPhone: string; // 시연 담당자 연락처
+  memo: string; // 메모
+
+  // UI 추가 필드들
+  demoTitle: string; // 시연 제목
+  demoNationType: string; // 국내행사/해외행사 구분
+  demoAddress: string; // 시연 주소
+  demoPaymentType: string; // 유료/무료
+  demoPrice?: number; // 시연 가격
+  demoPaymentDate?: Date; // 결제 예정일
+  demoCurrencyUnit: string; // 화폐 단위
+
+  // 시연 일정
+  demoStartDate: string; // 상차 날짜
+  demoStartTime: string; // 상차 시간
+  demoStartDeliveryMethod: string; // 상차 방법
+  demoEndDate: string; // 하차 날짜
+  demoEndTime: string; // 하차 시간
+  demoEndDeliveryMethod: string; // 하차 방법
+
+  // 시스템 필드
+  userId: number; // 요청자 ID
+  warehouseId: number; // 시연품 창고
+  demoItems: Item[]; // 시연 아이템 목록
+  user: IUser; // 요청자 정보
+  files: File[]; // 첨부 파일들
+}
+```
+
+### 10.2 시연 신청 프로세스
+
+#### 1. 기본 정보 입력
+
+- **요청자**: 자동으로 현재 로그인한 사용자 정보 설정
+- **수령자**: 시연 담당자 정보 입력
+- **창고 선택**: 권한이 있는 창고만 선택 가능
+- **주소 입력**: 주소 검색 API를 통한 정확한 주소 입력
+
+#### 2. 시연품 선택
+
+```typescript
+// 창고별 실제 재고 아이템 목록 기반 동적 선택
+const currentWarehouseItems = useMemo(() => {
+  if (propWarehouseItems && warehouseId) {
+    return propWarehouseItems[warehouseId] || [];
+  }
+  return (warehouseItemsData?.data as Item[]) || [];
+}, [propWarehouseItems, warehouseId, warehouseItemsData]);
+```
+
+#### 3. 권한 검증
+
+```typescript
+// 창고 접근 권한 확인
+if (user && !hasWarehouseAccess(user, warehouseId)) {
+  const warehouseName =
+    effectiveWarehousesList.find((w) => w.id === warehouseId)?.warehouseName ||
+    "선택된 창고";
+  toast.error(getWarehouseAccessDeniedMessage(warehouseName));
+  return;
+}
+```
+
+#### 4. 폼 검증
+
+```typescript
+const validateForm = (): boolean => {
+  if (!formData.requester.trim()) {
+    toast.error("요청자 정보가 없습니다.");
+    return false;
+  }
+  if (!formData.receiver.trim()) {
+    toast.error("수령자를 입력해주세요.");
+    return false;
+  }
+  // ... 기타 필수 필드 검증
+  if (orderItems.length === 0) {
+    toast.error("시연품을 선택해주세요.");
+    return false;
+  }
+  return true;
+};
+```
+
+### 10.3 시연 상태 관리
+
+#### 상태 열거형
+
+```typescript
+// src/types/demo/demo.ts
+export enum DemoStatus {
+  requested = "requested", // 요청 (초기 상태)
+  approved = "approved", // 승인 (1차승인권자)
+  rejected = "rejected", // 반려 (1차승인권자)
+  confirmedByShipper = "confirmedByShipper", // 출고팀 확인
+  demoShipmentCompleted = "shipmentCompleted", // 시연 출고 완료
+  demoCompletedAndReturned = "rejectedByShipper", // 시연 복귀 완료
+}
+```
+
+#### 상태별 권한
+
+- **User**: 시연 요청 생성 (`requested` 상태로 시작)
+- **Moderator**: 초기 승인/반려 (`requested` → `approved`/`rejected`)
+- **Admin**: 전체 상태 관리 및 시연 진행 단계 관리
+
+### 10.4 파일 업로드 기능
+
+#### 파일 관리
+
+```typescript
+// 파일 선택 및 관리
+const [files, setFiles] = useState<File[]>([]);
+
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const selectedFiles = e.target.files;
+  if (selectedFiles) {
+    const newFiles = Array.from(selectedFiles);
+    setFiles((prev) => [...prev, ...newFiles]);
+  }
+};
+
+const handleRemoveFile = (index: number) => {
+  setFiles((prev) => prev.filter((_, i) => i !== index));
+};
+```
+
+### 10.5 시연 신청 완료 후 처리
+
+#### 폼 초기화
+
+```typescript
+// 시연 신청 완료 후 폼 초기화
+setFormData({
+  manager: "",
+  requester: user?.name || auth?.name || "",
+  receiver: "",
+  receiverPhone: "",
+  address: "",
+  detailAddress: "",
+  requestDate: "",
+  setupDate: "",
+  notes: "",
+  supplierId: null,
+  warehouseId: null,
+});
+setOrderItems([]);
+setFiles([]);
+```
+
+#### 성공 메시지
+
+```typescript
+toast.success("시연 요청이 완료되었습니다!");
+router.push("/"); // 메인 페이지로 이동
+```
+
+## 11. 향후 확장 가능성
+
+### 11.1 댓글 시스템
 
 ```typescript
 // 향후 추가 가능한 댓글 기능
@@ -391,19 +582,19 @@ export const useDemoComments = (demoId: number) => {
 };
 ```
 
-### 10.2 파일 업로드
+### 11.2 파일 업로드
 
 ```typescript
-// 데모 관련 파일 업로드 기능
+// 시연 관련 파일 업로드 기능
 export const useDemoFileUpload = () => {
   // order file upload와 유사한 구조로 구현 가능
 };
 ```
 
-### 10.3 알림 시스템
+### 11.3 알림 시스템
 
 ```typescript
-// 데모 상태 변경 시 알림 기능
+// 시연 상태 변경 시 알림 기능
 export const useDemoNotifications = () => {
   // 실시간 알림 시스템 연동 가능
 };
@@ -413,7 +604,7 @@ export const useDemoNotifications = () => {
 
 **📝 주의사항:**
 
-- 모든 데모 관련 작업은 팀 단위로 격리되어 처리됩니다
+- 모든 시연 관련 작업은 팀 단위로 격리되어 처리됩니다
 - 권한 시스템을 반드시 준수하여 구현해야 합니다
 - 재고 연동 시 데이터 정합성을 보장해야 합니다
 - 캐시 무효화는 정확한 queryKey로 수행해야 합니다

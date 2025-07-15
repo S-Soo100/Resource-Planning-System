@@ -128,6 +128,20 @@ const SimpleDemonstrationForm: React.FC = () => {
     }
   }, [isHandlerSelf, user]);
 
+  // 숫자를 3자리씩 끊어서 표시하는 함수
+  const formatNumber = (value: string): string => {
+    // 숫자가 아닌 문자 제거
+    const numericValue = value.replace(/[^0-9]/g, "");
+
+    if (numericValue === "") return "";
+
+    // 3자리씩 끊어서 쉼표 추가
+    return parseInt(numericValue).toLocaleString();
+  };
+
+  // 시연 비용 표시용 상태 추가
+  const [demoPriceDisplay, setDemoPriceDisplay] = useState<string>("");
+
   // 폼 입력 변경 핸들러
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -136,8 +150,19 @@ const SimpleDemonstrationForm: React.FC = () => {
   ) => {
     const { name, value } = e.target;
 
-    // 숫자 필드들
-    if (name === "demoPrice" || name === "userId" || name === "warehouseId") {
+    // 시연 비용 필드인 경우 숫자 포맷팅 적용
+    if (name === "demoPrice") {
+      const numericValue = value.replace(/[^0-9]/g, "");
+      const formattedValue = formatNumber(value);
+
+      setDemoPriceDisplay(formattedValue);
+      setFormData((prev) => ({
+        ...prev,
+        [name]: numericValue === "" ? undefined : Number(numericValue),
+      }));
+    }
+    // 다른 숫자 필드들
+    else if (name === "userId" || name === "warehouseId") {
       setFormData((prev) => ({
         ...prev,
         [name]: value === "" ? undefined : Number(value),
@@ -486,14 +511,15 @@ const SimpleDemonstrationForm: React.FC = () => {
 
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
-                    시연 비용
+                    시연 비용{" "}
+                    <span className="text-xs text-red-500">* VAT 포함</span>
                   </label>
                   <Input
-                    type="number"
+                    type="text"
                     name="demoPrice"
-                    value={formData.demoPrice || ""}
+                    value={demoPriceDisplay}
                     onChange={handleInputChange}
-                    placeholder="시연 비용을 입력하세요"
+                    placeholder="시연 비용을 입력하세요 (예: 1,000,000)"
                     min="0"
                   />
                 </div>

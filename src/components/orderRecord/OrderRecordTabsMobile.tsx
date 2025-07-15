@@ -3,6 +3,13 @@ import { Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
 import { IUser } from "@/types/(auth)/user";
+import { OrderComment } from "@/types/(order)/orderComment";
+import {
+  useOrderComments,
+  type CreateOrderCommentDto,
+  type UpdateOrderCommentDto,
+} from "@/hooks/useOrderComments";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface Props {
   records: IOrderRecord[];
@@ -25,6 +32,237 @@ interface Props {
   auth: IUser | null | undefined;
 }
 
+// 댓글 섹션 컴포넌트
+interface OrderCommentSectionProps {
+  record: IOrderRecord;
+  currentUser: IUser | undefined;
+}
+
+const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
+  record,
+  currentUser,
+}) => {
+  const [newComment, setNewComment] = React.useState("");
+  const [editingCommentId, setEditingCommentId] = React.useState<number | null>(
+    null
+  );
+  const [editingContent, setEditingContent] = React.useState("");
+
+  // 실제 API를 사용한 댓글 관리
+  const {
+    comments,
+    isLoading,
+    createComment,
+    updateComment,
+    deleteComment,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  } = useOrderComments(record.id);
+
+  // 권한 확인 함수들
+  const canEditComment = (comment: OrderComment) => {
+    if (!currentUser) return false;
+    // 수정은 오직 본인 댓글만 가능 (Admin도 본인 댓글만)
+    return comment.userId === currentUser.id;
+  };
+
+  const canDeleteComment = (comment: OrderComment) => {
+    if (!currentUser) return false;
+    // 삭제는 본인 댓글 + Admin은 모든 댓글 가능
+    return (
+      comment.userId === currentUser.id || currentUser.accessLevel === "admin"
+    );
+  };
+
+  // 댓글 작성 시간 포맷팅
+  const formatCommentDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 1) return "방금 전";
+    if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}시간 전`;
+
+    return date.toLocaleDateString("ko-KR", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // 댓글 작성 핸들러
+  const handleSubmitComment = () => {
+    if (!newComment.trim() || !currentUser) return;
+
+    const commentData: CreateOrderCommentDto = {
+      content: newComment.trim(),
+    };
+
+    createComment(commentData);
+    setNewComment("");
+  };
+
+  // 댓글 수정 핸들러
+  const handleEditComment = (commentId: number) => {
+    if (!editingContent.trim()) return;
+
+    const updateData: UpdateOrderCommentDto = {
+      content: editingContent.trim(),
+    };
+
+    updateComment({ commentId, data: updateData });
+    setEditingCommentId(null);
+    setEditingContent("");
+  };
+
+  // 댓글 삭제 핸들러
+  const handleDeleteComment = (commentId: number) => {
+    if (!confirm("댓글을 삭제하시겠습니까?")) return;
+    deleteComment(commentId);
+  };
+
+  return (
+    <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+      <div className="flex items-center pb-1 mb-2 text-sm font-bold text-gray-700 border-b">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="mr-2 w-4 h-4 text-gray-500"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
+            clipRule="evenodd"
+          />
+        </svg>
+        댓글 ({comments.length})
+      </div>
+
+      {/* 댓글 목록 */}
+      <div className="overflow-y-auto mb-3 space-y-2 max-h-40">
+        {isLoading ? (
+          <p className="py-2 text-xs text-center text-gray-500">
+            댓글을 불러오는 중...
+          </p>
+        ) : comments.length === 0 ? (
+          <p className="py-2 text-xs text-center text-gray-500">
+            아직 댓글이 없습니다.
+          </p>
+        ) : (
+          comments.map((comment) => (
+            <div key={comment.id} className="p-2 bg-gray-50 rounded-lg">
+              <div className="flex justify-between items-start mb-1">
+                <div className="flex items-center space-x-1">
+                  <span className="text-xs font-medium text-gray-800">
+                    {comment.userName}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatCommentDate(comment.createdAt)}
+                  </span>
+                  {comment.createdAt !== comment.updatedAt && (
+                    <span className="text-xs text-gray-400">(수정됨)</span>
+                  )}
+                </div>
+
+                {(canEditComment(comment) || canDeleteComment(comment)) && (
+                  <div className="flex space-x-1">
+                    {canEditComment(comment) && (
+                      <button
+                        onClick={() => {
+                          setEditingCommentId(comment.id);
+                          setEditingContent(comment.content);
+                        }}
+                        disabled={isUpdating || isDeleting}
+                        className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400"
+                      >
+                        수정
+                      </button>
+                    )}
+                    {canDeleteComment(comment) && (
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        disabled={isUpdating || isDeleting}
+                        className="text-xs text-red-600 hover:text-red-800 disabled:text-gray-400"
+                      >
+                        {isDeleting ? "삭제중..." : "삭제"}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {editingCommentId === comment.id ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={editingContent}
+                    onChange={(e) => setEditingContent(e.target.value)}
+                    className="p-2 w-full text-xs rounded-md border border-gray-300 resize-none"
+                    rows={2}
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEditComment(comment.id)}
+                      disabled={isUpdating}
+                      className="px-2 py-1 text-xs text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300"
+                    >
+                      {isUpdating ? "저장중..." : "저장"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingCommentId(null);
+                        setEditingContent("");
+                      }}
+                      disabled={isUpdating}
+                      className="px-2 py-1 text-xs text-gray-700 bg-gray-300 rounded-md hover:bg-gray-400 disabled:opacity-50"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-700 whitespace-pre-wrap">
+                  {comment.content}
+                </p>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* 댓글 작성 폼 */}
+      {currentUser && (
+        <div className="pt-2 border-t">
+          <div className="space-y-2">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="댓글을 입력해주세요..."
+              className="p-2 w-full text-xs rounded-md border border-gray-300 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={2}
+              disabled={isCreating}
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={handleSubmitComment}
+                disabled={!newComment.trim() || isCreating}
+                className="px-3 py-1 text-xs text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {isCreating ? "작성 중..." : "댓글 작성"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const OrderRecordTabsMobile: React.FC<Props> = ({
   records,
   expandedRowId,
@@ -42,6 +280,8 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
   userAccessLevel,
   auth,
 }) => {
+  const { user: currentUser } = useCurrentUser();
+
   // 상태 변경 드롭다운 컴포넌트
   const StatusDropdown = ({ record }: { record: IOrderRecord }) => {
     // 권한이 없는 경우 상태만 표시
@@ -457,6 +697,14 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                     ))}
                   </ul>
                 </div>
+              )}
+
+              {/* 댓글 섹션 */}
+              {currentUser && (
+                <OrderCommentSection
+                  record={record}
+                  currentUser={currentUser}
+                />
               )}
 
               {/* 액션 버튼들 */}

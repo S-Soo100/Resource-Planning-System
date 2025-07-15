@@ -43,20 +43,32 @@ export default function IoHistoryList() {
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
     null
   );
-  const [startDate, setStartDate] = useState<string>(
-    new Date(new Date().setDate(new Date().getDate() - 30))
-      .toISOString()
-      .split("T")[0]
-  );
-  const [endDate, setEndDate] = useState<string>(
-    new Date(new Date().setDate(new Date().getDate() + 1))
-      .toISOString()
-      .split("T")[0]
-  );
+  // 3개월 전 날짜 계산 함수 (현재 월 포함하여 3개월)
+  const getThreeMonthsAgo = () => {
+    const today = new Date();
+    // 현재 월을 포함하여 3개월 전 계산 (예: 7월이면 5,6,7월)
+    const threeMonthsAgo = new Date(
+      today.getFullYear(),
+      today.getMonth() - 2,
+      1
+    );
+    return threeMonthsAgo.toISOString().split("T")[0];
+  };
+
+  const [startDate, setStartDate] = useState<string>(getThreeMonthsAgo());
+  const [endDate, setEndDate] = useState<string>(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split("T")[0];
+  });
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
 
   // 타입 필터 상태 추가
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+
+  // 페이지네이션 상태 추가
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   // 입고/출고 모달 관련 상태
   const { createInventoryRecordAsync } = useCreateInventoryRecord();
@@ -149,22 +161,17 @@ export default function IoHistoryList() {
 
   // 날짜 필터 초기화 함수
   const resetDateFilter = () => {
-    setStartDate(
-      new Date(new Date().setDate(new Date().getDate() - 30))
-        .toISOString()
-        .split("T")[0]
-    );
-    setEndDate(
-      new Date(new Date().setDate(new Date().getDate() + 1))
-        .toISOString()
-        .split("T")[0]
-    );
+    setStartDate(getThreeMonthsAgo());
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setEndDate(tomorrow.toISOString().split("T")[0]);
   };
 
   // 모든 필터 초기화 함수
   const resetAllFilters = () => {
     resetDateFilter();
     setTypeFilter("all");
+    setCurrentPage(1); // 필터 초기화 시 첫 페이지로 이동
   };
 
   // 필터링된 기록
@@ -197,6 +204,55 @@ export default function IoHistoryList() {
 
     return warehouseFilteredRecords;
   }, [records, startDate, endDate, selectedWarehouseId, typeFilter]);
+
+  // 페이지네이션 계산
+  const { totalPages, currentRecords } = useMemo(() => {
+    const total = Math.ceil(filteredRecords.length / recordsPerPage);
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const records = filteredRecords.slice(
+      indexOfFirstRecord,
+      indexOfLastRecord
+    );
+
+    console.log(
+      `페이지네이션: ${currentPage}/${total} 페이지, ${records.length}개 표시`
+    );
+
+    return {
+      totalPages: total,
+      currentRecords: records,
+    };
+  }, [filteredRecords, currentPage, recordsPerPage]);
+
+  // 페이지네이션 핸들러
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  };
+
+  // 필터 변경 시 페이지 초기화
+  const handleDateChange = (field: "startDate" | "endDate", value: string) => {
+    if (field === "startDate") {
+      setStartDate(value);
+    } else {
+      setEndDate(value);
+    }
+    setCurrentPage(1); // 날짜 변경 시 첫 페이지로 이동
+  };
+
+  const handleTypeFilterChange = (filter: TypeFilter) => {
+    setTypeFilter(filter);
+    setCurrentPage(1); // 타입 필터 변경 시 첫 페이지로 이동
+  };
+
+  const handleWarehouseChange = (warehouseId: number) => {
+    setSelectedWarehouseId(warehouseId);
+    setCurrentPage(1); // 창고 변경 시 첫 페이지로 이동
+  };
 
   useEffect(() => {
     if (warehouses.length > 0 && !selectedWarehouseId) {
@@ -607,9 +663,9 @@ export default function IoHistoryList() {
 
   if (isUserLoading || isDataLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-blue-500 animate-spin"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -618,7 +674,7 @@ export default function IoHistoryList() {
 
   if (!user || user.accessLevel === "supplier") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col justify-center items-center min-h-screen">
         <div className="text-center">
           <h2 className="mb-4 text-2xl font-bold text-gray-800">
             열람 권한이 없습니다
@@ -654,7 +710,7 @@ export default function IoHistoryList() {
         {warehouses.map((warehouse: Warehouse) => (
           <div
             key={warehouse.id}
-            onClick={() => setSelectedWarehouseId(Number(warehouse.id))}
+            onClick={() => handleWarehouseChange(Number(warehouse.id))}
             className={`p-4 rounded-lg shadow-md cursor-pointer transition-all duration-200 ${
               selectedWarehouseId === Number(warehouse.id)
                 ? "bg-blue-500 text-white ring-2 ring-blue-600 transform scale-105"
@@ -687,13 +743,13 @@ export default function IoHistoryList() {
 
       {/* 입고/출고 버튼 섹션 */}
       {selectedWarehouseId && user?.accessLevel !== "user" && (
-        <div className="mb-6 flex justify-end space-x-2">
+        <div className="flex justify-end mb-6 space-x-2">
           <Button
             variant="default"
             onClick={() => handleOpenInboundModal(selectedWarehouseId)}
             icon={<Plus className="w-4 h-4" />}
             iconPosition="left"
-            className="bg-blue-500 hover:bg-blue-600 text-white"
+            className="text-white bg-blue-500 hover:bg-blue-600"
           >
             입고
           </Button>
@@ -702,7 +758,7 @@ export default function IoHistoryList() {
             onClick={() => handleOpenOutboundModal(selectedWarehouseId)}
             icon={<Minus className="w-4 h-4" />}
             iconPosition="left"
-            className="bg-red-500 hover:bg-red-600 text-white"
+            className="text-white bg-red-500 hover:bg-red-600"
           >
             출고
           </Button>
@@ -712,7 +768,7 @@ export default function IoHistoryList() {
       {/* 필터 섹션 */}
       <div className="mb-6 space-y-4">
         {/* 날짜 필터 */}
-        <div className="flex items-end gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">
               조회 시작일
@@ -720,8 +776,8 @@ export default function IoHistoryList() {
             <input
               type="date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              onChange={(e) => handleDateChange("startDate", e.target.value)}
+              className="block px-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
@@ -731,35 +787,37 @@ export default function IoHistoryList() {
             <input
               type="date"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              onChange={(e) => handleDateChange("endDate", e.target.value)}
+              className="block px-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <button
-            onClick={resetAllFilters}
-            className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors bg-gray-100 rounded-md hover:bg-gray-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+          <div className="flex items-end">
+            <button
+              onClick={resetAllFilters}
+              className="flex gap-2 items-center px-4 py-2 w-full text-gray-700 bg-gray-100 rounded-md transition-colors hover:bg-gray-200"
             >
-              <path
-                fillRule="evenodd"
-                d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                clipRule="evenodd"
-              />
-            </svg>
-            초기화
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              초기화
+            </button>
+          </div>
         </div>
 
         {/* 타입 필터 */}
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 items-center">
           <span className="text-sm font-medium text-gray-700">구분:</span>
           <button
-            onClick={() => setTypeFilter("all")}
+            onClick={() => handleTypeFilterChange("all")}
             className={`px-3 py-1 text-sm rounded-md transition-colors ${
               typeFilter === "all"
                 ? "bg-blue-500 text-white"
@@ -769,7 +827,7 @@ export default function IoHistoryList() {
             전체
           </button>
           <button
-            onClick={() => setTypeFilter("inbound")}
+            onClick={() => handleTypeFilterChange("inbound")}
             className={`px-3 py-1 text-sm rounded-md transition-colors ${
               typeFilter === "inbound"
                 ? "bg-green-500 text-white"
@@ -779,7 +837,7 @@ export default function IoHistoryList() {
             입고
           </button>
           <button
-            onClick={() => setTypeFilter("outbound")}
+            onClick={() => handleTypeFilterChange("outbound")}
             className={`px-3 py-1 text-sm rounded-md transition-colors ${
               typeFilter === "outbound"
                 ? "bg-red-500 text-white"
@@ -793,7 +851,7 @@ export default function IoHistoryList() {
 
       {/* 기록 목록 테이블 */}
       {filteredRecords.length === 0 ? (
-        <div className="py-8 text-center rounded-lg bg-gray-50">
+        <div className="py-8 text-center bg-gray-50 rounded-lg">
           <p className="text-lg text-gray-500">데이터가 없습니다</p>
           <p className="mt-2 text-sm text-gray-400">
             {typeFilter === "inbound"
@@ -805,7 +863,7 @@ export default function IoHistoryList() {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full overflow-hidden bg-white rounded-lg shadow-md">
+          <table className="overflow-hidden min-w-full bg-white rounded-lg shadow-md">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
@@ -826,7 +884,7 @@ export default function IoHistoryList() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredRecords.map((record) => (
+              {currentRecords.map((record) => (
                 <React.Fragment key={record.id}>
                   <tr
                     onClick={() =>
@@ -890,7 +948,7 @@ export default function IoHistoryList() {
                                 [{record.item.teamItem.itemCode}]{" "}
                                 {record.item.teamItem.itemName}
                                 {record.item.teamItem.category?.name && (
-                                  <span className="text-sm text-gray-500 ml-2">
+                                  <span className="ml-2 text-sm text-gray-500">
                                     ({record.item.teamItem.category.name})
                                   </span>
                                 )}
@@ -914,6 +972,43 @@ export default function IoHistoryList() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* 페이지네이션 UI */}
+      {totalPages > 0 && (
+        <div className="flex justify-between items-center p-4 mt-6 bg-white rounded-xl shadow-sm">
+          <Button
+            onClick={handlePrevPage}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-full ${
+              currentPage === 1
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            } transition-colors`}
+          >
+            이전
+          </Button>
+          <div className="flex items-center">
+            <span className="text-sm text-gray-600">
+              페이지 <span className="font-medium">{currentPage}</span> /{" "}
+              {totalPages || 1}
+            </span>
+            <span className="mx-4 text-sm text-gray-500">
+              총 {filteredRecords.length}개 항목
+            </span>
+          </div>
+          <Button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className={`px-4 py-2 rounded-full ${
+              currentPage === totalPages || totalPages === 0
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            } transition-colors`}
+          >
+            다음
+          </Button>
         </div>
       )}
 

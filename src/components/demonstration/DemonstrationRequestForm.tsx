@@ -1,4 +1,18 @@
 "use client";
+
+/**
+ * 시연 요청 폼 컴포넌트
+ *
+ * ⚠️ API 통신 미개발 상태
+ * 현재 이 컴포넌트는 데모용으로만 동작하며, 실제 API 연동이 필요합니다.
+ *
+ * TODO: 다음 기능들의 API 연동이 필요합니다:
+ * - 시연 요청 데이터 전송
+ * - 파일 업로드 처리
+ * - 서버 응답 처리
+ * - 에러 핸들링
+ */
+
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import SearchAddressModal from "../SearchAddressModal";
@@ -30,6 +44,10 @@ const DemonstrationRequestForm: React.FC<OrderRequestFormProps> = ({
   warehouseItems: propWarehouseItems,
   onWarehouseChange,
 }) => {
+  // ⚠️ API 미개발 상태 알림
+  console.warn(
+    "DemonstrationRequestForm: API 통신이 미개발 상태입니다. 데모용으로만 동작합니다."
+  );
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -283,7 +301,9 @@ const DemonstrationRequestForm: React.FC<OrderRequestFormProps> = ({
     return true;
   };
 
-  // 폼 제출 핸들러 (API 호출 제거)
+  // 폼 제출 핸들러
+  // TODO: API 통신 미개발 상태 - 실제 API 연동 필요
+  // 현재는 데모용으로 성공 메시지만 표시하고 폼을 초기화합니다.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -294,8 +314,14 @@ const DemonstrationRequestForm: React.FC<OrderRequestFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // API 호출 기능 제거 - 성공 메시지만 표시
-      toast.success("시연 요청이 완료되었습니다!");
+      // TODO: API 통신 미개발 상태
+      // 실제 구현 시에는 다음과 같은 API 호출이 필요합니다:
+      // - 시연 요청 데이터를 서버로 전송
+      // - 파일 업로드 처리
+      // - 서버 응답에 따른 적절한 처리
+
+      // 임시로 성공 메시지만 표시 (API 미개발 상태)
+      toast.success("시연 요청이 완료되었습니다! (API 미개발 상태 - 데모용)");
 
       // 폼 초기화
       setFormData({
@@ -629,9 +655,10 @@ const DemonstrationRequestForm: React.FC<OrderRequestFormProps> = ({
               type="submit"
               disabled={isSubmitting}
               className="flex gap-2 items-center px-6 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              title="⚠️ API 미개발 상태 - 데모용으로만 동작합니다"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isSubmitting ? "처리 중..." : "시연 요청"}
+              {isSubmitting ? "처리 중..." : "시연 요청 (API 미개발)"}
             </button>
           </div>
         </form>

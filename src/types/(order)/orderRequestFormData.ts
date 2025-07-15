@@ -16,6 +16,7 @@ export type OrderRequestFormData = {
   setupDate: string;
   notes: string;
   manager: string;
+  demoCost?: string; // 시연 비용
 };
 
 export type OrderItemWithDetails = {

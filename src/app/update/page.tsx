@@ -67,6 +67,94 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.5.4 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.5.4
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2024-12-19
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                시연 시스템 개선, 시연 비용 입력 필드 포맷팅, API 미개발 상태
+                명확히 표기
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 추가됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("추가됨")}
+                  <h3 className="font-medium text-gray-900">추가됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    시연 비용 입력 필드에 3자리씩 쉼표 구분 포맷팅 기능 (예:
+                    1,000,000원)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    시연 비용 필드에 "VAT 포함" 표기 추가
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    DemonstrationRequestForm에 API 미개발 상태 명확히 표기
+                  </li>
+                </ul>
+              </div>
+
+              {/* 개선됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("개선됨")}
+                  <h3 className="font-medium text-gray-900">개선됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    시연 비용 입력 시 사용자 경험 개선 (숫자 자동 포맷팅,
+                    플레이스홀더 예시 추가)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    API 미개발 상태를 개발자와 사용자에게 명확히 알림 (콘솔
+                    경고, 버튼 툴팁, 성공 메시지)
+                  </li>
+                </ul>
+              </div>
+
+              {/* 수정됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("수정됨")}
+                  <h3 className="font-medium text-gray-900">수정됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    시연 비용 입력 필드 타입을 number에서 text로 변경하여 쉼표
+                    입력 가능
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    불필요한 타입 정의 파일 정리 (demo-item-list-for-team-57.ts
+                    삭제)
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* v1.5.3 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +163,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.5.3
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

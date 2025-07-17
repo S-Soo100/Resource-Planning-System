@@ -152,8 +152,7 @@ const OrderRecordTabs = () => {
 
   const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
-  const { refetchAll: refetchWarehouseItems, items: warehouseItems } =
-    useWarehouseItems();
+  const { refetchAll: refetchWarehouseItems } = useWarehouseItems();
   const { user: currentUser } = useCurrentUser();
   const auth = authStore((state) => state.user);
   // const router = useRouter();
@@ -554,7 +553,7 @@ const OrderRecordTabs = () => {
       return; // 취소한 경우 함수 종료
     }
 
-    // 출고 관련 상태로 변경하는 경우 재고 확인
+    // 출고 관련 상태로 변경하는 경우 재고 확인(클라이언트 체크 제거, 서버에서만 처리)
     if (
       newStatus === OrderStatus.confirmedByShipper ||
       newStatus === OrderStatus.shipmentCompleted ||
@@ -568,55 +567,7 @@ const OrderRecordTabs = () => {
         alert("주문 정보를 찾을 수 없습니다.");
         return;
       }
-
-      // 재고 확인
-      const currentWarehouseItems = warehouseItems.filter(
-        (item) => item.warehouseId === currentOrder.warehouseId
-      );
-
-      const insufficientItems: string[] = [];
-
-      // 주문 품목별 재고 확인
-      if (currentOrder.orderItems && currentOrder.orderItems.length > 0) {
-        currentOrder.orderItems.forEach((orderItem) => {
-          const stockItem = currentWarehouseItems.find(
-            (stock) =>
-              stock.teamItem?.itemCode === orderItem.item?.teamItem?.itemCode
-          );
-
-          if (!stockItem) {
-            insufficientItems.push(
-              `${
-                orderItem.item?.teamItem?.itemName || "알 수 없는 품목"
-              } (재고 없음)`
-            );
-          } else if (stockItem.itemQuantity < orderItem.quantity) {
-            insufficientItems.push(
-              `${
-                orderItem.item?.teamItem?.itemName || "알 수 없는 품목"
-              } (요청: ${orderItem.quantity}개, 재고: ${
-                stockItem.itemQuantity
-              }개)`
-            );
-          }
-        });
-      }
-
-      // 재고 부족한 품목이 있는 경우
-      if (insufficientItems.length > 0) {
-        const message = `재고가 부족하여 출고 처리를 할 수 없습니다.\n\n부족한 품목:\n${insufficientItems.join(
-          "\n"
-        )}`;
-        alert(message);
-        return;
-      }
-
-      // 재고 확인 완료 메시지
-      if (newStatus === OrderStatus.shipmentCompleted) {
-        if (!window.confirm("재고가 충분합니다. 출고 완료 처리하시겠습니까?")) {
-          return;
-        }
-      }
+      // 재고 부족 체크 및 confirm 등은 서버에서 처리
     }
 
     try {

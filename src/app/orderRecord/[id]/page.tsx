@@ -417,12 +417,12 @@ const OrderRecordDetail = () => {
         <>
           {/* order가 null이고 로그인 상태일 때만 '발주를 찾을 수 없습니다' */}
           {!order && authStore.getState().isAuthenticated && (
-            <div className="flex flex-col items-center justify-center h-96">
+            <div className="flex flex-col justify-center items-center h-96">
               <p className="mb-4 text-lg text-gray-600">
                 발주를 찾을 수 없습니다
               </p>
               <button
-                className="px-4 py-2 bg-blue-500 text-white rounded"
+                className="px-4 py-2 text-white bg-blue-500 rounded"
                 onClick={() => router.push("/orderRecord")}
               >
                 발주 목록으로 돌아가기
@@ -682,6 +682,71 @@ const OrderRecordDetail = () => {
                     <p className="text-gray-800 whitespace-pre-wrap">
                       {order.memo}
                     </p>
+                  </div>
+                )}
+
+                {/* 첨부파일 */}
+                {order.files && order.files.length > 0 && (
+                  <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-5 h-5 text-gray-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      첨부파일
+                    </h2>
+                    <div className="space-y-3">
+                      {order.files.map((file) => (
+                        <div
+                          key={file.id}
+                          className="flex justify-between items-center px-4 py-3 bg-gray-50 rounded-lg border border-gray-200"
+                        >
+                          <div className="flex gap-3 items-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="w-5 h-5 text-gray-400"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {file.fileName}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                업로드: {formatDate(file.createdAt)}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const link = document.createElement("a");
+                              link.href = file.fileUrl;
+                              link.download = file.fileName;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                            className="px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
+                          >
+                            다운로드
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 

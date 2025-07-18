@@ -12,6 +12,8 @@ export interface SelectedDemoItem {
   itemName: string;
   quantity: number;
   teamItem: TeamItem;
+  itemId: number;
+  memo: string;
 }
 
 interface DemoItemSelectorProps {
@@ -60,6 +62,8 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
         itemName: warehouseItem.itemName,
         quantity: 1,
         teamItem: warehouseItem.teamItem,
+        itemId: warehouseItem.id,
+        memo: warehouseItem.teamItem.memo,
       };
       onItemsChange([...selectedItems, newItem]);
     } else {
@@ -97,6 +101,8 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
         itemName: item.itemName,
         quantity: 1,
         teamItem: item.teamItem,
+        itemId: item.id,
+        memo: item.teamItem.memo,
       }));
       onItemsChange(newItems);
     } else {

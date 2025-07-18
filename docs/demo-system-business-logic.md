@@ -571,6 +571,23 @@ toast.success("시연 요청이 완료되었습니다!");
 router.push("/"); // 메인 페이지로 이동
 ```
 
+### 10.6 시연 아이템 선택 로직
+
+#### 아이템 ID 매핑 규칙
+
+```typescript
+// DemoItemSelector.tsx - 아이템 선택 시
+const newItem: SelectedDemoItem = {
+  itemName: warehouseItem.itemName,
+  quantity: 1,
+  teamItem: warehouseItem.teamItem,
+  itemId: warehouseItem.id, // 창고 아이템의 고유 ID (재고 연동용)
+  memo: warehouseItem.teamItem.memo,
+};
+```
+
+**중요**: `itemId`는 `warehouseItem.id`를 사용하여 창고의 특정 아이템 재고에 직접 영향을 주도록 구현됨. `warehouseItem.teamItem.id`가 아닌 `warehouseItem.id`를 사용하는 이유는 재고 관리의 정확성을 위함.
+
 ## 11. 향후 확장 가능성
 
 ### 11.1 댓글 시스템

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createDemo, updateDemoStatusById } from "../../api/demo-api";
-import { DemoStatus } from "../../types/demo/demo";
+import { DemoStatus, CreateDemoRequest } from "../../types/demo/demo";
 import { ApiResponse } from "../../types/common";
 
 // 데모 상태 변경 DTO 타입
@@ -12,8 +12,8 @@ export interface UpdateDemoStatusDto {
 export const useCreateDemo = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<ApiResponse, Error, void>({
-    mutationFn: () => createDemo(),
+  return useMutation<ApiResponse, Error, CreateDemoRequest>({
+    mutationFn: (demoData: CreateDemoRequest) => createDemo(demoData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["demos"] });
     },

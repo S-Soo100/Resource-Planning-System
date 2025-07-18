@@ -1,5 +1,11 @@
-import React from "react";
+import DemonstrationRecordTabs from "@/components/demonstration/DemonstrationRecordTabs";
 
-export default function DemonstrationRecordPage() {
-  return <div>DemonstrationRecordPage</div>;
-}
+const DemonstrationRecordPage = () => {
+  return (
+    <>
+      <DemonstrationRecordTabs />
+    </>
+  );
+};
+
+export default DemonstrationRecordPage;

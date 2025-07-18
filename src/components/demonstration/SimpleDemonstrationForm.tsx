@@ -18,6 +18,7 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Address } from "react-daum-postcode";
 import { useCreateDemo } from "@/hooks/(useDemo)/useDemoMutations";
 import { CreateDemoRequest, DemonstrationFormData } from "@/types/demo/demo";
+import { uploadMultipleDemoFileById } from "@/api/demo-api";
 
 const SimpleDemonstrationForm: React.FC = () => {
   const router = useRouter();
@@ -28,6 +29,58 @@ const SimpleDemonstrationForm: React.FC = () => {
 
   // 시연 생성 훅 사용
   const createDemoMutation = useCreateDemo();
+
+  // 파일 업로드 처리 함수
+  const handleFileUpload = async (demoId: number): Promise<boolean> => {
+    try {
+      // 파일 크기 검사 (50MB 제한)
+      const maxFileSize = 50 * 1024 * 1024; // 50MB
+      const oversizedFiles = fileUpload.files.filter(
+        (file) => file.size > maxFileSize
+      );
+
+      if (oversizedFiles.length > 0) {
+        console.error(
+          "파일 크기가 너무 큰 파일이 있습니다:",
+          oversizedFiles.map((f) => f.name)
+        );
+        toast.error("50MB를 초과하는 파일이 있어 업로드할 수 없습니다");
+        return false;
+      }
+
+      // uploadMultipleDemoFileById API 호출
+      toast.loading("파일 업로드 중...");
+      const uploadResponse = await uploadMultipleDemoFileById(
+        demoId,
+        fileUpload.files
+      );
+      toast.dismiss();
+
+      if (uploadResponse.success) {
+        console.log("파일 업로드 성공:", uploadResponse.data);
+        const uploadedFileNames = uploadResponse.data
+          ?.map((file) => file.fileName)
+          .join(", ");
+        toast.success(
+          `시연 신청 및 파일 '${uploadedFileNames}' 업로드가 완료되었습니다`
+        );
+        return true;
+      } else {
+        console.error("파일 업로드 실패:", uploadResponse.error);
+        toast.error(
+          `시연 신청은 성공했으나 파일 업로드에 실패했습니다: ${
+            uploadResponse.error || "알 수 없는 오류"
+          }`
+        );
+        return false;
+      }
+    } catch (uploadApiError) {
+      console.error("파일 업로드 API 호출 중 오류:", uploadApiError);
+      toast.error("파일 업로드 과정에서 오류가 발생했습니다");
+      return false;
+    }
+  };
+
   const [formData, setFormData] = useState<DemonstrationFormData>({
     requester: user?.name || "",
     handler: "",
@@ -272,7 +325,42 @@ const SimpleDemonstrationForm: React.FC = () => {
       const response = await createDemoMutation.mutateAsync(submitData);
 
       if (response.success) {
-        toast.success("시연 신청이 완료되었습니다!");
+        //! 파일이 첨부된 경우 추가 처리
+        if (fileUpload.files.length > 0) {
+          try {
+            const demoId = (response.data as { id: number })?.id;
+
+            if (!demoId) {
+              console.error("시연 ID가 없습니다:", response.data);
+              toast.error(
+                "시연 신청은 성공했으나 시연 ID를 찾을 수 없어 파일 업로드를 진행할 수 없습니다"
+              );
+            } else {
+              // demoId가 string 타입일 가능성이 있으므로 명시적으로 숫자 변환
+              const demoIdAsNumber =
+                typeof demoId === "string" ? parseInt(demoId, 10) : demoId;
+
+              if (isNaN(demoIdAsNumber)) {
+                console.error("시연 ID가 유효한 숫자가 아닙니다:", demoId);
+                toast.error(
+                  "시연 신청은 성공했으나 유효하지 않은 시연 ID로 인해 파일 업로드를 진행할 수 없습니다"
+                );
+                return;
+              }
+
+              // 파일 업로드 처리
+              await handleFileUpload(demoIdAsNumber);
+            }
+          } catch (uploadError) {
+            console.error("파일 업로드 전체 과정 중 오류:", uploadError);
+            toast.error(
+              "시연 신청은 성공했으나 파일 업로드 중 오류가 발생했습니다"
+            );
+          }
+        } else {
+          toast.success("시연 신청이 완료되었습니다!");
+        }
+
         // 시연 기록 페이지로 이동
         router.push("/demonstration-record");
       } else {

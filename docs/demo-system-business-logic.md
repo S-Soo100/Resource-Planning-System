@@ -30,26 +30,26 @@ KARS 시연 시스템은 제품 시연을 위한 전용 관리 시스템입니�
 graph TD
     A[requested<br/>요청] --> B[approved<br/>승인]
     A --> C[rejected<br/>반려]
-    B --> D[confirmedByShipper<br/>출고팀 확인]
+    B --> D[confirmedByShipper<br/>출고자 확인]
     B --> E[rejected<br/>반려]
-    B --> F[demoShipmentCompleted<br/>시연 출고 완료]
-    D --> G[demoShipmentCompleted<br/>시연 출고 완료]
-    D --> H[demoShipmentRejected<br/>출고팀 반려]
-    F --> I[demoCompletedAndReturned<br/>시연 복귀 완료]
-    G --> I[demoCompletedAndReturned<br/>시연 복귀 완료]
+    B --> F[shipmentCompleted<br/>출고 완료]
+    D --> G[shipmentCompleted<br/>출고 완료]
+    D --> H[rejectedByShipper<br/>출고자 반려]
+    F --> I[demoCompleted<br/>시연 종료]
+    G --> I[demoCompleted<br/>시연 종료]
 ```
 
 ### 2.2 상태별 설명
 
-| 상태                       | 의미             | 다음 가능 상태                                            | 권한             |
-| -------------------------- | ---------------- | --------------------------------------------------------- | ---------------- |
-| `requested`                | 요청 (초기 상태) | `approved`, `rejected`                                    | Moderator, Admin |
-| `approved`                 | 승인             | `confirmedByShipper`, `demoShipmentCompleted`, `rejected` | Admin            |
-| `rejected`                 | 반려             | -                                                         | 최종 상태        |
-| `confirmedByShipper`       | 출고팀 확인      | `demoShipmentCompleted`, `demoShipmentRejected`           | Admin            |
-| `demoShipmentCompleted`    | 시연 출고 완료   | `demoCompletedAndReturned`                                | Admin            |
-| `demoShipmentRejected`     | 출고팀 반려      | -                                                         | 최종 상태        |
-| `demoCompletedAndReturned` | 시연 복귀 완료   | -                                                         | 최종 상태        |
+| 상태                 | 의미             | 다음 가능 상태                                        | 권한             |
+| -------------------- | ---------------- | ----------------------------------------------------- | ---------------- |
+| `requested`          | 요청 (초기 상태) | `approved`, `rejected`                                | Moderator, Admin |
+| `approved`           | 승인             | `confirmedByShipper`, `shipmentCompleted`, `rejected` | Admin            |
+| `rejected`           | 반려             | -                                                     | 최종 상태        |
+| `confirmedByShipper` | 출고자 확인      | `shipmentCompleted`, `rejectedByShipper`              | Admin            |
+| `shipmentCompleted`  | 출고 완료        | `demoCompleted`                                       | Admin            |
+| `rejectedByShipper`  | 출고자 반려      | -                                                     | 최종 상태        |
+| `demoCompleted`      | 시연 종료        | -                                                     | 최종 상태        |
 
 ### 2.3 상태 변경 규칙
 
@@ -185,7 +185,7 @@ export const useUpdateDemoStatus = () => {
         });
 
         // 시연 출고 완료 시 재고 연동
-        if (variables.data.status === DemoStatus.demoShipmentCompleted) {
+        if (variables.data.status === DemoStatus.shipmentCompleted) {
           await queryClient.invalidateQueries({ queryKey: ["inventory"] });
           await queryClient.invalidateQueries({ queryKey: ["shipments"] });
           await queryClient.invalidateQueries({ queryKey: ["warehouseItems"] });
@@ -223,11 +223,11 @@ if (variables.data.status === DemoStatus.demoShipmentCompleted) {
 
 ### 5.2 재고 연동 규칙
 
-| 시연 상태                  | 재고 영향      | 처리 방식 |
-| -------------------------- | -------------- | --------- |
-| `demoShipmentCompleted`    | 재고 차감      | 자동 처리 |
-| `demoCompletedAndReturned` | 재고 복구      | 자동 처리 |
-| 기타 상태                  | 재고 영향 없음 | -         |
+| 시연 상태           | 재고 영향      | 처리 방식 |
+| ------------------- | -------------- | --------- |
+| `shipmentCompleted` | 재고 차감      | 자동 처리 |
+| `demoCompleted`     | 재고 복구      | 자동 처리 |
+| 기타 상태           | 재고 영향 없음 | -         |
 
 ## 6. 캐싱 전략
 
@@ -359,7 +359,7 @@ const DemoManagement = () => {
       {canManageShipment && (
         <button
           onClick={() =>
-            handleUpdateStatus(demoId, DemoStatus.demoShipmentCompleted)
+            handleUpdateStatus(demoId, DemoStatus.shipmentCompleted)
           }
         >
           시연 출고 완료
@@ -505,12 +505,13 @@ const validateForm = (): boolean => {
 ```typescript
 // src/types/demo/demo.ts
 export enum DemoStatus {
-  requested = "requested", // 요청 (초기 상태)
-  approved = "approved", // 승인 (1차승인권자)
-  rejected = "rejected", // 반려 (1차승인권자)
-  confirmedByShipper = "confirmedByShipper", // 출고팀 확인
-  demoShipmentCompleted = "shipmentCompleted", // 시연 출고 완료
-  demoCompletedAndReturned = "rejectedByShipper", // 시연 복귀 완료
+  requested = "requested", // 요청
+  approved = "approved", // 승인
+  rejected = "rejected", // 반려
+  confirmedByShipper = "confirmedByShipper", // 출고자 확인
+  shipmentCompleted = "shipmentCompleted", // 출고 완료
+  rejectedByShipper = "rejectedByShipper", // 출고자 반려
+  demoCompleted = "demoCompleted", //X 시연 종료
 }
 ```
 

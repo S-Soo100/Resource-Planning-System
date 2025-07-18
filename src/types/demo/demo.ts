@@ -2,14 +2,13 @@ import { CreateOrderItemRequest } from "../(order)/order";
 import { Item } from "../(item)/item";
 
 export enum DemoStatus {
-  //! 주문 데모 상태
-  //! enum의 key와 서버에 주고받는 string의 뜻이 다르다.
-  requested = "requested", // 요청 (초기 상태)
-  approved = "approved", // 승인 (1차승인권자)
-  rejected = "rejected", // 반려 (1차승인권자)
-  confirmedByShipper = "confirmedByShipper", // 시연팀 확인 완료
-  demoShipmentCompleted = "shipmentCompleted", // 시연 출고 완료
-  demoCompletedAndReturned = "rejectedByShipper", // 시연 복귀 완료
+  requested = "requested", // 요청
+  approved = "approved", // 승인
+  rejected = "rejected", // 반려
+  confirmedByShipper = "confirmedByShipper", // 출고자 확인
+  shipmentCompleted = "shipmentCompleted", // 출고 완료
+  rejectedByShipper = "rejectedByShipper", // 출고자 반려
+  demoCompleted = "demoCompleted", //X 시연 종료
 }
 
 export interface Demo {

@@ -67,6 +67,99 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.5.5 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.5.5
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-07-18
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                DemoStatus enum 업데이트, 시연 상태 관리 시스템 개선, 출고자
+                반려 상태 추가
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 변경됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("변경됨")}
+                  <h3 className="font-medium text-gray-900">변경됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    DemoStatus enum 업데이트: demoShipmentCompleted →
+                    shipmentCompleted, demoCompletedAndReturned → demoCompleted
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    새로운 상태 추가: rejectedByShipper (출고자 반려)
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    시연 상태 흐름 개선으로 더 세밀한 상태 관리 가능
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    새로운 상태에 맞는 UI/UX 개선 (아이콘, 색상, 텍스트)
+                  </li>
+                </ul>
+              </div>
+
+              {/* 수정됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("수정됨")}
+                  <h3 className="font-medium text-gray-900">수정됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    시연 상태 변경 로직을 새로운 DemoStatus enum에 맞게 업데이트
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    상태 표시 텍스트를 각 상태별 명확한 한글 표시로 개선
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    권한 기반 상태 변경 로직에 새로운 상태 적용
+                  </li>
+                </ul>
+              </div>
+
+              {/* 문서화 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("문서화")}
+                  <h3 className="font-medium text-gray-900">문서화</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    시연 시스템 비즈니스 로직 문서에 새로운 상태 흐름 및 설명
+                    반영
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    DemoStatus enum 문서화: 각 상태별 의미와 권한 설명 추가
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* v1.5.4 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,13 +168,10 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.5.4
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />
-                  2024-12-19
+                  2025-07-18
                 </div>
               </div>
               <p className="mt-2 text-gray-600">

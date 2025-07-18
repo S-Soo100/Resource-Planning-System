@@ -4,6 +4,7 @@ import {
   DemoArrayResponse,
   DemoDetailResponse,
   CreateDemoRequest,
+  PatchDemoRequest,
 } from "@/types/demo/demo";
 import { AxiosError } from "axios";
 
@@ -58,17 +59,14 @@ export const getDemoDetailById = async (
 };
 
 export const updateDemoById = async (
-  teamId: number,
-  update: DemoDetailResponse
-): Promise<ApiResponse<DemoDetailResponse>> => {
+  id: number,
+  data: PatchDemoRequest
+): Promise<ApiResponse> => {
   try {
-    const response = await api.put<ApiResponse<DemoDetailResponse>>(
-      `/demo/team/${teamId}`,
-      update
-    );
+    const response = await api.put<ApiResponse>(`/demo/${id}`, data);
     return response.data;
   } catch {
-    return { success: false, message: "주문 데모 목록 조회에 실패했습니다." };
+    return { success: false, message: "시연 기록 수정에 실패했습니다." };
   }
 };
 

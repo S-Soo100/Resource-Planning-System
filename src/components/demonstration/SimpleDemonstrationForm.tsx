@@ -1,39 +1,33 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { DatePicker } from "@/components/ui/date-picker";
+import { DeliveryMethodSelector } from "@/components/ui/delivery-method-selector";
 import { Send, Calendar, User, Paperclip, X } from "lucide-react";
 import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { toast } from "react-hot-toast";
-import { Demo } from "@/types/demo/demo";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import AddressSection from "@/components/common/AddressSection";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Address } from "react-daum-postcode";
-import { Item } from "@/types/(item)/item";
-import { IUser } from "@/types/(auth)/user";
-
-// Demo 인터페이스를 기반으로 한 폼 데이터
-interface DemonstrationFormData
-  extends Omit<Demo, "demoItems" | "user" | "files" | "demoPaymentDate"> {
-  demoItems?: Item[];
-  user?: IUser | null;
-  files?: File[];
-  // 주소 관련 필드 (기존 호환성을 위해 유지)
-  address: string;
-  detailAddress: string;
-  // 폼에서 사용할 문자열 타입의 결제 예정일
-  demoPaymentDate: string;
-}
+import { useCreateDemo } from "@/hooks/(useDemo)/useDemoMutations";
+import { CreateDemoRequest, DemonstrationFormData } from "@/types/demo/demo";
 
 const SimpleDemonstrationForm: React.FC = () => {
+  const router = useRouter();
   const { user } = useCurrentUser();
   const { warehouses } = useWarehouseItems();
   const [selectedItems, setSelectedItems] = useState<SelectedDemoItem[]>([]);
   const [isHandlerSelf, setIsHandlerSelf] = useState(false);
+
+  // 시연 생성 훅 사용
+  const createDemoMutation = useCreateDemo();
   const [formData, setFormData] = useState<DemonstrationFormData>({
     requester: user?.name || "",
     handler: "",
@@ -55,10 +49,6 @@ const SimpleDemonstrationForm: React.FC = () => {
     demoEndDeliveryMethod: "",
     userId: user?.id || 0,
     warehouseId: 0,
-    demoItems: [],
-    user: user || null,
-    files: [],
-    // 주소 관련 필드
     address: "",
     detailAddress: "",
   });
@@ -98,7 +88,6 @@ const SimpleDemonstrationForm: React.FC = () => {
         ...prev,
         requester: user.name,
         userId: user.id,
-        user: user,
       }));
     }
   }, [user]);
@@ -209,6 +198,21 @@ const SimpleDemonstrationForm: React.FC = () => {
       }
     }
 
+    // 날짜/시간 유효성 검사
+    if (formData.demoStartDate && formData.demoEndDate) {
+      const startDate = new Date(
+        `${formData.demoStartDate}T${formData.demoStartTime || "00:00"}`
+      );
+      const endDate = new Date(
+        `${formData.demoEndDate}T${formData.demoEndTime || "00:00"}`
+      );
+
+      if (endDate <= startDate) {
+        toast.error("회수 일정은 상차 일정보다 이후여야 합니다.");
+        return false;
+      }
+    }
+
     if (selectedItems.length === 0) {
       toast.error("시연 아이템을 선택해주세요.");
       return false;
@@ -231,50 +235,49 @@ const SimpleDemonstrationForm: React.FC = () => {
         ? `${formData.address} ${formData.detailAddress}`
         : formData.address;
 
-      const submitData: Demo = {
-        ...formData,
+      const submitData: CreateDemoRequest = {
+        requester: formData.requester,
+        handler: formData.handler,
+        demoManager: formData.demoManager,
+        demoManagerPhone: formData.demoManagerPhone,
+        memo: formData.memo,
+        demoTitle: formData.demoTitle,
+        demoNationType: formData.demoNationType,
         demoAddress: fullAddress,
-        userId: user?.id || 0,
-        warehouseId: formData.warehouseId || 0,
-        user: user!,
+        demoPaymentType: formData.demoPaymentType,
+        demoPrice: formData.demoPrice,
         demoPaymentDate: formData.demoPaymentDate
           ? new Date(formData.demoPaymentDate)
           : undefined,
-        demoItems: selectedItems.map((item, index) => ({
-          id: index + 1, // 임시 ID
-          itemName: item.itemName,
-          itemQuantity: item.quantity,
-          itemCode: `DEMO-${index + 1}`, // 임시 코드
-          teamItem: {
-            id: index + 1,
-            itemName: item.itemName,
-            itemCode: `DEMO-${index + 1}`,
-            teamId: 0,
-            memo: "",
-            category: {
-              id: 1,
-              name: "데모 아이템",
-              priority: 1,
-              teamId: 0,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          warehouseId: formData.warehouseId || 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })) as Item[],
-        files: fileUpload.files,
+        demoStartDate: formData.demoStartDate,
+        demoStartTime: formData.demoStartTime,
+        demoStartDeliveryMethod: formData.demoStartDeliveryMethod,
+        demoEndDate: formData.demoEndDate,
+        demoEndTime: formData.demoEndTime,
+        demoEndDeliveryMethod: formData.demoEndDeliveryMethod,
+        userId: user?.id || 0,
+        warehouseId: formData.warehouseId || 0,
+        demoItems: selectedItems.map((item) => ({
+          itemId: item.itemId,
+          quantity: item.quantity,
+          memo: item.memo,
+        })),
       };
 
+      console.log("selectedItems:", selectedItems);
       console.log("시연 신청 데이터:", submitData);
+      console.log("전송되는 데이터 JSON:", JSON.stringify(submitData, null, 2));
 
-      // 임시로 2초 대기
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // 실제 API 호출
+      const response = await createDemoMutation.mutateAsync(submitData);
 
-      toast.success("시연 신청이 완료되었습니다!");
+      if (response.success) {
+        toast.success("시연 신청이 완료되었습니다!");
+        // 시연 기록 페이지로 이동
+        router.push("/demonstration-record");
+      } else {
+        toast.error(response.message || "시연 신청에 실패했습니다.");
+      }
 
       // 폼 초기화
       setFormData({
@@ -298,14 +301,12 @@ const SimpleDemonstrationForm: React.FC = () => {
         demoEndDeliveryMethod: "",
         userId: user?.id || 0,
         warehouseId: 0,
-        demoItems: [],
-        user: user || null,
-        files: [],
         address: "",
         detailAddress: "",
       });
       setSelectedItems([]);
       fileUpload.resetFiles();
+      setDemoPriceDisplay("");
     } catch (error) {
       console.error("시연 신청 오류:", error);
       toast.error("시연 신청 중 오류가 발생했습니다.");
@@ -490,51 +491,59 @@ const SimpleDemonstrationForm: React.FC = () => {
             </div>
 
             {formData.demoPaymentType === "유료" && (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">
-                    화폐 단위
-                  </label>
-                  <select
-                    name="demoCurrencyUnit"
-                    value={formData.demoCurrencyUnit}
-                    onChange={handleInputChange}
-                    className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="KRW">KRW (원)</option>
-                    <option value="USD">USD (달러)</option>
-                    <option value="EUR">EUR (유로)</option>
-                    <option value="JPY">JPY (엔)</option>
-                    <option value="CNY">CNY (위안)</option>
-                  </select>
-                </div>
+              <div className="space-y-4">
+                <h4 className="pb-2 text-sm font-medium text-gray-700 border-b border-gray-200">
+                  결제 정보
+                </h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                      화폐 단위
+                    </label>
+                    <select
+                      name="demoCurrencyUnit"
+                      value={formData.demoCurrencyUnit}
+                      onChange={handleInputChange}
+                      className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="KRW">KRW (원)</option>
+                      <option value="USD">USD (달러)</option>
+                      <option value="EUR">EUR (유로)</option>
+                      <option value="JPY">JPY (엔)</option>
+                      <option value="CNY">CNY (위안)</option>
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">
-                    시연 비용{" "}
-                    <span className="text-xs text-red-500">* VAT 포함</span>
-                  </label>
-                  <Input
-                    type="text"
-                    name="demoPrice"
-                    value={demoPriceDisplay}
-                    onChange={handleInputChange}
-                    placeholder="시연 비용을 입력하세요 (예: 1,000,000)"
-                    min="0"
-                  />
-                </div>
+                  <div>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                      시연 비용{" "}
+                      <span className="text-xs text-red-500">* VAT 포함</span>
+                    </label>
+                    <Input
+                      type="text"
+                      name="demoPrice"
+                      value={demoPriceDisplay}
+                      onChange={handleInputChange}
+                      placeholder="시연 비용을 입력하세요 (예: 1,000,000)"
+                      min="0"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">
-                    결제 예정일
-                  </label>
-                  <Input
-                    type="date"
-                    name="demoPaymentDate"
-                    value={formData.demoPaymentDate || ""}
-                    onChange={handleInputChange}
-                    placeholder="결제 예정일을 선택하세요"
-                  />
+                  <div>
+                    <DatePicker
+                      label="결제 예정일"
+                      date={formData.demoPaymentDate}
+                      onDateChange={(date) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          demoPaymentDate: date,
+                        }))
+                      }
+                      placeholder="결제 예정일을 선택하세요"
+                      helperText="시연 비용 결제 예정일입니다"
+                      minDate={new Date().toISOString().split("T")[0]}
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -590,50 +599,38 @@ const SimpleDemonstrationForm: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-700">
               시연품 상차 일정
             </h3>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-6">
               <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  상차 일자 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="date"
-                  name="demoStartDate"
-                  value={formData.demoStartDate}
-                  onChange={handleInputChange}
-                  required
+                <DateTimePicker
+                  label="상차 일정"
+                  date={formData.demoStartDate}
+                  time={formData.demoStartTime}
+                  onDateChange={(date) =>
+                    setFormData((prev) => ({ ...prev, demoStartDate: date }))
+                  }
+                  onTimeChange={(time) =>
+                    setFormData((prev) => ({ ...prev, demoStartTime: time }))
+                  }
+                  placeholder="상차 일자와 시간을 선택하세요"
+                  helperText="시연품을 창고에서 출고하는 일정입니다"
+                  minDate={new Date().toISOString().split("T")[0]}
                 />
               </div>
 
               <div>
-                <label className="mb-1 text-sm font-medium text-gray-700">
-                  상차 시간 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="time"
-                  name="demoStartTime"
-                  value={formData.demoStartTime}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  배송 방법
-                </label>
-                <select
-                  name="demoStartDeliveryMethod"
+                <DeliveryMethodSelector
+                  label="배송 방법"
                   value={formData.demoStartDeliveryMethod}
-                  onChange={handleInputChange}
-                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">선택해주세요</option>
-                  <option value="직접배송">직접배송</option>
-                  <option value="택배">택배</option>
-                  <option value="용차">용차</option>
-                  <option value="항공">항공</option>
-                  <option value="해운">해운</option>
-                </select>
+                  onChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      demoStartDeliveryMethod: value,
+                    }))
+                  }
+                  type="delivery"
+                  placeholder="상차 시 배송 방법을 선택하세요"
+                  helperText="시연품을 시연 장소로 운송하는 방법입니다"
+                />
               </div>
             </div>
           </div>
@@ -661,55 +658,46 @@ const SimpleDemonstrationForm: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-700">
               시연품 창고 하차 일정
             </h3>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-6">
               <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  시연품 회수일 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="date"
-                  name="demoEndDate"
-                  value={formData.demoEndDate}
-                  onChange={handleInputChange}
-                  required
+                <DateTimePicker
+                  label="회수 일정"
+                  date={formData.demoEndDate}
+                  time={formData.demoEndTime}
+                  onDateChange={(date) =>
+                    setFormData((prev) => ({ ...prev, demoEndDate: date }))
+                  }
+                  onTimeChange={(time) =>
+                    setFormData((prev) => ({ ...prev, demoEndTime: time }))
+                  }
+                  placeholder="회수 일자와 시간을 선택하세요"
+                  helperText="시연품을 창고로 반입하는 일정입니다"
+                  minDate={
+                    formData.demoStartDate ||
+                    new Date().toISOString().split("T")[0]
+                  }
                 />
               </div>
 
               <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  회수 시간 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="time"
-                  name="demoEndTime"
-                  value={formData.demoEndTime}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  회수 방법
-                </label>
-                <select
-                  name="demoEndDeliveryMethod"
+                <DeliveryMethodSelector
+                  label="회수 방법"
                   value={formData.demoEndDeliveryMethod}
-                  onChange={handleInputChange}
-                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">선택해주세요</option>
-                  <option value="직접회수">직접회수</option>
-                  <option value="택배">택배</option>
-                  <option value="용차">용차</option>
-                  <option value="항공">항공</option>
-                  <option value="해운">해운</option>
-                </select>
+                  onChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      demoEndDeliveryMethod: value,
+                    }))
+                  }
+                  type="pickup"
+                  placeholder="회수 시 운송 방법을 선택하세요"
+                  helperText="시연품을 창고로 반입하는 방법입니다"
+                />
               </div>
             </div>
           </div>
 
-          {/* 시연 장소 */}
+          {/* 파일 첨부 */}
           <div className="mt-6">
             <label className="block mb-2 text-sm font-medium text-gray-700">
               첨부파일(견적서 등)

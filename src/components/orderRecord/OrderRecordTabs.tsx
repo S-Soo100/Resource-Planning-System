@@ -138,7 +138,9 @@ const OrderRecordTabs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+
   const recordsPerPage = 10;
+
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(false);
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);

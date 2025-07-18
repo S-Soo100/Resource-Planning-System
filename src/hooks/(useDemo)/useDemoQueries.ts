@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getDemoByTeamId, getDemoById } from "../../api/demo-api";
+import { getDemoByTeamId, getDemoDetailById } from "../../api/demo-api";
 
 // 30분 캐싱 설정 (밀리초 단위)
 const CACHE_TIME = 30 * 60 * 1000;
@@ -22,7 +22,7 @@ export const useDemosByTeam = (teamId: number) => {
 export const useSingleDemo = (demoId: number) => {
   return useQuery({
     queryKey: ["demo", demoId],
-    queryFn: () => getDemoById(demoId),
+    queryFn: () => getDemoDetailById(demoId),
     enabled: !!demoId,
     staleTime: CACHE_TIME, // 30분 동안 데이터를 신선한 상태로 유지
     gcTime: CACHE_TIME, // 30분 동안 캐시 유지

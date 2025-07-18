@@ -1,6 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createDemo, updateDemoStatusById } from "../../api/demo-api";
-import { DemoStatus, CreateDemoRequest } from "../../types/demo/demo";
+import {
+  createDemo,
+  updateDemoStatusById,
+  updateDemoById,
+} from "../../api/demo-api";
+import {
+  DemoStatus,
+  CreateDemoRequest,
+  PatchDemoRequest,
+} from "../../types/demo/demo";
 import { ApiResponse } from "../../types/common";
 
 // 데모 상태 변경 DTO 타입
@@ -44,6 +52,25 @@ export const useUpdateDemoStatus = () => {
           // 3. 창고 아이템 정보 최신화
           await queryClient.invalidateQueries({ queryKey: ["warehouseItems"] });
         }
+      }
+    },
+  });
+};
+
+// 시연 기록 수정
+export const useUpdateDemo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: PatchDemoRequest }) =>
+      updateDemoById(id, data),
+    onSuccess: async (response, variables) => {
+      if (response.success) {
+        // 데모 정보 캐시 무효화
+        await queryClient.invalidateQueries({ queryKey: ["demos"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["demo", variables.id],
+        });
       }
     },
   });

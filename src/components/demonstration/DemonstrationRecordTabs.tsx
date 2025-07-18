@@ -1,28 +1,29 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useDemo } from "@/hooks/useDemo";
-import { DemoResponse, DemoStatus } from "@/types/demo/demo";
-import { authStore } from "@/store/authStore";
-import React from "react";
-import {
-  Search,
-  Filter,
-  RefreshCw,
-  Calendar,
-  Package,
-  Truck,
-  Trash2,
-  FileText,
-  Settings,
-  CheckCircle,
-  XCircle,
-  Clock,
-} from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import {
+  FileText,
+  Package,
+  Trash2,
+  Truck,
+  XCircle,
+  Calendar,
+  Settings,
+  CheckCircle,
+  Clock,
+  RefreshCw,
+  Edit,
+  Search,
+  Filter,
+} from "lucide-react";
+import { DemoResponse, DemoStatus } from "@/types/demo/demo";
+import { useDemo } from "@/hooks/useDemo";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { authStore } from "@/store/authStore";
+import DemoEditModal from "./DemoEditModal";
 
 type TabType = "all" | "user" | "supplier";
 
@@ -80,6 +81,8 @@ const DemonstrationRecordTabs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedDemo, setSelectedDemo] = useState<DemoResponse | null>(null);
 
   const recordsPerPage = 10;
 
@@ -450,6 +453,23 @@ const DemonstrationRecordTabs = () => {
     );
   };
 
+  // 수정 모달 열기
+  const handleEditClick = (record: DemoResponse) => {
+    setSelectedDemo(record);
+    setIsEditModalOpen(true);
+  };
+
+  // 수정 모달 닫기
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setSelectedDemo(null);
+  };
+
+  // 수정 성공 후 처리
+  const handleEditSuccess = () => {
+    handleRefresh();
+  };
+
   return (
     <div className="relative px-4 py-6 mx-auto max-w-3xl">
       {/* 로딩 오버레이 */}
@@ -737,12 +757,44 @@ const DemonstrationRecordTabs = () => {
 
                   {/* 상태 변경 섹션 */}
                   {renderStatusChangeButtons(record)}
+
+                  {/* 수정 버튼 - 시연 종료 상태가 아닐 때만 표시 */}
+                  {record.demoStatus !== "demoCompleted" && (
+                    <div className="p-4 mt-4 bg-green-50 rounded-xl border border-green-200">
+                      <div className="flex gap-2 items-center mb-3">
+                        <Edit className="w-4 h-4 text-green-600" />
+                        <span className="font-semibold text-green-900">
+                          기록 수정
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditClick(record);
+                          }}
+                          className="flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+                        >
+                          <Edit className="mr-1 w-3 h-3" />
+                          수정하기
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           ))
         )}
       </div>
+
+      {/* 수정 모달 */}
+      <DemoEditModal
+        isOpen={isEditModalOpen}
+        onClose={handleEditModalClose}
+        demo={selectedDemo}
+        onSuccess={handleEditSuccess}
+      />
 
       {/* 페이지네이션 */}
       {totalPages > 1 && (

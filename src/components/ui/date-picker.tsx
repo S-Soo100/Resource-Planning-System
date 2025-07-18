@@ -153,22 +153,26 @@ const DatePicker: React.FC<DatePickerProps> = ({
       )}
 
       <div className="relative">
-        <button
-          type="button"
-          onClick={() => !disabled && setIsOpen(!isOpen)}
-          disabled={disabled}
-          className={cn(
-            "flex items-center justify-between w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed",
-            error && "border-red-500 focus:ring-red-500 focus:border-red-500",
-            isOpen && "ring-2 ring-blue-500 border-blue-500"
-          )}
-        >
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            <span className={displayValue ? "text-gray-900" : "text-gray-500"}>
-              {displayValue || placeholder}
-            </span>
-          </div>
+        <div className="flex items-center">
+          <button
+            type="button"
+            onClick={() => !disabled && setIsOpen(!isOpen)}
+            disabled={disabled}
+            className={cn(
+              "flex items-center justify-between flex-1 px-3 py-2 text-left bg-white border border-gray-300 rounded-l-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed",
+              error && "border-red-500 focus:ring-red-500 focus:border-red-500",
+              isOpen && "ring-2 ring-blue-500 border-blue-500"
+            )}
+          >
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-4 h-4 text-gray-400" />
+              <span
+                className={displayValue ? "text-gray-900" : "text-gray-500"}
+              >
+                {displayValue || placeholder}
+              </span>
+            </div>
+          </button>
           {displayValue && (
             <button
               type="button"
@@ -177,12 +181,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
                 setSelectedDate(null);
                 onDateChange?.("");
               }}
-              className="p-1 text-gray-400 hover:text-gray-600"
+              className="px-3 py-2 text-gray-400 hover:text-gray-600 bg-white border border-l-0 border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <X className="w-4 h-4" />
             </button>
           )}
-        </button>
+        </div>
 
         {isOpen && (
           <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">

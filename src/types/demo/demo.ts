@@ -245,3 +245,29 @@ export interface DemonstrationFormData {
   address: string; // 기본 주소 (주소 검색 API 결과)
   detailAddress: string; // 상세 주소 (사용자 입력)
 }
+
+// 시연 수정 요청 데이터 타입 (백엔드 API 스펙에 맞춤)
+export interface PatchDemoRequest {
+  handler?: string;
+  demoManager?: string;
+  demoManagerPhone?: string;
+  memo?: string;
+  demoTitle?: string;
+  demoNationType?: string;
+  demoPaymentType?: string;
+  demoPrice?: number;
+  demoPaymentDate?: string; // Date가 아닌 string으로 받음
+  demoAddress?: string;
+  demoStartDate?: string;
+  demoStartTime?: string;
+  demoEndDate?: string;
+  demoEndTime?: string;
+  demoStartDeliveryMethod?: string;
+  demoEndDeliveryMethod?: string;
+  warehouseId?: number;
+  demoItems?: Array<{
+    itemId: number;
+    quantity: number;
+    memo: string;
+  }>;
+}

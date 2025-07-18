@@ -5,7 +5,7 @@ import {
   DemoDetailResponse,
   CreateDemoRequest,
 } from "@/types/demo/demo";
-// import { AxiosError } from "axios";
+import { AxiosError } from "axios";
 
 export const createDemo = async (
   demoData: CreateDemoRequest
@@ -156,3 +156,48 @@ export const deleteDemoCommentByCommentId = async (
 //     return { success: false, message: "댓글 생성에 실패했습니다." };
 //   }
 // };
+
+// 시연 파일 업로드 API
+export const uploadMultipleDemoFileById = async (
+  id: number,
+  files: File[],
+  expirationTimeMinutes: number = 30
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<ApiResponse<any[]>> => {
+  try {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+    formData.append("expirationTimeMinutes", expirationTimeMinutes.toString());
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await api.post<ApiResponse<any[]>>(
+      `/demo/${id}/upload-multiple-with-signed-url`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return response.data as ApiResponse<any[]>;
+  } catch (error) {
+    console.error("시연 파일 업로드 실패:", error);
+    if (error instanceof AxiosError && error.response) {
+      return {
+        success: false,
+        error:
+          error.response.data.message || "시연 파일 업로드에 실패했습니다.",
+        data: undefined,
+      };
+    }
+    return {
+      success: false,
+      error: "시연 파일 업로드에 실패했습니다.",
+      data: undefined,
+    };
+  }
+};

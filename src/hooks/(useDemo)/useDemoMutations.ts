@@ -36,7 +36,7 @@ export const useUpdateDemoStatus = () => {
         });
 
         // 시연 출고 완료 상태로 변경된 경우 추가 데이터 refetch
-        if (variables.data.status === DemoStatus.demoShipmentCompleted) {
+        if (variables.data.status === DemoStatus.shipmentCompleted) {
           // 1. 재고 정보 최신화
           await queryClient.invalidateQueries({ queryKey: ["inventory"] });
           // 2. 입/출고 정보 최신화

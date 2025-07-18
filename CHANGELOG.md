@@ -5,7 +5,32 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
-## v1.5.4 (2024-12-19)
+## v1.5.5 (2025-07-18)
+
+### 변경됨 (Changed)
+
+- **DemoStatus enum 업데이트**: 시연 상태 관리 시스템 개선
+  - `demoShipmentCompleted` → `shipmentCompleted` (출고 완료)
+  - `demoCompletedAndReturned` → `demoCompleted` (시연 종료)
+  - `demoShipmentRejected` → `rejectedByShipper` (출고자 반려) 추가
+  - 상태별 명확한 의미 구분으로 비즈니스 로직 개선
+- **시연 상태 흐름 개선**: 출고자 반려 상태 추가로 더 세밀한 상태 관리
+- **UI/UX 개선**: 새로운 상태에 맞는 아이콘 및 색상 적용
+  - 출고자 반려: 주황색 테마 및 XCircle 아이콘
+  - 시연 종료: 회색 테마 및 Calendar 아이콘
+
+### 수정됨 (Fixed)
+
+- **시연 상태 변경 로직**: 새로운 DemoStatus enum에 맞게 상태 변경 로직 업데이트
+- **상태 표시 텍스트**: 각 상태별 명확한 한글 표시로 사용자 이해도 향상
+- **권한 기반 상태 변경**: 새로운 상태에 대한 권한 제어 로직 적용
+
+### 문서화 (Documentation)
+
+- **시연 시스템 비즈니스 로직 문서 업데이트**: 새로운 상태 흐름 및 설명 반영
+- **DemoStatus enum 문서화**: 각 상태별 의미와 권한 설명 추가
+
+## v1.5.4 (2025-07-18)
 
 ### 추가됨 (Added)
 

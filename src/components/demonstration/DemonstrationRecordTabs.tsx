@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useDemo } from "@/hooks/useDemo";
-import { DemoResponse } from "@/types/demo/demo";
+import { DemoResponse, DemoStatus } from "@/types/demo/demo";
 import { authStore } from "@/store/authStore";
 import React from "react";
 import {
@@ -14,10 +14,15 @@ import {
   Truck,
   Trash2,
   FileText,
+  Settings,
+  CheckCircle,
+  XCircle,
+  Clock,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 type TabType = "all" | "user" | "supplier";
 
@@ -80,10 +85,15 @@ const DemonstrationRecordTabs = () => {
 
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastExpandedId, setLastExpandedId] = useState<number | null>(null);
 
-  const { useDemosByTeam } = useDemo();
+  const { useDemosByTeam, useUpdateDemoStatus } = useDemo();
   const { team: currentTeam } = useCurrentTeam();
+  const { user: currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
+
+  // 상태 변경 훅
+  const updateDemoStatusMutation = useUpdateDemoStatus();
 
   // 현재 로그인한 사용자 ID 가져오기
   useEffect(() => {
@@ -101,6 +111,14 @@ const DemonstrationRecordTabs = () => {
   const { data: demosResponse, isLoading: isLoadingDemos } = useDemosByTeam(
     currentTeam?.id || 0
   );
+
+  // 상태 변경 후에도 확장 상태 유지
+  useEffect(() => {
+    if (lastExpandedId && !expandedRowId) {
+      // 데이터가 새로고침된 후에도 마지막 확장된 행을 다시 확장
+      setExpandedRowId(lastExpandedId);
+    }
+  }, [demosResponse, lastExpandedId, expandedRowId]);
 
   // API 응답 데이터를 DemoResponse 형식으로 변환 (useMemo로 최적화)
   const allDemoRecords = useMemo((): DemoResponse[] => {
@@ -221,13 +239,13 @@ const DemonstrationRecordTabs = () => {
       case "rejected":
         return "반려";
       case "confirmedByShipper":
-        return "출고팀 확인";
-      case "demoShipmentCompleted":
-        return "시연 출고 완료";
-      case "demoShipmentRejected":
-        return "출고팀 반려";
-      case "demoCompletedAndReturned":
-        return "시연 복귀 완료";
+        return "출고자 확인";
+      case "shipmentCompleted":
+        return "출고 완료";
+      case "rejectedByShipper":
+        return "출고자 반려";
+      case "demoCompleted":
+        return "시연 종료";
       default:
         return status;
     }
@@ -235,7 +253,9 @@ const DemonstrationRecordTabs = () => {
 
   // 행 클릭 핸들러
   const handleRowClick = (recordId: number) => {
-    setExpandedRowId(expandedRowId === recordId ? null : recordId);
+    const newExpandedId = expandedRowId === recordId ? null : recordId;
+    setExpandedRowId(newExpandedId);
+    setLastExpandedId(newExpandedId); // 마지막 확장된 ID 저장
   };
 
   // 새로고침 핸들러
@@ -263,11 +283,11 @@ const DemonstrationRecordTabs = () => {
         return "bg-red-100 text-red-800";
       case "confirmedByShipper":
         return "bg-blue-100 text-blue-800";
-      case "demoShipmentCompleted":
+      case "shipmentCompleted":
         return "bg-purple-100 text-purple-800";
-      case "demoShipmentRejected":
-        return "bg-red-100 text-red-800";
-      case "demoCompletedAndReturned":
+      case "rejectedByShipper":
+        return "bg-orange-100 text-orange-800";
+      case "demoCompleted":
         return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -285,33 +305,181 @@ const DemonstrationRecordTabs = () => {
         return <Trash2 className="w-4 h-4" />;
       case "confirmedByShipper":
         return <Truck className="w-4 h-4" />;
-      case "demoShipmentCompleted":
+      case "shipmentCompleted":
         return <Package className="w-4 h-4" />;
-      case "demoShipmentRejected":
-        return <Trash2 className="w-4 h-4" />;
-      case "demoCompletedAndReturned":
+      case "rejectedByShipper":
+        return <XCircle className="w-4 h-4" />;
+      case "demoCompleted":
         return <Calendar className="w-4 h-4" />;
       default:
         return <FileText className="w-4 h-4" />;
     }
   };
 
+  // 권한 확인 함수들
+  const canManageShipment = () => {
+    return currentUser?.accessLevel === "admin";
+  };
+
+  const canApproveDemo = () => {
+    return (
+      currentUser?.accessLevel === "admin" ||
+      currentUser?.accessLevel === "moderator"
+    );
+  };
+
+  // 현재 상태에서 가능한 다음 상태들 반환
+  const getAvailableStatuses = (currentStatus: string): DemoStatus[] => {
+    switch (currentStatus) {
+      case "requested":
+        return canApproveDemo()
+          ? [DemoStatus.approved, DemoStatus.rejected]
+          : [];
+      case "approved":
+        return canManageShipment()
+          ? [
+              DemoStatus.confirmedByShipper,
+              DemoStatus.shipmentCompleted,
+              DemoStatus.rejected,
+            ]
+          : [];
+      case "confirmedByShipper":
+        return canManageShipment()
+          ? [DemoStatus.shipmentCompleted, DemoStatus.rejectedByShipper]
+          : [];
+      case "shipmentCompleted":
+        return canManageShipment() ? [DemoStatus.demoCompleted] : [];
+      default:
+        return [];
+    }
+  };
+
+  // 상태 변경 핸들러
+  const handleStatusChange = async (demoId: number, newStatus: DemoStatus) => {
+    try {
+      // 현재 확장된 행 ID를 저장
+      const currentExpandedId = expandedRowId;
+
+      await updateDemoStatusMutation.mutateAsync({
+        id: demoId,
+        data: { status: newStatus },
+      });
+
+      toast.success("시연 상태가 변경되었습니다.");
+
+      // 상태 변경 완료 후에도 확장 상태 유지
+      // React Query의 캐시 무효화로 인한 리렌더링 후에도 확장 상태 유지
+      setTimeout(() => {
+        if (currentExpandedId === demoId) {
+          setExpandedRowId(demoId);
+        }
+      }, 100);
+    } catch (error) {
+      console.error("상태 변경 실패:", error);
+      toast.error("상태 변경에 실패했습니다.");
+    }
+  };
+
+  // 상태 변경 버튼 렌더링
+  const renderStatusChangeButtons = (record: DemoResponse) => {
+    const availableStatuses = getAvailableStatuses(record.demoStatus);
+
+    if (availableStatuses.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="p-4 mt-4 bg-blue-50 rounded-xl border border-blue-200">
+        <div className="flex gap-2 items-center mb-3">
+          <Settings className="w-4 h-4 text-blue-600" />
+          <span className="font-semibold text-blue-900">상태 변경</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {availableStatuses.map((status) => (
+            <button
+              key={status}
+              onClick={() => handleStatusChange(record.id, status)}
+              disabled={updateDemoStatusMutation.isPending}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                status === DemoStatus.approved
+                  ? "bg-green-100 text-green-700 hover:bg-green-200"
+                  : status === DemoStatus.rejected
+                  ? "bg-red-100 text-red-700 hover:bg-red-200"
+                  : status === DemoStatus.confirmedByShipper
+                  ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                  : status === DemoStatus.shipmentCompleted
+                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  : status === DemoStatus.rejectedByShipper
+                  ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                  : status === DemoStatus.demoCompleted
+                  ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              {updateDemoStatusMutation.isPending ? (
+                <div className="mr-1 w-3 h-3 rounded-full border-2 border-current animate-spin border-t-transparent"></div>
+              ) : (
+                <>
+                  {status === DemoStatus.approved && (
+                    <CheckCircle className="mr-1 w-3 h-3" />
+                  )}
+                  {status === DemoStatus.rejected && (
+                    <XCircle className="mr-1 w-3 h-3" />
+                  )}
+                  {status === DemoStatus.confirmedByShipper && (
+                    <Clock className="mr-1 w-3 h-3" />
+                  )}
+                  {status === DemoStatus.shipmentCompleted && (
+                    <Truck className="mr-1 w-3 h-3" />
+                  )}
+                  {status === DemoStatus.rejectedByShipper && (
+                    <XCircle className="mr-1 w-3 h-3" />
+                  )}
+                  {status === DemoStatus.demoCompleted && (
+                    <CheckCircle className="mr-1 w-3 h-3" />
+                  )}
+                </>
+              )}
+              {updateDemoStatusMutation.isPending
+                ? "변경 중..."
+                : getStatusText(status)}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
+    <div className="relative px-4 py-6 mx-auto max-w-3xl">
+      {/* 로딩 오버레이 */}
+      {updateDemoStatusMutation.isPending && (
+        <div className="flex absolute inset-0 z-10 justify-center items-center rounded-2xl backdrop-blur-sm bg-gray-900/30">
+          <div className="flex flex-col gap-4 items-center p-8 rounded-2xl border border-gray-200 shadow-2xl backdrop-blur-sm bg-white/95">
+            <div className="w-12 h-12 rounded-full border-4 border-blue-600 animate-spin border-t-transparent"></div>
+            <div className="text-base font-semibold text-gray-800">
+              상태 변경 중...
+            </div>
+            <div className="text-sm text-center text-gray-600">
+              잠시만 기다려주세요
+            </div>
+          </div>
+        </div>
+      )}
       {/* 헤더 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+      <div className="flex flex-col gap-4 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             시연 기록
           </h1>
-          <p className="text-gray-500 mt-1 text-base">
+          <p className="mt-1 text-base text-gray-500">
             시연 요청 및 진행 상황을 확인할 수 있습니다.
           </p>
         </div>
         <button
           onClick={handleRefresh}
           disabled={isLoading()}
-          className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-xl text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center px-4 py-2 space-x-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl shadow-sm hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <RefreshCw
             className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -321,7 +489,7 @@ const DemonstrationRecordTabs = () => {
       </div>
 
       {/* 탭 */}
-      <div className="flex space-x-2 mb-4">
+      <div className="flex mb-4 space-x-2">
         <button
           onClick={() => handleTabChange("all")}
           className={`px-5 py-2 rounded-xl font-semibold text-base transition-colors shadow-sm ${
@@ -345,15 +513,15 @@ const DemonstrationRecordTabs = () => {
       </div>
 
       {/* 검색 및 필터 */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      <div className="flex flex-col gap-3 mb-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 w-5 h-5 text-gray-400 transform -translate-y-1/2" />
           <input
             type="text"
             placeholder="시연 제목, 요청자, 담당자, 주소로 검색..."
             value={searchTerm}
             onChange={handleSearch}
-            className="w-full pl-11 pr-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent text-base"
+            className="py-2 pr-4 pl-11 w-full text-base bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
           />
         </div>
         <div className="flex items-center space-x-2">
@@ -361,7 +529,7 @@ const DemonstrationRecordTabs = () => {
           <select
             value={statusFilter}
             onChange={handleStatusFilterChange}
-            className="px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent text-base"
+            className="px-4 py-2 text-base bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
           >
             <option value="">모든 상태</option>
             <option value="requested">요청</option>
@@ -378,12 +546,12 @@ const DemonstrationRecordTabs = () => {
       {/* 카드형 테이블 */}
       <div className="space-y-4">
         {isLoading() ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+          <div className="flex justify-center items-center py-16">
+            <div className="w-10 h-10 rounded-full border-b-2 border-blue-500 animate-spin"></div>
           </div>
         ) : currentRecords.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
-            <Package className="mx-auto h-12 w-12 text-gray-300" />
+          <div className="py-16 text-center bg-white rounded-2xl shadow-sm">
+            <Package className="mx-auto w-12 h-12 text-gray-300" />
             <h3 className="mt-2 text-lg font-semibold text-gray-900">
               시연 기록이 없습니다
             </h3>
@@ -397,7 +565,7 @@ const DemonstrationRecordTabs = () => {
           currentRecords.map((record: DemoResponse) => (
             <div
               key={record.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white rounded-xl border border-gray-100 shadow-sm transition-shadow cursor-pointer hover:shadow-md"
               onClick={() => handleRowClick(record.id)}
             >
               {/* 상단 요약 */}
@@ -408,11 +576,14 @@ const DemonstrationRecordTabs = () => {
                     {record.demoTitle || "제목 없음"}
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5">
-                    {record.demoPaymentType} • {record.requester}
+                    {record.demoPaymentType}{" "}
+                    {record.demoPrice &&
+                      `(${record.demoPrice.toLocaleString()}원)`}{" "}
+                    • {record.requester}
                   </div>
                 </div>
                 {/* 오른쪽: 날짜 + 상태 */}
-                <div className="flex flex-col items-end gap-1 ml-3">
+                <div className="flex flex-col gap-1 items-end ml-3">
                   <div className="text-xs text-gray-400">
                     {formatDate(record.demoStartDate)} ~{" "}
                     {formatDate(record.demoEndDate)}
@@ -432,9 +603,9 @@ const DemonstrationRecordTabs = () => {
               {/* 상세 정보 */}
               {expandedRowId === record.id && (
                 <div className="px-4 py-4 bg-gray-50 rounded-b-xl">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-b border-gray-200 pb-4 mb-4">
+                  <div className="grid grid-cols-1 gap-6 pb-4 mb-4 border-b border-gray-200 md:grid-cols-2">
                     <div>
-                      <div className="font-semibold text-gray-900 mb-2">
+                      <div className="mb-2 font-semibold text-gray-900">
                         시연 상세 정보
                       </div>
                       <div className="space-y-1 text-sm text-gray-700">
@@ -459,7 +630,7 @@ const DemonstrationRecordTabs = () => {
                       </div>
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900 mb-2">
+                      <div className="mb-2 font-semibold text-gray-900">
                         시연 일정
                       </div>
                       <div className="space-y-1 text-sm text-gray-700">
@@ -480,20 +651,20 @@ const DemonstrationRecordTabs = () => {
                   {/* 품목 테이블 */}
                   {record.demoItems && record.demoItems.length > 0 && (
                     <div className="mb-4">
-                      <div className="font-semibold text-gray-900 mb-2">
+                      <div className="mb-2 font-semibold text-gray-900">
                         시연 품목 ({record.demoItems.length}개)
                       </div>
-                      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+                      <div className="overflow-x-auto bg-white rounded-xl border border-gray-200">
                         <table className="min-w-full text-sm">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-4 py-2 text-left font-medium text-gray-500">
+                              <th className="px-4 py-2 font-medium text-left text-gray-500">
                                 품목명
                               </th>
-                              <th className="px-4 py-2 text-left font-medium text-gray-500">
+                              <th className="px-4 py-2 font-medium text-left text-gray-500">
                                 수량
                               </th>
-                              <th className="px-4 py-2 text-left font-medium text-gray-500">
+                              <th className="px-4 py-2 font-medium text-left text-gray-500">
                                 메모
                               </th>
                             </tr>
@@ -529,10 +700,10 @@ const DemonstrationRecordTabs = () => {
                   {/* 메모 */}
                   {record.memo && (
                     <div className="mb-4">
-                      <div className="font-semibold text-gray-900 mb-2">
+                      <div className="mb-2 font-semibold text-gray-900">
                         메모
                       </div>
-                      <div className="bg-white rounded-xl border border-gray-200 p-3 text-sm text-gray-700">
+                      <div className="p-3 text-sm text-gray-700 bg-white rounded-xl border border-gray-200">
                         {record.memo}
                       </div>
                     </div>
@@ -540,7 +711,7 @@ const DemonstrationRecordTabs = () => {
                   {/* 첨부 파일 */}
                   {record.files && record.files.length > 0 && (
                     <div className="mb-2">
-                      <div className="font-semibold text-gray-900 mb-2">
+                      <div className="mb-2 font-semibold text-gray-900">
                         첨부 파일 ({record.files.length}개)
                       </div>
                       <div className="space-y-2">
@@ -563,6 +734,9 @@ const DemonstrationRecordTabs = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* 상태 변경 섹션 */}
+                  {renderStatusChangeButtons(record)}
                 </div>
               )}
             </div>
@@ -572,7 +746,7 @@ const DemonstrationRecordTabs = () => {
 
       {/* 페이지네이션 */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6">
+        <div className="flex justify-between items-center mt-6">
           <div className="text-sm text-gray-500">
             {startIndex + 1}-{Math.min(endIndex, filteredRecords.length)} /{" "}
             {filteredRecords.length}개
@@ -581,7 +755,7 @@ const DemonstrationRecordTabs = () => {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className="px-4 py-2 text-sm rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               이전
             </button>
@@ -591,7 +765,7 @@ const DemonstrationRecordTabs = () => {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               다음
             </button>

@@ -10,13 +10,13 @@ import {
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { authStore } from "@/store/authStore";
 import { OrderItemWithDetails } from "@/types/(order)/orderRequestFormData";
-import BasicInfoSection from "../sections/BasicInfoSection";
-import AddressSection from "../sections/AddressSection";
-import DateSection from "../sections/DateSection";
-import DemoItemSection from "../sections/DemoItemSection";
-import FileUploadSection from "../sections/FileUploadSection";
-import NotesSection from "../sections/NotesSection";
-import SubmitSection from "../sections/SubmitSection";
+import BasicInfoSection from "@/components/demonstration/sections/BasicInfoSection";
+import AddressSection from "@/components/demonstration/sections/AddressSection";
+import DateSection from "@/components/demonstration/sections/DateSection";
+import DemoItemSection from "@/components/demonstration/sections/DemoItemSection";
+import FileUploadSection from "@/components/demonstration/sections/FileUploadSection";
+import NotesSection from "@/components/demonstration/sections/NotesSection";
+import SubmitSection from "@/components/demonstration/sections/SubmitSection";
 
 const DemonstrationForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,

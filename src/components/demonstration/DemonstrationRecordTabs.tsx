@@ -284,6 +284,52 @@ const DemonstrationRecordTabs = () => {
     }
   };
 
+  // 파일 다운로드 핸들러
+  const handleFileDownload = async (file: DemoResponse["files"][number]) => {
+    try {
+      if (!file.fileUrl) {
+        toast.error("파일 URL이 없습니다.");
+        return;
+      }
+
+      // 파일 확장자 확인
+      const fileName = file.fileName || "";
+      const fileExtension = fileName.split(".").pop()?.toLowerCase();
+
+      // 이미지나 PDF는 새 탭에서 열기, 나머지는 다운로드
+      const isViewableFile = [
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "bmp",
+        "webp",
+        "pdf",
+      ].includes(fileExtension || "");
+
+      const link = document.createElement("a");
+      link.href = file.fileUrl;
+
+      if (isViewableFile) {
+        // 새 탭에서 열기
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        toast.success("파일이 새 탭에서 열렸습니다.");
+      } else {
+        // 다운로드
+        link.download = file.fileName || "download";
+        toast.success("파일이 다운로드되었습니다.");
+      }
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("파일 처리 중 오류:", error);
+      toast.error("파일 처리에 실패했습니다.");
+    }
+  };
+
   // 상태 색상 클래스
   const getStatusColorClass = (status: string): string => {
     switch (status) {
@@ -754,9 +800,15 @@ const DemonstrationRecordTabs = () => {
                               className="flex items-center space-x-2 text-sm"
                             >
                               <FileText className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-700">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleFileDownload(file);
+                                }}
+                                className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                              >
                                 {file.fileName || `파일 ${index + 1}`}
-                              </span>
+                              </button>
                             </div>
                           )
                         )}

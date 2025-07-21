@@ -13,7 +13,7 @@ export const useDemosByTeam = (teamId: number) => {
     staleTime: CACHE_TIME,
     gcTime: CACHE_TIME,
     refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
-    refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
+    refetchOnMount: true, // 컴포넌트 마운트 시 자동 refetch 활성화
     refetchOnReconnect: false,
   });
 };

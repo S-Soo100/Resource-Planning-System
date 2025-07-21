@@ -63,7 +63,7 @@ export const updateDemoById = async (
   data: PatchDemoRequest
 ): Promise<ApiResponse> => {
   try {
-    const response = await api.put<ApiResponse>(`/demo/${id}`, data);
+    const response = await api.patch<ApiResponse>(`/demo/${id}`, data);
     return response.data;
   } catch {
     return { success: false, message: "시연 기록 수정에 실패했습니다." };

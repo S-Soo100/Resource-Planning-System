@@ -111,9 +111,18 @@ const DemonstrationRecordTabs = () => {
   }, []);
 
   // 시연 데이터 조회 - 팀별 시연 목록
-  const { data: demosResponse, isLoading: isLoadingDemos } = useDemosByTeam(
-    currentTeam?.id || 0
-  );
+  const {
+    data: demosResponse,
+    isLoading: isLoadingDemos,
+    refetch,
+  } = useDemosByTeam(currentTeam?.id || 0);
+
+  // 페이지 진입 시 자동 새로고침
+  useEffect(() => {
+    if (currentTeam?.id) {
+      refetch();
+    }
+  }, [currentTeam?.id, refetch]);
 
   // 상태 변경 후에도 확장 상태 유지
   useEffect(() => {

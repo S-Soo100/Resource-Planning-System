@@ -32,18 +32,18 @@ export const getDemoByTeamId = async (
   }
 };
 
-// export const getDemoById = async (
-//   demoId: number
-// ): Promise<ApiResponse<DemoDetailResponse>> => {
-//   try {
-//     const response = await api.get<ApiResponse<DemoDetailResponse>>(
-//       `/demo/${demoId}`
-//     );
-//     return response.data;
-//   } catch {
-//     return { success: false, message: "시연 상세 조회에 실패했습니다." };
-//   }
-// };
+export const getDemoById = async (
+  demoId: number
+): Promise<ApiResponse<DemoDetailResponse>> => {
+  try {
+    const response = await api.get<ApiResponse<DemoDetailResponse>>(
+      `/demo/${demoId}`
+    );
+    return response.data;
+  } catch {
+    return { success: false, message: "시연 상세 조회에 실패했습니다." };
+  }
+};
 
 export const getDemoDetailById = async (
   teamId: number
@@ -196,6 +196,31 @@ export const uploadMultipleDemoFileById = async (
       success: false,
       error: "시연 파일 업로드에 실패했습니다.",
       data: undefined,
+    };
+  }
+};
+
+// 시연 파일 삭제 API
+export const deleteDemoFile = async (
+  demoId: number,
+  fileId: number
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.delete<ApiResponse>(
+      `/demo/${demoId}/files/${fileId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("시연 파일 삭제 실패:", error);
+    if (error instanceof AxiosError && error.response) {
+      return {
+        success: false,
+        error: error.response.data.message || "시연 파일 삭제에 실패했습니다.",
+      };
+    }
+    return {
+      success: false,
+      error: "시연 파일 삭제에 실패했습니다.",
     };
   }
 };

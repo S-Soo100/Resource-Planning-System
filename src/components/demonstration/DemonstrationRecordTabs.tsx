@@ -24,6 +24,7 @@ import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { authStore } from "@/store/authStore";
 import DemoEditModal from "./DemoEditModal";
+import { useRouter } from "next/navigation";
 
 type TabType = "all" | "user" | "supplier";
 
@@ -76,6 +77,7 @@ const formatDate = (dateString: string): string => {
 };
 
 const DemonstrationRecordTabs = () => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [userId, setUserId] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,7 +90,6 @@ const DemonstrationRecordTabs = () => {
 
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastExpandedId, setLastExpandedId] = useState<number | null>(null);
 
   const { useDemosByTeam, useUpdateDemoStatus } = useDemo();
   const { team: currentTeam } = useCurrentTeam();
@@ -126,11 +127,9 @@ const DemonstrationRecordTabs = () => {
 
   // 상태 변경 후에도 확장 상태 유지
   useEffect(() => {
-    if (lastExpandedId && !expandedRowId) {
-      // 데이터가 새로고침된 후에도 마지막 확장된 행을 다시 확장
-      setExpandedRowId(lastExpandedId);
-    }
-  }, [demosResponse, lastExpandedId, expandedRowId]);
+    // 데이터가 새로고침된 후에도 마지막 확장된 행을 다시 확장
+    // 현재는 상세 페이지로 이동하므로 확장 상태 유지 기능은 비활성화
+  }, [demosResponse, expandedRowId]);
 
   // API 응답 데이터를 DemoResponse 형식으로 변환 (useMemo로 최적화)
   const allDemoRecords = useMemo((): DemoResponse[] => {
@@ -265,9 +264,8 @@ const DemonstrationRecordTabs = () => {
 
   // 행 클릭 핸들러
   const handleRowClick = (recordId: number) => {
-    const newExpandedId = expandedRowId === recordId ? null : recordId;
-    setExpandedRowId(newExpandedId);
-    setLastExpandedId(newExpandedId); // 마지막 확장된 ID 저장
+    // 상세 페이지로 이동
+    router.push(`/demoRecord/${recordId}?teamId=${currentTeam?.id || ""}`);
   };
 
   // 새로고침 핸들러
@@ -678,6 +676,22 @@ const DemonstrationRecordTabs = () => {
               {/* 상세 정보 */}
               {expandedRowId === record.id && (
                 <div className="px-4 py-4 bg-gray-50 rounded-b-xl">
+                  {/* 상세보기 버튼 */}
+                  <div className="flex justify-end mb-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(
+                          `/demoRecord/${record.id}?teamId=${
+                            currentTeam?.id || ""
+                          }`
+                        );
+                      }}
+                      className="px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      상세보기
+                    </button>
+                  </div>
                   <div className="grid grid-cols-1 gap-6 pb-4 mb-4 border-b border-gray-200 md:grid-cols-2">
                     <div>
                       <div className="mb-2 font-semibold text-gray-900">

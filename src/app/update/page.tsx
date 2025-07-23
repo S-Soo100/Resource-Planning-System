@@ -67,6 +67,129 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.5.6 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.5.6
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-07-18
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                시연 상세 페이지 구현, 상태 변경 드롭다운, 시연 수정 모달 추가
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 추가됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("추가됨")}
+                  <h3 className="font-medium text-gray-900">추가됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-green-600">•</span>
+                    <span>
+                      <strong>시연 상세 페이지</strong> - 시연 기록의 상세 정보
+                      확인 및 관리
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-green-600">•</span>
+                    <span>
+                      <strong>상태 변경 드롭다운</strong> - 권한별 시연 상태
+                      변경 기능
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-green-600">•</span>
+                    <span>
+                      <strong>시연 수정 모달</strong> - 시연 정보 및 시연품 수정
+                      기능
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-green-600">•</span>
+                    <span>
+                      <strong>파일 관리 API</strong> - 시연 파일 업로드 및 삭제
+                      기능
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* 개선됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("개선됨")}
+                  <h3 className="font-medium text-gray-900">개선됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>
+                      <strong>시연 목록 네비게이션</strong> - 상세보기 버튼으로
+                      직관적인 이동
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>
+                      <strong>상태 변경 UI/UX</strong> - 그라데이션 배경과
+                      향상된 드롭다운 디자인
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>
+                      <strong>에러 처리 및 로딩</strong> - 상세한 스켈레톤 UI와
+                      토스트 알림
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* 수정됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("수정됨")}
+                  <h3 className="font-medium text-gray-900">수정됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>시연 목록 페이지 에러</strong> - lastExpandedId
+                      변수 미정의 문제 해결
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>API 함수 누락</strong> - deleteDemoFile 함수 추가
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>타입 캐스팅 이슈</strong> - DemoDetailResponse
+                      타입 호환성 해결
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* v1.5.5 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +198,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.5.5
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

@@ -11,7 +11,7 @@ import { useUpdateDemoStatus } from "@/hooks/(useDemo)/useDemoMutations";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
-import DemoEditModal from "@/components/demoRecord/DemoEditModal";
+import DemoEditModal from "@/components/demonstration/DemoEditModal";
 import LoginModal from "@/components/login/LoginModal";
 import { IAuth } from "@/types/(auth)/auth";
 import { authService } from "@/services/authService";
@@ -116,6 +116,26 @@ const getStatusIcon = (status: string): JSX.Element => {
       );
   }
 };
+
+// 숫자 3자리마다 콤마를 붙여주는 함수
+const formatNumberWithCommas = (x: number | string) => {
+  if (x === null || x === undefined || x === "") return "-";
+  const num = typeof x === "number" ? x : parseFloat(x);
+  if (isNaN(num)) return x;
+  return num.toLocaleString();
+};
+
+// demoCurrencyUnit이 있는지 타입 가드 함수
+function isDemoWithCurrencyUnit(
+  obj: unknown
+): obj is { demoCurrencyUnit: string } {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "demoCurrencyUnit" in obj &&
+    typeof (obj as { demoCurrencyUnit: unknown }).demoCurrencyUnit === "string"
+  );
+}
 
 const DemoRecordDetail = () => {
   const params = useParams();
@@ -428,11 +448,16 @@ const DemoRecordDetail = () => {
     return [];
   };
 
+  // demoCurrencyUnit 안전하게 추출
+  const currencyUnit = isDemoWithCurrencyUnit(demo)
+    ? demo.demoCurrencyUnit
+    : "원";
+
   if (isLoading) {
     return (
       <div className="p-4 min-h-screen bg-gray-50">
         <div className="mx-auto max-w-4xl">
-          <div className="animate-pulse space-y-6">
+          <div className="space-y-6 animate-pulse">
             {/* 헤더 스켈레톤 */}
             <div className="flex gap-4 items-center">
               <div className="w-24 h-8 bg-gray-200 rounded"></div>
@@ -445,7 +470,7 @@ const DemoRecordDetail = () => {
             {/* 카드 스켈레톤 */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div className="p-6 bg-white rounded-lg border border-gray-200">
-                <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
+                <div className="mb-4 w-32 h-6 bg-gray-200 rounded"></div>
                 <div className="space-y-3">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className="flex justify-between">
@@ -456,7 +481,7 @@ const DemoRecordDetail = () => {
                 </div>
               </div>
               <div className="p-6 bg-white rounded-lg border border-gray-200">
-                <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
+                <div className="mb-4 w-32 h-6 bg-gray-200 rounded"></div>
                 <div className="space-y-3">
                   {[...Array(4)].map((_, i) => (
                     <div key={i} className="flex justify-between">
@@ -470,13 +495,13 @@ const DemoRecordDetail = () => {
 
             {/* 주소 스켈레톤 */}
             <div className="p-6 bg-white rounded-lg border border-gray-200">
-              <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
+              <div className="mb-4 w-32 h-6 bg-gray-200 rounded"></div>
               <div className="w-full h-4 bg-gray-200 rounded"></div>
             </div>
 
             {/* 시연품 스켈레톤 */}
             <div className="p-6 bg-white rounded-lg border border-gray-200">
-              <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
+              <div className="mb-4 w-32 h-6 bg-gray-200 rounded"></div>
               <div className="space-y-3">
                 {[...Array(3)].map((_, i) => (
                   <div
@@ -484,7 +509,7 @@ const DemoRecordDetail = () => {
                     className="flex justify-between items-center py-2"
                   >
                     <div className="flex-1">
-                      <div className="w-32 h-4 bg-gray-200 rounded mb-1"></div>
+                      <div className="mb-1 w-32 h-4 bg-gray-200 rounded"></div>
                       <div className="w-24 h-3 bg-gray-200 rounded"></div>
                     </div>
                     <div className="w-16 h-4 bg-gray-200 rounded"></div>
@@ -588,7 +613,7 @@ const DemoRecordDetail = () => {
                       상태 변경
                     </h2>
                     <div className="flex flex-wrap gap-4 items-center">
-                      <div className="flex items-center gap-3">
+                      <div className="flex gap-3 items-center">
                         <span className="text-sm font-medium text-gray-600">
                           현재 상태:
                         </span>
@@ -611,7 +636,7 @@ const DemoRecordDetail = () => {
                             handleStatusChange(e.target.value as DemoStatus)
                           }
                           disabled={isUpdatingStatus}
-                          className="px-4 py-2 pr-10 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-2 pr-10 bg-white rounded-lg border border-gray-300 transition-colors appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {getAvailableStatusOptions().map((option) => (
                             <option
@@ -628,7 +653,7 @@ const DemoRecordDetail = () => {
                             </option>
                           ))}
                         </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <div className="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
                           <svg
                             className="w-4 h-4 text-gray-400"
                             fill="none"
@@ -645,7 +670,7 @@ const DemoRecordDetail = () => {
                         </div>
                       </div>
                       {isUpdatingStatus && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex gap-2 items-center">
                           <div className="w-4 h-4 rounded-full border-2 border-blue-500 animate-spin border-t-transparent"></div>
                           <span className="text-sm text-gray-500">
                             변경 중...
@@ -653,8 +678,8 @@ const DemoRecordDetail = () => {
                         </div>
                       )}
                     </div>
-                    <div className="mt-4 p-3 bg-blue-100 rounded-lg">
-                      <div className="flex items-start gap-2">
+                    <div className="p-3 mt-4 bg-blue-100 rounded-lg">
+                      <div className="flex gap-2 items-start">
                         <svg
                           className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
                           fill="currentColor"
@@ -681,7 +706,7 @@ const DemoRecordDetail = () => {
                 {/* 권한 정보 섹션 (상태 변경 권한이 없는 경우) */}
                 {!hasPermissionToChangeStatus() && (
                   <div className="p-4 mb-6 bg-yellow-50 rounded-lg border border-yellow-200 shadow-sm">
-                    <div className="flex items-start gap-3">
+                    <div className="flex gap-3 items-start">
                       <svg
                         className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0"
                         fill="currentColor"
@@ -771,7 +796,11 @@ const DemoRecordDetail = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">시연 가격:</span>
                         <span className="font-medium">
-                          {demo.demoPrice ? `${demo.demoPrice} 원` : "-"}
+                          {demo.demoPrice
+                            ? `${formatNumberWithCommas(
+                                demo.demoPrice
+                              )} ${currencyUnit}`
+                            : "-"}
                         </span>
                       </div>
                     </div>
@@ -873,9 +902,9 @@ const DemoRecordDetail = () => {
                             <div className="font-medium text-gray-900">
                               {item.quantity}개
                             </div>
-                            <div className="text-sm text-gray-500">
+                            {/* <div className="text-sm text-gray-500">
                               {item.memo || "메모 없음"}
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       ))}
@@ -978,11 +1007,12 @@ const DemoRecordDetail = () => {
                 {isEditModalOpen && demo && (
                   <DemoEditModal
                     isOpen={isEditModalOpen}
-                    demoRecord={demo}
+                    demo={demo}
                     onClose={() => {
                       setIsEditModalOpen(false);
                       window.location.reload();
                     }}
+                    onSuccess={() => {}}
                   />
                 )}
               </div>

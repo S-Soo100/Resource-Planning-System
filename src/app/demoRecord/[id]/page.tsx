@@ -565,7 +565,7 @@ const DemoRecordDetail = () => {
                       <span>목록으로</span>
                     </button>
                     <h1 className="text-2xl font-bold text-gray-900">
-                      시연 상세 정보
+                      {demo.demoTitle} 상세정보
                     </h1>
                   </div>
                 </div>

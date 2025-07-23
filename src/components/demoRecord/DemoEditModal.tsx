@@ -146,7 +146,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       if (demoRecord.demoItems) {
         const itemsWithDetails: DemoItemWithDetails[] =
           demoRecord.demoItems.map((item) => ({
-            teamItem: item.item.teamItem,
+            teamItem: item.item.teamItem as TeamItem,
             quantity: item.quantity,
             stockAvailable: true, // 기본값
             stockQuantity: item.item.itemQuantity || 0,
@@ -273,7 +273,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
     if (!demoRecord) return;
 
     try {
-      const response = await deleteDemoFile(fileId);
+      const response = await deleteDemoFile(demoRecord.id, fileId);
       if (response.success) {
         toast.success("파일이 삭제되었습니다.");
         setExistingFiles((prev) => prev.filter((file) => file.id !== fileId));
@@ -948,18 +948,20 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       </Modal>
 
       {/* 주소 검색 모달 */}
-      <SearchAddressModal
-        isOpen={isAddressOpen}
-        onClose={() => setIsAddressOpen(false)}
-        onAddressSelect={handleAddressChange}
-      />
+      {isAddressOpen && (
+        <SearchAddressModal
+          onCompletePost={handleAddressChange}
+          onClose={() => setIsAddressOpen(false)}
+        />
+      )}
 
       {/* 아이템 선택 모달 */}
       <ItemSelectionModal
         isOpen={isItemModalOpen}
         onClose={() => setIsItemModalOpen(false)}
-        onItemSelect={handleAddDemoItem}
-        warehouseItems={currentWarehouseItems}
+        onAddItem={handleAddDemoItem}
+        currentWarehouseItems={currentWarehouseItems}
+        orderItems={[]}
         title="시연품 선택"
       />
     </>

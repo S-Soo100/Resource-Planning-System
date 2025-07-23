@@ -362,12 +362,19 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
     try {
       const submitData: PatchDemoRequest = {
         ...formData,
+        demoPaymentDate: formData.demoPaymentDate
+          ? formData.demoPaymentDate
+          : undefined,
         demoItems: selectedItems.map((item) => ({
           itemId: item.itemId,
           quantity: item.quantity,
           memo: item.memo,
         })),
       };
+      // demoPaymentDate가 빈 문자열 또는 falsy면 필드 자체를 제거
+      if (!submitData.demoPaymentDate) {
+        delete submitData.demoPaymentDate;
+      }
 
       const response = await updateDemoMutation.mutateAsync({
         id: demo.id,

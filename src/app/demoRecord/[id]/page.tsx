@@ -5,7 +5,16 @@ import { useEffect, useState } from "react";
 import { getDemoById } from "@/api/demo-api";
 import { DemoResponse } from "@/types/demo/demo";
 import { DemoStatus } from "@/types/demo/demo";
-import { ArrowLeft, Package, Calendar, Presentation } from "lucide-react";
+import {
+  ArrowLeft,
+  Package,
+  Calendar,
+  Presentation,
+  Car,
+  Truck,
+  Plane,
+  Ship,
+} from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useUpdateDemoStatus } from "@/hooks/(useDemo)/useDemoMutations";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,6 +25,11 @@ import LoginModal from "@/components/login/LoginModal";
 import { IAuth } from "@/types/(auth)/auth";
 import { authService } from "@/services/authService";
 import { authStore } from "@/store/authStore";
+import {
+  useDemoComments,
+  CreateDemoCommentDto,
+  type DemoComment,
+} from "@/hooks/(useDemo)/useDemoComments";
 
 // 날짜 포맷팅 함수
 const formatDate = (dateString: string): string => {
@@ -136,6 +150,222 @@ function isDemoWithCurrencyUnit(
     typeof (obj as { demoCurrencyUnit: unknown }).demoCurrencyUnit === "string"
   );
 }
+
+// 상차/하차 방법별 아이콘 매핑
+const deliveryMethodIcon = (method: string) => {
+  switch (method) {
+    case "직접배송":
+    case "직접회수":
+      return <Car className="w-5 h-5 text-blue-500" />;
+    case "택배":
+      return <Package className="w-5 h-5 text-green-500" />;
+    case "용차":
+      return <Truck className="w-5 h-5 text-orange-500" />;
+    case "항공":
+      return <Plane className="w-5 h-5 text-purple-500" />;
+    case "해운":
+      return <Ship className="w-5 h-5 text-cyan-500" />;
+    default:
+      return <Car className="w-5 h-5 text-gray-400" />;
+  }
+};
+
+// 댓글 섹션 컴포넌트
+const DemoCommentSection: React.FC<{ demoId: number }> = ({ demoId }) => {
+  const { user: currentUser } = useCurrentUser();
+  const [newComment, setNewComment] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingContent, setEditingContent] = useState("");
+  const {
+    comments,
+    isLoading,
+    createComment,
+    updateComment,
+    deleteComment,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  } = useDemoComments(demoId);
+
+  // 권한 확인 함수들
+  const canEditComment = (comment: DemoComment) => {
+    if (!currentUser) return false;
+    return comment.userId === currentUser.id;
+  };
+  const canDeleteComment = (comment: DemoComment) => {
+    if (!currentUser) return false;
+    return (
+      comment.userId === currentUser.id || currentUser.accessLevel === "admin"
+    );
+  };
+  // 댓글 작성 시간 포맷팅
+  const formatCommentDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
+    if (diffInMinutes < 1) return "방금 전";
+    if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}시간 전`;
+    return date.toLocaleDateString("ko-KR", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+  // 댓글 작성 핸들러
+  const handleSubmitComment = () => {
+    if (!newComment.trim() || !currentUser) return;
+    const commentData: CreateDemoCommentDto = { content: newComment.trim() };
+    createComment(commentData);
+    setNewComment("");
+  };
+  // 댓글 수정 핸들러
+  const handleEditComment = (commentId: number) => {
+    if (!editingContent.trim()) return;
+    updateComment({ commentId });
+    setEditingCommentId(null);
+    setEditingContent("");
+  };
+  // 댓글 삭제 핸들러
+  const handleDeleteComment = (commentId: number) => {
+    if (!confirm("댓글을 삭제하시겠습니까?")) return;
+    deleteComment(commentId);
+  };
+  return (
+    <div className="p-4 mt-8 bg-white rounded-xl border border-gray-100 shadow-sm">
+      <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="mr-2 w-4 h-4 text-gray-500"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
+            clipRule="evenodd"
+          />
+        </svg>
+        댓글 ({comments.length})
+      </h3>
+      {/* 댓글 목록 */}
+      <div className="overflow-y-auto mb-4 space-y-3 max-h-60">
+        {isLoading ? (
+          <p className="py-4 text-sm text-center text-gray-500">
+            댓글을 불러오는 중...
+          </p>
+        ) : comments.length === 0 ? (
+          <p className="py-4 text-sm text-center text-gray-500">
+            아직 댓글이 없습니다.
+          </p>
+        ) : (
+          comments.map((comment: DemoComment) => (
+            <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-800">
+                    {comment.user?.name || "익명"}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatCommentDate(comment.createdAt)}
+                  </span>
+                  {comment.createdAt !== comment.updatedAt && (
+                    <span className="text-xs text-gray-400">(수정됨)</span>
+                  )}
+                </div>
+                {(canEditComment(comment) || canDeleteComment(comment)) && (
+                  <div className="flex space-x-1">
+                    {canEditComment(comment) && (
+                      <button
+                        onClick={() => {
+                          setEditingCommentId(comment.id);
+                          setEditingContent(comment.content);
+                        }}
+                        disabled={isUpdating || isDeleting}
+                        className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400"
+                      >
+                        수정
+                      </button>
+                    )}
+                    {canDeleteComment(comment) && (
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        disabled={isUpdating || isDeleting}
+                        className="text-xs text-red-600 hover:text-red-800 disabled:text-gray-400"
+                      >
+                        {isDeleting ? "삭제중..." : "삭제"}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              {editingCommentId === comment.id ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={editingContent}
+                    onChange={(e) => setEditingContent(e.target.value)}
+                    className="p-2 w-full text-sm rounded-md border border-gray-300 resize-none"
+                    rows={2}
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEditComment(comment.id)}
+                      disabled={isUpdating}
+                      className="px-3 py-1 text-xs text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300"
+                    >
+                      {isUpdating ? "저장중..." : "저장"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingCommentId(null);
+                        setEditingContent("");
+                      }}
+                      disabled={isUpdating}
+                      className="px-3 py-1 text-xs text-gray-700 bg-gray-300 rounded-md hover:bg-gray-400 disabled:opacity-50"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {comment.content}
+                </p>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+      {/* 댓글 작성 폼 */}
+      {currentUser && (
+        <div className="pt-3 border-t">
+          <div className="space-y-2">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="댓글을 입력해주세요..."
+              className="p-3 w-full text-sm rounded-md border border-gray-300 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={3}
+              disabled={isCreating}
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={handleSubmitComment}
+                disabled={!newComment.trim() || isCreating}
+                className="px-4 py-2 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {isCreating ? "작성 중..." : "댓글 작성"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const DemoRecordDetail = () => {
   const params = useParams();
@@ -570,18 +800,44 @@ const DemoRecordDetail = () => {
                   </div>
                 </div>
 
-                {/* 현재 상태 표시 */}
-                <div className="mb-6">
-                  <div
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${getStatusColorClass(
-                      demo.demoStatus
-                    )}`}
-                  >
-                    {getStatusIcon(demo.demoStatus)}
-                    <span className="font-medium">
-                      {getStatusText(demo.demoStatus)}
-                    </span>
+                {/* 현재 상태 표시 + 시연 수정 버튼 */}
+                <div className="flex flex-wrap gap-4 items-center mb-6">
+                  <div className="flex flex-1 gap-4 items-center min-w-0">
+                    <div
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${getStatusColorClass(
+                        demo.demoStatus
+                      )}`}
+                    >
+                      {getStatusIcon(demo.demoStatus)}
+                      <span className="font-medium">
+                        {getStatusText(demo.demoStatus)}
+                      </span>
+                    </div>
+                    {/* 결재/승인 이력 요약 */}
+                    {demo.approvalHistory &&
+                      demo.approvalHistory.length > 0 && (
+                        <div className="flex-1 min-w-0 text-xs text-gray-500 truncate">
+                          <span className="mr-1 font-semibold">이력:</span>
+                          {demo.approvalHistory
+                            .map(
+                              (h) =>
+                                `${getStatusText(h.status)}(${
+                                  h.user?.name || "?"
+                                })`
+                            )
+                            .join(" → ")}
+                        </div>
+                      )}
                   </div>
+                  {/* 시연 수정 버튼 (맨 오른쪽) */}
+                  {hasPermissionToEdit(demo) && (
+                    <button
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="px-4 py-2 ml-auto text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
+                    >
+                      시연 수정
+                    </button>
+                  )}
                 </div>
 
                 {/* 상태 변경 섹션 */}
@@ -813,10 +1069,32 @@ const DemoRecordDetail = () => {
                     <Calendar size={20} />
                     시연 일정
                   </h2>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="space-y-3">
-                      <h3 className="font-medium text-gray-900">상차 정보</h3>
+                  {/* 담당자 정보 */}
+                  <div className="mb-4">
+                    {/* <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                      담당자 정보
+                    </h2> */}
+                    <div className="flex justify-between">
+                      <span className="text-gray-800">담당자:</span>
+                      <span className="font-medium">
+                        {demo.demoManager} ({demo.demoManagerPhone})
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    {/* 상차 정보 */}
+                    <div className="p-4 mb-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex gap-2 items-center mb-2">
+                        {deliveryMethodIcon(demo.demoStartDeliveryMethod)}
+                        <h3 className="font-medium text-blue-900">상차 정보</h3>
+                      </div>
                       <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">상차 방법:</span>
+                          <span className="font-medium">
+                            {demo.demoStartDeliveryMethod || "-"}
+                          </span>
+                        </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">상차 날짜:</span>
                           <span className="font-medium">
@@ -831,17 +1109,23 @@ const DemoRecordDetail = () => {
                             {demo.demoStartTime || "-"}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">상차 방법:</span>
-                          <span className="font-medium">
-                            {demo.demoStartDeliveryMethod || "-"}
-                          </span>
-                        </div>
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <h3 className="font-medium text-gray-900">하차 정보</h3>
+                    {/* 하차 정보 */}
+                    <div className="p-4 mb-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex gap-2 items-center mb-2">
+                        {deliveryMethodIcon(demo.demoEndDeliveryMethod)}
+                        <h3 className="font-medium text-purple-900">
+                          하차 정보
+                        </h3>
+                      </div>
                       <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">하차 방법:</span>
+                          <span className="font-medium">
+                            {demo.demoEndDeliveryMethod || "-"}
+                          </span>
+                        </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">하차 날짜:</span>
                           <span className="font-medium">
@@ -856,25 +1140,18 @@ const DemoRecordDetail = () => {
                             {demo.demoEndTime || "-"}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">하차 방법:</span>
-                          <span className="font-medium">
-                            {demo.demoEndDeliveryMethod || "-"}
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-
-                {/* 시연 주소 정보 */}
-                <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-                  <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                    시연 주소
-                  </h2>
-                  <p className="text-gray-800 break-words">
-                    {demo.demoAddress}
-                  </p>
+                  {/* 시연 주소 정보 (상차/하차 정보 바로 아래) */}
+                  <div className="p-4 mt-2 mb-6 bg-gray-50 rounded-lg border border-gray-300">
+                    <span className="mr-2 font-semibold text-gray-600">
+                      시연 주소
+                    </span>
+                    <span className="text-gray-900 break-words">
+                      {demo.demoAddress}
+                    </span>
+                  </div>
                 </div>
 
                 {/* 시연품 정보 */}
@@ -887,7 +1164,7 @@ const DemoRecordDetail = () => {
                       {demo.demoItems.map((item, index) => (
                         <div
                           key={index}
-                          className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
+                          className="flex justify-between items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm"
                         >
                           <div className="flex-1">
                             <div className="font-medium text-gray-900">
@@ -991,18 +1268,6 @@ const DemoRecordDetail = () => {
                   </div>
                 )}
 
-                {/* 수정 버튼 */}
-                {hasPermissionToEdit(demo) && (
-                  <div className="flex justify-end mb-6">
-                    <button
-                      onClick={() => setIsEditModalOpen(true)}
-                      className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
-                    >
-                      시연 수정
-                    </button>
-                  </div>
-                )}
-
                 {/* 수정 모달 */}
                 {isEditModalOpen && demo && (
                   <DemoEditModal
@@ -1016,6 +1281,44 @@ const DemoRecordDetail = () => {
                   />
                 )}
               </div>
+              {/* 표기하지 않은 demo 데이터 정보 나열
+              {demo && (
+                <div className="p-6 mt-12 bg-gray-50 border-t border-gray-200">
+                  <h2 className="mb-2 text-base font-semibold text-gray-700">
+                    표기하지 않은 demo 데이터
+                  </h2>
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <div>[id] {demo.id}</div>
+                    <div>[userId] {demo.userId}</div>
+                    <div>[warehouseId] {demo.warehouseId}</div>
+                    <div>[createdAt] {demo.createdAt}</div>
+                    <div>[updatedAt] {demo.updatedAt}</div>
+                    <div>
+                      [deletedAt] {demo.deletedAt ? demo.deletedAt : "-"}
+                    </div>
+                    <div>
+                      [user] {demo.user ? JSON.stringify(demo.user) : "-"}
+                    </div>
+                    <div>
+                      [warehouse]{" "}
+                      {demo.warehouse ? JSON.stringify(demo.warehouse) : "-"}
+                    </div>
+                    <div>
+                      [comments] {demo.comments ? demo.comments.length : 0}개
+                    </div>
+                    <div>
+                      [approvalHistory]{" "}
+                      {demo.approvalHistory ? demo.approvalHistory.length : 0}개
+                    </div>
+                    <div>
+                      [inventoryRecord]{" "}
+                      {demo.inventoryRecord ? demo.inventoryRecord.length : 0}개
+                    </div>
+                  </div>
+                </div>
+              )} */}
+              {/* 댓글 섹션 */}
+              {demo && <DemoCommentSection demoId={demo.id} />}
             </div>
           )}
         </>

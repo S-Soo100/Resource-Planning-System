@@ -1,32 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
-import {
-  Paperclip,
-  Plus,
-  Minus,
-  X,
-  AlertCircle,
-  Loader2,
-  Calendar,
-  Presentation,
-} from "lucide-react";
+import { Paperclip, Plus, Minus, X, AlertCircle, Loader2 } from "lucide-react";
 import { useUpdateDemo } from "@/hooks/(useDemo)/useDemoMutations";
 import { toast } from "react-hot-toast";
 import { DemoStatus } from "@/types/demo/demo";
 import { DemoResponse } from "@/types/demo/demo";
 import { authStore } from "@/store/authStore";
 import { useQueryClient } from "@tanstack/react-query";
-import { hasWarehouseAccess } from "@/utils/warehousePermissions";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Modal } from "@/components/ui";
 import { ItemSelectionModal } from "@/components/ui";
 import { useWarehouseWithItems } from "@/hooks/useWarehouseWithItems";
 import { Item } from "@/types/(item)/item";
-import { Warehouse } from "@/types/warehouse";
-import { ApiResponse } from "@/types/common";
 import { uploadMultipleDemoFileById, deleteDemoFile } from "@/api/demo-api";
 import { TeamItem } from "@/types/(item)/team-item";
 
@@ -61,10 +48,8 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
   const [existingFiles, setExistingFiles] = useState<
     Array<{ id: number; fileName: string; fileUrl: string }>
   >([]);
-  const [filesToDelete, setFilesToDelete] = useState<number[]>([]);
   const [isFileUploading, setIsFileUploading] = useState(false);
   const auth = authStore((state) => state.user);
-  const { user } = useCurrentUser();
 
   // 아이템 관련 상태
   const [demoItems, setDemoItems] = useState<DemoItemWithDetails[]>([]);
@@ -90,14 +75,12 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
     demoEndDate: "",
     demoEndTime: "",
     demoEndDeliveryMethod: "",
-    warehouseId: null as number | null,
+    warehouseId: undefined as number | undefined,
   });
 
   // 훅 호출
-  const { useUpdateDemo } = useUpdateDemo();
   const { mutate: updateDemo } = useUpdateDemo();
-  const { warehousesList, warehouseItems, handleWarehouseChange } =
-    useWarehouseWithItems();
+  const { warehouseItems } = useWarehouseWithItems();
 
   // 현재 창고의 아이템들
   const currentWarehouseItems = useMemo(() => {
@@ -156,7 +139,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
         demoEndDate: demoRecord.demoEndDate || "",
         demoEndTime: demoRecord.demoEndTime || "",
         demoEndDeliveryMethod: demoRecord.demoEndDeliveryMethod || "",
-        warehouseId: demoRecord.warehouseId || null,
+        warehouseId: demoRecord.warehouseId || undefined,
       });
 
       // 기존 시연품 설정
@@ -179,15 +162,6 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       }
     }
   }, [demoRecord]);
-
-  // 창고 변경 핸들러
-  const handleWarehouseChangeWrapper = useCallback(
-    (warehouseId: number) => {
-      handleWarehouseChange(warehouseId);
-      setFormData((prev) => ({ ...prev, warehouseId }));
-    },
-    [handleWarehouseChange]
-  );
 
   // 폼 데이터 변경 핸들러
   const handleChange = (
@@ -448,7 +422,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} size="6xl">
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">시연 수정</h2>

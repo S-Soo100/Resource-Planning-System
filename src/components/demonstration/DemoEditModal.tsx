@@ -417,7 +417,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
         {isLoading ? (
           <div className="flex justify-center items-center p-12">
             <div className="text-center">
-              <Loader2 className="mx-auto mb-4 w-8 h-8 animate-spin text-blue-600" />
+              <Loader2 className="mx-auto mb-4 w-8 h-8 text-blue-600 animate-spin" />
               <p className="text-gray-600">시연 데이터를 불러오는 중...</p>
             </div>
           </div>

@@ -58,6 +58,9 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
         (item) => item.teamItem.itemName === teamItemName
       );
       if (!warehouseItem) return;
+      // 중복 추가 방지: 이미 존재하는 itemId가 있으면 추가하지 않음
+      if (selectedItems.some((item) => item.itemId === warehouseItem.id))
+        return;
       const newItem: SelectedDemoItem = {
         itemName: warehouseItem.itemName,
         quantity: 1,
@@ -65,7 +68,12 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
         itemId: warehouseItem.id,
         memo: warehouseItem.teamItem.memo,
       };
-      onItemsChange([...selectedItems, newItem]);
+      // itemId 기준 중복 제거
+      const merged = [...selectedItems, newItem];
+      const unique = Array.from(
+        new Map(merged.map((i) => [i.itemId, i])).values()
+      );
+      onItemsChange(unique);
     } else {
       const updatedItems = selectedItems.filter(
         (item) => item.teamItem.itemName !== teamItemName
@@ -104,7 +112,11 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
         itemId: item.id,
         memo: item.teamItem.memo,
       }));
-      onItemsChange(newItems);
+      // itemId 기준 중복 제거
+      const unique = Array.from(
+        new Map(newItems.map((i) => [i.itemId, i])).values()
+      );
+      onItemsChange(unique);
     } else {
       onItemsChange([]);
     }
@@ -241,7 +253,7 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
           </div>
           {selectedItems.map((item) => (
             <div
-              key={item.teamItem.itemName}
+              key={item.itemId}
               className="flex justify-between items-center text-sm"
             >
               <span className="text-gray-700">{item.teamItem.itemName}</span>

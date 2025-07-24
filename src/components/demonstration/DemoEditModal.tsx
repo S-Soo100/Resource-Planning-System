@@ -31,6 +31,7 @@ import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { Address } from "react-daum-postcode";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
+import { TeamItem } from "@/types/(item)/team-item";
 
 // 숫자 포맷팅 함수
 const formatNumber = (value: string): string => {
@@ -135,32 +136,60 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       // 1초 후에 데이터 설정
       const timer = setTimeout(() => {
         console.log("기존 시연 데이터:", demo);
+        // 결제 관련 값 타입/값 확인용 콘솔
+        console.log(
+          "[디버그] demoPaymentType:",
+          demo.demoPaymentType,
+          typeof demo.demoPaymentType
+        );
+        console.log(
+          "[디버그] demoPrice:",
+          demo.demoPrice,
+          typeof demo.demoPrice
+        );
+        console.log(
+          "[디버그] demoPaymentDate:",
+          demo.demoPaymentDate,
+          typeof demo.demoPaymentDate
+        );
 
-        // 기존 아이템을 SelectedDemoItem 형태로 변환
+        // 기존 아이템을 SelectedDemoItem 형태로 변환 (TeamItem 타입 맞추기)
         const existingItems: SelectedDemoItem[] =
-          demo.demoItems?.map((item) => ({
-            itemId: item.itemId,
-            quantity: item.quantity,
-            memo: item.memo || "",
-            itemName: item.item.teamItem.itemName,
-            teamItem: {
-              id: item.item.teamItem.id,
-              itemCode: item.item.teamItem.itemCode,
-              itemName: item.item.teamItem.itemName,
-              teamId: 0, // DemoResponse에는 teamId가 없으므로 기본값 설정
-              memo: item.item.teamItem.memo,
-              category: {
-                id: 0,
-                name: "",
-                priority: 0,
-                teamId: 0,
-                createdAt: "",
-                updatedAt: "",
+          demo.demoItems?.map((item) => {
+            const t: Record<string, unknown> = item.item.teamItem;
+            return {
+              itemId: item.itemId,
+              quantity: item.quantity,
+              memo: typeof t.memo === "string" ? t.memo : "",
+              itemName: typeof t.itemName === "string" ? t.itemName : "",
+              teamItem: {
+                id: typeof t.id === "number" ? t.id : 0,
+                itemCode: typeof t.itemCode === "string" ? t.itemCode : "",
+                itemName: typeof t.itemName === "string" ? t.itemName : "",
+                memo: typeof t.memo === "string" ? t.memo : "",
+                teamId: typeof t.teamId === "number" ? t.teamId : 0,
+                category:
+                  t.category &&
+                  typeof t.category === "object" &&
+                  t.category !== null
+                    ? (t.category as TeamItem["category"])
+                    : {
+                        id: 0,
+                        name: "",
+                        priority: 0,
+                        teamId: 0,
+                        createdAt: "",
+                        updatedAt: "",
+                      },
               },
-            },
-          })) || [];
+            };
+          }) || [];
 
-        setSelectedItems(existingItems);
+        // 중복 제거: itemId 기준
+        const uniqueItems = Array.from(
+          new Map(existingItems.map((item) => [item.itemId, item])).values()
+        );
+        setSelectedItems(uniqueItems);
 
         // 기존 파일 초기화
         setExistingFiles(demo.files || []);
@@ -467,12 +496,54 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
         delete submitData.demoPaymentDate;
       }
 
+      // demoItems 부분만 alert로 출력
+      alert(
+        "[시연 수정] 서버로 전송할 demoItems:\n" +
+          JSON.stringify(submitData.demoItems, null, 2)
+      );
+
       const response = await updateDemoMutation.mutateAsync({
         id: demo.id,
         data: submitData,
       });
 
       if (response.success) {
+        // 응답에서 받은 demoItems alert로 출력 (페이지 이동 전에!)
+        const dataObj = response.data as Record<string, unknown>;
+        const demoItems =
+          dataObj && Array.isArray(dataObj.demoItems)
+            ? dataObj.demoItems
+            : null;
+        if (demoItems) {
+          // itemName, quantity만 추려서 보기 좋게 정리
+          const summary = (demoItems as Record<string, unknown>[])
+            .map((item) => {
+              let name = "";
+              if (typeof item.itemName === "string") {
+                name = item.itemName;
+              } else if (
+                item.item &&
+                typeof item.item === "object" &&
+                "teamItem" in item.item &&
+                item.item.teamItem &&
+                typeof item.item.teamItem === "object" &&
+                "itemName" in item.item.teamItem &&
+                typeof item.item.teamItem.itemName === "string"
+              ) {
+                name = item.item.teamItem.itemName;
+              } else if (item.itemId) {
+                name = String(item.itemId);
+              } else {
+                name = "알수없음";
+              }
+              return `${name}: ${item.quantity}개`;
+            })
+            .join("\n");
+          alert("[시연 수정] 응답에서 받은 품목 요약:\n" + summary);
+        }
+        // alert 이후에 페이지 이동/모달 닫기
+        onSuccess();
+        onClose();
         // 파일 처리
         try {
           // 삭제할 파일들 처리
@@ -490,8 +561,6 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
           }
 
           toast.success("시연 기록이 수정되었습니다!");
-          onSuccess();
-          onClose();
         } catch (fileError) {
           console.error("파일 처리 중 오류:", fileError);
           toast.error(

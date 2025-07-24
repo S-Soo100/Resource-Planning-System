@@ -10,21 +10,18 @@ import {
   Truck,
   XCircle,
   Calendar,
-  Settings,
-  CheckCircle,
-  Clock,
   RefreshCw,
-  Edit,
   Search,
   Filter,
 } from "lucide-react";
-import { DemoResponse, DemoStatus } from "@/types/demo/demo";
+import { DemoResponse } from "@/types/demo/demo";
 import { useDemo } from "@/hooks/useDemo";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+// import { useCurrentUser } from "@/hooks/useCurrentUser"; // 제거됨
 import { authStore } from "@/store/authStore";
 import DemoEditModal from "./DemoEditModal";
 import { useRouter } from "next/navigation";
+// import { useDeleteDemo } from "@/hooks/(useDemo)/useDemoMutations"; // 제거됨
 
 type TabType = "all" | "user" | "supplier";
 
@@ -88,16 +85,18 @@ const DemonstrationRecordTabs = () => {
 
   const recordsPerPage = 10;
 
-  const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { useDemosByTeam, useUpdateDemoStatus } = useDemo();
   const { team: currentTeam } = useCurrentTeam();
-  const { user: currentUser } = useCurrentUser();
+  // const { user: currentUser } = useCurrentUser(); // 제거됨
   const queryClient = useQueryClient();
 
   // 상태 변경 훅
   const updateDemoStatusMutation = useUpdateDemoStatus();
+
+  // 삭제 훅 - 제거됨 (확장 기능과 함께 사용됨)
+  // const deleteDemoMutation = useDeleteDemo();
 
   // 현재 로그인한 사용자 ID 가져오기
   useEffect(() => {
@@ -124,12 +123,6 @@ const DemonstrationRecordTabs = () => {
       refetch();
     }
   }, [currentTeam?.id, refetch]);
-
-  // 상태 변경 후에도 확장 상태 유지
-  useEffect(() => {
-    // 데이터가 새로고침된 후에도 마지막 확장된 행을 다시 확장
-    // 현재는 상세 페이지로 이동하므로 확장 상태 유지 기능은 비활성화
-  }, [demosResponse, expandedRowId]);
 
   // API 응답 데이터를 DemoResponse 형식으로 변환 (useMemo로 최적화)
   const allDemoRecords = useMemo((): DemoResponse[] => {
@@ -282,52 +275,6 @@ const DemonstrationRecordTabs = () => {
     }
   };
 
-  // 파일 다운로드 핸들러
-  const handleFileDownload = async (file: DemoResponse["files"][number]) => {
-    try {
-      if (!file.fileUrl) {
-        toast.error("파일 URL이 없습니다.");
-        return;
-      }
-
-      // 파일 확장자 확인
-      const fileName = file.fileName || "";
-      const fileExtension = fileName.split(".").pop()?.toLowerCase();
-
-      // 이미지나 PDF는 새 탭에서 열기, 나머지는 다운로드
-      const isViewableFile = [
-        "jpg",
-        "jpeg",
-        "png",
-        "gif",
-        "bmp",
-        "webp",
-        "pdf",
-      ].includes(fileExtension || "");
-
-      const link = document.createElement("a");
-      link.href = file.fileUrl;
-
-      if (isViewableFile) {
-        // 새 탭에서 열기
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        toast.success("파일이 새 탭에서 열렸습니다.");
-      } else {
-        // 다운로드
-        link.download = file.fileName || "download";
-        toast.success("파일이 다운로드되었습니다.");
-      }
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error("파일 처리 중 오류:", error);
-      toast.error("파일 처리에 실패했습니다.");
-    }
-  };
-
   // 상태 색상 클래스
   const getStatusColorClass = (status: string): string => {
     switch (status) {
@@ -372,145 +319,27 @@ const DemonstrationRecordTabs = () => {
     }
   };
 
-  // 권한 확인 함수들
-  const canManageShipment = () => {
-    return currentUser?.accessLevel === "admin";
-  };
+  // 권한 확인 함수들 - 제거됨 (확장 기능과 함께 사용됨)
+  // const canManageShipment = () => {
+  //   return currentUser?.accessLevel === "admin";
+  // };
 
-  const canApproveDemo = () => {
-    return (
-      currentUser?.accessLevel === "admin" ||
-      currentUser?.accessLevel === "moderator"
-    );
-  };
+  // const canApproveDemo = () => {
+  //   return (
+  //     currentUser?.accessLevel === "admin" ||
+  //     currentUser?.accessLevel === "moderator"
+  //   );
+  // };
 
-  // 현재 상태에서 가능한 다음 상태들 반환
-  const getAvailableStatuses = (currentStatus: string): DemoStatus[] => {
-    switch (currentStatus) {
-      case "requested":
-        return canApproveDemo()
-          ? [DemoStatus.approved, DemoStatus.rejected]
-          : [];
-      case "approved":
-        return canManageShipment()
-          ? [
-              DemoStatus.confirmedByShipper,
-              DemoStatus.shipmentCompleted,
-              DemoStatus.rejected,
-            ]
-          : [];
-      case "confirmedByShipper":
-        return canManageShipment()
-          ? [DemoStatus.shipmentCompleted, DemoStatus.rejectedByShipper]
-          : [];
-      case "shipmentCompleted":
-        return canManageShipment() ? [DemoStatus.demoCompleted] : [];
-      default:
-        return [];
-    }
-  };
+  // 현재 상태에서 가능한 다음 상태들 반환 - 제거됨 (확장 기능과 함께 사용됨)
+  // const getAvailableStatuses = (currentStatus: string): DemoStatus[] => {
+  //   // 상태 반환 로직
+  // };
 
-  // 상태 변경 핸들러
-  const handleStatusChange = async (demoId: number, newStatus: DemoStatus) => {
-    try {
-      // 현재 확장된 행 ID를 저장
-      const currentExpandedId = expandedRowId;
-
-      await updateDemoStatusMutation.mutateAsync({
-        id: demoId,
-        data: { status: newStatus },
-      });
-
-      toast.success("시연 상태가 변경되었습니다.");
-
-      // 상태 변경 완료 후에도 확장 상태 유지
-      // React Query의 캐시 무효화로 인한 리렌더링 후에도 확장 상태 유지
-      setTimeout(() => {
-        if (currentExpandedId === demoId) {
-          setExpandedRowId(demoId);
-        }
-      }, 100);
-    } catch (error) {
-      console.error("상태 변경 실패:", error);
-      toast.error("상태 변경에 실패했습니다.");
-    }
-  };
-
-  // 상태 변경 버튼 렌더링
-  const renderStatusChangeButtons = (record: DemoResponse) => {
-    const availableStatuses = getAvailableStatuses(record.demoStatus);
-
-    if (availableStatuses.length === 0) {
-      return null;
-    }
-
-    return (
-      <div className="p-4 mt-4 bg-blue-50 rounded-xl border border-blue-200">
-        <div className="flex gap-2 items-center mb-3">
-          <Settings className="w-4 h-4 text-blue-600" />
-          <span className="font-semibold text-blue-900">상태 변경</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {availableStatuses.map((status) => (
-            <button
-              key={status}
-              onClick={() => handleStatusChange(record.id, status)}
-              disabled={updateDemoStatusMutation.isPending}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                status === DemoStatus.approved
-                  ? "bg-green-100 text-green-700 hover:bg-green-200"
-                  : status === DemoStatus.rejected
-                  ? "bg-red-100 text-red-700 hover:bg-red-200"
-                  : status === DemoStatus.confirmedByShipper
-                  ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                  : status === DemoStatus.shipmentCompleted
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  : status === DemoStatus.rejectedByShipper
-                  ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
-                  : status === DemoStatus.demoCompleted
-                  ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {updateDemoStatusMutation.isPending ? (
-                <div className="mr-1 w-3 h-3 rounded-full border-2 border-current animate-spin border-t-transparent"></div>
-              ) : (
-                <>
-                  {status === DemoStatus.approved && (
-                    <CheckCircle className="mr-1 w-3 h-3" />
-                  )}
-                  {status === DemoStatus.rejected && (
-                    <XCircle className="mr-1 w-3 h-3" />
-                  )}
-                  {status === DemoStatus.confirmedByShipper && (
-                    <Clock className="mr-1 w-3 h-3" />
-                  )}
-                  {status === DemoStatus.shipmentCompleted && (
-                    <Truck className="mr-1 w-3 h-3" />
-                  )}
-                  {status === DemoStatus.rejectedByShipper && (
-                    <XCircle className="mr-1 w-3 h-3" />
-                  )}
-                  {status === DemoStatus.demoCompleted && (
-                    <CheckCircle className="mr-1 w-3 h-3" />
-                  )}
-                </>
-              )}
-              {updateDemoStatusMutation.isPending
-                ? "변경 중..."
-                : getStatusText(status)}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  // 수정 모달 열기
-  const handleEditClick = (record: DemoResponse) => {
-    setSelectedDemo(record);
-    setIsEditModalOpen(true);
-  };
+  // 상태 변경 핸들러 - 제거됨 (확장 기능과 함께 사용됨)
+  // const handleStatusChange = async (demoId: number, newStatus: DemoStatus) => {
+  //   // 상태 변경 로직
+  // };
 
   // 수정 모달 닫기
   const handleEditModalClose = () => {
@@ -673,191 +502,12 @@ const DemonstrationRecordTabs = () => {
                   </span>
                 </div>
               </div>
-              {/* 상세 정보 */}
-              {expandedRowId === record.id && (
+              {/* 상세 정보 - 확장 기능 제거됨 */}
+              {/* {expandedRowId === record.id && (
                 <div className="px-4 py-4 bg-gray-50 rounded-b-xl">
-                  {/* 상세보기 버튼 */}
-                  <div className="flex justify-end mb-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(
-                          `/demoRecord/${record.id}?teamId=${
-                            currentTeam?.id || ""
-                          }`
-                        );
-                      }}
-                      className="px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                    >
-                      상세보기
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 gap-6 pb-4 mb-4 border-b border-gray-200 md:grid-cols-2">
-                    <div>
-                      <div className="mb-2 font-semibold text-gray-900">
-                        시연 상세 정보
-                      </div>
-                      <div className="space-y-1 text-sm text-gray-700">
-                        <div>
-                          <span className="font-medium">시연 제목:</span>{" "}
-                          {record.demoTitle}
-                        </div>
-                        <div>
-                          <span className="font-medium">시연 장소:</span>{" "}
-                          {record.demoAddress}
-                        </div>
-                        <div>
-                          <span className="font-medium">시연 유형:</span>{" "}
-                          {record.demoNationType} • {record.demoPaymentType}
-                        </div>
-                        {record.demoPrice && (
-                          <div>
-                            <span className="font-medium">시연 비용:</span>{" "}
-                            {record.demoPrice.toLocaleString()}원
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="mb-2 font-semibold text-gray-900">
-                        시연 일정
-                      </div>
-                      <div className="space-y-1 text-sm text-gray-700">
-                        <div>
-                          <span className="font-medium">상차:</span>{" "}
-                          {formatDate(record.demoStartDate)}{" "}
-                          {record.demoStartTime} (
-                          {record.demoStartDeliveryMethod})
-                        </div>
-                        <div>
-                          <span className="font-medium">하차:</span>{" "}
-                          {formatDate(record.demoEndDate)} {record.demoEndTime}{" "}
-                          ({record.demoEndDeliveryMethod})
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* 품목 테이블 */}
-                  {record.demoItems && record.demoItems.length > 0 && (
-                    <div className="mb-4">
-                      <div className="mb-2 font-semibold text-gray-900">
-                        시연 품목 ({record.demoItems.length}개)
-                      </div>
-                      <div className="overflow-x-auto bg-white rounded-xl border border-gray-200">
-                        <table className="min-w-full text-sm">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-4 py-2 font-medium text-left text-gray-500">
-                                품목명
-                              </th>
-                              <th className="px-4 py-2 font-medium text-left text-gray-500">
-                                수량
-                              </th>
-                              <th className="px-4 py-2 font-medium text-left text-gray-500">
-                                메모
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {record.demoItems.map(
-                              (
-                                item: DemoResponse["demoItems"][number],
-                                index: number
-                              ) => (
-                                <tr
-                                  key={index}
-                                  className="border-t border-gray-100"
-                                >
-                                  <td className="px-4 py-2 text-gray-900">
-                                    {item.item?.teamItem?.itemName ||
-                                      "알 수 없는 품목"}
-                                  </td>
-                                  <td className="px-4 py-2 text-gray-700">
-                                    {item.quantity}개
-                                  </td>
-                                  <td className="px-4 py-2 text-gray-500">
-                                    {item.memo || "-"}
-                                  </td>
-                                </tr>
-                              )
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-                  {/* 메모 */}
-                  {record.memo && (
-                    <div className="mb-4">
-                      <div className="mb-2 font-semibold text-gray-900">
-                        메모
-                      </div>
-                      <div className="p-3 text-sm text-gray-700 bg-white rounded-xl border border-gray-200">
-                        {record.memo}
-                      </div>
-                    </div>
-                  )}
-                  {/* 첨부 파일 */}
-                  {record.files && record.files.length > 0 && (
-                    <div className="mb-2">
-                      <div className="mb-2 font-semibold text-gray-900">
-                        첨부 파일 ({record.files.length}개)
-                      </div>
-                      <div className="space-y-2">
-                        {record.files.map(
-                          (
-                            file: DemoResponse["files"][number],
-                            index: number
-                          ) => (
-                            <div
-                              key={index}
-                              className="flex items-center space-x-2 text-sm"
-                            >
-                              <FileText className="w-4 h-4 text-gray-400" />
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleFileDownload(file);
-                                }}
-                                className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-                              >
-                                {file.fileName || `파일 ${index + 1}`}
-                              </button>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 상태 변경 섹션 */}
-                  {renderStatusChangeButtons(record)}
-
-                  {/* 수정 버튼 - 시연 종료 상태가 아닐 때만 표시 */}
-                  {record.demoStatus !== "demoCompleted" && (
-                    <div className="p-4 mt-4 bg-green-50 rounded-xl border border-green-200">
-                      <div className="flex gap-2 items-center mb-3">
-                        <Edit className="w-4 h-4 text-green-600" />
-                        <span className="font-semibold text-green-900">
-                          기록 수정
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditClick(record);
-                          }}
-                          className="flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
-                        >
-                          <Edit className="mr-1 w-3 h-3" />
-                          수정하기
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  상세 정보 내용...
                 </div>
-              )}
+              )} */}
             </div>
           ))
         )}

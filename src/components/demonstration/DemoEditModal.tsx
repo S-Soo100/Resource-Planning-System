@@ -1,10 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Save, Loader2, User, Calendar, Paperclip } from "lucide-react";
+import {
+  X,
+  Save,
+  Loader2,
+  User,
+  Calendar,
+  Paperclip,
+  Trash2,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 import { DemoResponse, PatchDemoRequest } from "@/types/demo/demo";
-import { useUpdateDemo } from "@/hooks/(useDemo)/useDemoMutations";
+import {
+  useUpdateDemo,
+  useDeleteDemo,
+} from "@/hooks/(useDemo)/useDemoMutations";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { uploadMultipleDemoFileById } from "@/api/demo-api";
@@ -70,6 +81,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateDemoMutation = useUpdateDemo();
+  const deleteDemoMutation = useDeleteDemo();
   const { warehouses } = useWarehouseItems();
   const fileUpload = useFileUpload();
   const { isAddressOpen, handleToggleAddressModal, handleCloseAddressModal } =
@@ -398,6 +410,29 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       toast.error("시연 기록 수정 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // 삭제 핸들러
+  const handleDeleteDemo = async () => {
+    if (!demo) return;
+
+    if (
+      !confirm(
+        `시연 신청을 삭제하시겠습니까?\n\n시연 제목: ${demo.demoTitle}\n신청자: ${demo.requester}\n상태: ${demo.demoStatus}`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteDemoMutation.mutateAsync(demo.id);
+      toast.success("시연 신청이 삭제되었습니다.");
+      onSuccess();
+      onClose();
+    } catch (error) {
+      toast.error("시연 신청 삭제에 실패했습니다.");
+      console.error("시연 삭제 오류:", error);
     }
   };
 
@@ -899,6 +934,25 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                 className="px-4 py-2"
               >
                 취소
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDeleteDemo}
+                disabled={deleteDemoMutation.isPending}
+                className="flex items-center px-4 py-2 text-red-600 border-red-300 hover:bg-red-50"
+              >
+                {deleteDemoMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                    삭제 중...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 w-4 h-4" />
+                    삭제
+                  </>
+                )}
               </Button>
               <Button
                 type="submit"

@@ -14,6 +14,7 @@ import {
   Truck,
   Plane,
   Ship,
+  Trash2,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
@@ -868,9 +869,14 @@ const DemoRecordDetail = () => {
                       <button
                         onClick={handleDeleteDemo}
                         disabled={deleteDemoMutation.isPending}
-                        className="px-4 py-2 text-white bg-red-500 rounded-lg transition-colors hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-white bg-gray-500 rounded-lg transition-colors hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="시연 삭제"
                       >
-                        {deleteDemoMutation.isPending ? "삭제 중..." : "삭제"}
+                        {deleteDemoMutation.isPending ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   )}

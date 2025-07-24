@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   X,
   Save,
@@ -9,6 +9,7 @@ import {
   Calendar,
   Paperclip,
   Trash2,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { DemoResponse, PatchDemoRequest } from "@/types/demo/demo";
@@ -18,7 +19,7 @@ import {
 } from "@/hooks/(useDemo)/useDemoMutations";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useFileUpload } from "@/hooks/useFileUpload";
-import { uploadMultipleDemoFileById } from "@/api/demo-api";
+import { uploadMultipleDemoFileById, deleteDemoFile } from "@/api/demo-api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,14 @@ const formatNumber = (value: string): string => {
   return Number(numericValue).toLocaleString();
 };
 
+// 파일 타입 정의
+interface DemoFile {
+  id: number;
+  fileName: string;
+  fileUrl: string;
+  createdAt?: string;
+}
+
 interface DemoEditModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -56,6 +65,11 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
   const [isHandlerSelf, setIsHandlerSelf] = useState(false);
   const [selectedItems, setSelectedItems] = useState<SelectedDemoItem[]>([]);
   const [demoPriceDisplay, setDemoPriceDisplay] = useState("");
+
+  // 파일 관련 상태 추가
+  const [existingFiles, setExistingFiles] = useState<DemoFile[]>([]);
+  const [filesToDelete, setFilesToDelete] = useState<number[]>([]);
+  const [isFileUploading, setIsFileUploading] = useState(false);
 
   const [formData, setFormData] = useState<PatchDemoRequest>({
     handler: "",
@@ -148,6 +162,11 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
 
         setSelectedItems(existingItems);
 
+        // 기존 파일 초기화
+        setExistingFiles(demo.files || []);
+        setFilesToDelete([]);
+        fileUpload.resetFiles();
+
         setFormData({
           handler: demo.handler || "",
           demoManager: demo.demoManager || "",
@@ -214,6 +233,9 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       setSelectedItems([]);
       setDemoPriceDisplay("");
       setIsHandlerSelf(false);
+      setExistingFiles([]);
+      setFilesToDelete([]);
+      fileUpload.resetFiles();
     }
   }, [demo, isOpen, user]);
 
@@ -273,6 +295,37 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       demoAddress: fullAddress,
     }));
   };
+
+  // 기존 파일 삭제 처리
+  const handleDeleteExistingFile = useCallback((fileId: number) => {
+    setFilesToDelete((prev) => [...prev, fileId]);
+    setExistingFiles((prev) => prev.filter((file) => file.id !== fileId));
+  }, []);
+
+  // 파일 삭제 취소
+  const handleCancelDeleteFile = useCallback(
+    (fileId: number) => {
+      setFilesToDelete((prev) => prev.filter((id) => id !== fileId));
+      // 원래 파일 목록에서 복원
+      if (demo?.files) {
+        const originalFile = demo.files.find((file) => file.id === fileId);
+        if (originalFile) {
+          setExistingFiles((prev) => [...prev, originalFile]);
+        }
+      }
+    },
+    [demo?.files]
+  );
+
+  // 파일 다운로드
+  const handleDownloadFile = useCallback((file: DemoFile) => {
+    const link = document.createElement("a");
+    link.href = file.fileUrl;
+    link.download = file.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, []);
 
   // 폼 검증
   const validateForm = (): boolean => {
@@ -369,6 +422,32 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
 
     if (!validateForm() || !demo) return;
 
+    // 수정 내용 확인 다이얼로그 개선
+    const hasNewFiles = fileUpload.files.length > 0;
+    const hasDeletedFiles = filesToDelete.length > 0;
+    const hasFileChanges = hasNewFiles || hasDeletedFiles;
+
+    let confirmMessage = "시연 정보를 수정하시겠습니까?";
+
+    if (hasFileChanges) {
+      confirmMessage += "\n\n파일 변경사항:";
+      if (hasNewFiles) {
+        confirmMessage += `\n• 새 파일 ${fileUpload.files.length}개 추가`;
+      }
+      if (hasDeletedFiles) {
+        confirmMessage += `\n• 기존 파일 ${filesToDelete.length}개 삭제`;
+      }
+    }
+
+    confirmMessage +=
+      "\n\n※ 필요한 증빙서류(견적서, 시연 관련 자료 등)가 모두 첨부되었는지 확인해주세요.";
+
+    const isConfirmed = window.confirm(confirmMessage);
+
+    if (!isConfirmed) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -394,14 +473,31 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       });
 
       if (response.success) {
-        // 파일 업로드 처리
-        if (fileUpload.files.length > 0) {
-          await handleFileUpload(demo.id);
-        }
+        // 파일 처리
+        try {
+          // 삭제할 파일들 처리
+          if (filesToDelete.length > 0) {
+            setIsFileUploading(true);
+            for (const fileId of filesToDelete) {
+              await deleteDemoFile(demo.id, fileId);
+            }
+          }
 
-        toast.success("시연 기록이 수정되었습니다!");
-        onSuccess();
-        onClose();
+          // 새로 업로드할 파일들 처리
+          if (fileUpload.files.length > 0) {
+            setIsFileUploading(true);
+            await handleFileUpload(demo.id);
+          }
+
+          toast.success("시연 기록이 수정되었습니다!");
+          onSuccess();
+          onClose();
+        } catch (fileError) {
+          console.error("파일 처리 중 오류:", fileError);
+          toast.error(
+            "시연은 수정되었으나 파일 처리 중 오류가 발생했습니다. 다시 시도해주세요."
+          );
+        }
       } else {
         toast.error(response.message || "시연 기록 수정에 실패했습니다.");
       }
@@ -410,6 +506,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       toast.error("시연 기록 수정 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
+      setIsFileUploading(false);
     }
   };
 
@@ -902,6 +999,104 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                 </div>
               </div>
 
+              {/* 기존 파일 목록 */}
+              {existingFiles.length > 0 && (
+                <div className="mt-4">
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                    기존 첨부 파일
+                  </label>
+                  <div className="p-3 bg-gray-50 rounded-lg border">
+                    <ul className="space-y-2">
+                      {existingFiles.map((file) => (
+                        <li
+                          key={file.id}
+                          className="flex justify-between items-center p-2 bg-white rounded border"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="w-4 h-4 text-gray-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <span className="text-sm text-gray-700">
+                              {file.fileName}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadFile(file)}
+                              className="px-2 py-1 text-xs text-blue-600 bg-blue-50 rounded hover:bg-blue-100"
+                            >
+                              다운로드
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteExistingFile(file.id)}
+                              className="p-1 text-red-600 hover:text-red-800"
+                              title="파일 삭제"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {/* 삭제 예정 파일 목록 */}
+              {filesToDelete.length > 0 && (
+                <div className="mt-4">
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                    삭제 예정 파일 (취소 가능)
+                  </label>
+                  <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <ul className="space-y-2">
+                      {filesToDelete.map((fileId) => {
+                        const originalFile = demo.files.find(
+                          (file) => file.id === fileId
+                        );
+                        if (!originalFile) return null;
+                        return (
+                          <li
+                            key={fileId}
+                            className="flex justify-between items-center p-2 bg-yellow-100 rounded border border-yellow-300"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <AlertCircle className="w-4 h-4 text-yellow-600" />
+                              <span className="text-sm text-yellow-800">
+                                {originalFile.fileName}
+                              </span>
+                              <span className="text-xs text-yellow-600">
+                                (삭제 예정)
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelDeleteFile(fileId)}
+                              className="px-2 py-1 text-xs text-yellow-700 bg-yellow-200 rounded hover:bg-yellow-300"
+                            >
+                              삭제 취소
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               {/* 특이사항 */}
               <div className="mt-6">
                 <label className="block mb-1 text-sm font-medium text-gray-700">
@@ -956,13 +1151,13 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isFileUploading}
                 className="flex items-center px-4 py-2"
               >
-                {isSubmitting ? (
+                {isSubmitting || isFileUploading ? (
                   <>
                     <Loader2 className="mr-2 w-4 h-4 animate-spin" />
-                    수정 중...
+                    {isFileUploading ? "파일 처리 중..." : "수정 중..."}
                   </>
                 ) : (
                   <>

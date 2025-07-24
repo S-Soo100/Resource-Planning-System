@@ -660,11 +660,11 @@ const DemoRecordDetail = () => {
         DemoStatus.demoCompleted,
       ];
       const canChange = allowedStatuses.includes(currentStatus as DemoStatus);
-      console.log("📋 Admin 권한 체크:", {
-        allowedStatuses,
-        currentStatus,
-        canChange,
-      });
+      // console.log("📋 Admin 권한 체크:", {
+      //   allowedStatuses,
+      //   currentStatus,
+      //   canChange,
+      // });
       return canChange;
     }
 

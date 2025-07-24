@@ -344,11 +344,11 @@ const OrderRecordDetail = () => {
         OrderStatus.rejectedByShipper,
       ];
       const canChange = allowedStatuses.includes(currentStatus as OrderStatus);
-      console.log("📋 Admin 권한 체크:", {
-        allowedStatuses,
-        currentStatus,
-        canChange,
-      });
+      // console.log("📋 Admin 권한 체크:", {
+      //   allowedStatuses,
+      //   currentStatus,
+      //   canChange,
+      // });
       return canChange;
     }
 

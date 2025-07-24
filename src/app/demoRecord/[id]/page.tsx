@@ -1049,16 +1049,28 @@ const DemoRecordDetail = () => {
                           {demo.demoPaymentType}
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">시연 가격:</span>
-                        <span className="font-medium">
-                          {demo.demoPrice
-                            ? `${formatNumberWithCommas(
-                                demo.demoPrice
-                              )} ${currencyUnit}`
-                            : "-"}
-                        </span>
-                      </div>
+                      {demo.demoPaymentType !== "무료" && (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">시연 가격:</span>
+                            <span className="font-medium">
+                              {demo.demoPrice
+                                ? `${formatNumberWithCommas(
+                                    demo.demoPrice
+                                  )} ${currencyUnit}`
+                                : "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">결제 예정일:</span>
+                            <span className="font-medium">
+                              {demo.demoPaymentDate
+                                ? formatDate(demo.demoPaymentDate)
+                                : "-"}
+                            </span>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1144,13 +1156,33 @@ const DemoRecordDetail = () => {
                     </div>
                   </div>
                   {/* 시연 주소 정보 (상차/하차 정보 바로 아래) */}
-                  <div className="p-4 mt-2 mb-6 bg-gray-50 rounded-lg border border-gray-300">
-                    <span className="mr-2 font-semibold text-gray-600">
-                      시연 주소
-                    </span>
-                    <span className="text-gray-900 break-words">
-                      {demo.demoAddress}
-                    </span>
+                  <div className="p-4 mt-2 mb-6 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex gap-2 items-start mb-2">
+                      <svg
+                        className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      <h3 className="font-medium text-blue-900">시연 주소</h3>
+                    </div>
+                    <div className="pl-7">
+                      <p className="leading-relaxed text-gray-900 break-words">
+                        {demo.demoAddress}
+                      </p>
+                    </div>
                   </div>
                 </div>
 

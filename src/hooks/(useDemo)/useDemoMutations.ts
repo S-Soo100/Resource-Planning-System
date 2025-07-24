@@ -3,6 +3,7 @@ import {
   createDemo,
   updateDemoStatusById,
   updateDemoById,
+  deleteDemoById,
 } from "../../api/demo-api";
 import {
   DemoStatus,
@@ -70,6 +71,24 @@ export const useUpdateDemo = () => {
         await queryClient.invalidateQueries({ queryKey: ["demos"] });
         await queryClient.invalidateQueries({
           queryKey: ["demo", variables.id],
+        });
+      }
+    },
+  });
+};
+
+// 시연 삭제
+export const useDeleteDemo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => deleteDemoById(id),
+    onSuccess: async (response, variables) => {
+      if (response.success) {
+        // 데모 정보 캐시 무효화
+        await queryClient.invalidateQueries({ queryKey: ["demos"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["demo", variables],
         });
       }
     },

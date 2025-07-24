@@ -82,6 +82,15 @@ export const updateDemoStatusById = async (
   }
 };
 
+export const deleteDemoById = async (id: number): Promise<ApiResponse> => {
+  try {
+    const response = await api.delete<ApiResponse>(`/demo/${id}`);
+    return response.data;
+  } catch {
+    return { success: false, message: "시연 신청 삭제에 실패했습니다." };
+  }
+};
+
 // 시연 승인/거절
 // export const approveDemoById = async (
 //   id: number,

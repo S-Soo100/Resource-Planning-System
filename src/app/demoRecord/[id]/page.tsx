@@ -16,7 +16,10 @@ import {
   Ship,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useUpdateDemoStatus } from "@/hooks/(useDemo)/useDemoMutations";
+import {
+  useUpdateDemoStatus,
+  useDeleteDemo,
+} from "@/hooks/(useDemo)/useDemoMutations";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
@@ -383,6 +386,7 @@ const DemoRecordDetail = () => {
   const { user: auth } = useCurrentUser();
   const queryClient = useQueryClient();
   const updateDemoStatusMutation = useUpdateDemoStatus();
+  const deleteDemoMutation = useDeleteDemo();
   const { refetchAll: refetchWarehouseItems } = useWarehouseItems();
 
   // authStore에서 직접 로그인 상태 확인
@@ -455,6 +459,29 @@ const DemoRecordDetail = () => {
       setTimeout(() => {
         window.location.reload();
       }, 1000);
+    }
+  };
+
+  // 시연 삭제 핸들러
+  const handleDeleteDemo = async () => {
+    if (!demo) return;
+
+    if (
+      !confirm(
+        `시연 신청을 삭제하시겠습니까?\n\n시연 제목: ${demo.demoTitle}\n신청자: ${demo.requester}\n상태: ${demo.demoStatus}`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await deleteDemoMutation.mutateAsync(demo.id);
+      toast.success("시연 신청이 삭제되었습니다.");
+      // 시연 목록 페이지로 이동
+      router.push("/demonstration-record");
+    } catch (error) {
+      toast.error("시연 신청 삭제에 실패했습니다.");
+      console.error("시연 삭제 오류:", error);
     }
   };
 
@@ -829,14 +856,23 @@ const DemoRecordDetail = () => {
                         </div>
                       )}
                   </div>
-                  {/* 시연 수정 버튼 (맨 오른쪽) */}
+                  {/* 시연 수정/삭제 버튼 (맨 오른쪽) */}
                   {hasPermissionToEdit(demo) && (
-                    <button
-                      onClick={() => setIsEditModalOpen(true)}
-                      className="px-4 py-2 ml-auto text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
-                    >
-                      시연 수정
-                    </button>
+                    <div className="flex gap-2 ml-auto">
+                      <button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
+                      >
+                        시연 수정
+                      </button>
+                      <button
+                        onClick={handleDeleteDemo}
+                        disabled={deleteDemoMutation.isPending}
+                        className="px-4 py-2 text-white bg-red-500 rounded-lg transition-colors hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {deleteDemoMutation.isPending ? "삭제 중..." : "삭제"}
+                      </button>
+                    </div>
                   )}
                 </div>
 

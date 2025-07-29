@@ -67,6 +67,95 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.5.7 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.5.7
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-07-18
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                데모 코멘트 API 에러 수정, 사용자명 표시 문제 해결
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 수정됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("수정됨")}
+                  <h3 className="font-medium text-gray-900">수정됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>데모 코멘트 API 에러</strong>: 댓글
+                      불러오기/보내기 기능 완전 수정
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>데모 코멘트 사용자명 표시</strong>: 댓글
+                      작성자명이 &apos;익명&apos;으로 표시되는 문제 해결
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>댓글 수정 기능</strong>: 수정할 내용을 제대로
+                      전달하지 않는 문제 해결
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* 개선됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("개선됨")}
+                  <h3 className="font-medium text-gray-900">개선됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>
+                      <strong>데모 코멘트 디버깅</strong>: API 응답 및 댓글
+                      데이터 콘솔 로그 추가
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* 변경됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("변경됨")}
+                  <h3 className="font-medium text-gray-900">변경됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-blue-600">•</span>
+                    <span>
+                      <strong>데모 코멘트 타입 구조</strong>: DemoComment
+                      인터페이스 개선
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* v1.5.6 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">

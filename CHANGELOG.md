@@ -5,6 +5,35 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## v1.5.7 (2025-07-29)
+
+### 수정됨 (Fixed)
+
+- **데모 코멘트 API 에러**: 댓글 불러오기/보내기 기능 완전 수정
+  - 댓글 조회 API: `POST` → `GET` 메서드로 변경 (`/demo/${id}/comments`)
+  - 댓글 수정 API: 수정할 데이터(`content`)를 파라미터로 받도록 수정
+  - 댓글 삭제 API: 올바른 엔드포인트 사용 (`/demo/comments/${commentId}`)
+  - 에러 메시지: 각 API별로 적절한 에러 메시지로 변경
+- **데모 코멘트 사용자명 표시**: 댓글 작성자명이 '익명'으로 표시되는 문제 해결
+  - `DemoComment` 타입에 `userName` 필드 추가
+  - 댓글 표시 시 `userName` 우선, 없으면 `user.name`, 마지막으로 "익명" 표시
+  - 백엔드 API 응답 구조에 맞는 타입 정의 개선
+- **댓글 수정 기능**: 수정할 내용을 제대로 전달하지 않는 문제 해결
+  - 댓글 수정 뮤테이션에서 `UpdateDemoCommentDto` 데이터 전달
+  - 댓글 수정 핸들러에서 수정할 내용을 `data` 객체로 전달
+
+### 개선됨 (Improved)
+
+- **데모 코멘트 디버깅**: API 응답 및 댓글 데이터 콘솔 로그 추가
+  - 댓글 조회 시 API 응답 구조 확인 가능
+  - 실제 데이터 구조 파악을 위한 디버깅 로그 추가
+
+### 변경됨 (Changed)
+
+- **데모 코멘트 타입 구조**: `DemoComment` 인터페이스 개선
+  - `userName` 필드 추가로 백엔드 응답 구조와 일치
+  - `user` 객체를 선택적 필드로 변경하여 유연성 향상
+
 ## v1.5.6 (2025-07-18)
 
 ### 추가됨 (Added)

@@ -229,7 +229,10 @@ const DemoCommentSection: React.FC<{ demoId: number }> = ({ demoId }) => {
   // 댓글 수정 핸들러
   const handleEditComment = (commentId: number) => {
     if (!editingContent.trim()) return;
-    updateComment({ commentId });
+    updateComment({
+      commentId,
+      data: { content: editingContent.trim() },
+    });
     setEditingCommentId(null);
     setEditingContent("");
   };
@@ -271,7 +274,7 @@ const DemoCommentSection: React.FC<{ demoId: number }> = ({ demoId }) => {
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm font-medium text-gray-800">
-                    {comment.user?.name || "익명"}
+                    {comment.userName || comment.user?.name || "익명"}
                   </span>
                   <span className="text-xs text-gray-500">
                     {formatCommentDate(comment.createdAt)}

@@ -121,34 +121,40 @@ export const creatDemoCommentById = async (
 // 댓글 목록 조회
 export const getDemoCommentById = async (id: number): Promise<ApiResponse> => {
   try {
-    const response = await api.post<ApiResponse>(`/demo/${id}/comments`);
+    const response = await api.get<ApiResponse>(`/demo/${id}/comments`);
     return response.data;
   } catch {
-    return { success: false, message: "댓글 생성에 실패했습니다." };
+    return { success: false, message: "댓글 조회에 실패했습니다." };
   }
 };
 
 // 댓글 수정
 export const updateDemoCommentByCommentId = async (
-  comment: number
+  commentId: number,
+  data: { content: string }
 ): Promise<ApiResponse> => {
   try {
-    const response = await api.put<ApiResponse>(`/demo/comments/${comment}`);
+    const response = await api.put<ApiResponse>(
+      `/demo/comments/${commentId}`,
+      data
+    );
     return response.data;
   } catch {
-    return { success: false, message: "댓글 생성에 실패했습니다." };
+    return { success: false, message: "댓글 수정에 실패했습니다." };
   }
 };
 
-// 댓글 수정
+// 댓글 삭제
 export const deleteDemoCommentByCommentId = async (
-  comment: number
+  commentId: number
 ): Promise<ApiResponse> => {
   try {
-    const response = await api.delete<ApiResponse>(`/demo/comments/${comment}`);
+    const response = await api.delete<ApiResponse>(
+      `/demo/comments/${commentId}`
+    );
     return response.data;
   } catch {
-    return { success: false, message: "댓글 생성에 실패했습니다." };
+    return { success: false, message: "댓글 삭제에 실패했습니다." };
   }
 };
 

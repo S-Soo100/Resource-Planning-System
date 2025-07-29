@@ -32,6 +32,7 @@ import { Address } from "react-daum-postcode";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { TeamItem } from "@/types/(item)/team-item";
+import { useQueryClient } from "@tanstack/react-query";
 
 // 숫자 포맷팅 함수
 const formatNumber = (value: string): string => {
@@ -101,6 +102,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
   const fileUpload = useFileUpload();
   const { isAddressOpen, handleToggleAddressModal, handleCloseAddressModal } =
     useAddressSearch();
+  const queryClient = useQueryClient();
 
   // 시연 창고 필터링
   const demoWarehouses = React.useMemo(() => {
@@ -541,6 +543,11 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
             .join("\n");
           alert("[시연 수정] 응답에서 받은 품목 요약:\n" + summary);
         }
+        // ✅ 캐시 동기화: 상세/목록 쿼리 invalidate
+        await queryClient.invalidateQueries({ queryKey: ["demo", demo.id] });
+        await queryClient.invalidateQueries({
+          queryKey: ["demos", "team", demo.warehouse.teamId],
+        });
         // alert 이후에 페이지 이동/모달 닫기
         onSuccess();
         onClose();

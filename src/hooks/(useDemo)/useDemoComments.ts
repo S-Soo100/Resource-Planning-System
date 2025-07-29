@@ -12,10 +12,11 @@ export interface DemoComment {
   id: number;
   demoId: number;
   userId: number;
+  userName: string; // user.name 대신 userName 직접 사용
   content: string;
   createdAt: string;
   updatedAt: string;
-  user: {
+  user?: {
     id: number;
     name: string;
   };
@@ -42,8 +43,11 @@ export const useDemoComments = (demoId: number) => {
     queryKey: ["comments", "demo", demoId],
     queryFn: async () => {
       const res = await getDemoCommentById(demoId);
-      if (res.success && Array.isArray(res.data))
+      console.log("🔍 데모 댓글 API 응답:", res);
+      if (res.success && Array.isArray(res.data)) {
+        console.log("📝 데모 댓글 데이터:", res.data);
         return res.data as DemoComment[];
+      }
       return [];
     },
     enabled: !!demoId,
@@ -74,8 +78,13 @@ export const useDemoComments = (demoId: number) => {
 
   // 댓글 수정
   const updateCommentMutation = useMutation({
-    mutationFn: ({ commentId }: { commentId: number }) =>
-      updateDemoCommentByCommentId(commentId),
+    mutationFn: ({
+      commentId,
+      data,
+    }: {
+      commentId: number;
+      data: UpdateDemoCommentDto;
+    }) => updateDemoCommentByCommentId(commentId, data),
     onSuccess: (response) => {
       if (response.success) {
         queryClient.invalidateQueries({

@@ -114,7 +114,7 @@ export default function UpdatePage() {
                     <span className="mr-2 text-red-600">•</span>
                     <span>
                       <strong>댓글 수정 기능</strong>: 수정할 내용을 제대로
-                      전달하지 않는 문제 해결
+                      전달하지 않는 문제 해결 및 PUT → PATCH 메서드 변경
                     </span>
                   </li>
                 </ul>

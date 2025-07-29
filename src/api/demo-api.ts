@@ -134,7 +134,7 @@ export const updateDemoCommentByCommentId = async (
   data: { content: string }
 ): Promise<ApiResponse> => {
   try {
-    const response = await api.put<ApiResponse>(
+    const response = await api.patch<ApiResponse>(
       `/demo/comments/${commentId}`,
       data
     );

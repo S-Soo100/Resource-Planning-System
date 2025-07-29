@@ -39,6 +39,7 @@ import {
 } from "../common";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
+import { getSafeFileName, formatFileSize } from "@/utils/fileUtils";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,

@@ -33,6 +33,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { TeamItem } from "@/types/(item)/team-item";
 import { useQueryClient } from "@tanstack/react-query";
+import { getSafeFileName, formatFileSize } from "@/utils/fileUtils";
 
 // 숫자 포맷팅 함수
 const formatNumber = (value: string): string => {
@@ -1060,7 +1061,17 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                           key={index}
                           className="flex justify-between items-center p-2 bg-white rounded border"
                         >
-                          <span className="text-sm truncate">{file.name}</span>
+                          <div className="flex-1 min-w-0">
+                            <div
+                              className="text-sm truncate"
+                              title={getSafeFileName(file.name)}
+                            >
+                              {getSafeFileName(file.name)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {formatFileSize(file.size)}
+                            </div>
+                          </div>
                           <button
                             type="button"
                             onClick={() => fileUpload.handleRemoveFile(index)}
@@ -1104,7 +1115,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                               />
                             </svg>
                             <span className="text-sm text-gray-700">
-                              {file.fileName}
+                              {getSafeFileName(file.fileName)}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2">

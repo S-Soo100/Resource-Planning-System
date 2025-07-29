@@ -29,6 +29,7 @@ import LoginModal from "@/components/login/LoginModal";
 import { IAuth } from "@/types/(auth)/auth";
 import { authService } from "@/services/authService";
 import { authStore } from "@/store/authStore";
+import { getSafeFileName } from "@/utils/fileUtils";
 import {
   useDemoComments,
   CreateDemoCommentDto,
@@ -1319,7 +1320,7 @@ const DemoRecordDetail = () => {
                             </svg>
                             <div>
                               <div className="font-medium text-gray-900">
-                                {file.fileName}
+                                {getSafeFileName(file.fileName)}
                               </div>
                               {/* <div className="text-sm text-gray-500">
                                 업로드: {formatDate(demo.createdAt)}

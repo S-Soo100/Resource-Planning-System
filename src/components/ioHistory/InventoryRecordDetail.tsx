@@ -2,6 +2,7 @@ import React from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Download } from "lucide-react";
+import { getSafeFileName } from "@/utils/fileUtils";
 import { InventoryRecord } from "@/types/(inventoryRecord)/inventory";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 
@@ -176,9 +177,9 @@ export default function InventoryRecordDetail({
                   </svg>
                   <span
                     className="text-sm text-gray-800 truncate max-w-xs"
-                    title={file.fileName}
+                    title={getSafeFileName(file.fileName)}
                   >
-                    {file.fileName}
+                    {getSafeFileName(file.fileName)}
                   </span>
                   {file.size && (
                     <span className="text-xs text-gray-500 ml-2">
@@ -188,7 +189,7 @@ export default function InventoryRecordDetail({
                 </div>
                 <a
                   href={file.fileUrl}
-                  download={file.fileName}
+                  download={getSafeFileName(file.fileName)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"

@@ -81,7 +81,7 @@ export default function UpdatePage() {
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />
-                  2025-07-18
+                  2025-07-29
                 </div>
               </div>
               <p className="mt-2 text-gray-600">
@@ -170,7 +170,7 @@ export default function UpdatePage() {
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />
-                  2025-07-18
+                  2025-07-22
                 </div>
               </div>
               <p className="mt-2 text-gray-600">

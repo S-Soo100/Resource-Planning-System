@@ -19,6 +19,7 @@ import { Address } from "react-daum-postcode";
 import { useCreateDemo } from "@/hooks/(useDemo)/useDemoMutations";
 import { CreateDemoRequest, DemonstrationFormData } from "@/types/demo/demo";
 import { uploadMultipleDemoFileById } from "@/api/demo-api";
+import { getSafeFileName, formatFileSize } from "@/utils/fileUtils";
 
 const SimpleDemonstrationForm: React.FC = () => {
   const router = useRouter();
@@ -843,7 +844,17 @@ const SimpleDemonstrationForm: React.FC = () => {
                       key={index}
                       className="flex justify-between items-center p-2 bg-white rounded border"
                     >
-                      <span className="text-sm truncate">{file.name}</span>
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className="text-sm truncate"
+                          title={getSafeFileName(file.name)}
+                        >
+                          {getSafeFileName(file.name)}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {formatFileSize(file.size)}
+                        </div>
+                      </div>
                       <button
                         type="button"
                         onClick={() => fileUpload.handleRemoveFile(index)}

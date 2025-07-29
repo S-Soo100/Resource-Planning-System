@@ -13,6 +13,7 @@ import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { usePackages } from "@/hooks/usePackages";
 import { PackageApi } from "@/types/(item)/package";
 import { authStore } from "@/store/authStore";
+import { getSafeFileName, formatFileSize } from "@/utils/fileUtils";
 import { useQueryClient } from "@tanstack/react-query";
 import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -1329,7 +1330,17 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                         key={index}
                         className="flex justify-between items-center py-1"
                       >
-                        <span className="text-sm">{file.name}</span>
+                        <div className="flex-1 min-w-0">
+                          <div
+                            className="text-sm truncate"
+                            title={getSafeFileName(file.name)}
+                          >
+                            {getSafeFileName(file.name)}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {formatFileSize(file.size)}
+                          </div>
+                        </div>
                         <button
                           type="button"
                           onClick={() => handleRemoveFile(index)}
@@ -1373,7 +1384,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                             />
                           </svg>
                           <span className="text-sm text-gray-700">
-                            {file.fileName}
+                            {getSafeFileName(file.fileName)}
                           </span>
                         </div>
                         <div className="flex items-center space-x-1">

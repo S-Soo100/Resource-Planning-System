@@ -1,5 +1,6 @@
 import React from "react";
 import { Paperclip, X } from "lucide-react";
+import { getSafeFileName, formatFileSize } from "@/utils/fileUtils";
 
 interface FileUploadSectionProps {
   files: File[];
@@ -81,7 +82,17 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
                 key={index}
                 className="flex justify-between items-center p-2 bg-white rounded border"
               >
-                <span className="text-sm truncate">{file.name}</span>
+                <div className="flex-1 min-w-0">
+                  <div
+                    className="text-sm truncate"
+                    title={getSafeFileName(file.name)}
+                  >
+                    {getSafeFileName(file.name)}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {formatFileSize(file.size)}
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={() => onRemoveFile(index)}

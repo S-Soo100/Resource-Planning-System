@@ -727,9 +727,9 @@ const OrderRecordDetail = () => {
                               <div className="font-medium text-gray-900">
                                 {getSafeFileName(file.fileName)}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              {/* <div className="text-sm text-gray-500">
                                 업로드: {formatDate(file.createdAt)}
-                              </div>
+                              </div> */}
                             </div>
                           </div>
                           <button

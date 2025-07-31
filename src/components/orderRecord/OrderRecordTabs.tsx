@@ -1487,7 +1487,7 @@ const OrderRecordTabs = () => {
                                       <span className="text-xs font-medium text-gray-600 sm:text-sm">
                                         추가 요청사항:
                                       </span>
-                                      <span className="px-2 py-2 w-full text-xs text-right text-gray-800 bg-gray-50 rounded-md sm:text-sm">
+                                      <span className="px-2 py-2 w-full text-xs text-center text-gray-800 bg-gray-50 rounded-md sm:text-sm">
                                         {record.memo}
                                       </span>
                                     </div>

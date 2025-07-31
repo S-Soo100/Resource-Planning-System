@@ -651,16 +651,31 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                         </li>
                       ))}
                     </ul>
-                    {record.memo && (
-                      <div className="px-2 py-1 bg-gray-100">
-                        <span className="text-xs font-medium text-gray-600">
-                          추가 요청사항:{" "}
-                        </span>
-                        <span className="text-xs italic text-gray-800">
-                          {record.memo}
-                        </span>
-                      </div>
-                    )}
+                  </div>
+                </div>
+              )}
+              {/* 추가 요청사항 */}
+              {record.memo && (
+                <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center pb-1 mb-2 text-sm font-bold text-gray-700 border-b">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="mr-2 w-4 h-4 text-gray-500"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    추가 요청사항
+                  </div>
+                  <div className="flex flex-col justify-between items-start border-b border-gray-100 py-1.5 sm:py-2">
+                    <span className="w-full text-xs text-center text-gray-900 rounded-md sm:text-sm">
+                      {record.memo}
+                    </span>
                   </div>
                 </div>
               )}

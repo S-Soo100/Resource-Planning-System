@@ -1481,6 +1481,18 @@ const OrderRecordTabs = () => {
                                     </div>
                                   </div>
 
+                                  {/* 추가 요청사항 */}
+                                  {record.memo && (
+                                    <div className="flex flex-col  justify-between items-start border-b border-gray-100 py-1.5 sm:py-2">
+                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                        추가 요청사항:
+                                      </span>
+                                      <span className="px-2 py-2 w-full text-xs text-right text-gray-800 bg-gray-50 rounded-md sm:text-sm">
+                                        {record.memo}
+                                      </span>
+                                    </div>
+                                  )}
+
                                   <OrderCommentSection
                                     record={record}
                                     currentUser={currentUser}
@@ -1547,17 +1559,23 @@ const OrderRecordTabs = () => {
                                           주문 품목 목록
                                         </h4>
 
-                                        <div className="p-2 mb-3 bg-gray-50 rounded-lg sm:p-3">
-                                          <div className="flex justify-between items-center mb-2">
-                                            <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                              패키지:
-                                            </span>
-                                            <span className="text-xs text-gray-800 sm:text-sm">
-                                              {record.package?.packageName ||
-                                                "-"}
-                                            </span>
-                                          </div>
-                                        </div>
+                                        {/* 패키지 이름이 없거나 공백이거나 -면 안보이게 */}
+                                        {record.package?.packageName &&
+                                          record.package.packageName.trim() !==
+                                            "" &&
+                                          record.package.packageName !==
+                                            "-" && (
+                                            <div className="p-2 mb-3 bg-gray-50 rounded-lg sm:p-3">
+                                              <div className="flex justify-between items-center mb-2">
+                                                <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                                  패키지:
+                                                </span>
+                                                <span className="text-xs text-gray-800 sm:text-sm">
+                                                  {record.package.packageName}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          )}
 
                                         <div className="overflow-hidden bg-gray-50 rounded-lg">
                                           <div className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-100 text-xs sm:text-sm font-medium text-gray-600 flex justify-between">
@@ -1580,26 +1598,14 @@ const OrderRecordTabs = () => {
                                                     {item.quantity}개
                                                   </span>
                                                 </div>
-                                                {item.memo && (
+                                                {/* {item.memo && (
                                                   <p className="text-[10px] sm:text-xs text-gray-500 mt-1 italic">
                                                     메모: {item.memo}
                                                   </p>
-                                                )}
+                                                )} */}
                                               </li>
                                             ))}
                                           </ul>
-                                          {record.memo && (
-                                            <div className="py-1.5 sm:py-2 px-2 sm:px-3 bg-gray-100">
-                                              <p className="flex justify-between items-center">
-                                                <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                                  추가 요청사항:
-                                                </span>
-                                                <span className="text-xs italic text-gray-800 sm:text-sm">
-                                                  {record.memo}
-                                                </span>
-                                              </p>
-                                            </div>
-                                          )}
                                         </div>
                                       </div>
                                     )}

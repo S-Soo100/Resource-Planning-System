@@ -678,7 +678,7 @@ const OrderRecordDetail = () => {
                 {order.memo && (
                   <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
                     <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                      메모
+                      추가 요청사항
                     </h2>
                     <p className="text-gray-800 whitespace-pre-wrap">
                       {order.memo}

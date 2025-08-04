@@ -538,11 +538,10 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   //   };
   // }, [allOrderItems]);
 
-  // 연락처 유효성 검사
+  // 연락처 유효성 검사 - 형식 제한 없음
   const validatePhoneNumber = useCallback((phone: string): boolean => {
-    // 한국 전화번호 패턴 (010-xxxx-xxxx, 02-xxx-xxxx, 031-xxx-xxxx 등)
-    const phonePattern = /^(01[016789]|02|0[3-9]\d)-?\d{3,4}-?\d{4}$/;
-    return phonePattern.test(phone.replace(/\s/g, ""));
+    // 연락처는 비어있지 않으면 유효
+    return phone.trim().length > 0;
   }, []);
 
   // 날짜 유효성 검사
@@ -604,7 +603,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
     // 연락처 유효성 검사
     if (!validatePhoneNumber(formData.receiverPhone)) {
-      toast.error("올바른 연락처 형식을 입력해주세요. (예: 010-1234-5678)");
+      toast.error("수령인 연락처를 입력해주세요.");
       return false;
     }
 
@@ -687,7 +686,6 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         id: orderRecord.id.toString(),
         data: {
           title: formData.title, // 제목 필드 추가
-          userId: auth?.id ?? 0,
           manager: formData.manager,
           supplierId: formData.supplierId ?? null,
           packageId: formData.packageId ?? null,
@@ -1239,12 +1237,12 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 수령인 연락처
               </label>
               <input
-                type="tel"
+                type="text"
                 id="phone"
                 name="receiverPhone"
                 value={formData.receiverPhone}
                 onChange={handleChange}
-                placeholder="xxx-xxxx-xxxx"
+                placeholder="연락처를 입력해주세요"
                 className="p-2 w-full rounded border"
                 required
               />

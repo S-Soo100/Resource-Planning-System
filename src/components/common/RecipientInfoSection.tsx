@@ -46,12 +46,12 @@ const RecipientInfoSection: React.FC<RecipientInfoSectionProps> = ({
           수령인 연락처 <span className="text-red-500">*</span>
         </label>
         <input
-          type="tel"
+          type="text"
           id="receiverPhone"
           name="receiverPhone"
           value={receiverPhone}
           onChange={onChange}
-          placeholder="xxx-xxxx-xxxx"
+          placeholder="연락처를 입력해주세요"
           className={`px-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent`}
           required
         />

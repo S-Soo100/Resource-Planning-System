@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  User,
-  ChevronLeft,
-  X,
-  LogOut,
-  RefreshCcw,
-  UserCircle,
-} from "lucide-react";
+import { User, X, LogOut, RefreshCcw, UserCircle, Home } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { authStore } from "@/store/authStore";
@@ -68,8 +61,8 @@ const Appbar = () => {
           onClick={() => navigateByAuthStatus(router)}
           className="flex items-center text-blue-500 focus:outline-none"
         >
-          <ChevronLeft className="w-5 h-5" />
-          <span className="text-sm">뒤로</span>
+          <Home className="w-5 h-5" />
+          <span className="mx-2 text-sm">메인으로</span>
         </button>
       );
     }
@@ -125,7 +118,7 @@ const Appbar = () => {
             <User className="w-5 h-5 text-blue-500" />
           </button>
           {isMenuOpen && (
-            <div className="absolute right-0 z-50 w-48 mt-2 overflow-hidden bg-white border border-gray-100 shadow-lg rounded-xl">
+            <div className="overflow-hidden absolute right-0 z-50 mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg">
               <ul className="py-1">
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
@@ -134,19 +127,19 @@ const Appbar = () => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  <UserCircle className="w-4 h-4 mr-2 text-blue-500" />내 계정
+                  <UserCircle className="mr-2 w-4 h-4 text-blue-500" />내 계정
                 </li>
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={handleTeamReset}
                 >
-                  <RefreshCcw className="w-4 h-4 mr-2 text-blue-500" />팀 변경
+                  <RefreshCcw className="mr-2 w-4 h-4 text-blue-500" />팀 변경
                 </li>
                 <li
                   className="flex items-center text-sm text-red-500 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={logout}
                 >
-                  <LogOut className="w-4 h-4 mr-2 text-red-500" />
+                  <LogOut className="mr-2 w-4 h-4 text-red-500" />
                   로그아웃
                 </li>
               </ul>
@@ -164,7 +157,7 @@ const Appbar = () => {
             <User className="w-5 h-5 text-blue-500" />
           </button>
           {isMenuOpen && (
-            <div className="absolute right-0 z-50 w-48 mt-2 overflow-hidden bg-white border border-gray-100 shadow-lg rounded-xl">
+            <div className="overflow-hidden absolute right-0 z-50 mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg">
               <ul className="py-1">
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
@@ -173,19 +166,19 @@ const Appbar = () => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  <UserCircle className="w-4 h-4 mr-2 text-blue-500" />내 계정
+                  <UserCircle className="mr-2 w-4 h-4 text-blue-500" />내 계정
                 </li>
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={handleTeamReset}
                 >
-                  <RefreshCcw className="w-4 h-4 mr-2 text-blue-500" />팀 변경
+                  <RefreshCcw className="mr-2 w-4 h-4 text-blue-500" />팀 변경
                 </li>
                 <li
                   className="flex items-center text-sm text-red-500 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={logout}
                 >
-                  <LogOut className="w-4 h-4 mr-2 text-red-500" />
+                  <LogOut className="mr-2 w-4 h-4 text-red-500" />
                   로그아웃
                 </li>
               </ul>
@@ -197,7 +190,7 @@ const Appbar = () => {
   };
 
   return (
-    <div className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 text-gray-800 bg-white border-b border-gray-100 shadow-sm">
+    <div className="flex sticky top-0 z-50 justify-between items-center px-4 py-3 text-gray-800 bg-white border-b border-gray-100 shadow-sm">
       {renderLeftContent()}
       {renderRightContent()}
     </div>

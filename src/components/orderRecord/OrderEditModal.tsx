@@ -517,26 +517,26 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     document.body.removeChild(link);
   }, []);
 
-  // 재고 확인 로직
-  const validateStock = useCallback((): {
-    isValid: boolean;
-    insufficientItems: string[];
-  } => {
-    const insufficientItems: string[] = [];
+  // 재고 확인 로직 - 수정 시에는 재고 부족해도 수정 가능하도록 주석 처리
+  // const validateStock = useCallback((): {
+  //   isValid: boolean;
+  //   insufficientItems: string[];
+  // } => {
+  //   const insufficientItems: string[] = [];
 
-    allOrderItems.forEach((item) => {
-      if (!item.stockAvailable) {
-        insufficientItems.push(
-          `${item.teamItem.itemName} (요청: ${item.quantity}개, 재고: ${item.stockQuantity}개)`
-        );
-      }
-    });
+  //   allOrderItems.forEach((item) => {
+  //     if (!item.stockAvailable) {
+  //       insufficientItems.push(
+  //         `${item.teamItem.itemName} (요청: ${item.quantity}개, 재고: ${item.stockQuantity}개)`
+  //       );
+  //     }
+  //   });
 
-    return {
-      isValid: insufficientItems.length === 0,
-      insufficientItems,
-    };
-  }, [allOrderItems]);
+  //   return {
+  //     isValid: insufficientItems.length === 0,
+  //     insufficientItems,
+  //   };
+  // }, [allOrderItems]);
 
   // 연락처 유효성 검사
   const validatePhoneNumber = useCallback((phone: string): boolean => {
@@ -571,6 +571,10 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
     // 필수 입력 항목 검증
     const requiredFields = [
+      {
+        field: formData.title,
+        message: "발주 제목을 입력해주세요.",
+      },
       {
         field: formData.requester,
         message: "캥스터즈 영업 담당자 이름을 입력해주세요.",
@@ -611,19 +615,20 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
       return false;
     }
 
-    // 재고 확인
-    const stockValidation = validateStock();
-    if (!stockValidation.isValid) {
-      const itemList = stockValidation.insufficientItems.join("\n• ");
-      toast.error(
-        `다음 품목의 재고가 부족합니다:\n\n• ${itemList}\n\n수량을 조정하거나 담당자에게 문의하세요.`
-      );
-      return false;
-    }
+    // 재고 확인 - 수정 시에는 재고 부족해도 수정 가능하도록 제거
+    // const stockValidation = validateStock();
+    // if (!stockValidation.isValid) {
+    //   const itemList = stockValidation.insufficientItems.join("\n• ");
+    //   toast.error(
+    //     `다음 품목의 재고가 부족합니다:\n\n• ${itemList}\n\n수량을 조정하거나 담당자에게 문의하세요.`
+    //   );
+    //   return false;
+    // }
 
     return true;
   }, [
     allOrderItems.length,
+    formData.title,
     formData.requester,
     formData.receiver,
     formData.receiverPhone,
@@ -633,7 +638,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     formData.warehouseId,
     validatePhoneNumber,
     validateDates,
-    validateStock,
+    // validateStock, // 재고 검증 제거
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {

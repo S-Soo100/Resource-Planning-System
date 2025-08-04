@@ -511,39 +511,6 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       });
 
       if (response.success) {
-        // 응답에서 받은 demoItems alert로 출력 (페이지 이동 전에!)
-        const dataObj = response.data as Record<string, unknown>;
-        const demoItems =
-          dataObj && Array.isArray(dataObj.demoItems)
-            ? dataObj.demoItems
-            : null;
-        if (demoItems) {
-          // itemName, quantity만 추려서 보기 좋게 정리
-          const summary = (demoItems as Record<string, unknown>[])
-            .map((item) => {
-              let name = "";
-              if (typeof item.itemName === "string") {
-                name = item.itemName;
-              } else if (
-                item.item &&
-                typeof item.item === "object" &&
-                "teamItem" in item.item &&
-                item.item.teamItem &&
-                typeof item.item.teamItem === "object" &&
-                "itemName" in item.item.teamItem &&
-                typeof item.item.teamItem.itemName === "string"
-              ) {
-                name = item.item.teamItem.itemName;
-              } else if (item.itemId) {
-                name = String(item.itemId);
-              } else {
-                name = "알수없음";
-              }
-              return `${name}: ${item.quantity}개`;
-            })
-            .join("\n");
-          alert("[시연 수정] 응답에서 받은 품목 요약:\n" + summary);
-        }
         // ✅ 캐시 동기화: 상세/목록 쿼리 invalidate
         await queryClient.invalidateQueries({ queryKey: ["demo", demo.id] });
         await queryClient.invalidateQueries({

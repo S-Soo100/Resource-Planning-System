@@ -20,7 +20,7 @@ import { Address } from "react-daum-postcode";
 import { useCreateDemo } from "@/hooks/(useDemo)/useDemoMutations";
 import { CreateDemoRequest, DemonstrationFormData } from "@/types/demo/demo";
 import { uploadMultipleDemoFileById } from "@/api/demo-api";
-import { getSafeFileName, formatFileSize } from "@/utils/fileUtils";
+import { getDisplayFileName, formatFileSize } from "@/utils/fileUtils";
 
 const SimpleDemonstrationForm: React.FC = () => {
   const router = useRouter();
@@ -847,9 +847,9 @@ const SimpleDemonstrationForm: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <div
                           className="text-sm truncate"
-                          title={getSafeFileName(file.name)}
+                          title={getDisplayFileName(file.name)}
                         >
-                          {getSafeFileName(file.name)}
+                          {getDisplayFileName(file.name)}
                         </div>
                         <div className="text-xs text-gray-500">
                           {formatFileSize(file.size)}

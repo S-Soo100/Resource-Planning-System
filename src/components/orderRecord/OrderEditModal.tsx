@@ -13,7 +13,7 @@ import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { usePackages } from "@/hooks/usePackages";
 import { PackageApi } from "@/types/(item)/package";
 import { authStore } from "@/store/authStore";
-import { getSafeFileName, formatFileSize } from "@/utils/fileUtils";
+import { getDisplayFileName, formatFileSize } from "@/utils/fileUtils";
 import { useQueryClient } from "@tanstack/react-query";
 import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -1355,9 +1355,9 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                         <div className="flex-1 min-w-0">
                           <div
                             className="text-sm truncate"
-                            title={getSafeFileName(file.name)}
+                            title={getDisplayFileName(file.name)}
                           >
-                            {getSafeFileName(file.name)}
+                            {getDisplayFileName(file.name)}
                           </div>
                           <div className="text-xs text-gray-500">
                             {formatFileSize(file.size)}
@@ -1406,7 +1406,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                             />
                           </svg>
                           <span className="text-sm text-gray-700">
-                            {getSafeFileName(file.fileName)}
+                            {getDisplayFileName(file.fileName)}
                           </span>
                         </div>
                         <div className="flex items-center space-x-1">

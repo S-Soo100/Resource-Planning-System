@@ -171,28 +171,28 @@ const MainMenu = () => {
   // 관리자 메뉴
   const adminMenuItems = [
     {
-      title: "패키지 등록 및 관리",
-      subtitle: "발주용 패키지를 구성하고 관리합니다",
-      icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/package`, ["admin", "user", "moderator"]),
-      accessLevel: ["user", "admin", "moderator"],
-    },
-    {
-      title: "전체 물품, 카테고리 등록",
+      title: "1. 전체 물품, 카테고리 등록",
       subtitle: "팀에서 사용하는 모든 카테고리와 품목을 관리합니다",
       icon: <FaBox className="text-3xl" />,
       onClick: () => checkAccess(`/team-items`, ["admin", "moderator"]),
       accessLevel: ["admin", "moderator"],
     },
     {
-      title: "창고별 관리물품 등록",
+      title: "2. 창고별 관리물품 등록",
       subtitle: "각 창고에 보관된 품목을 관리합니다",
       icon: <FaBox className="text-3xl" />,
       onClick: () => checkAccess(`/warehouse-items`, ["admin", "moderator"]),
       accessLevel: ["admin", "moderator"],
     },
     {
-      title: "관리 - 팀멤버, 창고 관리",
+      title: "3. 패키지 등록 및 관리",
+      subtitle: "발주용 패키지를 구성하고 관리합니다",
+      icon: <PiNewspaperClippingFill className="text-3xl" />,
+      onClick: () => checkAccess(`/package`, ["admin", "user", "moderator"]),
+      accessLevel: ["user", "admin", "moderator"],
+    },
+    {
+      title: "4. 관리 - 팀멤버, 창고 관리",
       subtitle: "팀 구성원 추가, 창고 추가",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () => checkAccess(`/admin`, ["admin", "moderator"]),
@@ -333,7 +333,7 @@ const MainMenu = () => {
       </div>
 
       {/* 메뉴 아이템 그리드 */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
         {currentTab.items
           .filter((item) => item.accessLevel.includes(user.accessLevel))
           .map((item, index) => (

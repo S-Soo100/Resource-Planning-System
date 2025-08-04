@@ -3,6 +3,7 @@ import { OrderComment } from "./orderComment";
 
 export interface IOrderRecord {
   id: number;
+  title: string; // 제목 필드 추가
   userId: number;
   supplierId: number;
   packageId: number;

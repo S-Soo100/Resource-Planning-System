@@ -11,6 +11,7 @@ export interface OrdersResponse extends ApiResponse {
 
 export interface Order {
   id: number;
+  title: string; //! 신규 추가한 필드!!
   userId: number;
   supplierId: number;
   packageId: number;
@@ -103,6 +104,7 @@ export enum OrderStatus {
 
 export interface CreateOrderDto {
   userId: number;
+  title: string; // 제목 필드 추가
   supplierId: number | null;
   packageId: number | null;
   warehouseId: number;
@@ -126,6 +128,7 @@ export interface CreateOrderItemRequest {
 }
 
 export interface UpdateOrderDto {
+  title?: string; // 제목 필드 추가
   requester?: string;
   receiver?: string;
   receiverPhone?: string;
@@ -145,6 +148,7 @@ export interface UpdateOrderStatusDto {
 
 export interface CreatOrderResponse {
   id: number;
+  title: string; // 제목 필드 추가
   userId: number;
   supplierId: number;
   packageId: number;

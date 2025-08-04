@@ -4,6 +4,7 @@ import { ApiResponse } from "../common";
 import { Item } from "../(item)/item";
 
 export type OrderRequestFormData = {
+  title: string; // 제목 필드 추가
   supplierId?: number | null | undefined;
   packageId?: number | null | undefined;
   warehouseId?: number | null | undefined;

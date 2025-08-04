@@ -5,6 +5,44 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## v1.5.8 (2025-01-27)
+
+### 추가됨 (Added)
+
+- **Order 제목 필드**: 발주 시스템에 제목(title) 필드 추가
+  - Order 인터페이스에 title 필드 추가
+  - CreateOrderDto, UpdateOrderDto, CreatOrderResponse에 title 필드 추가
+  - OrderRequestFormData 타입에 title 필드 추가
+  - IOrderRecord 인터페이스에 title 필드 추가
+- **발주 폼 제목 입력**: 모든 발주 폼에 제목 입력 필드 추가
+  - OrderRequestForm: 일반 발주 요청 폼에 제목 입력 필드 추가
+  - OrderEditModal: 발주 수정 모달에 제목 입력 필드 추가
+  - WheelchairOrderForm: 휠체어 발주 폼에 제목 입력 필드 추가
+- **발주 목록 제목 표시**: OrderRecordTabs에서 제목 컬럼 추가
+  - 테이블 헤더에 "제목" 컬럼 추가
+  - 데스크톱/모바일 UI 모두에서 제목 표시
+  - 제목이 없는 경우 "제목 없음" 표시
+- **제목 필드 검증**: 모든 발주 폼에서 제목 필수 입력 검증 추가
+  - validateForm 함수에 title 필드 검증 로직 추가
+  - 제목이 비어있을 경우 에러 메시지 표시
+
+### 개선됨 (Improved)
+
+- **발주 목록 UI**: 제목 컬럼 추가로 더 명확한 발주 식별 가능
+  - 테이블 레이아웃 최적화 (컬럼 너비 조정)
+  - 제목 툴팁으로 긴 제목 전체 내용 확인 가능
+  - 모바일 UI에서 제목을 첫 번째 줄에 표시하여 가독성 향상
+- **사용자 경험**: 제목 입력으로 발주 목적과 내용을 더 쉽게 파악 가능
+  - 발주 요청 시 제목 입력으로 명확한 식별자 제공
+  - 발주 목록에서 제목으로 빠른 검색 및 식별 가능
+
+### 수정됨 (Fixed)
+
+- **타입 호환성**: Order 관련 모든 타입에 title 필드 일관성 있게 추가
+  - convertToOrderRecord 함수에서 title 필드 매핑 추가
+  - orderService에서 title 필드 처리 추가
+  - 모든 발주 관련 컴포넌트에서 title 필드 지원
+
 ## v1.5.7 (2025-07-29)
 
 ### 수정됨 (Fixed)

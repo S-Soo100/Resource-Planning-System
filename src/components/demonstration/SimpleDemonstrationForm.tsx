@@ -665,7 +665,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                 시연기관 담당자 연락처 <span className="text-red-500">*</span>
               </label>
               <Input
-                type="tel"
+                type="text"
                 name="demoManagerPhone"
                 value={formData.demoManagerPhone}
                 onChange={handleInputChange}
@@ -703,6 +703,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                   placeholder="상차 일자와 시간을 선택하세요"
                   helperText="시연품을 창고에서 출고하는 일정입니다"
                   minDate={new Date().toISOString().split("T")[0]}
+                  businessHours={{ start: "00:00", end: "23:30" }}
                 />
               </div>
 
@@ -765,6 +766,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                     formData.demoStartDate ||
                     new Date().toISOString().split("T")[0]
                   }
+                  businessHours={{ start: "00:00", end: "23:30" }}
                 />
               </div>
 

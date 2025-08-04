@@ -67,6 +67,95 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.6.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.6.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-08-04
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                주문 품목 목록 UI 개선 및 제목 자동 생성 기능 추가
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 추가됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("추가됨")}
+                  <h3 className="font-medium text-gray-900">추가됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-green-600">•</span>
+                    <span>
+                      <strong>제목 자동 생성 기능</strong>: 발주 제목이 없을 때
+                      자동으로 의미있는 제목 생성
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-green-600">•</span>
+                    <span>
+                      <strong>아이템 코드 표시</strong>: 주문 품목 목록에서
+                      아이템 이름과 함께 코드 표시
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* 개선됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("개선됨")}
+                  <h3 className="font-medium text-gray-900">개선됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>
+                      <strong>주문 품목 목록 UI 개선</strong>: PC 버전에서 더
+                      나은 가독성과 사용성 제공
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>
+                      <strong>발주 목록 가독성 향상</strong>: 제목 자동 생성으로
+                      더 명확한 발주 식별
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* 변경됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("변경됨")}
+                  <h3 className="font-medium text-gray-900">변경됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-blue-600">•</span>
+                    <span>
+                      <strong>PC 레이아웃 구조</strong>: 발주 상세 정보 표시
+                      방식 개선
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* v1.5.8 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,13 +164,10 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.5.8
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />
-                  2025-01-27
+                  2025-08-01
                 </div>
               </div>
               <p className="mt-2 text-gray-600">
@@ -99,25 +185,29 @@ export default function UpdatePage() {
                   <li className="flex items-start">
                     <span className="mr-2 text-green-600">•</span>
                     <span>
-                      <strong>Order 제목 필드</strong>: 발주 시스템에 제목(title) 필드 추가
+                      <strong>Order 제목 필드</strong>: 발주 시스템에
+                      제목(title) 필드 추가
                     </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-green-600">•</span>
                     <span>
-                      <strong>발주 폼 제목 입력</strong>: 모든 발주 폼에 제목 입력 필드 추가
+                      <strong>발주 폼 제목 입력</strong>: 모든 발주 폼에 제목
+                      입력 필드 추가
                     </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-green-600">•</span>
                     <span>
-                      <strong>발주 목록 제목 표시</strong>: OrderRecordTabs에서 제목 컬럼 추가
+                      <strong>발주 목록 제목 표시</strong>: OrderRecordTabs에서
+                      제목 컬럼 추가
                     </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-green-600">•</span>
                     <span>
-                      <strong>제목 필드 검증</strong>: 모든 발주 폼에서 제목 필수 입력 검증 추가
+                      <strong>제목 필드 검증</strong>: 모든 발주 폼에서 제목
+                      필수 입력 검증 추가
                     </span>
                   </li>
                 </ul>
@@ -133,13 +223,15 @@ export default function UpdatePage() {
                   <li className="flex items-start">
                     <span className="mr-2 text-orange-600">•</span>
                     <span>
-                      <strong>발주 목록 UI</strong>: 제목 컬럼 추가로 더 명확한 발주 식별 가능
+                      <strong>발주 목록 UI</strong>: 제목 컬럼 추가로 더 명확한
+                      발주 식별 가능
                     </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-orange-600">•</span>
                     <span>
-                      <strong>사용자 경험</strong>: 제목 입력으로 발주 목적과 내용을 더 쉽게 파악 가능
+                      <strong>사용자 경험</strong>: 제목 입력으로 발주 목적과
+                      내용을 더 쉽게 파악 가능
                     </span>
                   </li>
                 </ul>
@@ -155,7 +247,8 @@ export default function UpdatePage() {
                   <li className="flex items-start">
                     <span className="mr-2 text-red-600">•</span>
                     <span>
-                      <strong>타입 호환성</strong>: Order 관련 모든 타입에 title 필드 일관성 있게 추가
+                      <strong>타입 호환성</strong>: Order 관련 모든 타입에 title
+                      필드 일관성 있게 추가
                     </span>
                   </li>
                 </ul>

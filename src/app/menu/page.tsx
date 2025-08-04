@@ -64,7 +64,7 @@ export default function MenuPage() {
         </div>
 
         {/* Footer */}
-        <div className="fixed bottom-0 w-full px-4 py-3 bg-white shadow-inner">
+        <div className="fixed bottom-0 w-full px-4 py-3 bg-white shadow-inner max-h-20">
           <div className="max-w-2xl mx-auto">
             <div className="flex flex-col items-center justify-center text-center">
               <Link
@@ -92,7 +92,7 @@ export default function MenuPage() {
       </div>
 
       {/* Footer */}
-      <div className="w-full px-4 py-3 mb-2 bg-white shadow-inner">
+      <div className="fixed bottom-0 left-0 right-0 w-full px-4 py-3 bg-white shadow-inner max-h-20">
         <div className="max-w-2xl mx-auto">
           <div className="flex flex-col items-center justify-center text-center">
             <Link

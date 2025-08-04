@@ -887,6 +887,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                       placeholder="상차 일자와 시간을 선택하세요"
                       helperText="시연품을 창고에서 출고하는 일정입니다"
                       minDate={new Date().toISOString().split("T")[0]}
+                      businessHours={{ start: "00:00", end: "23:30" }}
                     />
                   </div>
 
@@ -949,6 +950,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                         formData.demoStartDate ||
                         new Date().toISOString().split("T")[0]
                       }
+                      businessHours={{ start: "00:00", end: "23:30" }}
                     />
                   </div>
 

@@ -3,8 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useOrder } from "@/hooks/useOrder";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
-import { OrderComment } from "@/types/(order)/orderComment";
-import { IUser } from "@/types/(auth)/user";
 import { authStore } from "@/store/authStore";
 import { useSuppliers } from "@/hooks/useSupplier";
 import { Supplier } from "@/types/supplier";
@@ -21,7 +19,6 @@ import {
   User,
   Package,
   Truck,
-  Trash2,
   // ArrowLeft,
 } from "lucide-react";
 // import { useRouter } from "next/navigation";
@@ -33,12 +30,6 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import dynamic from "next/dynamic";
 import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import {
-  useOrderComments,
-  type CreateOrderCommentDto,
-  type UpdateOrderCommentDto,
-} from "@/hooks/useOrderComments";
-import { useDeleteOrder } from "@/hooks/(useOrder)/useOrderMutations";
 import OrderEditModal from "./OrderEditModal";
 
 // 사용자 접근 레벨 타입 추가
@@ -164,8 +155,8 @@ const OrderRecordTabs = () => {
   // 주문 상태 업데이트 hook 추가
   const updateOrderStatusMutation = useUpdateOrderStatus();
 
-  // 주문 삭제 hook 추가
-  const deleteOrderMutation = useDeleteOrder();
+  // 주문 삭제 hook - 확장 기능 제거로 인해 주석 처리
+  // const deleteOrderMutation = useDeleteOrder();
 
   // 현재 로그인한 사용자 ID 가져오기
   useEffect(() => {
@@ -485,20 +476,11 @@ const OrderRecordTabs = () => {
     }
   };
 
-  // 행 클릭 핸들러 추가
+  // 행 클릭 핸들러 - 상세 페이지로 이동
   const handleRowClick = (recordId: number) => {
-    // 이미 확장된 행을 다시 클릭하면 접기
-    if (expandedRowId === recordId) {
-      setExpandedRowId(null);
-    } else {
-      // 다른 행을 클릭하면 해당 행 확장
-      setExpandedRowId(recordId);
-    }
-
-    // URL에 발주 ID 파라미터 추가
-    const url = new URL(window.location.href);
-    url.searchParams.set("orderId", recordId.toString());
-    window.history.pushState({}, "", url.toString());
+    const teamId = currentTeamId;
+    const url = `/orderRecord/${recordId}?teamId=${teamId}`;
+    window.open(url, "_blank");
   };
 
   // 데이터 새로고침 핸들러 수정
@@ -680,21 +662,21 @@ const OrderRecordTabs = () => {
     return isAuthor && isRequestedStatus;
   };
 
-  // 삭제 권한 확인 함수 추가
-  const canDeleteOrder = (record: IOrderRecord) => {
-    if (!auth) return false;
+  // 삭제 권한 확인 함수 - 확장 기능 제거로 인해 주석 처리
+  // const canDeleteOrder = (record: IOrderRecord) => {
+  //   if (!auth) return false;
 
-    const isAdmin = auth.isAdmin;
-    const isAuthor = record.userId === auth.id;
+  //   const isAdmin = auth.isAdmin;
+  //   const isAuthor = record.userId === auth.id;
 
-    // admin인 경우 상태에 상관없이 삭제 가능
-    if (isAdmin) return true;
+  //   // admin인 경우 상태에 상관없이 삭제 가능
+  //   if (isAdmin) return true;
 
-    // 일반 사용자는 자신이 작성한 requested 상태의 발주만 삭제 가능
-    const isRequestedStatus =
-      record.status === OrderStatus.requested || record.status === "주문 접수";
-    return isAuthor && isRequestedStatus;
-  };
+  //   // 일반 사용자는 자신이 작성한 requested 상태의 발주만 삭제 가능
+  //   const isRequestedStatus =
+  //     record.status === OrderStatus.requested || record.status === "주문 접수";
+  //   return isAuthor && isRequestedStatus;
+  // };
 
   // 수정 모달 열기 핸들러
   const handleEditClick = (record: IOrderRecord) => {
@@ -708,162 +690,162 @@ const OrderRecordTabs = () => {
     setSelectedOrderForEdit(null);
   };
 
-  // 발주 삭제 핸들러
-  const handleDeleteOrder = async (record: IOrderRecord) => {
-    if (
-      !confirm(
-        `발주 건을 삭제하시겠습니까?\n\n발주자: ${record.requester}\n수령자: ${
-          record.receiver
-        }\n상태: ${getStatusText(record.status)}`
-      )
-    ) {
-      return;
-    }
+  // 발주 삭제 핸들러 - 확장 기능 제거로 인해 주석 처리
+  // const handleDeleteOrder = async (record: IOrderRecord) => {
+  //   if (
+  //     !confirm(
+  //       `발주 건을 삭제하시겠습니까?\n\n발주자: ${record.requester}\n수령자: ${
+  //         record.receiver
+  //       }\n상태: ${getStatusText(record.status)}`
+  //     )
+  //   ) {
+  //     return;
+  //   }
 
-    try {
-      await deleteOrderMutation.mutateAsync(record.id.toString());
-      toast.success("발주가 삭제되었습니다.");
-    } catch (error) {
-      toast.error("발주 삭제에 실패했습니다.");
-      console.error("발주 삭제 오류:", error);
-    }
-  };
+  //   try {
+  //     await deleteOrderMutation.mutateAsync(record.id.toString());
+  //     toast.success("발주가 삭제되었습니다.");
+  //   } catch (error) {
+  //     toast.error("발주 삭제에 실패했습니다.");
+  //     console.error("발주 삭제 오류:", error);
+  //   }
+  // };
 
-  // 상태 변경 드롭다운 컴포넌트
-  const StatusDropdown = ({ record }: { record: IOrderRecord }) => {
-    // 권한이 없는 경우 상태만 표시
-    if (!hasPermissionToChangeStatus()) {
-      return (
-        <div className="flex gap-2 items-center">
-          <div
-            className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
-              record.status
-            )}`}
-          >
-            {getStatusIcon(record.status)}
-            {getStatusText(record.status)}
-          </div>
-        </div>
-      );
-    }
+  // 상태 변경 드롭다운 컴포넌트 - 확장 기능 제거로 인해 주석 처리
+  // const StatusDropdown = ({ record }: { record: IOrderRecord }) => {
+  //   // 권한이 없는 경우 상태만 표시
+  //   if (!hasPermissionToChangeStatus()) {
+  //     return (
+  //       <div className="flex gap-2 items-center">
+  //         <div
+  //           className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
+  //             record.status
+  //           )}`}
+  //         >
+  //           {getStatusIcon(record.status)}
+  //           {getStatusText(record.status)}
+  //         </div>
+  //       </div>
+  //     );
+  //   }
 
-    // 출고 완료 상태인 경우 상태만 표시하고 변경 불가
-    if (record.status === OrderStatus.shipmentCompleted) {
-      return (
-        <div className="flex gap-2 items-center">
-          <div
-            className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
-              record.status
-            )} cursor-not-allowed`}
-            title="출고 완료된 주문은 상태를 변경할 수 없습니다"
-          >
-            {getStatusIcon(record.status)}
-            {getStatusText(record.status)}
-          </div>
-        </div>
-      );
-    }
+  //   // 출고 완료 상태인 경우 상태만 표시하고 변경 불가
+  //   if (record.status === OrderStatus.shipmentCompleted) {
+  //     return (
+  //       <div className="flex gap-2 items-center">
+  //         <div
+  //           className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
+  //             record.status
+  //           )} cursor-not-allowed`}
+  //           title="출고 완료된 주문은 상태를 변경할 수 없습니다"
+  //         >
+  //           {getStatusIcon(record.status)}
+  //           {getStatusText(record.status)}
+  //         </div>
+  //       </div>
+  //     );
+  //   }
 
-    // admin 권한 사용자의 경우 특정 상태일 때만 드롭다운 표시
-    if (userAccessLevel === "admin") {
-      const allowedStatusesForAdmin = [
-        OrderStatus.approved,
-        OrderStatus.confirmedByShipper,
-        OrderStatus.shipmentCompleted,
-        OrderStatus.rejectedByShipper,
-      ];
+  //   // admin 권한 사용자의 경우 특정 상태일 때만 드롭다운 표시
+  //   if (userAccessLevel === "admin") {
+  //     const allowedStatusesForAdmin = [
+  //       OrderStatus.approved,
+  //       OrderStatus.confirmedByShipper,
+  //       OrderStatus.shipmentCompleted,
+  //       OrderStatus.rejectedByShipper,
+  //     ];
 
-      if (!allowedStatusesForAdmin.includes(record.status as OrderStatus)) {
-        return (
-          <div className="flex gap-2 items-center">
-            <div
-              className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
-                record.status
-              )}`}
-            >
-              {getStatusIcon(record.status)}
-              {getStatusText(record.status)}
-            </div>
-          </div>
-        );
-      }
-    }
+  //     if (!allowedStatusesForAdmin.includes(record.status as OrderStatus)) {
+  //       return (
+  //         <div className="flex gap-2 items-center">
+  //           <div
+  //             className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
+  //               record.status
+  //             )}`}
+  //           >
+  //             {getStatusIcon(record.status)}
+  //             {getStatusText(record.status)}
+  //           </div>
+  //         </div>
+  //       );
+  //     }
+  //   }
 
-    // 권한이 있는 경우 드롭다운과 현재 상태 표시
-    return (
-      <div className="flex gap-3 items-center">
-        {/* 현재 상태 표시 */}
-        <div className="flex gap-2 items-center">
-          <div
-            className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
-              record.status
-            )}`}
-          >
-            {getStatusIcon(record.status)}
-            {getStatusText(record.status)}
-          </div>
-        </div>
+  //   // 권한이 있는 경우 드롭다운과 현재 상태 표시
+  //   return (
+  //     <div className="flex gap-3 items-center">
+  //       {/* 현재 상태 표시 */}
+  //       <div className="flex gap-2 items-center">
+  //         <div
+  //           className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
+  //             record.status
+  //           )}`}
+  //         >
+  //           {getStatusIcon(record.status)}
+  //           {getStatusText(record.status)}
+  //         </div>
+  //       </div>
 
-        {/* 상태 변경 드롭다운 */}
-        <div className="relative">
-          <select
-            value={record.status}
-            onChange={(e) =>
-              handleStatusChange(record.id, e.target.value as OrderStatus)
-            }
-            disabled={isUpdatingStatus === record.id}
-            className="px-3 py-1.5 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white border border-gray-300 hover:border-gray-400 transition-colors"
-          >
-            {/* 권한에 따라 다른 선택지 표시 */}
-            {userAccessLevel === "moderator" ? (
-              // Moderator: 요청, 승인, 반려만 가능 (단, 본인 발주는 승인/반려 불가)
-              <>
-                <option value={OrderStatus.requested}>요청</option>
-                <option
-                  value={OrderStatus.approved}
-                  disabled={record.userId === auth?.id}
-                >
-                  승인{record.userId === auth?.id ? " (본인 발주)" : ""}
-                </option>
-                <option
-                  value={OrderStatus.rejected}
-                  disabled={record.userId === auth?.id}
-                >
-                  반려{record.userId === auth?.id ? " (본인 발주)" : ""}
-                </option>
-              </>
-            ) : userAccessLevel === "admin" ? (
-              // Admin: 출고팀 확인, 출고 완료, 출고 보류만 가능
-              <>
-                <option value={OrderStatus.confirmedByShipper}>
-                  출고팀 확인
-                </option>
-                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
-                <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
-              </>
-            ) : (
-              // 기본값 (권한이 없는 경우)
-              <>
-                <option value={OrderStatus.requested}>요청</option>
-                <option value={OrderStatus.approved}>승인</option>
-                <option value={OrderStatus.rejected}>반려</option>
-                <option value={OrderStatus.confirmedByShipper}>
-                  출고팀 확인
-                </option>
-                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
-                <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
-              </>
-            )}
-          </select>
-          {isUpdatingStatus === record.id && (
-            <div className="flex absolute inset-0 justify-center items-center bg-gray-100 bg-opacity-50 rounded-md">
-              <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  //       {/* 상태 변경 드롭다운 */}
+  //       <div className="relative">
+  //         <select
+  //           value={record.status}
+  //           onChange={(e) =>
+  //             handleStatusChange(record.id, e.target.value as OrderStatus)
+  //           }
+  //           disabled={isUpdatingStatus === record.id}
+  //           className="px-3 py-1.5 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white border border-gray-300 hover:border-gray-400 transition-colors"
+  //         >
+  //           {/* 권한에 따라 다른 선택지 표시 */}
+  //           {userAccessLevel === "moderator" ? (
+  //             // Moderator: 요청, 승인, 반려만 가능 (단, 본인 발주는 승인/반려 불가)
+  //             <>
+  //               <option value={OrderStatus.requested}>요청</option>
+  //               <option
+  //                 value={OrderStatus.approved}
+  //                 disabled={record.userId === auth?.id}
+  //               >
+  //                 승인{record.userId === auth?.id ? " (본인 발주)" : ""}
+  //               </option>
+  //               <option
+  //                 value={OrderStatus.rejected}
+  //                 disabled={record.userId === auth?.id}
+  //               >
+  //                 반려{record.userId === auth?.id ? " (본인 발주)" : ""}
+  //               </option>
+  //             </>
+  //           ) : userAccessLevel === "admin" ? (
+  //             // Admin: 출고팀 확인, 출고 완료, 출고 보류만 가능
+  //             <>
+  //               <option value={OrderStatus.confirmedByShipper}>
+  //                 출고팀 확인
+  //               </option>
+  //               <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+  //               <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
+  //             </>
+  //           ) : (
+  //             // 기본값 (권한이 없는 경우)
+  //             <>
+  //               <option value={OrderStatus.requested}>요청</option>
+  //               <option value={OrderStatus.approved}>승인</option>
+  //               <option value={OrderStatus.rejected}>반려</option>
+  //               <option value={OrderStatus.confirmedByShipper}>
+  //                 출고팀 확인
+  //               </option>
+  //               <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+  //               <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
+  //             </>
+  //           )}
+  //         </select>
+  //         {isUpdatingStatus === record.id && (
+  //           <div className="flex absolute inset-0 justify-center items-center bg-gray-100 bg-opacity-50 rounded-md">
+  //             <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
+  //           </div>
+  //         )}
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   // // 뒤로가기 핸들러 추가
   // const handleBack = () => {
@@ -1157,11 +1139,7 @@ const OrderRecordTabs = () => {
                     currentRecords.map((record: IOrderRecord) => (
                       <React.Fragment key={record.id}>
                         <tr
-                          className={`hover:bg-gray-50 cursor-pointer transition-colors ${
-                            expandedRowId === record.id
-                              ? "bg-gray-50"
-                              : "bg-white"
-                          }`}
+                          className="bg-white transition-colors cursor-pointer hover:bg-gray-50"
                           onClick={() => handleRowClick(record.id)}
                         >
                           {/* 데스크톱 UI */}
@@ -1323,442 +1301,6 @@ const OrderRecordTabs = () => {
                             </div>
                           </td>
                         </tr>
-
-                        {expandedRowId === record.id && (
-                          <tr className="bg-gray-50 transition-all duration-200 ease-in-out">
-                            <td colSpan={5} className="p-2 sm:p-4">
-                              {/* 수정/삭제 버튼 섹션 */}
-                              {(hasPermissionToEdit(record) ||
-                                canDeleteOrder(record)) && (
-                                <div className="p-3 mb-4 bg-white rounded-xl border border-gray-100 shadow-sm sm:mb-6 sm:p-6">
-                                  <div className="flex justify-between items-center">
-                                    <div className="flex items-center">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="mr-2 w-5 h-5 text-blue-500 sm:h-6 sm:w-6 sm:mr-3"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                      >
-                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                      </svg>
-                                      <h3 className="text-base font-semibold text-gray-700 sm:text-lg">
-                                        주문 관리
-                                      </h3>
-                                    </div>
-                                    <div className="flex gap-2">
-                                      <button
-                                        onClick={() => {
-                                          const teamId = currentTeamId;
-                                          const url = `/orderRecord/${record.id}?teamId=${teamId}`;
-                                          window.open(url, "_blank");
-                                        }}
-                                        className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md transition-colors hover:bg-green-600"
-                                      >
-                                        상세보기
-                                      </button>
-                                      {hasPermissionToEdit(record) && (
-                                        <button
-                                          onClick={() =>
-                                            handleEditClick(record)
-                                          }
-                                          className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md transition-colors hover:bg-blue-600"
-                                        >
-                                          수정하기
-                                        </button>
-                                      )}
-                                      {canDeleteOrder(record) && (
-                                        <button
-                                          onClick={() =>
-                                            handleDeleteOrder(record)
-                                          }
-                                          disabled={
-                                            deleteOrderMutation.isPending
-                                          }
-                                          className="p-2 text-white bg-red-500 rounded-md transition-colors hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                                          title={
-                                            deleteOrderMutation.isPending
-                                              ? "삭제 중..."
-                                              : "삭제하기"
-                                          }
-                                        >
-                                          {deleteOrderMutation.isPending ? (
-                                            <RefreshCw className="w-5 h-5 animate-spin" />
-                                          ) : (
-                                            <Trash2 className="w-5 h-5" />
-                                          )}
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {/* 상태 변경 섹션 */}
-
-                              <div className="p-3 mb-4 bg-white rounded-xl border border-gray-100 shadow-sm sm:mb-6 sm:p-6">
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center">
-                                    <span
-                                      className={`mr-2 px-2 py-1 text-xs font-medium rounded-full ${
-                                        record.packageId && record.packageId > 0
-                                          ? "bg-purple-100 text-purple-700"
-                                          : "bg-blue-100 text-blue-700"
-                                      }`}
-                                    >
-                                      {record.packageId && record.packageId > 0
-                                        ? "패키지"
-                                        : "개별"}
-                                    </span>
-                                    <h3 className="text-base font-semibold text-gray-700 sm:text-lg">
-                                      {record.title ||
-                                        `${
-                                          record.warehouse?.warehouseName ||
-                                          "알 수 없는 창고"
-                                        }에서 ${
-                                          record.orderItems &&
-                                          record.orderItems.length > 0
-                                            ? record.orderItems.length > 1
-                                              ? `${
-                                                  record.orderItems[0]?.item
-                                                    ?.teamItem?.itemName ||
-                                                  "품목"
-                                                } 등 ${
-                                                  record.orderItems.length
-                                                }개 품목`
-                                              : `${
-                                                  record.orderItems[0]?.item
-                                                    ?.teamItem?.itemName ||
-                                                  "품목"
-                                                }`
-                                            : "품목"
-                                        } 출고`}
-                                    </h3>
-                                  </div>
-                                  <StatusDropdown record={record} />
-                                </div>
-                              </div>
-
-                              <div className="space-y-6 animate-fadeIn">
-                                {/* 상단 2열 레이아웃 */}
-                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 sm:gap-6">
-                                  {/* 왼쪽: 발주 상세 정보 */}
-                                  <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
-                                    <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b sm:text-base">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="mr-2 w-4 h-4 text-gray-500 sm:h-5 sm:w-5"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                      >
-                                        <path
-                                          fillRule="evenodd"
-                                          d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"
-                                          clipRule="evenodd"
-                                        />
-                                      </svg>
-                                      발주 상세 정보
-                                    </h3>
-                                    <div className="space-y-2 sm:space-y-3">
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          제목:
-                                        </span>
-                                        <span className="px-2 py-1 text-xs font-medium text-gray-800 bg-blue-50 rounded-md sm:px-3 sm:text-sm">
-                                          {record.title ||
-                                            `${
-                                              record.warehouse?.warehouseName ||
-                                              "알 수 없는 창고"
-                                            }에서 ${
-                                              record.orderItems &&
-                                              record.orderItems.length > 0
-                                                ? record.orderItems.length > 1
-                                                  ? `${
-                                                      record.orderItems[0]?.item
-                                                        ?.teamItem?.itemName ||
-                                                      "품목"
-                                                    } 등 ${
-                                                      record.orderItems.length
-                                                    }개 품목`
-                                                  : `${
-                                                      record.orderItems[0]?.item
-                                                        ?.teamItem?.itemName ||
-                                                      "품목"
-                                                    }`
-                                                : "품목"
-                                            } 출고`}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          생성일:
-                                        </span>
-                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                          {formatDate(record.createdAt)}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          구매일:
-                                        </span>
-                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                          {record.purchaseDate
-                                            ? formatDate(record.purchaseDate)
-                                            : "-"}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          출고예정일:
-                                        </span>
-                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                          {record.outboundDate
-                                            ? formatDate(record.outboundDate)
-                                            : "-"}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          설치요청일:
-                                        </span>
-                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                          {record.installationDate
-                                            ? formatDate(
-                                                record.installationDate
-                                              )
-                                            : "-"}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          발주자:
-                                        </span>
-                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                          {record.requester}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          담당자:
-                                        </span>
-                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                          {record.manager || "-"}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          출고 창고:
-                                        </span>
-                                        <span className="px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-md sm:px-3 sm:text-sm">
-                                          {record.warehouse?.warehouseName ||
-                                            "창고 정보 없음"}
-                                        </span>
-                                      </div>
-                                    </div>
-
-                                    {/* 추가 요청사항 */}
-                                    {record.memo && (
-                                      <div className="flex flex-col  justify-between items-start border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          추가 요청사항:
-                                        </span>
-                                        <span className="px-2 py-2 w-full text-xs text-center text-gray-800 bg-gray-50 rounded-md sm:text-sm">
-                                          {record.memo}
-                                        </span>
-                                      </div>
-                                    )}
-
-                                    <OrderCommentSection
-                                      record={record}
-                                      currentUser={currentUser}
-                                    />
-                                  </div>
-
-                                  {/* 오른쪽: 배송 정보 */}
-                                  <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
-                                    <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b sm:text-base">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="mr-2 w-4 h-4 text-gray-500 sm:h-5 sm:w-5"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                      >
-                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-5h2v5a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-9a1 1 0 00-.293-.707l-2-2A1 1 0 0017 3h-1c0-.552-.447-1-1-1H5a1 1 0 00-1 1H3z" />
-                                      </svg>
-                                      배송 정보
-                                    </h3>
-                                    <div className="space-y-2 sm:space-y-3">
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          수령자:
-                                        </span>
-                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                          {record.receiver}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                          연락처:
-                                        </span>
-                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                          {record.receiverPhone}
-                                        </span>
-                                      </div>
-                                      <div className="flex flex-col border-b border-gray-100 py-1.5 sm:py-2">
-                                        <span className="mb-1 text-xs font-medium text-gray-600 sm:text-sm">
-                                          주소:
-                                        </span>
-                                        <span className="p-2 text-xs text-gray-800 break-words bg-gray-50 rounded-md sm:p-3 sm:text-sm">
-                                          {record.receiverAddress}
-                                        </span>
-                                      </div>
-                                    </div>
-
-                                    {/* 첨부 파일 */}
-                                    {record.files &&
-                                      record.files.length > 0 && (
-                                        <div className="mt-4">
-                                          <h4 className="flex items-center mb-3 text-xs font-medium text-gray-700 sm:text-sm">
-                                            <svg
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="mr-2 w-3 h-3 text-gray-500 sm:h-4 sm:w-4"
-                                              viewBox="0 0 20 20"
-                                              fill="currentColor"
-                                            >
-                                              <path
-                                                fillRule="evenodd"
-                                                d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
-                                                clipRule="evenodd"
-                                              />
-                                            </svg>
-                                            첨부 파일
-                                          </h4>
-                                          <ul className="bg-gray-50 rounded-lg divide-y divide-gray-200">
-                                            {record.files.map((file) => (
-                                              <li
-                                                key={file.id}
-                                                className="py-1.5 sm:py-2 px-2 sm:px-3 hover:bg-gray-100 transition-colors"
-                                              >
-                                                <a
-                                                  href={file.fileUrl}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  className="flex items-center text-xs text-blue-500 hover:text-blue-700 hover:underline sm:text-sm"
-                                                >
-                                                  <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    className="mr-1 w-3 h-3 sm:h-4 sm:w-4 sm:mr-2"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                  >
-                                                    <path
-                                                      strokeLinecap="round"
-                                                      strokeLinejoin="round"
-                                                      strokeWidth={2}
-                                                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                                                    />
-                                                  </svg>
-                                                  {file.fileName}
-                                                </a>
-                                                <p className="text-[10px] sm:text-xs text-gray-500 mt-1 ml-4 sm:ml-6">
-                                                  업로드:{" "}
-                                                  {formatDate(file.createdAt)}
-                                                </p>
-                                              </li>
-                                            ))}
-                                          </ul>
-                                        </div>
-                                      )}
-                                  </div>
-                                </div>
-
-                                {/* 하단: 주문 품목 목록 (전체 너비) */}
-                                {record.orderItems &&
-                                  record.orderItems.length > 0 && (
-                                    <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
-                                      <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b sm:text-base">
-                                        <svg
-                                          xmlns="http://www.w3.org/2000/svg"
-                                          className="mr-2 w-4 h-4 text-gray-500 sm:h-5 sm:w-5"
-                                          viewBox="0 0 20 20"
-                                          fill="currentColor"
-                                        >
-                                          <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                                        </svg>
-                                        주문 품목 목록 (
-                                        {record.orderItems.length}개)
-                                      </h3>
-
-                                      {/* 패키지 이름이 없거나 공백이거나 -면 안보이게 */}
-                                      {record.package?.packageName &&
-                                        record.package.packageName.trim() !==
-                                          "" &&
-                                        record.package.packageName !== "-" && (
-                                          <div className="p-3 mb-4 bg-blue-50 rounded-lg border border-blue-200">
-                                            <div className="flex justify-between items-center">
-                                              <span className="text-sm font-medium text-blue-700">
-                                                패키지:
-                                              </span>
-                                              <span className="text-sm font-semibold text-blue-800">
-                                                {record.package.packageName}
-                                              </span>
-                                            </div>
-                                          </div>
-                                        )}
-
-                                      <div className="bg-gray-50 rounded-lg border border-gray-200">
-                                        <div className="flex justify-between items-center px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 border-b border-gray-200">
-                                          <span className="flex-1">품목명</span>
-                                          <span className="w-20 text-center">
-                                            수량
-                                          </span>
-                                        </div>
-                                        <ul className="divide-y divide-gray-200">
-                                          {record.orderItems.map((item) => (
-                                            <li
-                                              key={item.id}
-                                              className="px-4 py-4 transition-colors hover:bg-gray-100"
-                                            >
-                                              <div className="flex justify-between items-center">
-                                                <div className="flex-1">
-                                                  <span className="text-sm font-medium text-gray-800">
-                                                    {item.item?.teamItem
-                                                      ?.itemName ||
-                                                      "알 수 없는 품목"}
-                                                    {item.item?.teamItem
-                                                      ?.itemCode && (
-                                                      <span className="ml-2 text-xs text-gray-500">
-                                                        (
-                                                        {
-                                                          item.item.teamItem
-                                                            .itemCode
-                                                        }
-                                                        )
-                                                      </span>
-                                                    )}
-                                                  </span>
-                                                  {/* {item.memo && (
-                                                    <p className="mt-1 text-xs italic text-gray-500">
-                                                      메모: {item.memo}
-                                                    </p>
-                                                  )} */}
-                                                </div>
-                                                <div className="w-20 text-center">
-                                                  <span className="px-3 py-1 text-black text-md">
-                                                    {item.quantity}개
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    </div>
-                                  )}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
                       </React.Fragment>
                     ))
                   ) : (
@@ -1848,337 +1390,6 @@ const getStatusColorClass = (status: string): string => {
     default:
       return "bg-gray-50 text-gray-600";
   }
-};
-
-// 상태에 따른 아이콘 반환 함수 추가
-const getStatusIcon = (status: string): JSX.Element => {
-  switch (status) {
-    case OrderStatus.requested:
-    case "주문 접수":
-      return (
-        <svg
-          className="inline-block mr-1 w-4 h-4"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    case OrderStatus.approved:
-      return (
-        <svg
-          className="inline-block mr-1 w-4 h-4"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 1.414l2 2a1 1 0 010 1.414l-4 4z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    case OrderStatus.rejected:
-      return (
-        <svg
-          className="inline-block mr-1 w-4 h-4"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    case OrderStatus.confirmedByShipper:
-      return (
-        <svg
-          className="inline-block mr-1 w-4 h-4"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-          <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1v-5h2v5a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H19a1 1 0 001-1v-9a1 1 0 00-.293-.707l-2-2A1 1 0 0017 3h-1c0-.552-.447-1-1-1H5a1 1 0 00-1 1H3z" />
-        </svg>
-      );
-    case OrderStatus.shipmentCompleted:
-      return (
-        <svg
-          className="inline-block mr-1 w-4 h-4"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    case OrderStatus.rejectedByShipper:
-      return (
-        <svg
-          className="inline-block mr-1 w-4 h-4"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-    default:
-      return (
-        <svg
-          className="inline-block mr-1 w-4 h-4"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 100 2 1 1 0 000-2zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-            clipRule="evenodd"
-          />
-        </svg>
-      );
-  }
-};
-
-// 댓글 섹션 컴포넌트
-interface OrderCommentSectionProps {
-  record: IOrderRecord;
-  currentUser: IUser | undefined;
-}
-
-const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
-  record,
-  currentUser,
-}) => {
-  const [newComment, setNewComment] = useState("");
-  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
-  const [editingContent, setEditingContent] = useState("");
-
-  // 실제 API를 사용한 댓글 관리
-  const {
-    comments,
-    isLoading,
-    createComment,
-    updateComment,
-    deleteComment,
-    isCreating,
-    isUpdating,
-    isDeleting,
-  } = useOrderComments(record.id);
-
-  // 권한 확인 함수들
-  const canEditComment = (comment: OrderComment) => {
-    if (!currentUser) return false;
-    // 수정은 오직 본인 댓글만 가능 (Admin도 본인 댓글만)
-    return comment.userId === currentUser.id;
-  };
-
-  const canDeleteComment = (comment: OrderComment) => {
-    if (!currentUser) return false;
-    // 삭제는 본인 댓글 + Admin은 모든 댓글 가능
-    return (
-      comment.userId === currentUser.id || currentUser.accessLevel === "admin"
-    );
-  };
-
-  // 댓글 작성 시간 포맷팅
-  const formatCommentDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60)
-    );
-
-    if (diffInMinutes < 1) return "방금 전";
-    if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}시간 전`;
-
-    return date.toLocaleDateString("ko-KR", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  // 댓글 작성 핸들러
-  const handleSubmitComment = () => {
-    if (!newComment.trim() || !currentUser) return;
-
-    const commentData: CreateOrderCommentDto = {
-      content: newComment.trim(),
-    };
-
-    createComment(commentData);
-    setNewComment("");
-  };
-
-  // 댓글 수정 핸들러
-  const handleEditComment = (commentId: number) => {
-    if (!editingContent.trim()) return;
-
-    const updateData: UpdateOrderCommentDto = {
-      content: editingContent.trim(),
-    };
-
-    updateComment({ commentId, data: updateData });
-    setEditingCommentId(null);
-    setEditingContent("");
-  };
-
-  // 댓글 삭제 핸들러
-  const handleDeleteComment = (commentId: number) => {
-    if (!confirm("댓글을 삭제하시겠습니까?")) return;
-    deleteComment(commentId);
-  };
-
-  return (
-    <div className="p-2 mt-4 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
-      <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b sm:text-base">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="mr-2 w-4 h-4 text-gray-500 sm:h-5 sm:w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
-            clipRule="evenodd"
-          />
-        </svg>
-        댓글 ({comments.length})
-      </h3>
-
-      {/* 댓글 목록 */}
-      <div className="overflow-y-auto mb-4 space-y-3 max-h-60">
-        {isLoading ? (
-          <p className="py-4 text-sm text-center text-gray-500">
-            댓글을 불러오는 중...
-          </p>
-        ) : comments.length === 0 ? (
-          <p className="py-4 text-sm text-center text-gray-500">
-            아직 댓글이 없습니다.
-          </p>
-        ) : (
-          comments.map((comment) => (
-            <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-800">
-                    {comment.userName}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {formatCommentDate(comment.createdAt)}
-                  </span>
-                  {comment.createdAt !== comment.updatedAt && (
-                    <span className="text-xs text-gray-400">(수정됨)</span>
-                  )}
-                </div>
-
-                {(canEditComment(comment) || canDeleteComment(comment)) && (
-                  <div className="flex space-x-1">
-                    {canEditComment(comment) && (
-                      <button
-                        onClick={() => {
-                          setEditingCommentId(comment.id);
-                          setEditingContent(comment.content);
-                        }}
-                        disabled={isUpdating || isDeleting}
-                        className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400"
-                      >
-                        수정
-                      </button>
-                    )}
-                    {canDeleteComment(comment) && (
-                      <button
-                        onClick={() => handleDeleteComment(comment.id)}
-                        disabled={isUpdating || isDeleting}
-                        className="text-xs text-red-600 hover:text-red-800 disabled:text-gray-400"
-                      >
-                        {isDeleting ? "삭제중..." : "삭제"}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {editingCommentId === comment.id ? (
-                <div className="space-y-2">
-                  <textarea
-                    value={editingContent}
-                    onChange={(e) => setEditingContent(e.target.value)}
-                    className="p-2 w-full text-sm rounded-md border border-gray-300 resize-none"
-                    rows={2}
-                  />
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEditComment(comment.id)}
-                      disabled={isUpdating}
-                      className="px-3 py-1 text-xs text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300"
-                    >
-                      {isUpdating ? "저장중..." : "저장"}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingCommentId(null);
-                        setEditingContent("");
-                      }}
-                      disabled={isUpdating}
-                      className="px-3 py-1 text-xs text-gray-700 bg-gray-300 rounded-md hover:bg-gray-400 disabled:opacity-50"
-                    >
-                      취소
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                  {comment.content}
-                </p>
-              )}
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* 댓글 작성 폼 */}
-      {currentUser && (
-        <div className="pt-3 border-t">
-          <div className="space-y-2">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="댓글을 입력해주세요..."
-              className="p-3 w-full text-sm rounded-md border border-gray-300 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={3}
-              disabled={isCreating}
-            />
-            <div className="flex justify-end">
-              <button
-                onClick={handleSubmitComment}
-                disabled={!newComment.trim() || isCreating}
-                className="px-4 py-2 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                {isCreating ? "작성 중..." : "댓글 작성"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 };
 
 export default OrderRecordTabs;

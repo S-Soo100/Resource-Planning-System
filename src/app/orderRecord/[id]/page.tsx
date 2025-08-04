@@ -34,6 +34,27 @@ const formatDate = (dateString: string): string => {
   return `${year}.${month}.${day}`;
 };
 
+// 전화번호 포맷팅 함수
+const formatPhoneNumber = (phone: string): string => {
+  if (!phone) return "-";
+
+  // 숫자만 추출
+  const numbers = phone.replace(/\D/g, "");
+
+  // 11자리인 경우 (01012345678 -> 010-1234-5678)
+  if (numbers.length === 11) {
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7)}`;
+  }
+
+  // 10자리인 경우 (0101234567 -> 010-123-4567)
+  if (numbers.length === 10) {
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6)}`;
+  }
+
+  // 그 외의 경우는 원본 반환
+  return phone;
+};
+
 // 상태 텍스트 변환 함수
 const getStatusText = (status: string): string => {
   switch (status) {
@@ -873,7 +894,7 @@ const OrderRecordDetail = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">연락처:</span>
                         <span className="font-medium">
-                          {order.receiverPhone}
+                          {formatPhoneNumber(order.receiverPhone)}
                         </span>
                       </div>
                       <div className="flex justify-between">

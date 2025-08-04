@@ -67,6 +67,117 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.6.1 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.6.1
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-08-04
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                승인된 시연 수정 제한 기능 개선
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 수정됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("수정됨")}
+                  <h3 className="font-medium text-gray-900">수정됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>승인된 시연 수정 제한</strong>: 승인된 시연의 수정
+                      시도 시 적절한 에러 처리 추가
+                    </span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>
+                      DemoEditModal에서 승인된 시연 수정 시도 시 프론트엔드에서
+                      차단
+                    </span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>
+                      시연 상세 페이지에서 승인된 시연에 대해 안내 메시지 표시
+                    </span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>
+                      &quot;승인된 시연은 수정할 수 없습니다&quot; 메시지로
+                      사용자에게 명확한 안내
+                    </span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>
+                      백엔드 API 에러(400) 발생 전에 프론트엔드에서 사전 차단
+                    </span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>
+                      모든 수정 불가능한 상태(승인, 반려, 출고팀 확인, 출고
+                      완료, 출고 보류, 시연 종료)에 대한 통합 처리
+                    </span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>
+                      권한 확인 로직 강화 (본인 작성 시연 또는 Admin만 수정
+                      가능)
+                    </span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>
+                      구체적인 에러 메시지 제공 (네트워크, 권한, 파일 업로드 등)
+                    </span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>
+                      데이터 유효성 검증 강화 (수량, 날짜/시간 형식, 전화번호
+                      형식 등)
+                    </span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>동시성 문제 방지 (시연 상태 변경 시 수정 차단)</span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>
+                      추가 에러 상황 처리 (존재하지 않는 시연, 재고 부족, 서버
+                      저장공간 부족 등)
+                    </span>
+                  </li>
+                  <li className="flex items-start ml-4">
+                    <span className="mr-2 text-gray-400">-</span>
+                    <span>
+                      시연 아이템 수량 제한 제거 (팀에서 알아서 처리하도록 허용)
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* v1.6.0 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +186,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.6.0
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

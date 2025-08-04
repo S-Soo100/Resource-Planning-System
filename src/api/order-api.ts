@@ -1,5 +1,6 @@
 import { api } from "./api";
 import { ApiResponse } from "../types/common";
+import { normalizeFileName } from "@/utils/fileUtils";
 import {
   CreateOrderDto,
   CreatOrderResponse,
@@ -117,7 +118,13 @@ export const uploadOrderFileById = async (
 ): Promise<ApiResponse<OrderFileResponse>> => {
   try {
     const formData = new FormData();
-    formData.append("file", file);
+    // 파일명 정규화하여 새로운 File 객체 생성
+    const normalizedFileName = normalizeFileName(file);
+    const normalizedFile = new File([file], normalizedFileName, {
+      type: file.type,
+      lastModified: file.lastModified,
+    });
+    formData.append("file", normalizedFile);
     formData.append("expirationTimeMinutes", expirationTimeMinutes.toString());
 
     const response = await api.post<ApiResponse<OrderFileResponse>>(
@@ -157,7 +164,13 @@ export const uploadMultipleOrderFileById = async (
   try {
     const formData = new FormData();
     files.forEach((file) => {
-      formData.append("files", file);
+      // 파일명 정규화하여 새로운 File 객체 생성
+      const normalizedFileName = normalizeFileName(file);
+      const normalizedFile = new File([file], normalizedFileName, {
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+      formData.append("files", normalizedFile);
     });
     formData.append("expirationTimeMinutes", expirationTimeMinutes.toString());
 

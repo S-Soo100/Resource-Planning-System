@@ -1,5 +1,6 @@
 import { api } from "./api";
 import { ApiResponse } from "../types/common";
+import { normalizeFileName } from "@/utils/fileUtils";
 import {
   DemoArrayResponse,
   DemoDetailResponse,
@@ -180,7 +181,13 @@ export const uploadMultipleDemoFileById = async (
   try {
     const formData = new FormData();
     files.forEach((file) => {
-      formData.append("files", file);
+      // 파일명 정규화하여 새로운 File 객체 생성
+      const normalizedFileName = normalizeFileName(file);
+      const normalizedFile = new File([file], normalizedFileName, {
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+      formData.append("files", normalizedFile);
     });
     formData.append("expirationTimeMinutes", expirationTimeMinutes.toString());
 

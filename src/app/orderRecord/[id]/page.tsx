@@ -418,7 +418,10 @@ const OrderRecordDetail = () => {
         const res = await getOrder(orderId);
         console.log("📋 발주 조회 결과:", res);
         if (res.success && res.data) {
-          setOrder(res.data as IOrderRecord);
+          const orderData = res.data as IOrderRecord;
+          setOrder(orderData);
+          // 초기 상태 설정
+          setSelectedStatus(orderData.status as OrderStatus);
         } else {
           alert("해당 발주를 찾을 수 없습니다.");
           router.push("/orderRecord");
@@ -461,16 +464,21 @@ const OrderRecordDetail = () => {
     }
   };
 
+  // 선택된 상태 관리
+  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | null>(
+    null
+  );
+
   // 상태 변경 핸들러
-  const handleStatusChange = async (newStatus: OrderStatus) => {
-    if (!order) return;
+  const handleStatusChange = async () => {
+    if (!order || !selectedStatus) return;
 
     // moderator 권한 사용자가 본인이 생성한 발주를 승인/반려하려고 할 때 제한
     if (auth?.accessLevel === "moderator") {
       if (order.userId === auth?.id) {
         if (
-          newStatus === OrderStatus.approved ||
-          newStatus === OrderStatus.rejected
+          selectedStatus === OrderStatus.approved ||
+          selectedStatus === OrderStatus.rejected
         ) {
           alert("요청자 본인 이외의 승인권자가 승인해야 합니다");
           return;
@@ -480,7 +488,9 @@ const OrderRecordDetail = () => {
 
     if (
       !window.confirm(
-        `정말 주문 상태를 '${getStatusText(newStatus)}'(으)로 변경하시겠습니까?`
+        `정말 주문 상태를 '${getStatusText(
+          selectedStatus
+        )}'(으)로 변경하시겠습니까?`
       )
     ) {
       return;
@@ -490,11 +500,11 @@ const OrderRecordDetail = () => {
       setIsUpdatingStatus(true);
       await updateOrderStatusMutation.mutateAsync({
         id: orderId,
-        data: { status: newStatus },
+        data: { status: selectedStatus },
       });
 
       // 출고 완료 상태로 변경된 경우 추가 액션
-      if (newStatus === OrderStatus.shipmentCompleted) {
+      if (selectedStatus === OrderStatus.shipmentCompleted) {
         queryClient.invalidateQueries({
           queryKey: [
             ["warehouseItems"],
@@ -543,6 +553,11 @@ const OrderRecordDetail = () => {
     } finally {
       setIsUpdatingStatus(false);
     }
+  };
+
+  // 드롭다운 변경 핸들러
+  const handleStatusSelectChange = (newStatus: OrderStatus) => {
+    setSelectedStatus(newStatus);
   };
 
   // 수정 권한 확인
@@ -638,6 +653,7 @@ const OrderRecordDetail = () => {
     if (auth.accessLevel === "admin") {
       // Admin은 출고 단계만 담당
       return [
+        { value: OrderStatus.approved, label: "승인" },
         { value: OrderStatus.confirmedByShipper, label: "출고팀 확인" },
         { value: OrderStatus.shipmentCompleted, label: "출고 완료" },
         { value: OrderStatus.rejectedByShipper, label: "출고 보류" },
@@ -800,9 +816,15 @@ const OrderRecordDetail = () => {
                       </div>
                       <span className="text-gray-400">→</span>
                       <select
-                        value={order.status}
+                        value={
+                          selectedStatus !== null
+                            ? selectedStatus
+                            : order.status
+                        }
                         onChange={(e) =>
-                          handleStatusChange(e.target.value as OrderStatus)
+                          handleStatusSelectChange(
+                            e.target.value as OrderStatus
+                          )
                         }
                         disabled={isUpdatingStatus}
                         className="px-3 py-2 bg-white rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -822,6 +844,17 @@ const OrderRecordDetail = () => {
                           </option>
                         ))}
                       </select>
+                      <button
+                        onClick={handleStatusChange}
+                        disabled={
+                          isUpdatingStatus ||
+                          selectedStatus === null ||
+                          selectedStatus === order.status
+                        }
+                        className="px-4 py-2 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      >
+                        {isUpdatingStatus ? "변경 중..." : "상태 변경"}
+                      </button>
                       {isUpdatingStatus && (
                         <div className="w-4 h-4 rounded-full border-2 border-blue-500 animate-spin border-t-transparent"></div>
                       )}

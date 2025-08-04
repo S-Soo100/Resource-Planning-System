@@ -500,10 +500,10 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       }
 
       // demoItems 부분만 alert로 출력
-      alert(
-        "[시연 수정] 서버로 전송할 demoItems:\n" +
-          JSON.stringify(submitData.demoItems, null, 2)
-      );
+      // alert(
+      //   "[시연 수정] 서버로 전송할 demoItems:\n" +
+      //     JSON.stringify(submitData.demoItems, null, 2)
+      // );
 
       const response = await updateDemoMutation.mutateAsync({
         id: demo.id,
@@ -876,7 +876,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                     <span className="text-red-500">*</span>
                   </label>
                   <Input
-                    type="tel"
+                    type="text"
                     name="demoManagerPhone"
                     value={formData.demoManagerPhone}
                     onChange={handleInputChange}

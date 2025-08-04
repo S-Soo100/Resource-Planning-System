@@ -480,7 +480,7 @@ const OrderRecordTabs = () => {
   const handleRowClick = (recordId: number) => {
     const teamId = currentTeamId;
     const url = `/orderRecord/${recordId}?teamId=${teamId}`;
-    window.open(url, "_blank");
+    window.location.href = url;
   };
 
   // 데이터 새로고침 핸들러 수정
@@ -1102,7 +1102,7 @@ const OrderRecordTabs = () => {
             onDetailClick={(record) => {
               const teamId = currentTeamId;
               const url = `/orderRecord/${record.id}?teamId=${teamId}`;
-              window.open(url, "_blank");
+              window.location.href = url;
             }}
             // 상태 변경 관련 props 추가
             hasPermissionToChangeStatus={hasPermissionToChangeStatus}

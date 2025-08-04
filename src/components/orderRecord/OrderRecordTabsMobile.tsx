@@ -52,6 +52,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
   const {
     comments,
     isLoading,
+    error,
     createComment,
     updateComment,
     deleteComment,
@@ -59,6 +60,15 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
     isUpdating,
     isDeleting,
   } = useOrderComments(record.id);
+
+  // 컴포넌트 언마운트 시 상태 정리
+  React.useEffect(() => {
+    return () => {
+      setNewComment("");
+      setEditingCommentId(null);
+      setEditingContent("");
+    };
+  }, []);
 
   // 권한 확인 함수들
   const canEditComment = (comment: OrderComment) => {
@@ -97,7 +107,15 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
 
   // 댓글 작성 핸들러
   const handleSubmitComment = () => {
-    if (!newComment.trim() || !currentUser) return;
+    if (!newComment.trim()) {
+      alert("댓글 내용을 입력해주세요.");
+      return;
+    }
+
+    if (!currentUser) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
 
     const commentData: CreateOrderCommentDto = {
       content: newComment.trim(),
@@ -109,7 +127,10 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
 
   // 댓글 수정 핸들러
   const handleEditComment = (commentId: number) => {
-    if (!editingContent.trim()) return;
+    if (!editingContent.trim()) {
+      alert("댓글 내용을 입력해주세요.");
+      return;
+    }
 
     const updateData: UpdateOrderCommentDto = {
       content: editingContent.trim(),
@@ -123,7 +144,13 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
   // 댓글 삭제 핸들러
   const handleDeleteComment = (commentId: number) => {
     if (!confirm("댓글을 삭제하시겠습니까?")) return;
-    deleteComment(commentId);
+
+    try {
+      deleteComment(commentId);
+    } catch (error) {
+      console.error("댓글 삭제 실패:", error);
+      alert("댓글 삭제에 실패했습니다.");
+    }
   };
 
   return (
@@ -147,9 +174,22 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
       {/* 댓글 목록 */}
       <div className="overflow-y-auto mb-3 space-y-2 max-h-40">
         {isLoading ? (
-          <p className="py-2 text-xs text-center text-gray-500">
-            댓글을 불러오는 중...
-          </p>
+          <div className="py-4 text-center">
+            <div className="inline-block w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+            <p className="mt-2 text-xs text-gray-500">댓글을 불러오는 중...</p>
+          </div>
+        ) : error ? (
+          <div className="py-4 text-center">
+            <p className="text-xs text-red-500">
+              댓글을 불러오는데 실패했습니다.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-2 px-2 py-1 text-xs text-blue-500 hover:text-blue-700 underline"
+            >
+              다시 시도
+            </button>
+          </div>
         ) : comments.length === 0 ? (
           <p className="py-2 text-xs text-center text-gray-500">
             아직 댓글이 없습니다.
@@ -160,7 +200,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
               <div className="flex justify-between items-start mb-1">
                 <div className="flex items-center space-x-1">
                   <span className="text-xs font-medium text-gray-800">
-                    {comment.userName}
+                    {comment.userName || "알 수 없는 사용자"}
                   </span>
                   <span className="text-xs text-gray-500">
                     {formatCommentDate(comment.createdAt)}
@@ -176,10 +216,11 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
                       <button
                         onClick={() => {
                           setEditingCommentId(comment.id);
-                          setEditingContent(comment.content);
+                          setEditingContent(comment.content || "");
                         }}
                         disabled={isUpdating || isDeleting}
                         className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400"
+                        aria-label="댓글 수정"
                       >
                         수정
                       </button>
@@ -189,6 +230,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
                         onClick={() => handleDeleteComment(comment.id)}
                         disabled={isUpdating || isDeleting}
                         className="text-xs text-red-600 hover:text-red-800 disabled:text-gray-400"
+                        aria-label={isDeleting ? "댓글 삭제 중" : "댓글 삭제"}
                       >
                         {isDeleting ? "삭제중..." : "삭제"}
                       </button>
@@ -202,14 +244,27 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
                   <textarea
                     value={editingContent}
                     onChange={(e) => setEditingContent(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        handleEditComment(comment.id);
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        setEditingCommentId(null);
+                        setEditingContent("");
+                      }
+                    }}
                     className="p-2 w-full text-xs rounded-md border border-gray-300 resize-none"
                     rows={2}
+                    aria-label="댓글 수정"
                   />
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handleEditComment(comment.id)}
                       disabled={isUpdating}
                       className="px-2 py-1 text-xs text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300"
+                      aria-label={isUpdating ? "댓글 저장 중" : "댓글 저장"}
                     >
                       {isUpdating ? "저장중..." : "저장"}
                     </button>
@@ -220,6 +275,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
                       }}
                       disabled={isUpdating}
                       className="px-2 py-1 text-xs text-gray-700 bg-gray-300 rounded-md hover:bg-gray-400 disabled:opacity-50"
+                      aria-label="댓글 수정 취소"
                     >
                       취소
                     </button>
@@ -227,7 +283,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
                 </div>
               ) : (
                 <p className="text-xs text-gray-700 whitespace-pre-wrap">
-                  {comment.content}
+                  {comment.content || "내용 없음"}
                 </p>
               )}
             </div>
@@ -242,16 +298,30 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="댓글을 입력해주세요..."
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  handleSubmitComment();
+                }
+              }}
+              placeholder="댓글을 입력해주세요... (Ctrl+Enter로 작성)"
               className="p-2 w-full text-xs rounded-md border border-gray-300 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={2}
               disabled={isCreating}
+              aria-label="댓글 입력"
+              aria-describedby={isCreating ? "comment-loading" : undefined}
             />
             <div className="flex justify-end">
+              {isCreating && (
+                <div id="comment-loading" className="sr-only">
+                  댓글 작성 중입니다
+                </div>
+              )}
               <button
                 onClick={handleSubmitComment}
                 disabled={!newComment.trim() || isCreating}
                 className="px-3 py-1 text-xs text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                aria-label={isCreating ? "댓글 작성 중" : "댓글 작성"}
               >
                 {isCreating ? "작성 중..." : "댓글 작성"}
               </button>
@@ -362,6 +432,9 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
             }
             disabled={isUpdatingStatus === record.id}
             className="px-3 py-1.5 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white border border-gray-300 hover:border-gray-400 transition-colors"
+            aria-label={`주문 상태 변경 (현재: ${getStatusText(
+              record.status
+            )})`}
           >
             {/* 권한에 따라 다른 선택지 표시 */}
             {userAccessLevel === "moderator" ? (
@@ -465,7 +538,15 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                 >
                   {getStatusText(record.status)}
                 </span>
-                <span className="flex justify-center items-center w-5 h-5 bg-gray-100 rounded-full">
+                <span
+                  className="flex justify-center items-center w-5 h-5 bg-gray-100 rounded-full"
+                  role="button"
+                  aria-label={
+                    expandedRowId === record.id
+                      ? "상세 정보 접기"
+                      : "상세 정보 펼치기"
+                  }
+                >
                   {expandedRowId === record.id ? (
                     <ChevronUp size={14} className="text-gray-500" />
                   ) : (
@@ -604,7 +685,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                   <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">연락처:</span>
                     <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
-                      {record.receiverPhone}
+                      {record.receiverPhone || "-"}
                     </span>
                   </div>
                   <div className="flex flex-col py-1 border-b border-gray-100">
@@ -646,7 +727,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                             {item.item?.teamItem?.itemName || "알 수 없는 품목"}
                           </span>
                           <span className="px-2 py-1 text-xs text-gray-600 bg-white rounded-md">
-                            {item.quantity}개
+                            {item.quantity || 0}개
                           </span>
                         </li>
                       ))}
@@ -655,7 +736,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                 </div>
               )}
               {/* 추가 요청사항 */}
-              {record.memo && (
+              {record.memo && record.memo.trim() && (
                 <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
                   <div className="flex items-center pb-1 mb-2 text-sm font-bold text-gray-700 border-b">
                     <svg
@@ -701,12 +782,13 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                     {record.files.map((file) => (
                       <li key={file.id} className="px-2 py-1">
                         <a
-                          href={file.fileUrl}
+                          href={file.fileUrl || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
+                          aria-label={`${file.fileName || "파일"} 다운로드`}
                         >
-                          {file.fileName}
+                          {file.fileName || "알 수 없는 파일"}
                         </a>
                       </li>
                     ))}
@@ -714,8 +796,8 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                 </div>
               )}
 
-              {/* 댓글 섹션 */}
-              {currentUser && (
+              {/* 댓글 섹션 - 성능 최적화를 위해 조건부 렌더링 */}
+              {currentUser && expandedRowId === record.id && (
                 <OrderCommentSection
                   record={record}
                   currentUser={currentUser}
@@ -731,6 +813,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                       onDetailClick(record);
                     }}
                     className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md transition-colors hover:bg-green-600"
+                    aria-label="발주 상세 정보 보기"
                   >
                     상세보기
                   </button>
@@ -741,6 +824,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                         onEditClick(record);
                       }}
                       className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md transition-colors hover:bg-blue-600"
+                      aria-label="발주 정보 수정"
                     >
                       수정
                     </button>

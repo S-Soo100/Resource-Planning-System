@@ -40,7 +40,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
           수령자 연락처
         </label>
         <input
-          type="tel"
+          type="text"
           name="receiverPhone"
           value={formData.receiverPhone}
           onChange={onChange}

@@ -26,6 +26,7 @@ import {
   getWarehouseAccessDeniedMessage,
 } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { getTodayString } from "@/utils/dateUtils";
 import ItemSelectionModal from "../ui/ItemSelectionModal";
 import {
   FileUploadSection,
@@ -39,7 +40,7 @@ import {
 } from "../common";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
-import { getSafeFileName, formatFileSize } from "@/utils/fileUtils";
+
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -220,13 +221,12 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     if (hasChanges) {
       setOrderItems(updatedItems);
     }
-  }, [currentWarehouseItems, formData.warehouseId]);
+  }, [currentWarehouseItems, formData.warehouseId]); // orderItems는 무한 루프 방지를 위해 의존성에서 제외
 
   // 초기 날짜 설정
   useEffect(() => {
-    // 현재 날짜를 ISO 형식(YYYY-MM-DD)으로 변환
-    const now = new Date();
-    const formattedDate = now.toISOString().split("T")[0];
+    // 현재 날짜를 로컬 시간대 기준으로 설정
+    const formattedDate = getTodayString();
     setRequestDate(formattedDate);
     setSetupDate(formattedDate);
 

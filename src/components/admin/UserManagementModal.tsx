@@ -60,7 +60,7 @@ export default function UserManagementModal({
         handleCloseModal();
       }, 1200);
     }
-  }, [formSuccess]);
+  }, [formSuccess]); // handleCloseModal는 무한루프 방지를 위해 의존성에서 제외
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

@@ -20,6 +20,7 @@ import { Item } from "@/types/(item)/item";
 import { uploadMultipleOrderFileById } from "@/api/order-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { getTodayString } from "@/utils/dateUtils";
 import ItemSelectionModal from "../ui/ItemSelectionModal";
 import {
   FileUploadSection,
@@ -210,12 +211,11 @@ export default function WheelchairOrderForm() {
     if (hasChanges) {
       setOrderItems(updatedItems);
     }
-  }, [currentWarehouseItems, formData.warehouseId]);
+  }, [currentWarehouseItems, formData.warehouseId]); // orderItems는 무한 루프 방지를 위해 의존성에서 제외
 
   // 초기 날짜 설정
   useEffect(() => {
-    const now = new Date();
-    const formattedDate = now.toISOString().split("T")[0];
+    const formattedDate = getTodayString();
     setRequestDate(formattedDate);
     setSetupDate(formattedDate);
 

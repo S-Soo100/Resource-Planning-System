@@ -34,6 +34,7 @@ import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { TeamItem } from "@/types/(item)/team-item";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSafeFileName, formatFileSize } from "@/utils/fileUtils";
+import { getTodayString } from "@/utils/dateUtils";
 
 // 숫자 포맷팅 함수
 const formatNumber = (value: string): string => {
@@ -269,7 +270,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       setFilesToDelete([]);
       fileUpload.resetFiles();
     }
-  }, [demo, isOpen, user]);
+  }, [demo, isOpen, user]); // fileUpload는 무한루프 방지를 위해 의존성에서 제외
 
   // 사내 담당자 체크박스 상태에 따라 handler 필드 자동 설정
   React.useEffect(() => {
@@ -886,7 +887,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                       }
                       placeholder="상차 일자와 시간을 선택하세요"
                       helperText="시연품을 창고에서 출고하는 일정입니다"
-                      minDate={new Date().toISOString().split("T")[0]}
+                      minDate={getTodayString()}
                       businessHours={{ start: "00:00", end: "23:30" }}
                     />
                   </div>
@@ -946,10 +947,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                       }
                       placeholder="회수 일자와 시간을 선택하세요"
                       helperText="시연품을 창고로 반입하는 일정입니다"
-                      minDate={
-                        formData.demoStartDate ||
-                        new Date().toISOString().split("T")[0]
-                      }
+                      minDate={formData.demoStartDate || getTodayString()}
                       businessHours={{ start: "00:00", end: "23:30" }}
                     />
                   </div>

@@ -11,6 +11,7 @@ import { Send, Calendar, User, Paperclip, X } from "lucide-react";
 import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { toast } from "react-hot-toast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { getTodayString } from "@/utils/dateUtils";
 import AddressSection from "@/components/common/AddressSection";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useFileUpload } from "@/hooks/useFileUpload";
@@ -630,7 +631,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                       }
                       placeholder="결제 예정일을 선택하세요"
                       helperText="시연 비용 결제 예정일입니다"
-                      minDate={new Date().toISOString().split("T")[0]}
+                      minDate={getTodayString()}
                     />
                   </div>
                 </div>
@@ -702,7 +703,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                   }
                   placeholder="상차 일자와 시간을 선택하세요"
                   helperText="시연품을 창고에서 출고하는 일정입니다"
-                  minDate={new Date().toISOString().split("T")[0]}
+                  minDate={getTodayString()}
                   businessHours={{ start: "00:00", end: "23:30" }}
                 />
               </div>
@@ -762,10 +763,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                   }
                   placeholder="회수 일자와 시간을 선택하세요"
                   helperText="시연품을 창고로 반입하는 일정입니다"
-                  minDate={
-                    formData.demoStartDate ||
-                    new Date().toISOString().split("T")[0]
-                  }
+                  minDate={formData.demoStartDate || getTodayString()}
                   businessHours={{ start: "00:00", end: "23:30" }}
                 />
               </div>

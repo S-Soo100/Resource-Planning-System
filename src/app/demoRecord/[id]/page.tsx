@@ -444,7 +444,7 @@ const DemoRecordDetail = () => {
     if (demoId) {
       fetchDemo();
     }
-  }, [demoId, router]);
+  }, [demoId, router]); // auth, isAuthenticated, teamId는 authStore에서 직접 가져오므로 의존성에서 제외
 
   // teamId가 있으면 콘솔에 출력 (디버깅용)
   useEffect(() => {

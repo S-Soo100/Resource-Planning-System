@@ -22,6 +22,7 @@ import {
 } from "@/hooks/useInventoryRecord";
 import { useCategory } from "@/hooks/useCategory";
 import { useQueryClient } from "@tanstack/react-query";
+import { getTodayString } from "@/utils/dateUtils";
 
 // 날짜 포맷팅 유틸리티 함수
 const formatDate = (dateString: string | null) => {
@@ -105,7 +106,7 @@ export default function IoHistoryList() {
     itemCode: "",
     itemName: "",
     quantity: 1,
-    date: new Date().toISOString().split("T")[0],
+    date: getTodayString(),
     inboundPlace: "",
     inboundAddress: "",
     inboundAddressDetail: "",
@@ -134,7 +135,7 @@ export default function IoHistoryList() {
     itemName: "",
     currentQuantity: 0,
     quantity: 1,
-    date: new Date().toISOString().split("T")[0],
+    date: getTodayString(),
     outboundPlace: "",
     outboundAddress: "",
     outboundAddressDetail: "",
@@ -164,7 +165,7 @@ export default function IoHistoryList() {
     setStartDate(getThreeMonthsAgo());
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    setEndDate(tomorrow.toISOString().split("T")[0]);
+    setEndDate(getTodayString());
   };
 
   // 모든 필터 초기화 함수

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { AttachedFile } from "@/types/common";
 import SearchAddressModal from "./SearchAddressModal";
 import { Category } from "@/types/(item)/category";
@@ -58,9 +58,7 @@ export default function OutboundModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
-  useEffect(() => {}, [isOpen, warehouseItems]);
 
-  useEffect(() => {}, [selectedCategoryId, warehouseItems, isOpen]);
 
   if (!isOpen) return null;
 

@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Calendar, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { formatDateToLocalString } from "@/utils/dateUtils";
 
 export interface DatePickerProps {
   label?: string;
@@ -53,7 +54,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   // 날짜 변경 핸들러
   const handleDateSelect = (day: Date) => {
     setSelectedDate(day);
-    const dateString = day.toISOString().split("T")[0];
+    const dateString = formatDateToLocalString(day);
     onDateChange?.(dateString);
     setIsOpen(false);
   };
@@ -131,7 +132,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     setCurrentMonth(
       new Date(selectedDay.getFullYear(), selectedDay.getMonth(), 1)
     );
-    const dateString = selectedDay.toISOString().split("T")[0];
+    const dateString = formatDateToLocalString(selectedDay);
     onDateChange?.(dateString);
     setIsOpen(false);
   };

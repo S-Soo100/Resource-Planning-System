@@ -75,7 +75,7 @@ export default function TeamSelectPage() {
     }, 1000);
 
     return () => clearTimeout(authCheckTimer);
-  }, [mounted, zustandAuth, router]);
+  }, [mounted, zustandAuth, router]); // handleLogout는 무한루프 방지를 위해 의존성에서 제외
 
   useEffect(() => {
     console.log("현재 선택된 팀 상태:", selectedTeam);

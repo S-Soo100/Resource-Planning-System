@@ -21,8 +21,6 @@ interface LoginFormProps {
 
 export default function LoginForm({
   onLoginSuccess,
-  redirectUrl,
-  teamId,
   isModal = false,
   notice,
 }: LoginFormProps = {}) {

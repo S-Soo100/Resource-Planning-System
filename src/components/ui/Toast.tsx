@@ -32,7 +32,7 @@ const Toast: React.FC<ToastProps> = ({
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [duration]);
+  }, [duration]); // handleClose는 무한루프 방지를 위해 의존성에서 제외
 
   const handleClose = () => {
     setIsLeaving(true);

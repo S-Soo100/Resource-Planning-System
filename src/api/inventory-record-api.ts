@@ -1,4 +1,5 @@
 import { api, ApiResponse } from "./api";
+import { normalizeFileName } from "@/utils/fileUtils";
 import {
   CreateInventoryRecordDto,
   UpdateInventoryRecordRequest,
@@ -166,7 +167,13 @@ export const inventoryRecordApi = {
   ): Promise<ApiResponse<{ url: string }>> => {
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      // 파일명 정규화하여 새로운 File 객체 생성
+      const normalizedFileName = normalizeFileName(file);
+      const normalizedFile = new File([file], normalizedFileName, {
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+      formData.append("file", normalizedFile);
       formData.append(
         "expirationTimeMinutes",
         expirationTimeMinutes.toString()

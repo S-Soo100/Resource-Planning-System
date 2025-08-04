@@ -17,6 +17,13 @@ import { IAuth } from "@/types/(auth)/auth";
 import { authService } from "@/services/authService";
 import { authStore } from "@/store/authStore";
 import { getSafeFileName } from "@/utils/fileUtils";
+import { useOrderComments } from "@/hooks/useOrderComments";
+import {
+  CreateOrderCommentDto,
+  UpdateOrderCommentDto,
+} from "@/types/(order)/orderComment";
+import { OrderComment } from "@/types/(order)/orderComment";
+import { IUser } from "@/types/(auth)/user";
 
 // 날짜 포맷팅 함수
 const formatDate = (dateString: string): string => {
@@ -112,6 +119,235 @@ const getStatusIcon = (status: string): JSX.Element => {
         </svg>
       );
   }
+};
+
+// 댓글 섹션 컴포넌트
+interface OrderCommentSectionProps {
+  record: IOrderRecord;
+  currentUser: IUser | undefined;
+}
+
+const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
+  record,
+  currentUser,
+}) => {
+  const [newComment, setNewComment] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingContent, setEditingContent] = useState("");
+
+  // 실제 API를 사용한 댓글 관리
+  const {
+    comments,
+    isLoading,
+    createComment,
+    updateComment,
+    deleteComment,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  } = useOrderComments(record.id);
+
+  // 권한 확인 함수들
+  const canEditComment = (comment: OrderComment) => {
+    if (!currentUser) return false;
+    // 수정은 오직 본인 댓글만 가능 (Admin도 본인 댓글만)
+    return comment.userId === currentUser.id;
+  };
+
+  const canDeleteComment = (comment: OrderComment) => {
+    if (!currentUser) return false;
+    // 삭제는 본인 댓글 + Admin은 모든 댓글 가능
+    return (
+      comment.userId === currentUser.id || currentUser.accessLevel === "admin"
+    );
+  };
+
+  // 댓글 작성 시간 포맷팅
+  const formatCommentDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 1) return "방금 전";
+    if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}시간 전`;
+
+    return date.toLocaleDateString("ko-KR", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // 댓글 작성 핸들러
+  const handleSubmitComment = () => {
+    if (!newComment.trim() || !currentUser) return;
+
+    const commentData: CreateOrderCommentDto = {
+      content: newComment.trim(),
+    };
+
+    createComment(commentData);
+    setNewComment("");
+  };
+
+  // 댓글 수정 핸들러
+  const handleEditComment = (commentId: number) => {
+    if (!editingContent.trim()) return;
+
+    const updateData: UpdateOrderCommentDto = {
+      content: editingContent.trim(),
+    };
+
+    updateComment({ commentId, data: updateData });
+    setEditingCommentId(null);
+    setEditingContent("");
+  };
+
+  // 댓글 삭제 핸들러
+  const handleDeleteComment = (commentId: number) => {
+    if (!confirm("댓글을 삭제하시겠습니까?")) return;
+    deleteComment(commentId);
+  };
+
+  return (
+    <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+      <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-5 h-5 text-gray-500"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z"
+            clipRule="evenodd"
+          />
+        </svg>
+        댓글 ({comments.length})
+      </h2>
+
+      {/* 댓글 목록 */}
+      <div className="overflow-y-auto mb-4 space-y-3 max-h-60">
+        {isLoading ? (
+          <p className="py-4 text-sm text-center text-gray-500">
+            댓글을 불러오는 중...
+          </p>
+        ) : comments.length === 0 ? (
+          <p className="py-4 text-sm text-center text-gray-500">
+            아직 댓글이 없습니다.
+          </p>
+        ) : (
+          comments.map((comment) => (
+            <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-800">
+                    {comment.userName}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatCommentDate(comment.createdAt)}
+                  </span>
+                  {comment.createdAt !== comment.updatedAt && (
+                    <span className="text-xs text-gray-400">(수정됨)</span>
+                  )}
+                </div>
+
+                {(canEditComment(comment) || canDeleteComment(comment)) && (
+                  <div className="flex space-x-1">
+                    {canEditComment(comment) && (
+                      <button
+                        onClick={() => {
+                          setEditingCommentId(comment.id);
+                          setEditingContent(comment.content);
+                        }}
+                        disabled={isUpdating || isDeleting}
+                        className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400"
+                      >
+                        수정
+                      </button>
+                    )}
+                    {canDeleteComment(comment) && (
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        disabled={isUpdating || isDeleting}
+                        className="text-xs text-red-600 hover:text-red-800 disabled:text-gray-400"
+                      >
+                        {isDeleting ? "삭제중..." : "삭제"}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {editingCommentId === comment.id ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={editingContent}
+                    onChange={(e) => setEditingContent(e.target.value)}
+                    className="p-2 w-full text-sm rounded-md border border-gray-300 resize-none"
+                    rows={2}
+                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEditComment(comment.id)}
+                      disabled={isUpdating}
+                      className="px-3 py-1 text-xs text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300"
+                    >
+                      {isUpdating ? "저장중..." : "저장"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingCommentId(null);
+                        setEditingContent("");
+                      }}
+                      disabled={isUpdating}
+                      className="px-3 py-1 text-xs text-gray-700 bg-gray-300 rounded-md hover:bg-gray-400 disabled:opacity-50"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {comment.content}
+                </p>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* 댓글 작성 폼 */}
+      {currentUser && (
+        <div className="pt-3 border-t">
+          <div className="space-y-2">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="댓글을 입력해주세요..."
+              className="p-3 w-full text-sm rounded-md border border-gray-300 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={3}
+              disabled={isCreating}
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={handleSubmitComment}
+                disabled={!newComment.trim() || isCreating}
+                className="px-4 py-2 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {isCreating ? "작성 중..." : "댓글 작성"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const OrderRecordDetail = () => {
@@ -444,14 +680,11 @@ const OrderRecordDetail = () => {
                       <ArrowLeft size={20} />
                       <span>목록으로</span>
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                      발주 상세 정보
-                    </h1>
                   </div>
                 </div>
 
-                {/* 현재 상태 표시 */}
-                <div className="mb-6">
+                <div className="flex justify-between mb-6">
+                  {/* 현재 상태 표시 */}
                   <div
                     className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${getStatusColorClass(
                       order.status
@@ -462,8 +695,46 @@ const OrderRecordDetail = () => {
                       {getStatusText(order.status)}
                     </span>
                   </div>
+                  {/* 수정 버튼 */}
+                  {hasPermissionToEdit(order) && (
+                    <button
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
+                    >
+                      발주 수정
+                    </button>
+                  )}
                 </div>
 
+                <div className="flex gap-4 items-center p-4 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm fp-4">
+                  <span
+                    className={`px-2 py-1 text-sm font-medium rounded-full ${
+                      order.packageId && order.packageId > 0
+                        ? "bg-purple-100 text-purple-700"
+                        : "bg-blue-100 text-blue-700"
+                    }`}
+                  >
+                    {order.packageId && order.packageId > 0 ? "패키지" : "개별"}
+                  </span>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {order.title ||
+                      `${
+                        order.warehouse?.warehouseName || "알 수 없는 창고"
+                      }에서 ${
+                        order.orderItems && order.orderItems.length > 0
+                          ? order.orderItems.length > 1
+                            ? `${
+                                order.orderItems[0]?.item?.teamItem?.itemName ||
+                                "품목"
+                              } 등 ${order.orderItems.length}개 품목`
+                            : `${
+                                order.orderItems[0]?.item?.teamItem?.itemName ||
+                                "품목"
+                              }`
+                          : "품목"
+                      } 출고`}
+                  </h1>
+                </div>
                 {/* 상태 변경 섹션 */}
                 {(() => {
                   const hasPermission = hasPermissionToChangeStatus();
@@ -553,6 +824,12 @@ const OrderRecordDetail = () => {
                       기본 정보
                     </h2>
                     <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">제목:</span>
+                        <span className="font-medium text-blue-600">
+                          {order.title || "제목 없음"}
+                        </span>
+                      </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">발주 ID:</span>
                         <span className="font-medium">#{order.id}</span>
@@ -751,16 +1028,9 @@ const OrderRecordDetail = () => {
                   </div>
                 )}
 
-                {/* 수정 버튼 */}
-                {hasPermissionToEdit(order) && (
-                  <div className="flex justify-end mb-6">
-                    <button
-                      onClick={() => setIsEditModalOpen(true)}
-                      className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
-                    >
-                      발주 수정
-                    </button>
-                  </div>
+                {/* 댓글 섹션 */}
+                {order && (
+                  <OrderCommentSection record={order} currentUser={auth} />
                 )}
 
                 {/* 수정 모달 */}

@@ -55,6 +55,7 @@ interface OrderResponse extends ApiResponse {
 const convertToOrderRecord = (order: Order): IOrderRecord => {
   return {
     id: order.id,
+    title: order.title || "", // 제목 필드 추가
     userId: order.userId,
     supplierId: order.supplierId || 0,
     packageId: order.packageId || 0,
@@ -1134,20 +1135,20 @@ const OrderRecordTabs = () => {
               <table className="overflow-hidden mx-1 my-2 w-full bg-white rounded-2xl shadow-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
-                      날짜
+                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[15%] sm:w-2/12">
+                      생성일
                     </th>
-                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
+                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[25%] sm:w-3/12">
+                      제목
+                    </th>
+                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[15%] sm:w-2/12">
                       발주자
                     </th>
-                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[30%] sm:w-3/12">
-                      패키지/품목
-                    </th>
                     <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
-                      수령자
+                      출고예정일
                     </th>
-                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
-                      현재상태
+                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[15%] sm:w-2/12">
+                      상태
                     </th>
                   </tr>
                 </thead>
@@ -1171,41 +1172,57 @@ const OrderRecordTabs = () => {
                             />
                             {formatDate(record.createdAt)}
                           </td>
+                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-gray-700 truncate max-w-[120px] sm:max-w-[200px]">
+                            <div className="truncate" title={record.title}>
+                              <span
+                                className={`mr-1 px-1 py-0.5 text-xs font-medium rounded ${
+                                  record.packageId && record.packageId > 0
+                                    ? "bg-purple-100 text-purple-700"
+                                    : "bg-blue-100 text-blue-700"
+                                }`}
+                              >
+                                {record.packageId && record.packageId > 0
+                                  ? "패키지"
+                                  : "개별"}
+                              </span>
+                              {record.title ||
+                                `${
+                                  record.warehouse?.warehouseName ||
+                                  "알 수 없는 창고"
+                                }에서 ${
+                                  record.orderItems &&
+                                  record.orderItems.length > 0
+                                    ? record.orderItems.length > 1
+                                      ? `${
+                                          record.orderItems[0]?.item?.teamItem
+                                            ?.itemName || "품목"
+                                        } 등 ${record.orderItems.length}개 품목`
+                                      : `${
+                                          record.orderItems[0]?.item?.teamItem
+                                            ?.itemName || "품목"
+                                        }`
+                                    : "품목"
+                                } 출고`}
+                            </div>
+                          </td>
                           <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700 truncate max-w-[80px] sm:max-w-none">
                             {record.requester}
                           </td>
-                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-gray-700 truncate max-w-[120px] sm:max-w-[200px]">
-                            {record.package?.packageName &&
-                            record.package.packageName !== "개별 품목"
-                              ? `${record.package.packageName} ${
-                                  record.orderItems?.[0]?.quantity || 1
-                                }개`
-                              : record.orderItems &&
-                                record.orderItems.length > 0
-                              ? record.orderItems
-                                  .slice(0, 2)
-                                  .map(
-                                    (item) =>
-                                      `${
-                                        item.item?.teamItem?.itemName ||
-                                        "알 수 없는 품목"
-                                      }${item.quantity}개`
-                                  )
-                                  .join(", ") +
-                                (record.orderItems.length > 2 ? " 외" : "")
-                              : "품목 없음"}
+                          <td className="hidden px-1 py-2 text-xs text-gray-700 whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
+                            {record.packageId && record.packageId > 0 ? (
+                              <Package
+                                size={14}
+                                className="inline-block mr-1 text-purple-500"
+                              />
+                            ) : (
+                              <Package
+                                size={14}
+                                className="inline-block mr-1 text-blue-500"
+                              />
+                            )}
+                            {formatDate(record.outboundDate)}
                           </td>
                           <td className="hidden px-1 py-2 text-xs text-gray-700 whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
-                            <div
-                              className="max-w-[60px] sm:max-w-[80px] truncate"
-                              title={record.receiver}
-                            >
-                              {record.receiver.length > 6
-                                ? `${record.receiver.slice(0, 6)}...`
-                                : record.receiver}
-                            </div>
-                          </td>
-                          <td className="hidden px-1 py-2 text-xs whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
                             <div className="flex justify-between items-center">
                               <span
                                 className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-xs rounded-full ${getStatusColorClass(
@@ -1233,7 +1250,7 @@ const OrderRecordTabs = () => {
                           {/* 모바일 UI */}
                           <td className="px-3 py-3 sm:hidden">
                             <div className="flex flex-col gap-2">
-                              {/* 첫 번째 줄: 날짜, 품목, 수령자 */}
+                              {/* 첫 번째 줄: 생성일, 제목 */}
                               <div className="flex gap-2 items-center">
                                 <div className="flex items-center text-gray-500">
                                   <Calendar size={14} className="mr-1" />
@@ -1241,43 +1258,45 @@ const OrderRecordTabs = () => {
                                     {formatDate(record.createdAt)}
                                   </span>
                                 </div>
-                                <div className="flex-1 text-xs text-gray-700 truncate">
-                                  {record.package?.packageName &&
-                                  record.package.packageName !== "개별 품목"
-                                    ? `${record.package.packageName} ${
-                                        record.orderItems?.[0]?.quantity || 1
-                                      }개`
-                                    : record.orderItems &&
-                                      record.orderItems.length > 0
-                                    ? record.orderItems
-                                        .slice(0, 1)
-                                        .map(
-                                          (item) =>
-                                            `${
-                                              item.item?.teamItem?.itemName ||
-                                              "알 수 없는 품목"
-                                            }${item.quantity}개`
-                                        )
-                                        .join(", ") +
-                                      (record.orderItems.length > 1
-                                        ? " 외"
-                                        : "")
-                                    : "품목 없음"}
-                                </div>
-                                <div
-                                  className="text-xs text-gray-700 truncate max-w-[60px]"
-                                  title={record.receiver}
-                                >
-                                  {record.receiver.length > 6
-                                    ? `${record.receiver.slice(0, 6)}...`
-                                    : record.receiver}
+                                <div className="flex-1 text-xs font-medium text-gray-700 truncate">
+                                  <span
+                                    className={`mr-1 px-1 py-0.5 text-xs font-medium rounded ${
+                                      record.packageId && record.packageId > 0
+                                        ? "bg-purple-100 text-purple-700"
+                                        : "bg-blue-100 text-blue-700"
+                                    }`}
+                                  >
+                                    {record.packageId && record.packageId > 0
+                                      ? "패키지"
+                                      : "개별"}
+                                  </span>
+                                  {record.title || "제목 없음"}
                                 </div>
                               </div>
-                              {/* 두 번째 줄: 발주자, 현재상태 */}
-                              <div className="flex justify-between items-center">
+                              {/* 두 번째 줄: 발주자, 출고예정일 */}
+                              <div className="flex gap-2 items-center">
                                 <div className="text-xs text-gray-600">
                                   {record.requester}
                                 </div>
+                                <div className="flex items-center text-gray-500">
+                                  {record.packageId && record.packageId > 0 ? (
+                                    <Package
+                                      size={14}
+                                      className="mr-1 text-purple-500"
+                                    />
+                                  ) : (
+                                    <Package
+                                      size={14}
+                                      className="mr-1 text-blue-500"
+                                    />
+                                  )}
+                                  <span className="text-xs">
+                                    {formatDate(record.outboundDate)}
+                                  </span>
+                                </div>
+                              </div>
+                              {/* 세 번째 줄: 상태 */}
+                              <div className="flex justify-between items-center">
                                 <div className="flex gap-1 items-center">
                                   <span
                                     className={`px-2 py-0.5 text-xs rounded-full ${getStatusColorClass(
@@ -1286,51 +1305,28 @@ const OrderRecordTabs = () => {
                                   >
                                     {getStatusText(record.status)}
                                   </span>
-                                  <div className="flex justify-center items-center w-5 h-5 bg-gray-100 rounded-full">
-                                    {expandedRowId === record.id ? (
-                                      <ChevronUp
-                                        size={14}
-                                        className="text-gray-500"
-                                      />
-                                    ) : (
-                                      <ChevronDown
-                                        size={14}
-                                        className="text-gray-500"
-                                      />
-                                    )}
-                                  </div>
+                                </div>
+                                <div className="flex justify-center items-center w-5 h-5 bg-gray-100 rounded-full">
+                                  {expandedRowId === record.id ? (
+                                    <ChevronUp
+                                      size={14}
+                                      className="text-gray-500"
+                                    />
+                                  ) : (
+                                    <ChevronDown
+                                      size={14}
+                                      className="text-gray-500"
+                                    />
+                                  )}
                                 </div>
                               </div>
                             </div>
                           </td>
                         </tr>
+
                         {expandedRowId === record.id && (
                           <tr className="bg-gray-50 transition-all duration-200 ease-in-out">
-                            <td colSpan={6} className="p-2 sm:p-4">
-                              {/* 상태 변경 섹션 */}
-                              <div className="p-3 mb-4 bg-white rounded-xl border border-gray-100 shadow-sm sm:mb-6 sm:p-6">
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="mr-2 w-5 h-5 text-gray-500 sm:h-6 sm:w-6 sm:mr-3"
-                                      viewBox="0 0 20 20"
-                                      fill="currentColor"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                    <h3 className="text-base font-semibold text-gray-700 sm:text-lg">
-                                      발주 상태
-                                    </h3>
-                                  </div>
-                                  <StatusDropdown record={record} />
-                                </div>
-                              </div>
-
+                            <td colSpan={5} className="p-2 sm:p-4">
                               {/* 수정/삭제 버튼 섹션 */}
                               {(hasPermissionToEdit(record) ||
                                 canDeleteOrder(record)) && (
@@ -1396,112 +1392,187 @@ const OrderRecordTabs = () => {
                                   </div>
                                 </div>
                               )}
+                              {/* 상태 변경 섹션 */}
 
-                              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 sm:gap-6 animate-fadeIn">
-                                {/* 왼쪽: 발주 상세 정보 */}
-                                <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
-                                  <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b sm:text-base">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="mr-2 w-4 h-4 text-gray-500 sm:h-5 sm:w-5"
-                                      viewBox="0 0 20 20"
-                                      fill="currentColor"
+                              <div className="p-3 mb-4 bg-white rounded-xl border border-gray-100 shadow-sm sm:mb-6 sm:p-6">
+                                <div className="flex justify-between items-center">
+                                  <div className="flex items-center">
+                                    <span
+                                      className={`mr-2 px-2 py-1 text-xs font-medium rounded-full ${
+                                        record.packageId && record.packageId > 0
+                                          ? "bg-purple-100 text-purple-700"
+                                          : "bg-blue-100 text-blue-700"
+                                      }`}
                                     >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                    발주 상세 정보
-                                  </h3>
-                                  <div className="space-y-2 sm:space-y-3">
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                        생성일:
-                                      </span>
-                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                        {formatDate(record.createdAt)}
-                                      </span>
+                                      {record.packageId && record.packageId > 0
+                                        ? "패키지"
+                                        : "개별"}
+                                    </span>
+                                    <h3 className="text-base font-semibold text-gray-700 sm:text-lg">
+                                      {record.title ||
+                                        `${
+                                          record.warehouse?.warehouseName ||
+                                          "알 수 없는 창고"
+                                        }에서 ${
+                                          record.orderItems &&
+                                          record.orderItems.length > 0
+                                            ? record.orderItems.length > 1
+                                              ? `${
+                                                  record.orderItems[0]?.item
+                                                    ?.teamItem?.itemName ||
+                                                  "품목"
+                                                } 등 ${
+                                                  record.orderItems.length
+                                                }개 품목`
+                                              : `${
+                                                  record.orderItems[0]?.item
+                                                    ?.teamItem?.itemName ||
+                                                  "품목"
+                                                }`
+                                            : "품목"
+                                        } 출고`}
+                                    </h3>
+                                  </div>
+                                  <StatusDropdown record={record} />
+                                </div>
+                              </div>
+
+                              <div className="space-y-6 animate-fadeIn">
+                                {/* 상단 2열 레이아웃 */}
+                                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 sm:gap-6">
+                                  {/* 왼쪽: 발주 상세 정보 */}
+                                  <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
+                                    <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b sm:text-base">
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="mr-2 w-4 h-4 text-gray-500 sm:h-5 sm:w-5"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z"
+                                          clipRule="evenodd"
+                                        />
+                                      </svg>
+                                      발주 상세 정보
+                                    </h3>
+                                    <div className="space-y-2 sm:space-y-3">
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                          제목:
+                                        </span>
+                                        <span className="px-2 py-1 text-xs font-medium text-gray-800 bg-blue-50 rounded-md sm:px-3 sm:text-sm">
+                                          {record.title ||
+                                            `${
+                                              record.warehouse?.warehouseName ||
+                                              "알 수 없는 창고"
+                                            }에서 ${
+                                              record.orderItems &&
+                                              record.orderItems.length > 0
+                                                ? record.orderItems.length > 1
+                                                  ? `${
+                                                      record.orderItems[0]?.item
+                                                        ?.teamItem?.itemName ||
+                                                      "품목"
+                                                    } 등 ${
+                                                      record.orderItems.length
+                                                    }개 품목`
+                                                  : `${
+                                                      record.orderItems[0]?.item
+                                                        ?.teamItem?.itemName ||
+                                                      "품목"
+                                                    }`
+                                                : "품목"
+                                            } 출고`}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                          생성일:
+                                        </span>
+                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
+                                          {formatDate(record.createdAt)}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                          구매일:
+                                        </span>
+                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
+                                          {record.purchaseDate
+                                            ? formatDate(record.purchaseDate)
+                                            : "-"}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                          출고예정일:
+                                        </span>
+                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
+                                          {record.outboundDate
+                                            ? formatDate(record.outboundDate)
+                                            : "-"}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                          설치요청일:
+                                        </span>
+                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
+                                          {record.installationDate
+                                            ? formatDate(
+                                                record.installationDate
+                                              )
+                                            : "-"}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                          발주자:
+                                        </span>
+                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
+                                          {record.requester}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                          담당자:
+                                        </span>
+                                        <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
+                                          {record.manager || "-"}
+                                        </span>
+                                      </div>
+                                      <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                          출고 창고:
+                                        </span>
+                                        <span className="px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-md sm:px-3 sm:text-sm">
+                                          {record.warehouse?.warehouseName ||
+                                            "창고 정보 없음"}
+                                        </span>
+                                      </div>
                                     </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                        구매일:
-                                      </span>
-                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                        {record.purchaseDate
-                                          ? formatDate(record.purchaseDate)
-                                          : "-"}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                        출고예정일:
-                                      </span>
-                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                        {record.outboundDate
-                                          ? formatDate(record.outboundDate)
-                                          : "-"}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                        설치요청일:
-                                      </span>
-                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                        {record.installationDate
-                                          ? formatDate(record.installationDate)
-                                          : "-"}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                        발주자:
-                                      </span>
-                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                        {record.requester}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                        담당자:
-                                      </span>
-                                      <span className="px-2 py-1 text-xs text-gray-800 bg-gray-50 rounded-md sm:px-3 sm:text-sm">
-                                        {record.manager || "-"}
-                                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                        출고 창고:
-                                      </span>
-                                      <span className="px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-md sm:px-3 sm:text-sm">
-                                        {record.warehouse?.warehouseName ||
-                                          "창고 정보 없음"}
-                                      </span>
-                                    </div>
+
+                                    {/* 추가 요청사항 */}
+                                    {record.memo && (
+                                      <div className="flex flex-col  justify-between items-start border-b border-gray-100 py-1.5 sm:py-2">
+                                        <span className="text-xs font-medium text-gray-600 sm:text-sm">
+                                          추가 요청사항:
+                                        </span>
+                                        <span className="px-2 py-2 w-full text-xs text-center text-gray-800 bg-gray-50 rounded-md sm:text-sm">
+                                          {record.memo}
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    <OrderCommentSection
+                                      record={record}
+                                      currentUser={currentUser}
+                                    />
                                   </div>
 
-                                  {/* 추가 요청사항 */}
-                                  {record.memo && (
-                                    <div className="flex flex-col  justify-between items-start border-b border-gray-100 py-1.5 sm:py-2">
-                                      <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                        추가 요청사항:
-                                      </span>
-                                      <span className="px-2 py-2 w-full text-xs text-center text-gray-800 bg-gray-50 rounded-md sm:text-sm">
-                                        {record.memo}
-                                      </span>
-                                    </div>
-                                  )}
-
-                                  <OrderCommentSection
-                                    record={record}
-                                    currentUser={currentUser}
-                                  />
-                                </div>
-
-                                {/* 오른쪽: 배송 정보와 주문품목목록 */}
-                                <div className="space-y-4 sm:space-y-6">
-                                  {/* 배송 정보 */}
+                                  {/* 오른쪽: 배송 정보 */}
                                   <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
                                     <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b sm:text-base">
                                       <svg
@@ -1541,131 +1612,149 @@ const OrderRecordTabs = () => {
                                         </span>
                                       </div>
                                     </div>
-                                  </div>
 
-                                  {/* 주문 품목 목록 */}
-                                  {record.orderItems &&
-                                    record.orderItems.length > 0 && (
-                                      <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
-                                        <h4 className="flex items-center mb-3 text-xs font-medium text-gray-700 sm:text-sm">
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="mr-2 w-3 h-3 text-gray-500 sm:h-4 sm:w-4"
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
-                                          >
-                                            <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                                          </svg>
-                                          주문 품목 목록
-                                        </h4>
-
-                                        {/* 패키지 이름이 없거나 공백이거나 -면 안보이게 */}
-                                        {record.package?.packageName &&
-                                          record.package.packageName.trim() !==
-                                            "" &&
-                                          record.package.packageName !==
-                                            "-" && (
-                                            <div className="p-2 mb-3 bg-gray-50 rounded-lg sm:p-3">
-                                              <div className="flex justify-between items-center mb-2">
-                                                <span className="text-xs font-medium text-gray-600 sm:text-sm">
-                                                  패키지:
-                                                </span>
-                                                <span className="text-xs text-gray-800 sm:text-sm">
-                                                  {record.package.packageName}
-                                                </span>
-                                              </div>
-                                            </div>
-                                          )}
-
-                                        <div className="overflow-hidden bg-gray-50 rounded-lg">
-                                          <div className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-100 text-xs sm:text-sm font-medium text-gray-600 flex justify-between">
-                                            <span>품목</span>
-                                            <span>수량</span>
-                                          </div>
-                                          <ul className="overflow-y-auto max-h-48 divide-y divide-gray-200">
-                                            {record.orderItems.map((item) => (
+                                    {/* 첨부 파일 */}
+                                    {record.files &&
+                                      record.files.length > 0 && (
+                                        <div className="mt-4">
+                                          <h4 className="flex items-center mb-3 text-xs font-medium text-gray-700 sm:text-sm">
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              className="mr-2 w-3 h-3 text-gray-500 sm:h-4 sm:w-4"
+                                              viewBox="0 0 20 20"
+                                              fill="currentColor"
+                                            >
+                                              <path
+                                                fillRule="evenodd"
+                                                d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
+                                                clipRule="evenodd"
+                                              />
+                                            </svg>
+                                            첨부 파일
+                                          </h4>
+                                          <ul className="bg-gray-50 rounded-lg divide-y divide-gray-200">
+                                            {record.files.map((file) => (
                                               <li
-                                                key={item.id}
+                                                key={file.id}
                                                 className="py-1.5 sm:py-2 px-2 sm:px-3 hover:bg-gray-100 transition-colors"
                                               >
-                                                <div className="flex justify-between items-center">
-                                                  <span className="text-xs font-medium text-gray-700 sm:text-sm">
-                                                    {item.item?.teamItem
-                                                      ?.itemName ||
-                                                      "알 수 없는 품목"}
-                                                  </span>
-                                                  <span className="px-2 py-1 text-xs text-gray-600 bg-white rounded-md sm:text-sm">
-                                                    {item.quantity}개
-                                                  </span>
-                                                </div>
-                                                {/* {item.memo && (
-                                                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1 italic">
-                                                    메모: {item.memo}
-                                                  </p>
-                                                )} */}
+                                                <a
+                                                  href={file.fileUrl}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="flex items-center text-xs text-blue-500 hover:text-blue-700 hover:underline sm:text-sm"
+                                                >
+                                                  <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    className="mr-1 w-3 h-3 sm:h-4 sm:w-4 sm:mr-2"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                  >
+                                                    <path
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                      strokeWidth={2}
+                                                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                                    />
+                                                  </svg>
+                                                  {file.fileName}
+                                                </a>
+                                                <p className="text-[10px] sm:text-xs text-gray-500 mt-1 ml-4 sm:ml-6">
+                                                  업로드:{" "}
+                                                  {formatDate(file.createdAt)}
+                                                </p>
                                               </li>
                                             ))}
                                           </ul>
                                         </div>
-                                      </div>
-                                    )}
+                                      )}
+                                  </div>
+                                </div>
 
-                                  {/* 첨부 파일 */}
-                                  {record.files && record.files.length > 0 && (
+                                {/* 하단: 주문 품목 목록 (전체 너비) */}
+                                {record.orderItems &&
+                                  record.orderItems.length > 0 && (
                                     <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm sm:p-5">
-                                      <h4 className="flex items-center mb-3 text-xs font-medium text-gray-700 sm:text-sm">
+                                      <h3 className="flex items-center pb-2 mb-3 text-sm font-bold text-gray-700 border-b sm:text-base">
                                         <svg
                                           xmlns="http://www.w3.org/2000/svg"
-                                          className="mr-2 w-3 h-3 text-gray-500 sm:h-4 sm:w-4"
+                                          className="mr-2 w-4 h-4 text-gray-500 sm:h-5 sm:w-5"
                                           viewBox="0 0 20 20"
                                           fill="currentColor"
                                         >
-                                          <path
-                                            fillRule="evenodd"
-                                            d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
-                                            clipRule="evenodd"
-                                          />
+                                          <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
                                         </svg>
-                                        첨부 파일
-                                      </h4>
-                                      <ul className="bg-gray-50 rounded-lg divide-y divide-gray-200">
-                                        {record.files.map((file) => (
-                                          <li
-                                            key={file.id}
-                                            className="py-1.5 sm:py-2 px-2 sm:px-3 hover:bg-gray-100 transition-colors"
-                                          >
-                                            <a
-                                              href={file.fileUrl}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="flex items-center text-xs text-blue-500 hover:text-blue-700 hover:underline sm:text-sm"
+                                        주문 품목 목록 (
+                                        {record.orderItems.length}개)
+                                      </h3>
+
+                                      {/* 패키지 이름이 없거나 공백이거나 -면 안보이게 */}
+                                      {record.package?.packageName &&
+                                        record.package.packageName.trim() !==
+                                          "" &&
+                                        record.package.packageName !== "-" && (
+                                          <div className="p-3 mb-4 bg-blue-50 rounded-lg border border-blue-200">
+                                            <div className="flex justify-between items-center">
+                                              <span className="text-sm font-medium text-blue-700">
+                                                패키지:
+                                              </span>
+                                              <span className="text-sm font-semibold text-blue-800">
+                                                {record.package.packageName}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        )}
+
+                                      <div className="bg-gray-50 rounded-lg border border-gray-200">
+                                        <div className="flex justify-between items-center px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 border-b border-gray-200">
+                                          <span className="flex-1">품목명</span>
+                                          <span className="w-20 text-center">
+                                            수량
+                                          </span>
+                                        </div>
+                                        <ul className="divide-y divide-gray-200">
+                                          {record.orderItems.map((item) => (
+                                            <li
+                                              key={item.id}
+                                              className="px-4 py-4 transition-colors hover:bg-gray-100"
                                             >
-                                              <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="mr-1 w-3 h-3 sm:h-4 sm:w-4 sm:mr-2"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                              >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={2}
-                                                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                                                />
-                                              </svg>
-                                              {file.fileName}
-                                            </a>
-                                            <p className="text-[10px] sm:text-xs text-gray-500 mt-1 ml-4 sm:ml-6">
-                                              업로드:{" "}
-                                              {formatDate(file.createdAt)}
-                                            </p>
-                                          </li>
-                                        ))}
-                                      </ul>
+                                              <div className="flex justify-between items-center">
+                                                <div className="flex-1">
+                                                  <span className="text-sm font-medium text-gray-800">
+                                                    {item.item?.teamItem
+                                                      ?.itemName ||
+                                                      "알 수 없는 품목"}
+                                                    {item.item?.teamItem
+                                                      ?.itemCode && (
+                                                      <span className="ml-2 text-xs text-gray-500">
+                                                        (
+                                                        {
+                                                          item.item.teamItem
+                                                            .itemCode
+                                                        }
+                                                        )
+                                                      </span>
+                                                    )}
+                                                  </span>
+                                                  {/* {item.memo && (
+                                                    <p className="mt-1 text-xs italic text-gray-500">
+                                                      메모: {item.memo}
+                                                    </p>
+                                                  )} */}
+                                                </div>
+                                                <div className="w-20 text-center">
+                                                  <span className="px-3 py-1 text-black text-md">
+                                                    {item.quantity}개
+                                                  </span>
+                                                </div>
+                                              </div>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
                                     </div>
                                   )}
-                                </div>
                               </div>
                             </td>
                           </tr>

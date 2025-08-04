@@ -19,6 +19,7 @@ export const orderService = {
     const auth = authStore((state) => state.user);
     const orderData: CreateOrderDto = {
       userId: auth?.id ?? 0,
+      title: formData.title, // 제목 필드 추가
       manager: formData.manager,
       supplierId: formData.supplierId ?? null,
       packageId: formData.packageId ?? null, // null가능하게

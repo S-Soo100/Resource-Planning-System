@@ -68,6 +68,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   >([]);
 
   const [formData, setFormData] = useState<OrderRequestFormData>({
+    title: "", // 제목 필드 추가
     manager: "",
     requester: auth?.name || "",
     receiver: "",
@@ -440,6 +441,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   };
 
   const validateForm = (): boolean => {
+    if (!formData.title.trim()) {
+      toast.error("제목을 입력해주세요");
+      return false;
+    }
     if (orderItems.length === 0) {
       toast.error("최소 하나 이상의 품목을 선택해주세요");
       return false;
@@ -492,6 +497,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     try {
       const orderData: CreateOrderDto = {
         userId: auth?.id ?? 0,
+        title: formData.title, // 제목 필드 추가
         manager: formData.manager,
         supplierId: formData.supplierId ?? null,
         packageId: formData.packageId ?? null,
@@ -691,6 +697,22 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     <div className="container p-4 mx-auto">
       <h1 className="mb-4 text-2xl font-bold text-center">{title}</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
+        {/* 제목 입력 */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            제목 <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="발주 제목을 입력하세요"
+            required
+          />
+        </div>
+
         {/* 창고 선택 */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">

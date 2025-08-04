@@ -57,6 +57,7 @@ export default function WheelchairOrderForm() {
   >([]);
 
   const [formData, setFormData] = useState<OrderRequestFormData>({
+    title: "", // 제목 필드 추가
     manager: "",
     requester: auth?.name || "",
     receiver: "",
@@ -321,6 +322,10 @@ export default function WheelchairOrderForm() {
   };
 
   const validateForm = (): boolean => {
+    if (!formData.title.trim()) {
+      toast.error("제목을 입력해주세요");
+      return false;
+    }
     if (orderItems.length === 0) {
       toast.error("최소 하나 이상의 품목을 선택해주세요");
       return false;
@@ -372,6 +377,7 @@ export default function WheelchairOrderForm() {
     try {
       const orderData: CreateOrderDto = {
         userId: auth?.id ?? 0,
+        title: formData.title, // 제목 필드 추가
         manager: formData.manager,
         supplierId: formData.supplierId ?? null,
         packageId: formData.packageId ?? null,
@@ -571,6 +577,22 @@ export default function WheelchairOrderForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* 제목 입력 */}
+        <div className="p-4 bg-white rounded-lg border shadow-sm">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            제목 <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="휠체어 발주 제목을 입력하세요"
+            required
+          />
+        </div>
+
         {/* 품목 추가 버튼 */}
         <div className="p-4 bg-white rounded-lg border shadow-sm">
           <div className="flex justify-between items-center mb-2">

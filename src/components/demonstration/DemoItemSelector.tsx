@@ -82,9 +82,9 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
     }
   };
 
-  // 수량 변경 핸들러
+  // 수량 변경 핸들러 - 팀에서 알아서 처리하므로 제한 제거
   const handleQuantityChange = (teamItemName: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
+    // if (newQuantity < 1) return; // 수량 제한 제거
     const updatedItems = selectedItems.map((item) =>
       item.teamItem.itemName === teamItemName
         ? { ...item, quantity: newQuantity }
@@ -93,13 +93,13 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
     onItemsChange(updatedItems);
   };
 
-  // 수량 증가/감소 핸들러
+  // 수량 증가/감소 핸들러 - 팀에서 알아서 처리하므로 제한 제거
   const handleQuantityAdjust = (teamItemName: string, increment: boolean) => {
     const currentQuantity = getItemQuantity(teamItemName);
     const newQuantity = increment ? currentQuantity + 1 : currentQuantity - 1;
-    if (newQuantity >= 1) {
-      handleQuantityChange(teamItemName, newQuantity);
-    }
+    // if (newQuantity >= 1) { // 수량 제한 제거
+    handleQuantityChange(teamItemName, newQuantity);
+    // }
   };
 
   // 전체 선택/해제 핸들러
@@ -209,7 +209,7 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
                           handleQuantityAdjust(teamItemName, false)
                         }
                         className="p-0 w-8 h-8"
-                        disabled={quantity <= 1}
+                        // disabled={quantity <= 1} // 수량 제한 제거
                       >
                         <Minus className="w-4 h-4" />
                       </Button>
@@ -220,11 +220,11 @@ const DemoItemSelector: React.FC<DemoItemSelectorProps> = ({
                         onChange={(e) =>
                           handleQuantityChange(
                             teamItemName,
-                            parseInt(e.target.value) || 1
+                            parseInt(e.target.value) || 0
                           )
                         }
                         className="w-16 text-center"
-                        min="1"
+                        // min="1" // 수량 제한 제거
                       />
 
                       <Button

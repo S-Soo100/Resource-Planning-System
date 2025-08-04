@@ -862,7 +862,7 @@ const DemoRecordDetail = () => {
                       )}
                   </div>
                   {/* 시연 수정/삭제 버튼 (맨 오른쪽) */}
-                  {hasPermissionToEdit(demo) && (
+                  {hasPermissionToEdit(demo) ? (
                     <div className="flex gap-2 ml-auto">
                       <button
                         onClick={() => setIsEditModalOpen(true)}
@@ -883,6 +883,33 @@ const DemoRecordDetail = () => {
                         )}
                       </button>
                     </div>
+                  ) : (
+                    (() => {
+                      const nonEditableStatuses = [
+                        DemoStatus.approved,
+                        DemoStatus.rejected,
+                        DemoStatus.confirmedByShipper,
+                        DemoStatus.shipmentCompleted,
+                        DemoStatus.rejectedByShipper,
+                        DemoStatus.demoCompleted,
+                      ];
+
+                      if (
+                        nonEditableStatuses.includes(
+                          demo.demoStatus as DemoStatus
+                        )
+                      ) {
+                        const statusText = getStatusText(demo.demoStatus);
+                        return (
+                          <div className="flex gap-2 items-center ml-auto">
+                            <div className="px-4 py-2 text-sm text-amber-700 bg-amber-100 rounded-lg border border-amber-200">
+                              {statusText} 상태의 시연은 수정할 수 없습니다
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()
                   )}
                 </div>
 

@@ -12,7 +12,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { DemoResponse, PatchDemoRequest } from "@/types/demo/demo";
+import { DemoResponse, PatchDemoRequest, DemoStatus } from "@/types/demo/demo";
 import {
   useUpdateDemo,
   useDeleteDemo,
@@ -35,6 +35,28 @@ import { TeamItem } from "@/types/(item)/team-item";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSafeFileName, formatFileSize } from "@/utils/fileUtils";
 import { getTodayString } from "@/utils/dateUtils";
+
+// 상태 텍스트 함수
+const getStatusText = (status: string): string => {
+  switch (status) {
+    case DemoStatus.requested:
+      return "요청";
+    case DemoStatus.approved:
+      return "승인";
+    case DemoStatus.rejected:
+      return "반려";
+    case DemoStatus.confirmedByShipper:
+      return "출고팀 확인";
+    case DemoStatus.shipmentCompleted:
+      return "출고 완료";
+    case DemoStatus.rejectedByShipper:
+      return "출고 보류";
+    case DemoStatus.demoCompleted:
+      return "시연 종료";
+    default:
+      return status;
+  }
+};
 
 // 숫자 포맷팅 함수
 const formatNumber = (value: string): string => {
@@ -403,6 +425,46 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       return false;
     }
 
+    // 아이템 수량 검증 - 팀에서 알아서 처리하므로 제거
+    // for (const item of selectedItems) {
+    //   if (item.quantity <= 0) {
+    //     toast.error(`"${item.itemName}"의 수량은 1개 이상이어야 합니다.`);
+    //     return false;
+    //   }
+    // }
+
+    // 전화번호 형식 검증 (간단한 형식 체크)
+    const phoneRegex = /^[0-9-+\s()]+$/;
+    if (
+      formData.demoManagerPhone &&
+      !phoneRegex.test(formData.demoManagerPhone)
+    ) {
+      toast.error("현지 담당자 연락처 형식이 올바르지 않습니다.");
+      return false;
+    }
+
+    // 날짜 형식 검증
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (formData.demoStartDate && !dateRegex.test(formData.demoStartDate)) {
+      toast.error("상차 일자 형식이 올바르지 않습니다.");
+      return false;
+    }
+    if (formData.demoEndDate && !dateRegex.test(formData.demoEndDate)) {
+      toast.error("회수 일자 형식이 올바르지 않습니다.");
+      return false;
+    }
+
+    // 시간 형식 검증
+    const timeRegex = /^\d{2}:\d{2}$/;
+    if (formData.demoStartTime && !timeRegex.test(formData.demoStartTime)) {
+      toast.error("상차 시간 형식이 올바르지 않습니다.");
+      return false;
+    }
+    if (formData.demoEndTime && !timeRegex.test(formData.demoEndTime)) {
+      toast.error("회수 시간 형식이 올바르지 않습니다.");
+      return false;
+    }
+
     return true;
   };
 
@@ -454,6 +516,55 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
     e.preventDefault();
 
     if (!validateForm() || !demo) return;
+
+    // 권한 확인
+    if (!user) {
+      toast.error("로그인이 필요합니다.");
+      return;
+    }
+
+    // 수정 권한 확인 (시연 상세 페이지와 동일한 로직)
+    const isAdmin = user.isAdmin;
+    const isAuthor = demo.userId === user.id;
+
+    if (!isAdmin && !isAuthor) {
+      toast.error("자신이 작성한 시연만 수정할 수 있습니다.");
+      return;
+    }
+
+    // 수정 불가능한 상태 체크
+    const nonEditableStatuses = [
+      DemoStatus.approved,
+      DemoStatus.rejected,
+      DemoStatus.confirmedByShipper,
+      DemoStatus.shipmentCompleted,
+      DemoStatus.rejectedByShipper,
+      DemoStatus.demoCompleted,
+    ];
+
+    if (nonEditableStatuses.includes(demo.demoStatus as DemoStatus)) {
+      const statusText = getStatusText(demo.demoStatus);
+      toast.error(`${statusText} 상태의 시연은 수정할 수 없습니다.`);
+      return;
+    }
+
+    // 동시성 체크: 현재 시연 상태가 변경되었는지 확인
+    if (demo.demoStatus !== "requested") {
+      toast.error(
+        "시연 상태가 변경되어 수정할 수 없습니다. 페이지를 새로고침해주세요."
+      );
+      return;
+    }
+
+    // 재고 확인 (선택적 - 필요시 활성화)
+    // const stockValidation = validateStock();
+    // if (!stockValidation.isValid) {
+    //   const itemList = stockValidation.insufficientItems.join("\n• ");
+    //   toast.error(
+    //     `다음 품목의 재고가 부족합니다:\n\n• ${itemList}\n\n수량을 조정하거나 담당자에게 문의하세요.`
+    //   );
+    //   return;
+    // }
 
     // 수정 내용 확인 다이얼로그 개선
     const hasNewFiles = fileUpload.files.length > 0;
@@ -539,16 +650,78 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
           toast.success("시연 기록이 수정되었습니다!");
         } catch (fileError) {
           console.error("파일 처리 중 오류:", fileError);
-          toast.error(
-            "시연은 수정되었으나 파일 처리 중 오류가 발생했습니다. 다시 시도해주세요."
-          );
+
+          let fileErrorMessage =
+            "시연은 수정되었으나 파일 처리 중 오류가 발생했습니다.";
+
+          if (fileError instanceof Error) {
+            if (fileError.message.includes("크기")) {
+              fileErrorMessage =
+                "파일 크기가 너무 큽니다. 50MB 이하의 파일만 업로드 가능합니다.";
+            } else if (fileError.message.includes("형식")) {
+              fileErrorMessage = "지원하지 않는 파일 형식입니다.";
+            } else if (fileError.message.includes("권한")) {
+              fileErrorMessage = "파일 업로드 권한이 없습니다.";
+            } else if (fileError.message.includes("네트워크")) {
+              fileErrorMessage = "네트워크 연결을 확인해주세요.";
+            } else if (fileError.message.includes("서버")) {
+              fileErrorMessage =
+                "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+            } else if (fileError.message.includes("저장공간")) {
+              fileErrorMessage =
+                "서버 저장공간이 부족합니다. 관리자에게 문의하세요.";
+            } else {
+              fileErrorMessage = `파일 처리 중 오류: ${fileError.message}`;
+            }
+          }
+
+          toast.error(fileErrorMessage);
         }
       } else {
-        toast.error(response.message || "시연 기록 수정에 실패했습니다.");
+        // 구체적인 에러 메시지 처리
+        let errorMessage = "시연 기록 수정에 실패했습니다.";
+
+        if (response.message) {
+          if (response.message.includes("승인된 시연")) {
+            errorMessage = "승인된 시연은 수정할 수 없습니다.";
+          } else if (response.message.includes("권한")) {
+            errorMessage = "시연을 수정할 권한이 없습니다.";
+          } else if (response.message.includes("필수")) {
+            errorMessage =
+              "필수 정보가 누락되었습니다. 모든 필수 항목을 입력해주세요.";
+          } else if (response.message.includes("존재하지 않")) {
+            errorMessage =
+              "시연 정보를 찾을 수 없습니다. 페이지를 새로고침해주세요.";
+          } else if (response.message.includes("동시")) {
+            errorMessage =
+              "다른 사용자가 시연을 수정 중입니다. 잠시 후 다시 시도해주세요.";
+          } else if (response.message.includes("재고")) {
+            errorMessage =
+              "선택한 아이템의 재고가 부족합니다. 수량을 조정해주세요.";
+          } else {
+            errorMessage = response.message;
+          }
+        }
+
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error("시연 기록 수정 중 오류:", error);
-      toast.error("시연 기록 수정 중 오류가 발생했습니다.");
+
+      // 네트워크 에러 등 구체적인 에러 처리
+      let errorMessage = "시연 기록 수정 중 오류가 발생했습니다.";
+
+      if (error instanceof Error) {
+        if (error.message.includes("Network")) {
+          errorMessage = "네트워크 연결을 확인해주세요.";
+        } else if (error.message.includes("timeout")) {
+          errorMessage = "요청 시간이 초과되었습니다. 다시 시도해주세요.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
       setIsFileUploading(false);

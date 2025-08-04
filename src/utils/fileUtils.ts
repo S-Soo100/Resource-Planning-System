@@ -106,6 +106,17 @@ export const isCorruptedFileName = (fileName: string): boolean => {
 };
 
 /**
+ * 파일명이 읽을 수 없는지 확인 (깨진 문자 + 특수문자만 있는 경우)
+ * @param fileName 파일명
+ * @returns 읽을 수 없는 파일명 여부
+ */
+export const isUnreadableFileName = (fileName: string): boolean => {
+  // 깨진 문자나 특수문자만 있는지 확인
+  const readablePattern = /[a-zA-Z0-9가-힣\s.-]/;
+  return !readablePattern.test(fileName);
+};
+
+/**
  * 파일명을 안전하게 표시하는 함수
  * @param fileName 원본 파일명
  * @returns 안전하게 표시할 파일명
@@ -120,6 +131,63 @@ export const getSafeFileName = (fileName: string): string => {
   }
 
   // 디코딩이 실패하면 원본 반환
+  return fileName;
+};
+
+/**
+ * 파일명을 사용자 친화적으로 표시하는 함수 (깨진 파일명 대체)
+ * @param fileName 원본 파일명
+ * @param fallbackName 대체할 파일명 (기본값: "알 수 없는 파일")
+ * @returns 사용자 친화적인 파일명
+ */
+export const getDisplayFileName = (
+  fileName: string,
+  fallbackName: string = "알 수 없는 파일"
+): string => {
+  // 깨진 파일명인 경우 디코딩 시도
+  if (isCorruptedFileName(fileName)) {
+    const decoded = decodeFileName(fileName);
+    if (decoded !== fileName && !isUnreadableFileName(decoded)) {
+      return decoded;
+    }
+  }
+
+  // 읽을 수 없는 파일명인 경우 대체 이름 사용
+  if (isUnreadableFileName(fileName)) {
+    const extension = getFileExtension(fileName);
+    return `${fallbackName}${extension}`;
+  }
+
+  // 정상적인 파일명인 경우 원본 반환
+  return fileName;
+};
+
+/**
+ * 파일명을 완전히 대체하는 함수 (깨진 파일명을 숨김)
+ * @param fileName 원본 파일명
+ * @param index 파일 인덱스 (기본값: 0)
+ * @returns 대체된 파일명
+ */
+export const getReplacedFileName = (
+  fileName: string,
+  index: number = 0
+): string => {
+  // 깨진 파일명인 경우 디코딩 시도
+  if (isCorruptedFileName(fileName)) {
+    const decoded = decodeFileName(fileName);
+    if (decoded !== fileName && !isUnreadableFileName(decoded)) {
+      return decoded;
+    }
+  }
+
+  // 읽을 수 없거나 깨진 파일명인 경우 완전히 대체
+  if (isUnreadableFileName(fileName) || isCorruptedFileName(fileName)) {
+    const extension = getFileExtension(fileName);
+    const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    return `파일_${timestamp}_${index + 1}${extension}`;
+  }
+
+  // 정상적인 파일명인 경우 원본 반환
   return fileName;
 };
 

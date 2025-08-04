@@ -100,8 +100,9 @@ export const getFileIconClass = (fileName: string): string => {
  * @returns 깨진 파일명 여부
  */
 export const isCorruptedFileName = (fileName: string): boolean => {
-  // 깨진 파일명 패턴 확인 (예: á³áµá«á£áº 같은 문자들)
-  const corruptedPattern = /[áâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/;
+  // 깨진 파일명 패턴 확인 (ìº¥ì¤í°ì¦ 같은 문자들 포함)
+  // 더 포괄적인 패턴으로 변경
+  const corruptedPattern = /[ìº¥ì¤í°ì¦áâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ\u0080-\u009F\u00A0-\u00FF]/;
   return corruptedPattern.test(fileName);
 };
 
@@ -112,8 +113,14 @@ export const isCorruptedFileName = (fileName: string): boolean => {
  */
 export const isUnreadableFileName = (fileName: string): boolean => {
   // 깨진 문자나 특수문자만 있는지 확인
-  const readablePattern = /[a-zA-Z0-9가-힣\s.-]/;
-  return !readablePattern.test(fileName);
+  // 더 엄격한 패턴으로 변경
+  const readablePattern = /[a-zA-Z0-9가-힣\s._-]/;
+  
+  // 파일명에서 읽을 수 있는 문자가 하나라도 있는지 확인
+  const hasReadableChar = readablePattern.test(fileName);
+  
+  // 읽을 수 있는 문자가 없거나, 깨진 문자가 포함된 경우
+  return !hasReadableChar || /[ìº¥ì¤í°ì¦]/.test(fileName);
 };
 
 /**
@@ -144,6 +151,12 @@ export const getDisplayFileName = (
   fileName: string,
   fallbackName: string = "알 수 없는 파일"
 ): string => {
+  // 특정 깨진 문자 패턴이 포함된 경우 바로 대체
+  if (/[ìº¥ì¤í°ì¦]/.test(fileName)) {
+    const extension = getFileExtension(fileName);
+    return `${fallbackName}${extension}`;
+  }
+
   // 깨진 파일명인 경우 디코딩 시도
   if (isCorruptedFileName(fileName)) {
     const decoded = decodeFileName(fileName);

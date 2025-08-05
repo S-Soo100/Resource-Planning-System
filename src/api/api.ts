@@ -22,14 +22,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log("API 요청:", {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      baseURL: config.baseURL,
-      fullURL: `${config.baseURL}${config.url}`,
-      data: config.data,
-      headers: config.headers,
-    });
+    console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
@@ -41,18 +34,21 @@ api.interceptors.request.use(
 // 응답 인터셉터
 api.interceptors.response.use(
   (response) => {
-    console.log("API 응답:", {
-      status: response.status,
-      data: response.data,
-    });
+    console.log(
+      `[API] ${response.config.method?.toUpperCase()} ${
+        response.config.url
+      } - ${response.status}`,
+      response.data
+    );
     return response;
   },
   (error) => {
-    console.log("API 응답 에러:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message,
-    });
+    console.log(
+      `[API] ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${
+        error.response?.status || "ERROR"
+      }`,
+      error.response?.data || error.message
+    );
     if (error.response?.status === 401) {
       // 토큰 제거
       localStorage.removeItem("token");

@@ -495,7 +495,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
   const handleDownloadFile = useCallback((file: DemoFile) => {
     const link = document.createElement("a");
     link.href = file.fileUrl;
-    link.download = file.fileName;
+    link.download = getDisplayFileName(file.fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -613,7 +613,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       toast.loading("파일 업로드 중...");
       const uploadResponse = await uploadMultipleDemoFileById(
         demoId,
-        fileUpload.files
+        fileUpload.getEncodedFiles()
       );
       toast.dismiss();
 

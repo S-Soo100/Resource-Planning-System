@@ -5,6 +5,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { AttachedFile } from "@/types/common";
 import SearchAddressModal from "./SearchAddressModal";
 import { Category } from "@/types/(item)/category";
+import { getDisplayFileName } from "@/utils/fileUtils";
 
 interface InboundModalProps {
   isOpen: boolean;
@@ -443,7 +444,7 @@ export default function InboundModal({
                                   {getFileIcon(file.type)}
                                   <div className="ml-3">
                                     <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                                      {file.name}
+                                      {getDisplayFileName(file.name)}
                                     </p>
                                     <p className="text-xs text-gray-500">
                                       {formatFileSize(file.size)}

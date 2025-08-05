@@ -99,28 +99,34 @@ export default function UpdatePage() {
                   <li className="flex items-start">
                     <span className="mr-2 text-orange-600">•</span>
                     <span>
-                      <strong>전화번호 포맷팅 개선</strong>: 발주 및 시연 상세 페이지의 전화번호 표시 방식 개선
+                      <strong>전화번호 포맷팅 개선</strong>: 발주 및 시연 상세
+                      페이지의 전화번호 표시 방식 개선
                     </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-orange-600">•</span>
                     <span>
                       11자리 010으로 시작하는 전화번호만 하이픈 포맷팅 적용 (
-                      <code className="bg-gray-100 px-1 rounded">01012345678</code> →{" "}
-                      <code className="bg-gray-100 px-1 rounded">010-1234-5678</code>)
+                      <code className="bg-gray-100 px-1 rounded">
+                        01012345678
+                      </code>{" "}
+                      →{" "}
+                      <code className="bg-gray-100 px-1 rounded">
+                        010-1234-5678
+                      </code>
+                      )
                     </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-orange-600">•</span>
                     <span>
-                      국제 전화번호(+로 시작) 및 기타 형식은 원본 그대로 표시하여 데이터 정확성 보장
+                      국제 전화번호(+로 시작) 및 기타 형식은 원본 그대로
+                      표시하여 데이터 정확성 보장
                     </span>
                   </li>
                   <li className="flex items-start">
                     <span className="mr-2 text-orange-600">•</span>
-                    <span>
-                      앞뒤 공백 자동 제거로 데이터 정합성 향상
-                    </span>
+                    <span>앞뒤 공백 자동 제거로 데이터 정합성 향상</span>
                   </li>
                 </ul>
               </div>

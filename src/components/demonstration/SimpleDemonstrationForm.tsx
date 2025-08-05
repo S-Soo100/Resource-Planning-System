@@ -54,7 +54,7 @@ const SimpleDemonstrationForm: React.FC = () => {
       toast.loading("파일 업로드 중...");
       const uploadResponse = await uploadMultipleDemoFileById(
         demoId,
-        fileUpload.files
+        fileUpload.getEncodedFiles()
       );
       toast.dismiss();
 

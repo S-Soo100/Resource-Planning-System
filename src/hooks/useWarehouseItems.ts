@@ -23,10 +23,27 @@ interface WarehousesData {
   items: Item[];
 }
 
-export function useWarehouseItems(): useWarehouseItemsReturn {
+interface UseWarehouseItemsOptions {
+  enabled?: boolean; // 조건부 실행을 위한 옵션
+  staleTime?: number; // 캐시 유지 시간 (기본값: 10분)
+  gcTime?: number; // 가비지 컬렉션 시간 (기본값: 30분)
+}
+
+export function useWarehouseItems(
+  options: UseWarehouseItemsOptions = {}
+): useWarehouseItemsReturn {
+  const { 
+    enabled = true, 
+    staleTime = 10 * 60 * 1000, // 10분
+    gcTime = 30 * 60 * 1000 // 30분
+  } = options;
+  
   const queryClient = useQueryClient();
   const selectedTeamId = authStore((state) => state.selectedTeam?.id);
   const { user } = useCurrentUser();
+
+  // 더 엄격한 조건부 실행
+  const shouldEnableQueries = enabled && !!selectedTeamId && !!user;
 
   // 팀 정보를 React Query로 관리
   const { data: selectedTeam } = useQuery({
@@ -36,9 +53,9 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
       const response = await teamApi.getTeam(Number(selectedTeamId));
       return response.success ? response.data : null;
     },
-    enabled: !!selectedTeamId,
-    staleTime: 5 * 60 * 1000, // 5분으로 감소
-    gcTime: 10 * 60 * 1000, // 10분으로 설정
+    enabled: shouldEnableQueries,
+    staleTime,
+    gcTime,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
@@ -73,9 +90,9 @@ export function useWarehouseItems(): useWarehouseItemsReturn {
 
       return { warehouses, items };
     },
-    enabled: hasWarehouses,
-    staleTime: 5 * 60 * 1000, // 5분으로 감소
-    gcTime: 10 * 60 * 1000, // 10분으로 설정
+    enabled: shouldEnableQueries && hasWarehouses,
+    staleTime,
+    gcTime,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

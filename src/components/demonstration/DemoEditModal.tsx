@@ -241,11 +241,18 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
 
   const updateDemoMutation = useUpdateDemo();
   const deleteDemoMutation = useDeleteDemo();
-  const { warehouses } = useWarehouseItems();
+  // useWarehouseItems 훅 제거 - 모달이 열려있을 때만 창고 정보가 필요하므로 조건부로 처리
   const fileUpload = useFileUpload();
   const { isAddressOpen, handleToggleAddressModal, handleCloseAddressModal } =
     useAddressSearch();
   const queryClient = useQueryClient();
+
+  // 창고 정보를 필요할 때만 가져오기
+  const { warehouses } = useWarehouseItems({
+    enabled: isOpen && !!demo,
+    staleTime: 5 * 60 * 1000, // 5분으로 단축
+    gcTime: 10 * 60 * 1000, // 10분으로 단축
+  });
 
   // 시연 창고 필터링
   const demoWarehouses = React.useMemo(() => {

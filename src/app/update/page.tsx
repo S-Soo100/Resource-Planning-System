@@ -85,7 +85,8 @@ export default function UpdatePage() {
                 </div>
               </div>
               <p className="mt-2 text-gray-600">
-                전화번호 포맷팅 개선 및 데모 수정 날짜 파싱 오류 해결
+                전화번호 포맷팅 개선, 한글 파일명 처리 개선, 사용자 정보 수정
+                모달 데이터 반영 문제 해결
               </p>
             </div>
             <div className="p-6 space-y-6">
@@ -128,6 +129,42 @@ export default function UpdatePage() {
                     <span className="mr-2 text-orange-600">•</span>
                     <span>앞뒤 공백 자동 제거로 데이터 정합성 향상</span>
                   </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>
+                      <strong>한글 파일명 처리 개선</strong>: 백엔드 요청에 맞춰
+                      파일명 인코딩 방식 개선
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>
+                      한글 파일명이 포함된 파일 업로드 시 올바른 인코딩 처리
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>파일명 관련 로그 추가로 디버깅 용이성 향상</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>불필요한 로그 간소화로 성능 최적화</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>
+                      <strong>demoRecord 페이지 최적화</strong>: 새로고침 시
+                      불필요한 warehouse API 호출 제거
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>페이지 새로고침 시 중복 API 호출 방지</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>성능 개선 및 네트워크 트래픽 감소</span>
+                  </li>
                 </ul>
               </div>
 
@@ -165,6 +202,46 @@ export default function UpdatePage() {
                       빈 문자열이나 undefined 날짜 필드를 서버 전송 전에
                       제거하여 오류 방지
                     </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>사용자 정보 수정 모달 데이터 반영 문제</strong>:
+                      사용자 정보 수정 시 최신 데이터가 반영되지 않는 문제 해결
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      사용자 정보 수정 모달에서 최신 데이터 정확히 표시
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>실시간 데이터 동기화 개선</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>유저 수정 시 창고 목록 표시</strong>: 유저 수정 시
+                      제한된 창고 목록을 alert으로 표시하는 기능 추가
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>창고 제한 기능 확인 및 개선</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>팀 멤버 창고 접근 권한 기능 개선</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>콘솔 로그 단순화로 디버깅 용이성 향상</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>동시성 문제 및 상태 반영 문제 해결</span>
                   </li>
                 </ul>
               </div>
@@ -631,13 +708,10 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.5.6
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />
-                  2025-07-22
+                  2025-07-18
                 </div>
               </div>
               <p className="mt-2 text-gray-600">
@@ -1046,7 +1120,7 @@ export default function UpdatePage() {
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />
-                  2024-07-16
+                  2025-07-16
                 </div>
               </div>
               <p className="mt-2 text-gray-600">
@@ -1183,13 +1257,10 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.5.0
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />
-                  2025-01-15
+                  2025-07-04
                 </div>
               </div>
               <p className="mt-2 text-gray-600">
@@ -1810,17 +1881,39 @@ export default function UpdatePage() {
           {/* 최신 업데이트 내역 추가 */}
           <div className="mb-6 p-4 rounded-lg border-l-4 border-blue-500 bg-blue-50 flex items-start">
             <div className="mr-3 mt-1">
-              <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#3B82F6"/></svg>
+              <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path
+                  d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                  fill="#3B82F6"
+                />
+              </svg>
             </div>
             <div>
-              <div className="font-bold text-blue-700">팀 멤버 창고 접근 권한 기능 개선</div>
+              <div className="font-bold text-blue-700">
+                팀 멤버 창고 접근 권한 기능 개선
+              </div>
               <div className="text-sm text-gray-700 mt-1">
                 <ul className="list-disc ml-5 space-y-1">
-                  <li>팀 멤버 수정 시 <b>창고 목록이 정확히 표시</b>되고, <b>접근 제한 체크</b>가 정상 동작합니다.</li>
-                  <li>창고 API 응답 구조에 맞춰 <b>창고 배열 추출 로직</b>을 개선했습니다.</li>
-                  <li>불필요한 콘솔 로그를 <b>간결하게 정리</b>하여 디버깅이 쉬워졌습니다.</li>
-                  <li>동시성 문제 및 상태 업데이트 타이밍을 보완하여 <b>실시간 반영</b>이 잘 됩니다.</li>
-                  <li>UI에서 창고가 없거나 로딩 중일 때 <b>명확한 안내 메시지</b>가 표시됩니다.</li>
+                  <li>
+                    팀 멤버 수정 시 <b>창고 목록이 정확히 표시</b>되고,{" "}
+                    <b>접근 제한 체크</b>가 정상 동작합니다.
+                  </li>
+                  <li>
+                    창고 API 응답 구조에 맞춰 <b>창고 배열 추출 로직</b>을
+                    개선했습니다.
+                  </li>
+                  <li>
+                    불필요한 콘솔 로그를 <b>간결하게 정리</b>하여 디버깅이
+                    쉬워졌습니다.
+                  </li>
+                  <li>
+                    동시성 문제 및 상태 업데이트 타이밍을 보완하여{" "}
+                    <b>실시간 반영</b>이 잘 됩니다.
+                  </li>
+                  <li>
+                    UI에서 창고가 없거나 로딩 중일 때 <b>명확한 안내 메시지</b>
+                    가 표시됩니다.
+                  </li>
                 </ul>
                 <div className="text-xs text-gray-500 mt-2">2024-06-09</div>
               </div>

@@ -676,10 +676,9 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      // 날짜 형식을 ISO-8601 DateTime으로 변환
-      const formatDateToISO = (dateString: string): string => {
+      const toKSTISOString = (dateString: string) => {
         if (!dateString) return "";
-        return new Date(dateString + "T00:00:00.000Z").toISOString();
+        return `${dateString}T00:00:00+09:00`;
       };
 
       const orderData = {
@@ -695,9 +694,9 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           receiverPhone: formData.receiverPhone,
           receiverAddress:
             `${formData.address} ${formData.detailAddress}`.trim(),
-          purchaseDate: formatDateToISO(formData.requestDate),
-          outboundDate: formatDateToISO(formData.requestDate),
-          installationDate: formatDateToISO(formData.setupDate),
+          purchaseDate: toKSTISOString(formData.requestDate),
+          outboundDate: toKSTISOString(formData.requestDate),
+          installationDate: toKSTISOString(formData.setupDate),
           status: formData.status, // formData에서 상태 가져오기
           memo: formData.notes,
           orderItems: allOrderItems
@@ -883,46 +882,50 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               </p>
             </div>
 
-            {/* 패키지 선택 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                패키지 선택
-              </label>
-              <div className="flex gap-2 items-center">
-                <select
-                  name="packageId"
-                  onChange={handlePackageSelect}
-                  className="flex-1 px-3 py-2 rounded-md border"
-                  disabled={!formData.warehouseId}
-                >
-                  <option value="0">패키지 선택</option>
-                  {packages?.map((pkg: PackageApi) => (
-                    <option key={pkg.id} value={pkg.id}>
-                      {pkg.packageName}
-                    </option>
-                  ))}
-                </select>
-                {formData.packageId && (
-                  <div className="flex gap-2 items-center">
-                    <button
-                      type="button"
-                      onClick={() => handlePackageQuantityChange(false)}
-                      className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-8 text-center">{packageQuantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => handlePackageQuantityChange(true)}
-                      className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                )}
+            {/* 패키지 선택 (패키지 발주인 경우에만 표시) */}
+            {formData.packageId && packages && packages.length > 0 && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  패키지 선택
+                </label>
+                <div className="flex gap-2 items-center">
+                  <select
+                    name="packageId"
+                    onChange={handlePackageSelect}
+                    className="flex-1 px-3 py-2 rounded-md border"
+                    value={formData.packageId || 0}
+                    required={!!formData.packageId}
+                    disabled={!formData.warehouseId}
+                  >
+                    <option value="0">패키지 선택</option>
+                    {packages?.map((pkg: PackageApi) => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.packageName}
+                      </option>
+                    ))}
+                  </select>
+                  {formData.packageId && (
+                    <div className="flex gap-2 items-center">
+                      <button
+                        type="button"
+                        onClick={() => handlePackageQuantityChange(false)}
+                        className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center">{packageQuantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => handlePackageQuantityChange(true)}
+                        className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* 개별품목 선택 - ItemSelectionModal 사용 */}
             <div className="space-y-2">

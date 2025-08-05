@@ -41,7 +41,6 @@ import {
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 
-
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
   title = "발주 요청",
@@ -495,6 +494,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     setIsSubmitting(true);
 
     try {
+      const toKSTISOString = (dateString: string) => {
+        if (!dateString) return "";
+        return `${dateString}T00:00:00+09:00`;
+      };
       const orderData: CreateOrderDto = {
         userId: auth?.id ?? 0,
         title: formData.title, // 제목 필드 추가
@@ -506,9 +509,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         receiver: formData.receiver,
         receiverPhone: formData.receiverPhone,
         receiverAddress: `${formData.address} ${formData.detailAddress}`.trim(),
-        purchaseDate: formData.requestDate,
-        outboundDate: formData.requestDate,
-        installationDate: formData.setupDate,
+        purchaseDate: toKSTISOString(formData.requestDate),
+        outboundDate: toKSTISOString(formData.requestDate),
+        installationDate: toKSTISOString(formData.setupDate),
         status: OrderStatus.requested,
         memo: formData.notes,
         orderItems: orderItems

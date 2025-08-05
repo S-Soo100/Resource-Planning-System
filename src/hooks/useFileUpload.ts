@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { normalizeFileName, encodeFileName } from "@/utils/fileUtils";
+import { normalizeFileName } from "@/utils/fileUtils";
 
 export const useFileUpload = () => {
   const [files, setFiles] = useState<File[]>([]);
@@ -84,30 +84,13 @@ export const useFileUpload = () => {
     setFiles([]);
   };
 
-  // 파일 업로드 시 서버로 보낼 파일명 인코딩
+  // 파일 업로드 시 서버로 보낼 파일들 (백엔드 요청에 맞춰 수정)
   const getEncodedFiles = () => {
-    const encodedFiles = files.map((file) => {
-      const originalName = file.name;
-      const encodedFileName = encodeFileName(file.name);
-      const encodedFile = new File([file], encodedFileName, {
-        type: file.type,
-        lastModified: file.lastModified,
-      });
-
-      console.log("[파일 업로드] 서버 전송용 인코딩:", {
-        original: originalName,
-        encoded: encodedFileName,
-        isChanged: originalName !== encodedFileName,
-      });
-
-      return encodedFile;
-    });
-
     console.log(
       "[파일 업로드] 최종 서버 전송 파일들:",
-      encodedFiles.map((f) => ({ name: f.name, size: f.size }))
+      files.map((f) => ({ name: f.name, size: f.size }))
     );
-    return encodedFiles;
+    return files; // 백엔드 요청에 맞춰 정규화된 파일명 그대로 사용
   };
 
   return {

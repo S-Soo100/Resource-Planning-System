@@ -579,13 +579,13 @@ const OrderRecordDetail = () => {
   const canChangeStatus = (currentStatus: string) => {
     if (!auth) return false;
 
-    console.log("🔍 권한 디버깅:", {
-      userAccessLevel: auth.accessLevel,
-      currentStatus: currentStatus,
-      isAdmin: auth.isAdmin,
-      userId: auth.id,
-      orderUserId: order?.userId,
-    });
+    // console.log("🔍 권한 디버깅:", {
+    //   userAccessLevel: auth.accessLevel,
+    //   currentStatus: currentStatus,
+    //   isAdmin: auth.isAdmin,
+    //   userId: auth.id,
+    //   orderUserId: order?.userId,
+    // });
 
     // Moderator 권한 체크
     if (auth.accessLevel === "moderator") {
@@ -776,12 +776,12 @@ const OrderRecordDetail = () => {
                 {(() => {
                   const hasPermission = hasPermissionToChangeStatus();
                   const canChange = canChangeStatus(order.status);
-                  console.log("🎯 상태 변경 섹션 조건 체크:", {
-                    hasPermission,
-                    canChange,
-                    orderStatus: order.status,
-                    authLevel: auth?.accessLevel,
-                  });
+                  // console.log("🎯 상태 변경 섹션 조건 체크:", {
+                  //   hasPermission,
+                  //   canChange,
+                  //   orderStatus: order.status,
+                  //   authLevel: auth?.accessLevel,
+                  // });
                   return hasPermission && canChange;
                 })() && (
                   <div className="p-4 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">

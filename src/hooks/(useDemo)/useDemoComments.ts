@@ -43,9 +43,9 @@ export const useDemoComments = (demoId: number) => {
     queryKey: ["comments", "demo", demoId],
     queryFn: async () => {
       const res = await getDemoCommentById(demoId);
-      console.log("🔍 데모 댓글 API 응답:", res);
+      // console.log("🔍 데모 댓글 API 응답:", res);
       if (res.success && Array.isArray(res.data)) {
-        console.log("📝 데모 댓글 데이터:", res.data);
+        // console.log("📝 데모 댓글 데이터:", res.data);
         return res.data as DemoComment[];
       }
       return [];

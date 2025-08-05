@@ -67,6 +67,140 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.6.3 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.6.3
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-08-05
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                데모 수정 날짜 파싱 오류 해결
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 수정됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("수정됨")}
+                  <h3 className="font-medium text-gray-900">수정됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>데모 수정 날짜 파싱 오류</strong>: 서버에서 날짜
+                      파싱 시 발생하는{" "}
+                      <code className="bg-gray-100 px-1 rounded">
+                        Invalid Date
+                      </code>{" "}
+                      에러 해결
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      날짜 형식을{" "}
+                      <code className="bg-gray-100 px-1 rounded">
+                        YYYY-MM-DD
+                      </code>
+                      로 단순화하여 서버 파싱 안정성 향상
+                    </span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      빈 문자열이나 undefined 날짜 필드를 서버 전송 전에
+                      제거하여 오류 방지
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* v1.6.2 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.6.2
+                  </h2>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-08-04
+                </div>
+              </div>
+              <p className="mt-2 text-gray-600">
+                시연 수정 권한 개선 및 UTC+9 시간대 처리
+              </p>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* 개선됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("개선됨")}
+                  <h3 className="font-medium text-gray-900">개선됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-orange-600">•</span>
+                    <span>
+                      <strong>시연 수정 권한 개선</strong>: Admin 사용자는 모든
+                      상태의 시연을 수정할 수 있도록 변경
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* 추가됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("추가됨")}
+                  <h3 className="font-medium text-gray-900">추가됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-green-600">•</span>
+                    <span>
+                      <strong>UTC+9 시간대 처리</strong>: 시연 수정 시 한국
+                      시간대 자동 변환
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* 수정됨 */}
+              <div>
+                <div className="flex items-center mb-3 space-x-2">
+                  {getIconForType("수정됨")}
+                  <h3 className="font-medium text-gray-900">수정됨</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start">
+                    <span className="mr-2 text-red-600">•</span>
+                    <span>
+                      <strong>시간 처리 일관성</strong>: 시연 수정 시 시간대
+                      불일치 문제 해결
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {/* v1.6.1 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +209,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.6.1
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

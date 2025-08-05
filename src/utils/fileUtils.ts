@@ -190,40 +190,67 @@ export const getDisplayFileName = (
   fileName: string,
   fallbackName: string = "unknown_file_name"
 ): string => {
+  console.log("[파일 표시] 원본 파일명:", fileName);
+
   // 빈 파일명 처리
   if (!fileName || fileName.trim() === "") {
+    console.log("[파일 표시] 빈 파일명 처리:", fallbackName);
     return fallbackName;
   }
 
   // 한글 파일명이 깨진 경우 복원 시도
   if (isKoreanFileNameCorrupted(fileName)) {
+    console.log("[파일 표시] 한글 파일명 깨짐 감지:", fileName);
     const restored = restoreKoreanFileName(fileName);
+    console.log("[파일 표시] 한글 복원 결과:", {
+      original: fileName,
+      restored: restored,
+      isChanged: restored !== fileName,
+    });
     if (restored !== fileName && !isUnreadableFileName(restored)) {
+      console.log("[파일 표시] 한글 복원 성공:", restored);
       return restored;
     }
   }
 
   // 일반적인 디코딩 시도
   const decoded = decodeFileName(fileName);
+  console.log("[파일 표시] 일반 디코딩 결과:", {
+    original: fileName,
+    decoded: decoded,
+    isChanged: decoded !== fileName,
+  });
 
   // 디코딩된 결과가 원본과 다르고 읽을 수 있는 경우
   if (decoded !== fileName && !isUnreadableFileName(decoded)) {
+    console.log("[파일 표시] 일반 디코딩 성공:", decoded);
     return decoded;
   }
 
   // 특정 깨진 문자 패턴이 포함된 경우 대체
   if (/[ìº¥ì¤í°ì¦áâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/.test(fileName)) {
     const extension = getFileExtension(fileName);
-    return `${fallbackName}${extension}`;
+    const fallbackResult = `${fallbackName}${extension}`;
+    console.log("[파일 표시] 깨진 문자 패턴 대체:", {
+      original: fileName,
+      fallback: fallbackResult,
+    });
+    return fallbackResult;
   }
 
   // 읽을 수 없는 파일명인 경우 대체 이름 사용
   if (isUnreadableFileName(fileName)) {
     const extension = getFileExtension(fileName);
-    return `${fallbackName}${extension}`;
+    const fallbackResult = `${fallbackName}${extension}`;
+    console.log("[파일 표시] 읽을 수 없는 파일명 대체:", {
+      original: fileName,
+      fallback: fallbackResult,
+    });
+    return fallbackResult;
   }
 
   // 정상적인 파일명인 경우 원본 반환
+  console.log("[파일 표시] 정상 파일명 유지:", fileName);
   return fileName;
 };
 
@@ -372,7 +399,9 @@ export const testKoreanFileNameDecoding = (
   isCorrupted: boolean;
   isKoreanCorrupted: boolean;
 } => {
-  return {
+  console.log("[테스트] 한글 파일명 디코딩 테스트 시작:", fileName);
+
+  const result = {
     original: fileName,
     decoded: decodeFileName(fileName),
     restored: restoreKoreanFileName(fileName),
@@ -380,6 +409,10 @@ export const testKoreanFileNameDecoding = (
     isCorrupted: isCorruptedFileName(fileName),
     isKoreanCorrupted: isKoreanFileNameCorrupted(fileName),
   };
+
+  console.log("[테스트] 한글 파일명 디코딩 테스트 결과:", result);
+
+  return result;
 };
 
 /**

@@ -37,14 +37,11 @@ export default function UserEditModal({
       try {
         const response = await warehouseApi.getTeamWarehouses(team.id);
         if (response.success && response.data) {
-          console.log("🟡 [UserEditModal] 팀의 모든 창고 로딩:", response.data);
           setWarehouses(response.data);
         } else {
-          console.error("🔴 [UserEditModal] 창고 로딩 실패:", response.error);
           setWarehouses(null);
         }
-      } catch (error) {
-        console.error("🔴 [UserEditModal] 창고 로딩 예외:", error);
+      } catch {
         setWarehouses(null);
       } finally {
         setIsLoadingWarehouses(false);
@@ -59,15 +56,6 @@ export default function UserEditModal({
   // 사용자 정보가 변경될 때 폼 데이터 초기화
   useEffect(() => {
     if (user) {
-      console.log("🔵 [UserEditModal] 사용자 정보 로딩:", {
-        name: user.name,
-        email: user.email,
-        accessLevel: user.accessLevel,
-        restrictedWhs: user.restrictedWhs,
-        restrictedWhsType: typeof user.restrictedWhs,
-        restrictedWhsRaw: JSON.stringify(user.restrictedWhs),
-      });
-
       setFormData({
         name: user.name,
         email: user.email,
@@ -79,31 +67,17 @@ export default function UserEditModal({
       if (user.restrictedWhs) {
         let restrictedIds: number[] = [];
 
-        console.log("🔵 [UserEditModal] restrictedWhs 파싱 시작:", {
-          original: user.restrictedWhs,
-          type: typeof user.restrictedWhs,
-          isArray: Array.isArray(user.restrictedWhs),
-          length: user.restrictedWhs.length,
-        });
-
         if (typeof user.restrictedWhs === "string") {
           if (user.restrictedWhs.trim() === "") {
             restrictedIds = [];
-            console.log("🔵 [UserEditModal] 빈 문자열 처리");
           } else {
             const splitResult = user.restrictedWhs.split(",");
-            console.log("🔵 [UserEditModal] 문자열 분할 결과:", splitResult);
 
             restrictedIds = splitResult
               .map((id) => {
                 const trimmed = id.trim();
                 const parsed = parseInt(trimmed);
-                console.log("🔵 [UserEditModal] ID 파싱:", {
-                  original: id,
-                  trimmed,
-                  parsed,
-                  isNaN: isNaN(parsed),
-                });
+
                 return parsed;
               })
               .filter((id) => !isNaN(id));
@@ -111,45 +85,20 @@ export default function UserEditModal({
         } else if (Array.isArray(user.restrictedWhs)) {
           restrictedIds = user.restrictedWhs.map((id) => {
             const result = typeof id === "number" ? id : parseInt(id);
-            console.log("🔵 [UserEditModal] 배열 요소 파싱:", {
-              original: id,
-              type: typeof id,
-              result,
-            });
             return result;
           });
         }
 
-        console.log("🔵 [UserEditModal] 최종 파싱된 제한 창고:", restrictedIds);
         setSelectedWarehouses(restrictedIds);
       } else {
-        console.log("🔵 [UserEditModal] 제한 창고 없음 (falsy 값)");
         setSelectedWarehouses([]);
       }
     }
   }, [user]);
 
-  // 창고 목록 로딩 상태 로그
-  useEffect(() => {
-    console.log("🟡 [UserEditModal] 창고 목록 상태:", {
-      warehousesCount: Array.isArray(warehouses) ? warehouses.length : 0,
-      warehouses: Array.isArray(warehouses)
-        ? warehouses.map((w) => ({ id: w.id, name: w.warehouseName }))
-        : [],
-      isLoadingWarehouses,
-      selectedWarehouses,
-    });
-  }, [warehouses, isLoadingWarehouses, selectedWarehouses]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || isReadOnly) return;
-
-    console.log("🟢 [UserEditModal] 제출 시작:", {
-      userId: user.id,
-      selectedWarehouses,
-      formData,
-    });
 
     setIsUpdating(true);
     try {
@@ -157,8 +106,6 @@ export default function UserEditModal({
         ...formData,
         restrictedWhs: selectedWarehouses.join(","),
       };
-
-      console.log("🟢 [UserEditModal] API 요청 데이터:", updateData);
 
       // 빈 필드는 제거
       Object.keys(updateData).forEach((key) => {
@@ -168,22 +115,16 @@ export default function UserEditModal({
         }
       });
 
-      console.log("🟢 [UserEditModal] 정리된 API 요청 데이터:", updateData);
-
       const result = await userApi.updateUser(user.id.toString(), updateData);
-
-      console.log("🟢 [UserEditModal] API 응답:", result);
 
       if (result.success) {
         alert("사용자 정보가 성공적으로 수정되었습니다.");
         onUserUpdated();
         onClose();
       } else {
-        console.error("🔴 [UserEditModal] API 에러:", result.error);
         alert(result.error || "사용자 정보 수정에 실패했습니다.");
       }
-    } catch (error) {
-      console.error("🔴 [UserEditModal] 예외 발생:", error);
+    } catch {
       alert("사용자 정보 수정 중 오류가 발생했습니다.");
     } finally {
       setIsUpdating(false);
@@ -193,25 +134,17 @@ export default function UserEditModal({
   const handleWarehouseToggle = (warehouseId: number) => {
     if (isReadOnly) return;
 
-    console.log("🟡 [UserEditModal] 창고 토글:", {
-      warehouseId,
-      currentSelected: selectedWarehouses,
-    });
-
     setSelectedWarehouses((prev) => {
       const newSelected = prev.includes(warehouseId)
         ? prev.filter((id) => id !== warehouseId)
         : [...prev, warehouseId];
 
-      console.log("🟡 [UserEditModal] 새로운 선택:", newSelected);
       return newSelected;
     });
   };
 
   const handleAccessLevelChange = (accessLevel: string) => {
     if (isReadOnly) return;
-
-    console.log("🟡 [UserEditModal] 권한 레벨 변경:", accessLevel);
 
     setFormData((prev) => ({
       ...prev,

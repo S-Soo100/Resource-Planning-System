@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useState } from "react";
 import { authStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { FaUsers, FaWarehouse, FaBuilding } from "react-icons/fa";
@@ -21,11 +21,11 @@ export default function AdminPage() {
   const zustandAuth = authStore((state) => state.user);
   const [activeTab, setActiveTab] = useState("team-members");
 
-  useEffect(() => {
-    if (warehouses && warehouses.length > 0) {
-      console.log("창고 목록:", warehouses);
-    }
-  }, [warehouses]);
+  // useEffect(() => {
+  //   if (warehouses && warehouses.length > 0) {
+  //     console.log("창고 목록:", warehouses);
+  //   }
+  // }, [warehouses]);
 
   if (isUserLoading || isTeamLoading || isWarehousesLoading) {
     return (

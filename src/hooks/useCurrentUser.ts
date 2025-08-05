@@ -85,8 +85,8 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
       return failureCount < 2; // 최대 2번 재시도
     },
     refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
-    refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지
-    refetchOnReconnect: false,
+    refetchOnMount: true, // 컴포넌트 마운트 시 자동 refetch 활성화
+    refetchOnReconnect: true, // 네트워크 재연결 시 자동 refetch 활성화
   });
 
   // 에러 발생 시 처리

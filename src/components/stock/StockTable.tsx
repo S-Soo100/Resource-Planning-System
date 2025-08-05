@@ -14,6 +14,7 @@ import StockTableDesktop from "./components/StockTableDesktop";
 import StockItemCard from "./components/StockItemCard";
 import StockTableEmpty from "./components/StockTableEmpty";
 import { useQueryClient } from "@tanstack/react-query";
+import { filterAccessibleWarehouses } from "@/utils/warehousePermissions";
 
 export interface StockTableFormValues {
   itemId?: number;
@@ -55,18 +56,38 @@ export default function StockTable() {
     warehouseId: 0,
   });
 
+  // 사용자가 접근 가능한 창고만 필터링
+  const accessibleWarehouses = user
+    ? filterAccessibleWarehouses(user, warehouses)
+    : warehouses;
+
+  // 허용된 창고와 제한된 창고 콘솔 출력
+  if (user) {
+    const accessibleWarehouseNames = accessibleWarehouses
+      .map((w) => w.warehouseName)
+      .join(", ");
+    const restrictedWarehouseNames = warehouses
+      .filter((w) => !accessibleWarehouses.some((aw) => aw.id === w.id))
+      .map((w) => w.warehouseName)
+      .join(", ");
+
+    console.log(
+      `[재고관리] ${user.name}(${user.accessLevel}): 허용된 창고: [${accessibleWarehouseNames}] | 제한된 창고: [${restrictedWarehouseNames}]`
+    );
+  }
+
   // 페이지 로드 시 첫 번째 창고 자동 선택
   useEffect(() => {
     if (
       !isDataLoading &&
-      warehouses &&
-      warehouses.length > 0 &&
+      accessibleWarehouses &&
+      accessibleWarehouses.length > 0 &&
       selectedWarehouseId === null
     ) {
-      const firstWarehouseId = Number(warehouses[0].id);
+      const firstWarehouseId = Number(accessibleWarehouses[0].id);
       setSelectedWarehouseId(firstWarehouseId);
     }
-  }, [isDataLoading, warehouses, selectedWarehouseId]);
+  }, [isDataLoading, accessibleWarehouses, selectedWarehouseId]);
 
   const handleSearch = (value: string) => {
     setSearchText(value);
@@ -195,14 +216,6 @@ export default function StockTable() {
       </div>
     );
 
-  if (!user || user.accessLevel === "supplier")
-    return (
-      <StockTableEmpty
-        message="열람 권한이 없습니다"
-        subMessage="해당 페이지에 접근할 수 있는 권한이 없습니다."
-      />
-    );
-
   if (isError)
     return (
       <div className="p-4 text-center text-red-500">
@@ -217,7 +230,7 @@ export default function StockTable() {
         <div className="px-4 mb-6">
           <h2 className="mb-4 text-xl font-bold">창고 선택</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {warehouses.map((warehouse) => (
+            {accessibleWarehouses.map((warehouse) => (
               <WarehouseCard
                 key={`warehouse-card-${warehouse.id}`}
                 warehouse={warehouse}
@@ -237,8 +250,9 @@ export default function StockTable() {
               hideZeroStock={hideZeroStock}
               onHideZeroStockChange={setHideZeroStock}
               warehouseName={
-                warehouses.find((w) => Number(w.id) === selectedWarehouseId)
-                  ?.warehouseName || `창고 ${selectedWarehouseId}`
+                accessibleWarehouses.find(
+                  (w) => Number(w.id) === selectedWarehouseId
+                )?.warehouseName || `창고 ${selectedWarehouseId}`
               }
               onInboundClick={() => {}}
               onOutboundClick={() => {}}
@@ -248,8 +262,9 @@ export default function StockTable() {
             {/* 창고 주소 표시 */}
             <div className="px-4 mb-4">
               <p className="text-sm text-gray-500">
-                {warehouses.find((w) => Number(w.id) === selectedWarehouseId)
-                  ?.warehouseAddress || "주소 정보가 없습니다."}
+                {accessibleWarehouses.find(
+                  (w) => Number(w.id) === selectedWarehouseId
+                )?.warehouseAddress || "주소 정보가 없습니다."}
               </p>
             </div>
 

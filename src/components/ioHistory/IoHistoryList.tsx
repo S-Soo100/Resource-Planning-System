@@ -5,12 +5,11 @@ import { useInventoryRecordsByTeamId } from "@/hooks/useInventoryRecordsByTeamId
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { ArrowLeft, Plus, Minus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Plus, Minus } from "lucide-react";
 import { filterRecordsByDateRange } from "@/utils/dateFilter";
 import InventoryRecordDetail from "./InventoryRecordDetail";
-import { navigateByAuthStatus } from "@/utils/navigation";
 import { Button } from "@/components/ui/button";
+import { filterAccessibleWarehouses } from "@/utils/warehousePermissions";
 import { CreateInventoryRecordDto } from "@/types/(inventoryRecord)/inventory-record";
 import { AttachedFile } from "@/types/common";
 import InboundModal from "../stock/modal/InboundModal";
@@ -38,7 +37,6 @@ const formatDate = (dateString: string | null) => {
 type TypeFilter = "all" | "inbound" | "outbound";
 
 export default function IoHistoryList() {
-  const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const { warehouses = [], items, invalidateInventory } = useWarehouseItems();
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
@@ -673,29 +671,6 @@ export default function IoHistoryList() {
     );
   }
 
-  if (!user || user.accessLevel === "supplier") {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-screen">
-        <div className="text-center">
-          <h2 className="mb-4 text-2xl font-bold text-gray-800">
-            열람 권한이 없습니다
-          </h2>
-          <p className="mb-6 text-gray-600">
-            해당 페이지에 접근할 수 있는 권한이 없습니다.
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => navigateByAuthStatus(router)}
-            icon={<ArrowLeft className="w-4 h-4" />}
-            iconPosition="left"
-          >
-            뒤로가기
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="p-4 text-center text-red-500">
@@ -705,10 +680,30 @@ export default function IoHistoryList() {
     );
   }
 
+  // 사용자가 접근 가능한 창고만 필터링
+  const accessibleWarehouses = user
+    ? filterAccessibleWarehouses(user, warehouses)
+    : warehouses;
+
+  // 허용된 창고와 제한된 창고 콘솔 출력
+  if (user) {
+    const accessibleWarehouseNames = accessibleWarehouses
+      .map((w) => w.warehouseName)
+      .join(", ");
+    const restrictedWarehouseNames = warehouses
+      .filter((w) => !accessibleWarehouses.some((aw) => aw.id === w.id))
+      .map((w) => w.warehouseName)
+      .join(", ");
+
+    console.log(
+      `[입출고내역] ${user.name}(${user.accessLevel}): 허용된 창고: [${accessibleWarehouseNames}] | 제한된 창고: [${restrictedWarehouseNames}]`
+    );
+  }
+
   return (
     <div className="container p-4 mx-auto">
       <div className="grid grid-cols-1 gap-4 mb-8 md:grid-cols-3 lg:grid-cols-4">
-        {warehouses.map((warehouse: Warehouse) => (
+        {accessibleWarehouses.map((warehouse: Warehouse) => (
           <div
             key={warehouse.id}
             onClick={() => handleWarehouseChange(Number(warehouse.id))}

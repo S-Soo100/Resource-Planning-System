@@ -440,7 +440,7 @@ export default function WheelchairOrderForm() {
                     toast.loading("파일 업로드 중...");
                     const uploadResponse = await uploadMultipleOrderFileById(
                       orderIdAsNumber,
-                      fileUpload.files
+                      fileUpload.getEncodedFiles()
                     );
                     toast.dismiss();
 

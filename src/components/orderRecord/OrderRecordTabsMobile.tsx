@@ -10,6 +10,7 @@ import {
   type UpdateOrderCommentDto,
 } from "@/hooks/useOrderComments";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { getDisplayFileName } from "@/utils/fileUtils";
 
 interface Props {
   records: IOrderRecord[];
@@ -786,9 +787,12 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
-                          aria-label={`${file.fileName || "파일"} 다운로드`}
+                          aria-label={`${
+                            getDisplayFileName(file.fileName) || "파일"
+                          } 다운로드`}
                         >
-                          {file.fileName || "알 수 없는 파일"}
+                          {getDisplayFileName(file.fileName) ||
+                            "알 수 없는 파일"}
                         </a>
                       </li>
                     ))}

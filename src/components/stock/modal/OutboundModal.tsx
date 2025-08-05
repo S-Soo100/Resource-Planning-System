@@ -5,6 +5,7 @@ import React, { useRef, useState } from "react";
 import { AttachedFile } from "@/types/common";
 import SearchAddressModal from "./SearchAddressModal";
 import { Category } from "@/types/(item)/category";
+import { getDisplayFileName } from "@/utils/fileUtils";
 
 interface OutboundModalProps {
   isOpen: boolean;
@@ -57,8 +58,6 @@ export default function OutboundModal({
 }: OutboundModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-
-
 
   if (!isOpen) return null;
 
@@ -447,7 +446,7 @@ export default function OutboundModal({
                                       {getFileIcon(file.type)}
                                       <div className="ml-3">
                                         <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                                          {file.name}
+                                          {getDisplayFileName(file.name)}
                                         </p>
                                         <p className="text-xs text-gray-500">
                                           {formatFileSize(file.size)}

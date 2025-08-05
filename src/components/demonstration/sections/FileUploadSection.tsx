@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { Paperclip, X } from "lucide-react";
+import { getDisplayFileName } from "@/utils/fileUtils";
 
 interface FileUploadSectionProps {
   files: File[];
@@ -55,7 +56,9 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
                 key={index}
                 className="flex justify-between items-center p-2 bg-gray-50 rounded"
               >
-                <span className="text-sm text-gray-700">{file.name}</span>
+                <span className="text-sm text-gray-700">
+                  {getDisplayFileName(file.name)}
+                </span>
                 <button
                   type="button"
                   onClick={() => onRemoveFile(index)}

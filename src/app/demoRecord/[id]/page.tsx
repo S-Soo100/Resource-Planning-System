@@ -1206,7 +1206,8 @@ const DemoRecordDetail = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-800">담당자:</span>
                       <span className="font-medium">
-                        {demo.demoManager} ({formatPhoneNumber(demo.demoManagerPhone)})
+                        {demo.demoManager} (
+                        {formatPhoneNumber(demo.demoManagerPhone)})
                       </span>
                     </div>
                   </div>

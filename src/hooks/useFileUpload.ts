@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { normalizeFileName, encodeFileName } from "@/utils/fileUtils";
 
 export const useFileUpload = () => {
   const [files, setFiles] = useState<File[]>([]);
@@ -8,7 +9,15 @@ export const useFileUpload = () => {
   const handleFileSelection = () => {
     if (selectedFiles.current && selectedFiles.current.files) {
       const newFiles = Array.from(selectedFiles.current.files);
-      setFiles((prevFiles) => [...prevFiles, ...newFiles]);
+      // 파일명 정규화하여 새로운 File 객체 생성
+      const normalizedFiles = newFiles.map((file) => {
+        const normalizedFileName = normalizeFileName(file);
+        return new File([file], normalizedFileName, {
+          type: file.type,
+          lastModified: file.lastModified,
+        });
+      });
+      setFiles((prevFiles) => [...prevFiles, ...normalizedFiles]);
     }
   };
 
@@ -27,7 +36,15 @@ export const useFileUpload = () => {
     setIsDragOver(false);
 
     const droppedFiles = Array.from(e.dataTransfer.files);
-    setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
+    // 파일명 정규화하여 새로운 File 객체 생성
+    const normalizedFiles = droppedFiles.map((file) => {
+      const normalizedFileName = normalizeFileName(file);
+      return new File([file], normalizedFileName, {
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+    });
+    setFiles((prevFiles) => [...prevFiles, ...normalizedFiles]);
   };
 
   const handleRemoveFile = (index: number) => {
@@ -36,6 +53,17 @@ export const useFileUpload = () => {
 
   const resetFiles = () => {
     setFiles([]);
+  };
+
+  // 파일 업로드 시 서버로 보낼 파일명 인코딩
+  const getEncodedFiles = () => {
+    return files.map((file) => {
+      const encodedFileName = encodeFileName(file.name);
+      return new File([file], encodedFileName, {
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+    });
   };
 
   return {
@@ -48,5 +76,6 @@ export const useFileUpload = () => {
     handleDrop,
     handleRemoveFile,
     resetFiles,
+    getEncodedFiles, // 인코딩된 파일들 반환
   };
 };

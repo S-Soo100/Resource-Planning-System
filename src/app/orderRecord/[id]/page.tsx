@@ -590,15 +590,15 @@ const OrderRecordDetail = () => {
         OrderStatus.approved,
         OrderStatus.rejected,
       ].includes(currentStatus as OrderStatus);
-      console.log("📋 Moderator 권한 체크:", {
-        allowedStatuses: [
-          OrderStatus.requested,
-          OrderStatus.approved,
-          OrderStatus.rejected,
-        ],
-        currentStatus,
-        canChange,
-      });
+      // console.log("📋 Moderator 권한 체크:", {
+      //   allowedStatuses: [
+      //     OrderStatus.requested,
+      //     OrderStatus.approved,
+      //     OrderStatus.rejected,
+      //   ],
+      //   currentStatus,
+      //   canChange,
+      // });
       return canChange;
     }
 
@@ -620,7 +620,7 @@ const OrderRecordDetail = () => {
       return canChange;
     }
 
-    console.log("❌ 권한 없음 - accessLevel:", auth.accessLevel);
+    // console.log("❌ 권한 없음 - accessLevel:", auth.accessLevel);
     return false;
   };
 

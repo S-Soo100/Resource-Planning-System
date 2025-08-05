@@ -162,17 +162,36 @@ export const uploadMultipleOrderFileById = async (
   expirationTimeMinutes: number = 30
 ): Promise<ApiResponse<OrderFileResponse[]>> => {
   try {
+    console.log("[파일 업로드 API] 업로드 시작:", {
+      orderId: id,
+      fileCount: files.length,
+      fileNames: files.map((f) => f.name),
+    });
+
     const formData = new FormData();
-    files.forEach((file) => {
+    files.forEach((file, index) => {
       // 파일명 정규화하여 새로운 File 객체 생성
+      const originalName = file.name;
       const normalizedFileName = normalizeFileName(file);
       const normalizedFile = new File([file], normalizedFileName, {
         type: file.type,
         lastModified: file.lastModified,
       });
+
+      console.log(`[파일 업로드 API] 파일 ${index + 1} 처리:`, {
+        original: originalName,
+        normalized: normalizedFileName,
+        isChanged: originalName !== normalizedFileName,
+      });
+
       formData.append("files", normalizedFile);
     });
     formData.append("expirationTimeMinutes", expirationTimeMinutes.toString());
+
+    console.log("[파일 업로드 API] 서버 전송:", {
+      orderId: id,
+      normalizedFileNames: files.map((f) => normalizeFileName(f)),
+    });
 
     const response = await api.post<ApiResponse<OrderFileResponse[]>>(
       `/order/${id}/upload-multiple-with-signed-url`,
@@ -184,9 +203,15 @@ export const uploadMultipleOrderFileById = async (
       }
     );
 
+    console.log("[파일 업로드 API] 서버 응답:", {
+      success: response.data.success,
+      fileCount: response.data.data?.length,
+      fileNames: response.data.data?.map((f) => f.fileName),
+    });
+
     return response.data as ApiResponse<OrderFileResponse[]>;
   } catch (error) {
-    console.error("파일 업로드 실패:", error);
+    console.error("[파일 업로드 API] 오류:", error);
     if (error instanceof AxiosError && error.response) {
       return {
         success: false,

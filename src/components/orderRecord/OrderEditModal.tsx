@@ -509,12 +509,26 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
   // 파일 다운로드
   const handleDownloadFile = useCallback((file: OrderFile) => {
+    console.log("[파일 다운로드] 다운로드 시작:", {
+      originalFileName: file.fileName,
+      fileUrl: file.fileUrl,
+    });
+
+    const displayFileName = getDisplayFileName(file.fileName);
+    console.log("[파일 다운로드] 표시 파일명:", {
+      original: file.fileName,
+      display: displayFileName,
+      isChanged: file.fileName !== displayFileName,
+    });
+
     const link = document.createElement("a");
     link.href = file.fileUrl;
-    link.download = getDisplayFileName(file.fileName);
+    link.download = displayFileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    console.log("[파일 다운로드] 다운로드 완료:", displayFileName);
   }, []);
 
   // 재고 확인 로직 - 수정 시에는 재고 부족해도 수정 가능하도록 주석 처리

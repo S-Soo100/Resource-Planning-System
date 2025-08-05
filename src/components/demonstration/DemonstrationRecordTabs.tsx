@@ -151,12 +151,12 @@ const DemonstrationRecordTabs = () => {
         return recordUserId === userIdNum;
       });
 
-      console.log(`사용자별 필터링 결과: ${filtered.length}개`);
+      // console.log(`사용자별 필터링 결과: ${filtered.length}개`);
       return filtered;
     }
 
     // '전체 시연 기록' 탭인 경우 전체 데이터 반환
-    console.log(`전체 시연 기록: ${allDemoRecords.length}개`);
+    // console.log(`전체 시연 기록: ${allDemoRecords.length}개`);
     return allDemoRecords;
   }, [allDemoRecords, activeTab, userId]);
 

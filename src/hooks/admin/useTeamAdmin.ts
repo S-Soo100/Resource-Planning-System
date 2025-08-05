@@ -124,7 +124,13 @@ export const useTeamAdmin = (teamId: number) => {
 
   // 사용자 정보 업데이트
   const updateUser = useMutation({
-    mutationFn: async ({ userId, userData }: { userId: number; userData: any }) => {
+    mutationFn: async ({
+      userId,
+      userData,
+    }: {
+      userId: number;
+      userData: any;
+    }) => {
       console.log("API 호출: 사용자 정보 업데이트", { userId, userData });
       const response = await userApi.updateUser(userId.toString(), userData);
       console.log("API 응답: 사용자 정보 업데이트", {
@@ -133,8 +139,10 @@ export const useTeamAdmin = (teamId: number) => {
       });
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (response, variables) => {
+      // 팀 캐시와 개별 사용자 캐시 모두 무효화
       queryClient.invalidateQueries({ queryKey: ["team", teamId] });
+      queryClient.invalidateQueries({ queryKey: ["user", variables.userId] });
       toast.success("사용자 정보가 성공적으로 수정되었습니다.");
     },
     onError: (error) => {

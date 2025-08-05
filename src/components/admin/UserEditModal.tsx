@@ -100,6 +100,8 @@ export default function UserEditModal({
       }
 
       console.log("[UserEditModal] 제한된 창고:", restrictedIds.length, "개");
+      console.log("[UserEditModal] 제한된 창고 ID:", restrictedIds);
+      console.log("[UserEditModal] 원본 restrictedWhs:", user.restrictedWhs);
       setSelectedWarehouses(restrictedIds);
     }
   }, [user]);
@@ -135,13 +137,8 @@ export default function UserEditModal({
           selectedWarehouses.length > 0 ? selectedWarehouses.join(",") : "",
       };
 
-      // restrictedWhs가 빈 문자열인 경우 undefined로 설정 (서버에서 빈 문자열 처리 방지)
-      if (updateData.restrictedWhs === "") {
-        updateData.restrictedWhs = undefined;
-      }
-
-      // 디버깅: restrictedWhs 값 확인
-      console.log("[UserEditModal] restrictedWhs:", updateData.restrictedWhs);
+      // restrictedWhs가 빈 문자열인 경우 빈 문자열로 유지 (서버에서 처리하도록)
+      console.log("[UserEditModal] 제출 전 restrictedWhs:", updateData.restrictedWhs);
 
       // 빈 필드는 제거 (restrictedWhs는 제외)
       Object.keys(updateData).forEach((key) => {
@@ -151,16 +148,12 @@ export default function UserEditModal({
         }
       });
 
-      // restrictedWhs가 빈 문자열인 경우 undefined로 설정 (서버에서 빈 문자열 처리 방지)
-      if (updateData.restrictedWhs === "") {
-        updateData.restrictedWhs = undefined;
-      }
-
       // 디버깅 정보 출력
-      console.log("[UserEditModal] 수정 요청:", {
+      console.log("[UserEditModal] 최종 수정 요청:", {
         userId: user.id,
         selectedWarehouses: selectedWarehouses.length,
         restrictedWhs: updateData.restrictedWhs,
+        updateData: updateData,
       });
 
       // useTeamAdmin의 updateUser 사용
@@ -182,6 +175,11 @@ export default function UserEditModal({
         ? prev.filter((id) => id !== warehouseId)
         : [...prev, warehouseId];
 
+      console.log("[UserEditModal] 창고 선택 변경:", {
+        warehouseId,
+        newSelection: newSelected,
+        prevSelection: prev,
+      });
       return newSelected;
     });
   };

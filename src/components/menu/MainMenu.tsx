@@ -57,15 +57,15 @@ const MainMenu = () => {
       title: "재고 조회",
       subtitle: "창고별 재고 현황을 확인합니다",
       icon: <FaBox className="text-3xl" />,
-      onClick: () => checkAccess(`/stock`, ["admin", "user", "moderator"]),
-      accessLevel: ["user", "admin", "moderator"],
+      onClick: () => checkAccess(`/stock`, ["admin", "user", "moderator", "supplier"]),
+      accessLevel: ["user", "admin", "moderator", "supplier"],
     },
     {
       title: "입출고 내역",
       subtitle: "품목별 입출고 기록을 조회합니다",
       icon: <FaClipboardList className="text-3xl" />,
-      onClick: () => checkAccess(`/ioHistory`, ["admin", "user", "moderator"]),
-      accessLevel: ["user", "admin", "moderator"],
+      onClick: () => checkAccess(`/ioHistory`, ["admin", "user", "moderator", "supplier"]),
+      accessLevel: ["user", "admin", "moderator", "supplier"],
     },
     // {
     //   title: "품목 관리",
@@ -78,8 +78,8 @@ const MainMenu = () => {
       title: "업체 관리",
       subtitle: "협력업체 정보를 등록하고 관리합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/supplier`, ["admin", "user", "moderator"]),
-      accessLevel: ["user", "admin", "moderator"],
+      onClick: () => checkAccess(`/supplier`, ["admin", "user", "moderator", "supplier"]),
+      accessLevel: ["user", "admin", "moderator", "supplier"],
     },
   ];
 
@@ -203,48 +203,31 @@ const MainMenu = () => {
   // 탭 설정
   let tabs = [];
 
-  // supplier인 경우 '발주' 탭만 표시
-  if (user?.accessLevel === "supplier") {
-    tabs = [
-      {
-        id: "order",
-        title: "발주 & 시연",
-        items: orderMenuItems,
-        bgColor: "bg-green-50",
-        textColor: "text-green-800",
-        borderColor: "border-green-500",
-        iconBg: "bg-green-600",
-        hoverBg: "hover:bg-green-50",
-        hoverBorder: "hover:border-green-200",
-      },
-    ];
-  } else {
-    // supplier가 아닌 경우 기존 탭 설정
-    tabs = [
-      {
-        id: "stock",
-        title: "재고 관리",
-        items: stockMenuItems,
-        bgColor: "bg-blue-50",
-        textColor: "text-blue-800",
-        borderColor: "border-blue-500",
-        iconBg: "bg-blue-600",
-        hoverBg: "hover:bg-blue-50",
-        hoverBorder: "hover:border-blue-200",
-      },
-      {
-        id: "order",
-        title: "발주 & 시연",
-        items: orderMenuItems,
-        bgColor: "bg-green-50",
-        textColor: "text-green-800",
-        borderColor: "border-green-500",
-        iconBg: "bg-green-600",
-        hoverBg: "hover:bg-green-50",
-        hoverBorder: "hover:border-green-200",
-      },
-    ];
-  }
+  // 모든 사용자에게 재고 관리와 발주 & 시연 탭 표시
+  tabs = [
+    {
+      id: "stock",
+      title: "재고 관리",
+      items: stockMenuItems,
+      bgColor: "bg-blue-50",
+      textColor: "text-blue-800",
+      borderColor: "border-blue-500",
+      iconBg: "bg-blue-600",
+      hoverBg: "hover:bg-blue-50",
+      hoverBorder: "hover:border-blue-200",
+    },
+    {
+      id: "order",
+      title: "발주 & 시연",
+      items: orderMenuItems,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      borderColor: "border-green-500",
+      iconBg: "bg-green-600",
+      hoverBg: "hover:bg-green-50",
+      hoverBorder: "hover:border-green-200",
+    },
+  ];
 
   // 관리자 또는 1차 승인권자인 경우 관리자 탭 추가
   if (user?.accessLevel === "admin" || user?.accessLevel === "moderator") {

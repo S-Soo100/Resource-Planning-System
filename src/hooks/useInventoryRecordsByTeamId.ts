@@ -39,7 +39,7 @@ export function useInventoryRecordsByTeamId() {
 
       // 팀의 teamItem 기반 필터링
       if (response.data && teamItems) {
-        const originalCount = response.data.length;
+        // const originalCount = response.data.length;
 
         // 현재 팀의 teamItem ID 목록 생성
         const teamItemIds = new Set(teamItems.map((item) => item.id));
@@ -50,25 +50,8 @@ export function useInventoryRecordsByTeamId() {
           const recordTeamItemId = record.item?.teamItem?.id;
           const isValidTeamItem = teamItemIds.has(recordTeamItemId);
 
-          if (!isValidTeamItem) {
-            console.warn(`❌ 다른 팀의 아이템 제외:`, {
-              recordId: record.id,
-              itemId: record.item?.id,
-              teamItemId: recordTeamItemId,
-              itemName: record.item?.teamItem?.itemName,
-              itemCode: record.item?.teamItem?.itemCode,
-            });
-          }
-
           return isValidTeamItem;
         });
-
-        const filteredCount = filteredData.length;
-        const excludedCount = originalCount - filteredCount;
-
-        console.log(
-          `✅ 필터링 완료: 전체 ${originalCount}개 → 우리 팀 ${filteredCount}개 (제외 ${excludedCount}개)`
-        );
 
         // 필터링된 데이터로 응답 수정
         return {

@@ -445,28 +445,6 @@ export default function SupplierManagePage() {
     );
   }
 
-  if (!user || user.accessLevel === "supplier") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="mb-4 text-2xl font-bold text-gray-800">
-            열람 권한이 없습니다
-          </h2>
-          <p className="mb-6 text-gray-600">
-            해당 페이지에 접근할 수 있는 권한이 없습니다.
-          </p>
-          <button
-            onClick={() => navigateByAuthStatus(router)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            <ArrowLeft size={20} />
-            뒤로가기
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full p-6">
       <div className="mt-4 mb-8">

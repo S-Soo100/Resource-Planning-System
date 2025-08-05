@@ -144,6 +144,25 @@ const formatNumberWithCommas = (x: number | string) => {
   return num.toLocaleString();
 };
 
+// 전화번호 포맷팅 함수
+const formatPhoneNumber = (phone: string): string => {
+  if (!phone) return "-";
+
+  // 앞뒤 공백 제거
+  const trimmedPhone = phone.trim();
+
+  // 숫자만 추출
+  const numbers = trimmedPhone.replace(/\D/g, "");
+
+  // 11자리이고 010으로 시작하는 경우만 포맷팅 (01012345678 -> 010-1234-5678)
+  if (numbers.length === 11 && numbers.startsWith("010")) {
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7)}`;
+  }
+
+  // 그 외의 경우는 원본 그대로 반환
+  return trimmedPhone;
+};
+
 // demoCurrencyUnit이 있는지 타입 가드 함수
 function isDemoWithCurrencyUnit(
   obj: unknown
@@ -1187,7 +1206,7 @@ const DemoRecordDetail = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-800">담당자:</span>
                       <span className="font-medium">
-                        {demo.demoManager} ({demo.demoManagerPhone})
+                        {demo.demoManager} ({formatPhoneNumber(demo.demoManagerPhone)})
                       </span>
                     </div>
                   </div>

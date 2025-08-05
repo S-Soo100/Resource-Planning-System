@@ -41,17 +41,12 @@ const formatPhoneNumber = (phone: string): string => {
   // 숫자만 추출
   const numbers = phone.replace(/\D/g, "");
 
-  // 11자리인 경우 (01012345678 -> 010-1234-5678)
-  if (numbers.length === 11) {
+  // 11자리이고 010으로 시작하는 경우만 포맷팅 (01012345678 -> 010-1234-5678)
+  if (numbers.length === 11 && numbers.startsWith("010")) {
     return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7)}`;
   }
 
-  // 10자리인 경우 (0101234567 -> 010-123-4567)
-  if (numbers.length === 10) {
-    return `${numbers.slice(0, 3)}-${numbers.slice(3, 6)}-${numbers.slice(6)}`;
-  }
-
-  // 그 외의 경우는 원본 반환
+  // 그 외의 경우는 원본 그대로 반환
   return phone;
 };
 

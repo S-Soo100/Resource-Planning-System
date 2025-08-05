@@ -50,9 +50,12 @@ export const userApi = {
     data: UpdateUserRequest
   ): Promise<ApiResponse<IUser>> => {
     try {
+      console.log("[user-api] updateUser 요청:", { id, data });
       const response = await api.patch<IUser>(`/user/${id}`, data);
+      console.log("[user-api] updateUser 응답:", response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      console.error("[user-api] updateUser 오류:", error);
       return { success: false, error: "사용자 정보 수정에 실패했습니다." };
     }
   },

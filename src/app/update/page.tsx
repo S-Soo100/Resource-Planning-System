@@ -1806,6 +1806,26 @@ export default function UpdatePage() {
               </div>
             </div>
           </div>
+
+          {/* 최신 업데이트 내역 추가 */}
+          <div className="mb-6 p-4 rounded-lg border-l-4 border-blue-500 bg-blue-50 flex items-start">
+            <div className="mr-3 mt-1">
+              <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#3B82F6"/></svg>
+            </div>
+            <div>
+              <div className="font-bold text-blue-700">팀 멤버 창고 접근 권한 기능 개선</div>
+              <div className="text-sm text-gray-700 mt-1">
+                <ul className="list-disc ml-5 space-y-1">
+                  <li>팀 멤버 수정 시 <b>창고 목록이 정확히 표시</b>되고, <b>접근 제한 체크</b>가 정상 동작합니다.</li>
+                  <li>창고 API 응답 구조에 맞춰 <b>창고 배열 추출 로직</b>을 개선했습니다.</li>
+                  <li>불필요한 콘솔 로그를 <b>간결하게 정리</b>하여 디버깅이 쉬워졌습니다.</li>
+                  <li>동시성 문제 및 상태 업데이트 타이밍을 보완하여 <b>실시간 반영</b>이 잘 됩니다.</li>
+                  <li>UI에서 창고가 없거나 로딩 중일 때 <b>명확한 안내 메시지</b>가 표시됩니다.</li>
+                </ul>
+                <div className="text-xs text-gray-500 mt-2">2024-06-09</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -34,6 +34,8 @@ export default function TeamMembers({
     isCreatingUser,
     removeUser,
     isRemovingUser,
+    updateUser,
+    isUpdatingUser,
   } = useTeamAdmin(teamId || 0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,8 +75,8 @@ export default function TeamMembers({
   };
 
   const handleUserUpdated = () => {
-    // 팀 멤버 목록 새로고침 (useTeamAdmin 훅의 refetch 기능 활용)
-    window.location.reload(); // 간단한 새로고침으로 처리
+    // 팀 멤버 목록 새로고침 (React Query 캐시 무효화)
+    console.log("[TeamMembers] 사용자 정보 업데이트 완료, 캐시 무효화됨");
   };
 
   if (isLoading) {

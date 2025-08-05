@@ -396,9 +396,6 @@ const OrderRecordDetail = () => {
       console.log("🔍 로그인 상태 확인:", {
         auth,
         isAuthenticated,
-        currentAuth,
-        orderId,
-        teamId,
       });
 
       // 로그인되지 않은 상태에서는 모달을 먼저 표시

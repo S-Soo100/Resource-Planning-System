@@ -122,6 +122,27 @@ export const useTeamAdmin = (teamId: number) => {
     },
   });
 
+  // 사용자 정보 업데이트
+  const updateUser = useMutation({
+    mutationFn: async ({ userId, userData }: { userId: number; userData: any }) => {
+      console.log("API 호출: 사용자 정보 업데이트", { userId, userData });
+      const response = await userApi.updateUser(userId.toString(), userData);
+      console.log("API 응답: 사용자 정보 업데이트", {
+        success: response.success,
+        error: response.error,
+      });
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team", teamId] });
+      toast.success("사용자 정보가 성공적으로 수정되었습니다.");
+    },
+    onError: (error) => {
+      console.error("[useTeamAdmin] 사용자 정보 업데이트 오류:", error);
+      toast.error("사용자 정보 수정 중 오류가 발생했습니다.");
+    },
+  });
+
   // 추가 디버깅 정보 출력
   // console.log("useTeamAdmin 상태:", {
   //   현재팀ID: teamId,
@@ -162,6 +183,12 @@ export const useTeamAdmin = (teamId: number) => {
 
     // 유저 제거 중 상태
     isRemovingUser: removeUser.isPending,
+
+    // 사용자 정보 업데이트 함수
+    updateUser: updateUser.mutate,
+
+    // 사용자 정보 업데이트 중 상태
+    isUpdatingUser: updateUser.isPending,
   };
 };
 

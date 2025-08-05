@@ -10,7 +10,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useUpdateOrderStatus } from "@/hooks/(useOrder)/useOrderMutations";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+// useWarehouseItems 훅 제거 - 발주 상세 페이지에서는 불필요
 import OrderEditModal from "@/components/orderRecord/OrderEditModal";
 import LoginModal from "@/components/login/LoginModal";
 import { IAuth } from "@/types/(auth)/auth";
@@ -382,7 +382,6 @@ const OrderRecordDetail = () => {
   const { user: auth } = useCurrentUser();
   const queryClient = useQueryClient();
   const updateOrderStatusMutation = useUpdateOrderStatus();
-  const { refetchAll: refetchWarehouseItems } = useWarehouseItems();
 
   // authStore에서 직접 로그인 상태 확인
   const isAuthenticated = authStore.getState().isAuthenticated;
@@ -497,21 +496,29 @@ const OrderRecordDetail = () => {
 
       // 출고 완료 상태로 변경된 경우 추가 액션
       if (selectedStatus === OrderStatus.shipmentCompleted) {
+        // useWarehouseItems 훅에서 사용하는 정확한 쿼리 키로 무효화
+        const selectedTeamId = authStore.getState().selectedTeam?.id;
+        if (selectedTeamId) {
+          queryClient.invalidateQueries({
+            queryKey: ["team", selectedTeamId],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["allWarehouses", selectedTeamId],
+          });
+
+          await Promise.all([
+            queryClient.refetchQueries({ queryKey: ["team", selectedTeamId] }),
+            queryClient.refetchQueries({
+              queryKey: ["allWarehouses", selectedTeamId],
+            }),
+          ]);
+        }
+
+        // 기타 재고 관련 쿼리들도 무효화
         queryClient.invalidateQueries({
-          queryKey: [
-            ["warehouseItems"],
-            ["inventoryRecords"],
-            ["items"],
-            ["warehouse"],
-          ],
+          queryKey: ["inventoryRecords"],
         });
-        await Promise.all([
-          queryClient.refetchQueries({ queryKey: ["warehouseItems"] }),
-          queryClient.refetchQueries({ queryKey: ["inventoryRecords"] }),
-        ]);
-        setTimeout(async () => {
-          await refetchWarehouseItems();
-        }, 1000);
+        await queryClient.refetchQueries({ queryKey: ["inventoryRecords"] });
         alert("출고 완료, 재고에 반영 했습니다.");
         toast.success("출고 완료 처리되었습니다. 재고가 업데이트되었습니다.", {
           duration: 4000,

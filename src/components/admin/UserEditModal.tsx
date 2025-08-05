@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui";
 import { IUser, UpdateUserRequest } from "@/types/(auth)/user";
-import { userApi } from "@/api/user-api";
 import { warehouseApi } from "@/api/warehouse-api";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
+import { useTeamAdmin } from "@/hooks/admin/useTeamAdmin";
 import { Warehouse } from "@/types/warehouse";
 
 interface UserEditModalProps {
@@ -22,10 +22,11 @@ export default function UserEditModal({
   isReadOnly = false,
 }: UserEditModalProps) {
   const { team } = useCurrentTeam();
+  const { updateUser, isUpdatingUser } = useTeamAdmin(team?.id || 0);
   const [warehouses, setWarehouses] = useState<Warehouse[] | null>(null);
   const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(false);
   const [formData, setFormData] = useState<UpdateUserRequest>({});
-  const [isUpdating, setIsUpdating] = useState(false);
+
   const [selectedWarehouses, setSelectedWarehouses] = useState<number[]>([]);
 
   // 팀의 모든 창고 목록 로딩
@@ -36,8 +37,14 @@ export default function UserEditModal({
       setIsLoadingWarehouses(true);
       try {
         const response = await warehouseApi.getTeamWarehouses(team.id);
+        console.log("[UserEditModal] 창고 API 응답:", response);
         if (response.success && response.data) {
-          setWarehouses(response.data);
+          // response.data가 { data: Warehouse[], success: true } 형태로 오므로
+          // response.data.data로 실제 배열에 접근
+          const warehouseArray = Array.isArray(response.data)
+            ? response.data
+            : (response.data as { data: Warehouse[] }).data;
+          setWarehouses(warehouseArray);
         } else {
           setWarehouses(null);
         }
@@ -64,20 +71,19 @@ export default function UserEditModal({
       });
 
       // restrictedWhs 파싱
-      if (user.restrictedWhs) {
-        let restrictedIds: number[] = [];
+      let restrictedIds: number[] = [];
 
+      if (user.restrictedWhs) {
         if (typeof user.restrictedWhs === "string") {
-          if (user.restrictedWhs.trim() === "") {
+          const trimmed = user.restrictedWhs.trim();
+          if (trimmed === "") {
             restrictedIds = [];
           } else {
-            const splitResult = user.restrictedWhs.split(",");
-
+            const splitResult = trimmed.split(",");
             restrictedIds = splitResult
               .map((id) => {
-                const trimmed = id.trim();
-                const parsed = parseInt(trimmed);
-
+                const idTrimmed = id.trim();
+                const parsed = parseInt(idTrimmed);
                 return parsed;
               })
               .filter((id) => !isNaN(id));
@@ -88,46 +94,83 @@ export default function UserEditModal({
             return result;
           });
         }
-
-        setSelectedWarehouses(restrictedIds);
       } else {
-        setSelectedWarehouses([]);
+        // restrictedWhs가 없거나 null/undefined인 경우
+        restrictedIds = [];
       }
+
+      console.log("[UserEditModal] 제한된 창고:", restrictedIds.length, "개");
+      setSelectedWarehouses(restrictedIds);
     }
   }, [user]);
+
+  // 창고 목록이 로딩된 후 선택된 창고 상태 업데이트
+  useEffect(() => {
+    if (Array.isArray(warehouses) && warehouses.length > 0 && user) {
+      console.log(
+        "[UserEditModal] 창고 목록 로딩 완료:",
+        warehouses.length,
+        "개"
+      );
+    } else if (warehouses === null && !isLoadingWarehouses) {
+      console.log("[UserEditModal] 창고 목록 로딩 실패");
+    } else if (Array.isArray(warehouses) && warehouses.length === 0) {
+      console.log("[UserEditModal] 창고 목록이 비어있음");
+    } else {
+      console.log("[UserEditModal] 창고 목록 로딩 중:", {
+        isLoading: isLoadingWarehouses,
+        isArray: Array.isArray(warehouses),
+        length: Array.isArray(warehouses) ? warehouses.length : "N/A",
+      });
+    }
+  }, [warehouses, user, isLoadingWarehouses]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || isReadOnly) return;
-
-    setIsUpdating(true);
     try {
       const updateData: UpdateUserRequest = {
         ...formData,
-        restrictedWhs: selectedWarehouses.join(","),
+        restrictedWhs:
+          selectedWarehouses.length > 0 ? selectedWarehouses.join(",") : "",
       };
 
-      // 빈 필드는 제거
+      // restrictedWhs가 빈 문자열인 경우 undefined로 설정 (서버에서 빈 문자열 처리 방지)
+      if (updateData.restrictedWhs === "") {
+        updateData.restrictedWhs = undefined;
+      }
+
+      // 디버깅: restrictedWhs 값 확인
+      console.log("[UserEditModal] restrictedWhs:", updateData.restrictedWhs);
+
+      // 빈 필드는 제거 (restrictedWhs는 제외)
       Object.keys(updateData).forEach((key) => {
         const value = updateData[key as keyof UpdateUserRequest];
-        if (value === "" || value === undefined) {
+        if ((value === "" || value === undefined) && key !== "restrictedWhs") {
           delete updateData[key as keyof UpdateUserRequest];
         }
       });
 
-      const result = await userApi.updateUser(user.id.toString(), updateData);
-
-      if (result.success) {
-        alert("사용자 정보가 성공적으로 수정되었습니다.");
-        onUserUpdated();
-        onClose();
-      } else {
-        alert(result.error || "사용자 정보 수정에 실패했습니다.");
+      // restrictedWhs가 빈 문자열인 경우 undefined로 설정 (서버에서 빈 문자열 처리 방지)
+      if (updateData.restrictedWhs === "") {
+        updateData.restrictedWhs = undefined;
       }
-    } catch {
+
+      // 디버깅 정보 출력
+      console.log("[UserEditModal] 수정 요청:", {
+        userId: user.id,
+        selectedWarehouses: selectedWarehouses.length,
+        restrictedWhs: updateData.restrictedWhs,
+      });
+
+      // useTeamAdmin의 updateUser 사용
+      await updateUser({ userId: user.id, userData: updateData });
+
+      onUserUpdated();
+      onClose();
+    } catch (error) {
+      console.error("[UserEditModal] 수정 중 오류:", error);
       alert("사용자 정보 수정 중 오류가 발생했습니다.");
-    } finally {
-      setIsUpdating(false);
     }
   };
 
@@ -151,6 +194,11 @@ export default function UserEditModal({
       accessLevel: accessLevel as "user" | "admin" | "supplier" | "moderator",
       isAdmin: accessLevel === "admin",
     }));
+
+    // admin으로 변경 시 창고 제한 해제
+    if (accessLevel === "admin") {
+      setSelectedWarehouses([]);
+    }
   };
 
   if (!isOpen || !user) return null;
@@ -380,8 +428,8 @@ export default function UserEditModal({
               {isReadOnly ? "닫기" : "취소"}
             </Button>
             {!isReadOnly && (
-              <Button type="submit" variant="primary" disabled={isUpdating}>
-                {isUpdating ? "수정 중..." : "수정 완료"}
+              <Button type="submit" variant="primary" disabled={isUpdatingUser}>
+                {isUpdatingUser ? "수정 중..." : "수정 완료"}
               </Button>
             )}
           </div>

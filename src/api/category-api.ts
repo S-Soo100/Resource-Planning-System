@@ -40,14 +40,6 @@ export const categoryApi = {
   updateCategory: async (
     category: UpdateCategoryDto
   ): Promise<ApiResponse<Category>> => {
-    console.log("카테고리 수정 API 요청 데이터:", {
-      url: `/category/${category.id.toString()}`,
-      data: {
-        name: category.name,
-        // priority: category.priority,
-      },
-    });
-
     const response = await api.patch<ApiResponse<Category>>(
       `/category/${category.id.toString()}`,
       {

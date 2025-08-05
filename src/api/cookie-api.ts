@@ -12,6 +12,5 @@ export const getToken = () => {
 };
 
 export const refreshToken = () => {
-  console.log("Token refreshed");
   return cookies.remove("token");
 };

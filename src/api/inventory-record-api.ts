@@ -26,9 +26,6 @@ export const createInventoryRecord = async (
       userId: currentUser.id,
     };
 
-    // 요청 데이터 로깅
-    console.log("입출고 기록 생성 요청 데이터:", requestData);
-
     // 파일이 있는 경우 FormData 사용
     if (data.attachedFiles && data.attachedFiles.length > 0) {
       const formData = new FormData();
@@ -39,10 +36,6 @@ export const createInventoryRecord = async (
         Object.entries(basicData).filter(([key]) => key !== "attachedFiles")
       );
       formData.append("data", JSON.stringify(restData));
-
-      // FormData 내용 로깅
-      console.log("FormData 기본 데이터:", restData);
-      console.log("첨부 파일 개수:", data.attachedFiles.length);
 
       // 파일들 추가
       data.attachedFiles.forEach((file: File) => {
@@ -58,7 +51,6 @@ export const createInventoryRecord = async (
           },
         }
       );
-      console.log("서버 응답 (파일 포함):", response.data);
       return { success: true, data: response.data };
     } else {
       // 파일이 없는 경우 일반 JSON 요청
@@ -66,7 +58,6 @@ export const createInventoryRecord = async (
         "/inventory-record",
         requestData
       );
-      console.log("서버 응답 (파일 없음):", response.data);
       return { success: true, data: response.data };
     }
   } catch (error) {
@@ -109,7 +100,7 @@ export const inventoryRecordApi = {
         params.endDate = endDate;
       }
 
-      console.log("API Request Params:", params);
+
 
       const response = await api.get<InventoryRecordsResponse>(
         `/inventory-record/team/${teamId}`,

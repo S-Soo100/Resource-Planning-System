@@ -884,10 +884,10 @@ const OrderRecordDetail = () => {
                           {order.title || "제목 없음"}
                         </span>
                       </div>
-                      <div className="flex justify-between">
+                      {/* <div className="flex justify-between">
                         <span className="text-gray-600">발주 ID:</span>
                         <span className="font-medium">#{order.id}</span>
-                      </div>
+                      </div> */}
                       <div className="flex justify-between">
                         <span className="text-gray-600">생성일:</span>
                         <span className="font-medium">

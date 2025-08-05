@@ -23,7 +23,7 @@ import {
 } from "@/hooks/(useDemo)/useDemoMutations";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+// useWarehouseItems 훅 제거 - 이 페이지에서는 불필요
 import DemoEditModal from "@/components/demonstration/DemoEditModal";
 import LoginModal from "@/components/login/LoginModal";
 import { IAuth } from "@/types/(auth)/auth";
@@ -414,7 +414,7 @@ const DemoRecordDetail = () => {
   const queryClient = useQueryClient();
   const updateDemoStatusMutation = useUpdateDemoStatus();
   const deleteDemoMutation = useDeleteDemo();
-  const { refetchAll: refetchWarehouseItems } = useWarehouseItems();
+  // useWarehouseItems 훅 제거 - 이 페이지에서는 불필요
 
   // authStore에서 직접 로그인 상태 확인
   const isAuthenticated = authStore.getState().isAuthenticated;
@@ -548,21 +548,16 @@ const DemoRecordDetail = () => {
 
       // 시연 출고 완료 상태로 변경된 경우 추가 액션
       if (selectedStatus === DemoStatus.shipmentCompleted) {
+        // 캐시 무효화만 수행하고 refetch는 하지 않음
         queryClient.invalidateQueries({
           queryKey: [
             ["warehouseItems"],
             ["inventoryRecords"],
             ["items"],
             ["warehouse"],
+            ["allWarehouses"],
           ],
         });
-        await Promise.all([
-          queryClient.refetchQueries({ queryKey: ["warehouseItems"] }),
-          queryClient.refetchQueries({ queryKey: ["inventoryRecords"] }),
-        ]);
-        setTimeout(async () => {
-          await refetchWarehouseItems();
-        }, 1000);
         alert("시연 출고 완료, 재고에 반영 했습니다.");
         toast.success(
           "시연 출고 완료 처리되었습니다. 재고가 업데이트되었습니다.",
@@ -580,21 +575,16 @@ const DemoRecordDetail = () => {
       }
       // 시연 완료 상태로 변경된 경우 재고 복구
       else if (selectedStatus === DemoStatus.demoCompleted) {
+        // 캐시 무효화만 수행하고 refetch는 하지 않음
         queryClient.invalidateQueries({
           queryKey: [
             ["warehouseItems"],
             ["inventoryRecords"],
             ["items"],
             ["warehouse"],
+            ["allWarehouses"],
           ],
         });
-        await Promise.all([
-          queryClient.refetchQueries({ queryKey: ["warehouseItems"] }),
-          queryClient.refetchQueries({ queryKey: ["inventoryRecords"] }),
-        ]);
-        setTimeout(async () => {
-          await refetchWarehouseItems();
-        }, 1000);
         alert("시연 완료, 재고가 복구되었습니다.");
         toast.success("시연 완료 처리되었습니다. 재고가 복구되었습니다.", {
           duration: 4000,

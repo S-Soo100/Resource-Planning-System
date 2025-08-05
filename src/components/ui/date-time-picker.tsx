@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Calendar, Clock, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { formatDateToLocalString } from "@/utils/dateUtils";
+import { convertToUTC9 } from "@/utils/dateUtils";
 
 export interface DateTimePickerProps {
   label?: string;
@@ -48,7 +49,9 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   const [selectedDate, setSelectedDate] = useState<Date | null>(
     date ? new Date(date) : null
   );
-  const [selectedTime, setSelectedTime] = useState(time || defaultTime);
+  const [selectedTime, setSelectedTime] = useState(
+    time ? convertToUTC9(time) : convertToUTC9(defaultTime)
+  );
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 외부 클릭 시 닫기
@@ -70,17 +73,19 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   const handleDateSelect = (day: Date) => {
     setSelectedDate(day);
     const dateString = formatDateToLocalString(day);
+    const utc9Time = convertToUTC9(selectedTime);
     onDateChange?.(dateString);
-    onDateTimeChange?.(dateString, selectedTime);
+    onDateTimeChange?.(dateString, utc9Time);
   };
 
   // 시간 변경 핸들러
   const handleTimeSelect = (timeString: string) => {
-    setSelectedTime(timeString);
-    onTimeChange?.(timeString);
+    const utc9Time = convertToUTC9(timeString);
+    setSelectedTime(utc9Time);
+    onTimeChange?.(utc9Time);
     if (selectedDate) {
       const dateString = formatDateToLocalString(selectedDate);
-      onDateTimeChange?.(dateString, timeString);
+      onDateTimeChange?.(dateString, utc9Time);
     }
   };
 
@@ -175,8 +180,9 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
       new Date(selectedDay.getFullYear(), selectedDay.getMonth(), 1)
     );
     const dateString = formatDateToLocalString(selectedDay);
+    const utc9Time = convertToUTC9(selectedTime);
     onDateChange?.(dateString);
-    onDateTimeChange?.(dateString, selectedTime);
+    onDateTimeChange?.(dateString, utc9Time);
   };
 
   const calendarDays = getCalendarDays();
@@ -225,12 +231,13 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedDate(null);
-                setSelectedTime(defaultTime);
+                const utc9DefaultTime = convertToUTC9(defaultTime);
+                setSelectedTime(utc9DefaultTime);
                 onDateChange?.("");
                 onTimeChange?.("");
                 onDateTimeChange?.("", "");
               }}
-              className="px-3 py-2 text-gray-400 hover:text-gray-600 bg-white border border-l-0 border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 text-gray-400 bg-white rounded-r-lg border border-l-0 border-gray-300 shadow-sm hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <X className="w-4 h-4" />
             </button>
@@ -238,7 +245,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
         </div>
 
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+          <div className="absolute z-50 mt-1 w-full bg-white rounded-lg border border-gray-300 shadow-lg">
             <div className="p-4">
               {/* 빠른 선택 */}
               <div className="mb-4">
@@ -251,7 +258,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                       key={option.value}
                       type="button"
                       onClick={() => handleQuickSelect(option.value)}
-                      className="px-3 py-1 text-xs bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
+                      className="px-3 py-1 text-xs text-blue-700 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
                     >
                       {option.label}
                     </button>
@@ -268,7 +275,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                 {/* 달력 */}
                 {showDate && (
                   <div className={showTime ? "" : "w-full"}>
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex justify-between items-center mb-3">
                       <button
                         type="button"
                         onClick={goToPreviousMonth}
@@ -345,12 +352,12 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                 {showTime && (
                   <div>
                     <div className="flex items-center mb-3">
-                      <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                      <Clock className="mr-2 w-4 h-4 text-gray-400" />
                       <span className="text-sm font-medium text-gray-700">
                         시간 선택
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                    <div className="grid overflow-y-auto grid-cols-2 gap-2 max-h-48">
                       {timeOptions.map((timeOption) => (
                         <button
                           key={timeOption}
@@ -372,11 +379,11 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
               </div>
 
               {/* 확인 버튼 */}
-              <div className="flex justify-end mt-4 pt-4 border-t border-gray-200">
+              <div className="flex justify-end pt-4 mt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md transition-colors hover:bg-blue-700"
                 >
                   확인
                 </button>

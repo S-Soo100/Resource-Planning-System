@@ -388,6 +388,9 @@ const DemoRecordDetail = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
+  // 선택된 상태 관리 추가
+  const [selectedStatus, setSelectedStatus] = useState<DemoStatus | null>(null);
+
   const { user: auth } = useCurrentUser();
   const queryClient = useQueryClient();
   const updateDemoStatusMutation = useUpdateDemoStatus();
@@ -423,7 +426,10 @@ const DemoRecordDetail = () => {
         const res = await getDemoById(parseInt(demoId));
         console.log("📋 시연 조회 결과:", res);
         if (res.success && res.data) {
-          setDemo(res.data as unknown as DemoResponse);
+          const demoData = res.data as unknown as DemoResponse;
+          setDemo(demoData);
+          // 초기 상태 설정
+          setSelectedStatus(demoData.demoStatus as DemoStatus);
         } else {
           console.error("시연 조회 실패:", res.message);
           toast.error(res.message || "해당 시연을 찾을 수 없습니다.");
@@ -491,15 +497,15 @@ const DemoRecordDetail = () => {
   };
 
   // 상태 변경 핸들러
-  const handleStatusChange = async (newStatus: DemoStatus) => {
-    if (!demo) return;
+  const handleStatusChange = async () => {
+    if (!demo || !selectedStatus) return;
 
     // moderator 권한 사용자가 본인이 생성한 시연을 승인/반려하려고 할 때 제한
     if (auth?.accessLevel === "moderator") {
       if (demo.userId === auth?.id) {
         if (
-          newStatus === DemoStatus.approved ||
-          newStatus === DemoStatus.rejected
+          selectedStatus === DemoStatus.approved ||
+          selectedStatus === DemoStatus.rejected
         ) {
           alert("요청자 본인 이외의 승인권자가 승인해야 합니다");
           return;
@@ -509,7 +515,9 @@ const DemoRecordDetail = () => {
 
     if (
       !window.confirm(
-        `정말 시연 상태를 '${getStatusText(newStatus)}'(으)로 변경하시겠습니까?`
+        `정말 시연 상태를 '${getStatusText(
+          selectedStatus
+        )}'(으)로 변경하시겠습니까?`
       )
     ) {
       return;
@@ -519,11 +527,11 @@ const DemoRecordDetail = () => {
       setIsUpdatingStatus(true);
       await updateDemoStatusMutation.mutateAsync({
         id: parseInt(demoId),
-        data: { status: newStatus },
+        data: { status: selectedStatus },
       });
 
       // 시연 출고 완료 상태로 변경된 경우 추가 액션
-      if (newStatus === DemoStatus.shipmentCompleted) {
+      if (selectedStatus === DemoStatus.shipmentCompleted) {
         queryClient.invalidateQueries({
           queryKey: [
             ["warehouseItems"],
@@ -555,7 +563,7 @@ const DemoRecordDetail = () => {
         );
       }
       // 시연 완료 상태로 변경된 경우 재고 복구
-      else if (newStatus === DemoStatus.demoCompleted) {
+      else if (selectedStatus === DemoStatus.demoCompleted) {
         queryClient.invalidateQueries({
           queryKey: [
             ["warehouseItems"],
@@ -606,6 +614,11 @@ const DemoRecordDetail = () => {
     }
   };
 
+  // 드롭다운 변경 핸들러
+  const handleStatusSelectChange = (newStatus: DemoStatus) => {
+    setSelectedStatus(newStatus);
+  };
+
   // 수정 권한 확인
   const hasPermissionToEdit = (record: DemoResponse) => {
     if (!auth) return false;
@@ -625,13 +638,13 @@ const DemoRecordDetail = () => {
   const canChangeStatus = (currentStatus: string) => {
     if (!auth) return false;
 
-    console.log("🔍 권한 디버깅:", {
-      userAccessLevel: auth.accessLevel,
-      currentStatus: currentStatus,
-      isAdmin: auth.isAdmin,
-      userId: auth.id,
-      demoUserId: demo?.userId,
-    });
+    // console.log("🔍 권한 디버깅:", {
+    //   userAccessLevel: auth.accessLevel,
+    //   currentStatus: currentStatus,
+    //   isAdmin: auth.isAdmin,
+    //   userId: auth.id,
+    //   demoUserId: demo?.userId,
+    // });
 
     // Moderator 권한 체크
     if (auth.accessLevel === "moderator") {
@@ -917,12 +930,12 @@ const DemoRecordDetail = () => {
                 {(() => {
                   const hasPermission = hasPermissionToChangeStatus();
                   const canChange = canChangeStatus(demo.demoStatus);
-                  console.log("🎯 상태 변경 섹션 조건 체크:", {
-                    hasPermission,
-                    canChange,
-                    demoStatus: demo.demoStatus,
-                    authLevel: auth?.accessLevel,
-                  });
+                  // console.log("🎯 상태 변경 섹션 조건 체크:", {
+                  //   hasPermission,
+                  //   canChange,
+                  //   demoStatus: demo.demoStatus,
+                  //   authLevel: auth?.accessLevel,
+                  // });
                   return hasPermission && canChange;
                 })() && (
                   <div className="p-6 mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-sm">
@@ -958,45 +971,57 @@ const DemoRecordDetail = () => {
                         </div>
                       </div>
                       <span className="text-gray-400">→</span>
-                      <div className="relative">
-                        <select
-                          value={demo.demoStatus}
-                          onChange={(e) =>
-                            handleStatusChange(e.target.value as DemoStatus)
-                          }
-                          disabled={isUpdatingStatus}
-                          className="px-4 py-2 pr-10 bg-white rounded-lg border border-gray-300 transition-colors appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {getAvailableStatusOptions().map((option) => (
-                            <option
-                              key={option.value}
-                              value={option.value}
-                              disabled={option.disabled}
-                            >
-                              {option.label}
-                              {option.disabled &&
-                              auth?.accessLevel === "moderator" &&
-                              demo?.userId === auth?.id
-                                ? " (본인 시연)"
-                                : ""}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
-                          <svg
-                            className="w-4 h-4 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                      <div className="flex gap-3 items-center">
+                        <div className="relative">
+                          <select
+                            value={selectedStatus || ""}
+                            onChange={(e) =>
+                              handleStatusSelectChange(
+                                e.target.value as DemoStatus
+                              )
+                            }
+                            disabled={isUpdatingStatus}
+                            className="px-4 py-2 pr-10 bg-white rounded-lg border border-gray-300 transition-colors appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
+                            <option value="">-선택-</option>
+                            {getAvailableStatusOptions().map((option) => (
+                              <option
+                                key={option.value}
+                                value={option.value}
+                                disabled={option.disabled}
+                              >
+                                {option.label}
+                                {option.disabled &&
+                                auth?.accessLevel === "moderator" &&
+                                demo?.userId === auth?.id
+                                  ? " (본인 시연)"
+                                  : ""}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="flex absolute inset-y-0 right-0 items-center pr-3 pointer-events-none">
+                            <svg
+                              className="w-4 h-4 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </div>
                         </div>
+                        <button
+                          onClick={handleStatusChange}
+                          disabled={!selectedStatus || isUpdatingStatus}
+                          className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        >
+                          {isUpdatingStatus ? "변경 중..." : "상태 변경"}
+                        </button>
                       </div>
                       {isUpdatingStatus && (
                         <div className="flex gap-2 items-center">
@@ -1072,10 +1097,10 @@ const DemoRecordDetail = () => {
                       기본 정보
                     </h2>
                     <div className="space-y-3">
-                      <div className="flex justify-between">
+                      {/* <div className="flex justify-between">
                         <span className="text-gray-600">시연 ID:</span>
                         <span className="font-medium">#{demo.id}</span>
-                      </div>
+                      </div> */}
                       <div className="flex justify-between">
                         <span className="text-gray-600">생성일:</span>
                         <span className="font-medium">

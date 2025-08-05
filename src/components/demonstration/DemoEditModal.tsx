@@ -35,6 +35,125 @@ import { TeamItem } from "@/types/(item)/team-item";
 import { useQueryClient } from "@tanstack/react-query";
 import { getDisplayFileName, formatFileSize } from "@/utils/fileUtils";
 import { getTodayString } from "@/utils/dateUtils";
+import { convertToUTC9 } from "@/utils/dateUtils";
+
+const toKSTDateString = (dateString: string): string | undefined => {
+  if (!dateString || dateString.trim() === "") return undefined;
+
+  // 다양한 날짜 형식을 YYYY-MM-DD로 정규화
+  const normalizedDate = dateString.replace(/[/.]/g, "-");
+
+  // YYYY-MM-DD 형식 검증
+  const dateRegex = /^\d{4}-\d{1,2}-\d{1,2}$/;
+  if (!dateRegex.test(normalizedDate)) {
+    console.warn(`유효하지 않은 날짜 형식: ${dateString}`);
+    return undefined;
+  }
+
+  // Date 객체로 유효성 검증
+  const testDate = new Date(normalizedDate);
+  if (isNaN(testDate.getTime())) {
+    console.warn(`유효하지 않은 날짜: ${dateString}`);
+    return undefined;
+  }
+
+  // 서버 파싱 테스트
+  const serverTestDate = new Date(normalizedDate);
+  if (isNaN(serverTestDate.getTime())) {
+    console.error(`서버에서 파싱할 수 없는 날짜: ${normalizedDate}`);
+    return undefined;
+  }
+
+  console.log(
+    `[날짜 변환] ${dateString} -> ${normalizedDate} (서버 파싱 테스트: ${serverTestDate.toISOString()})`
+  );
+
+  // 서버가 기대하는 형식: YYYY-MM-DD (ISO 날짜 문자열)
+  // 서버에서 new Date()로 파싱할 때 문제가 없도록 단순한 형식 사용
+  // 추가로 ISO 문자열 형식도 시도해보자
+  const isoString = `${normalizedDate}T00:00:00.000Z`;
+  console.log(
+    `[날짜 변환 최종] ${dateString} -> ${normalizedDate} (ISO: ${isoString})`
+  );
+
+  return normalizedDate;
+};
+
+// 기존 데이터 로드 시 날짜 정규화 함수
+const normalizeDateForDisplay = (dateString: string): string => {
+  if (!dateString || dateString.trim() === "") return "";
+
+  // ISO 문자열인 경우 (예: "2024-01-15T00:00:00+09:00")
+  if (dateString.includes("T")) {
+    const datePart = dateString.split("T")[0];
+    // 유효성 검증
+    const testDate = new Date(datePart);
+    if (isNaN(testDate.getTime())) {
+      console.warn(`유효하지 않은 ISO 날짜: ${dateString}`);
+      return "";
+    }
+    return datePart;
+  }
+
+  // 다른 형식의 날짜를 YYYY-MM-DD로 정규화
+  const normalizedDate = dateString.replace(/[/.]/g, "-");
+
+  // YYYY-MM-DD 형식 검증
+  const dateRegex = /^\d{4}-\d{1,2}-\d{1,2}$/;
+  if (!dateRegex.test(normalizedDate)) {
+    console.warn(`날짜 형식이 올바르지 않습니다: ${dateString}`);
+    return "";
+  }
+
+  // Date 객체로 유효성 검증
+  const testDate = new Date(normalizedDate);
+  if (isNaN(testDate.getTime())) {
+    console.warn(`유효하지 않은 날짜: ${dateString}`);
+    return "";
+  }
+
+  return normalizedDate;
+};
+
+// 기존 데이터 로드 시 시간 처리 함수 (UTC+9 형식 확인)
+const normalizeTimeForDisplay = (timeString: string): string => {
+  if (!timeString || timeString.trim() === "") return "";
+
+  // 이미 UTC+9 형식인지 확인 (예: "09:30+09:00" 또는 "09:30Z")
+  if (timeString.includes("+09:00") || timeString.includes("Z")) {
+    // UTC+9 형식이면 시간 부분만 추출
+    const timePart = timeString.split(/[+Z]/)[0];
+    return timePart;
+  }
+
+  // 일반 HH:MM 형식이면 그대로 반환 (이미 로컬 시간으로 저장된 것으로 가정)
+  const timeRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
+  if (timeRegex.test(timeString)) {
+    return timeString;
+  }
+
+  // 형식이 맞지 않으면 변환 시도
+  const parts = timeString.split(":");
+  if (parts.length === 2) {
+    const hours = parseInt(parts[0], 10);
+    const minutes = parseInt(parts[1], 10);
+
+    if (
+      !isNaN(hours) &&
+      !isNaN(minutes) &&
+      hours >= 0 &&
+      hours <= 23 &&
+      minutes >= 0 &&
+      minutes <= 59
+    ) {
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+    }
+  }
+
+  return timeString; // 변환 불가능한 경우 원본 반환
+};
 
 // 상태 텍스트 함수
 const getStatusText = (status: string): string => {
@@ -232,12 +351,12 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
           demoAddress: demo.demoAddress || "",
           demoPaymentType: demo.demoPaymentType || "",
           demoPrice: demo.demoPrice,
-          demoPaymentDate: demo.demoPaymentDate || "",
-          demoStartDate: demo.demoStartDate || "",
-          demoStartTime: demo.demoStartTime || "",
+          demoPaymentDate: normalizeDateForDisplay(demo.demoPaymentDate || ""),
+          demoStartDate: normalizeDateForDisplay(demo.demoStartDate || ""),
+          demoStartTime: normalizeTimeForDisplay(demo.demoStartTime || ""),
           demoStartDeliveryMethod: demo.demoStartDeliveryMethod || "",
-          demoEndDate: demo.demoEndDate || "",
-          demoEndTime: demo.demoEndTime || "",
+          demoEndDate: normalizeDateForDisplay(demo.demoEndDate || ""),
+          demoEndTime: normalizeTimeForDisplay(demo.demoEndTime || ""),
           demoEndDeliveryMethod: demo.demoEndDeliveryMethod || "",
           warehouseId: demo.warehouseId || 0,
           demoItems: existingItems.map((item) => ({
@@ -443,13 +562,21 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       return false;
     }
 
-    // 날짜 형식 검증
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (formData.demoStartDate && !dateRegex.test(formData.demoStartDate)) {
+    // 날짜 형식 검증 - 더 유연하게 처리
+    const validateDate = (dateString: string): boolean => {
+      if (!dateString) return true;
+      // YYYY-MM-DD, YYYY/MM/DD, YYYY.MM.DD 등 다양한 형식 허용
+      const dateRegex = /^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}$/;
+      const isValid = dateRegex.test(dateString);
+      console.log(`[날짜 검증] ${dateString}: ${isValid}`);
+      return isValid;
+    };
+
+    if (formData.demoStartDate && !validateDate(formData.demoStartDate)) {
       toast.error("상차 일자 형식이 올바르지 않습니다.");
       return false;
     }
-    if (formData.demoEndDate && !dateRegex.test(formData.demoEndDate)) {
+    if (formData.demoEndDate && !validateDate(formData.demoEndDate)) {
       toast.error("회수 일자 형식이 올바르지 않습니다.");
       return false;
     }
@@ -523,7 +650,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       return;
     }
 
-    // 수정 권한 확인 (시연 상세 페이지와 동일한 로직)
+    // 수정 권한 확인 (admin이면 무조건 수정 가능)
     const isAdmin = user.isAdmin;
     const isAuthor = demo.userId === user.id;
 
@@ -532,28 +659,31 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       return;
     }
 
-    // 수정 불가능한 상태 체크
-    const nonEditableStatuses = [
-      DemoStatus.approved,
-      DemoStatus.rejected,
-      DemoStatus.confirmedByShipper,
-      DemoStatus.shipmentCompleted,
-      DemoStatus.rejectedByShipper,
-      DemoStatus.demoCompleted,
-    ];
+    // admin이면 상태 필터링 제거 - 무조건 수정 가능
+    if (!isAdmin) {
+      // 일반 사용자는 기존 상태 필터링 적용
+      const nonEditableStatuses = [
+        DemoStatus.approved,
+        DemoStatus.rejected,
+        DemoStatus.confirmedByShipper,
+        DemoStatus.shipmentCompleted,
+        DemoStatus.rejectedByShipper,
+        DemoStatus.demoCompleted,
+      ];
 
-    if (nonEditableStatuses.includes(demo.demoStatus as DemoStatus)) {
-      const statusText = getStatusText(demo.demoStatus);
-      toast.error(`${statusText} 상태의 시연은 수정할 수 없습니다.`);
-      return;
-    }
+      if (nonEditableStatuses.includes(demo.demoStatus as DemoStatus)) {
+        const statusText = getStatusText(demo.demoStatus);
+        toast.error(`${statusText} 상태의 시연은 수정할 수 없습니다.`);
+        return;
+      }
 
-    // 동시성 체크: 현재 시연 상태가 변경되었는지 확인
-    if (demo.demoStatus !== "requested") {
-      toast.error(
-        "시연 상태가 변경되어 수정할 수 없습니다. 페이지를 새로고침해주세요."
-      );
-      return;
+      // 동시성 체크: 현재 시연 상태가 변경되었는지 확인 (일반 사용자만)
+      if (demo.demoStatus !== "requested") {
+        toast.error(
+          "시연 상태가 변경되어 수정할 수 없습니다. 페이지를 새로고침해주세요."
+        );
+        return;
+      }
     }
 
     // 재고 확인 (선택적 - 필요시 활성화)
@@ -595,21 +725,149 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
     setIsSubmitting(true);
 
     try {
+      // 날짜 변환 전 디버깅
+      console.log("[디버깅] 원본 날짜 데이터:", {
+        demoPaymentDate: formData.demoPaymentDate,
+        demoStartDate: formData.demoStartDate,
+        demoEndDate: formData.demoEndDate,
+      });
+
+      // 각 날짜 필드의 타입과 값 확인
+      console.log("[디버깅] 날짜 필드 상세 정보:", {
+        demoPaymentDate: {
+          value: formData.demoPaymentDate,
+          type: typeof formData.demoPaymentDate,
+          length: formData.demoPaymentDate?.length,
+          isEmpty:
+            !formData.demoPaymentDate || formData.demoPaymentDate.trim() === "",
+        },
+        demoStartDate: {
+          value: formData.demoStartDate,
+          type: typeof formData.demoStartDate,
+          length: formData.demoStartDate?.length,
+          isEmpty:
+            !formData.demoStartDate || formData.demoStartDate.trim() === "",
+        },
+        demoEndDate: {
+          value: formData.demoEndDate,
+          type: typeof formData.demoEndDate,
+          length: formData.demoEndDate?.length,
+          isEmpty: !formData.demoEndDate || formData.demoEndDate.trim() === "",
+        },
+      });
+
       const submitData: PatchDemoRequest = {
         ...formData,
-        demoPaymentDate: formData.demoPaymentDate
-          ? formData.demoPaymentDate
-          : undefined,
+        demoPaymentDate:
+          formData.demoPaymentDate && formData.demoPaymentDate.trim() !== ""
+            ? toKSTDateString(formData.demoPaymentDate)
+            : undefined,
+        demoStartDate:
+          formData.demoStartDate && formData.demoStartDate.trim() !== ""
+            ? toKSTDateString(formData.demoStartDate)
+            : undefined,
+        demoEndDate:
+          formData.demoEndDate && formData.demoEndDate.trim() !== ""
+            ? toKSTDateString(formData.demoEndDate)
+            : undefined,
+        demoStartTime:
+          formData.demoStartTime && formData.demoStartTime.trim() !== ""
+            ? convertToUTC9(formData.demoStartTime)
+            : formData.demoStartTime,
+        demoEndTime:
+          formData.demoEndTime && formData.demoEndTime.trim() !== ""
+            ? convertToUTC9(formData.demoEndTime)
+            : formData.demoEndTime,
         demoItems: selectedItems.map((item) => ({
           itemId: item.itemId,
           quantity: item.quantity,
           memo: item.memo,
         })),
       };
-      // demoPaymentDate가 빈 문자열 또는 falsy면 필드 자체를 제거
+
+      // 날짜 필드 유효성 재검증
+      if (submitData.demoPaymentDate === "") {
+        submitData.demoPaymentDate = undefined;
+      }
+      if (submitData.demoStartDate === "") {
+        submitData.demoStartDate = undefined;
+      }
+      if (submitData.demoEndDate === "") {
+        submitData.demoEndDate = undefined;
+      }
+
+      // 변환 후 디버깅
+      console.log("[디버깅] 변환된 날짜 데이터:", {
+        demoPaymentDate: submitData.demoPaymentDate,
+        demoStartDate: submitData.demoStartDate,
+        demoEndDate: submitData.demoEndDate,
+      });
+
+      // 서버 파싱 테스트를 위한 디버깅
+      console.log("[디버깅] 서버 파싱 테스트:", {
+        demoPaymentDate: submitData.demoPaymentDate
+          ? new Date(submitData.demoPaymentDate)
+          : null,
+        demoStartDate: submitData.demoStartDate
+          ? new Date(submitData.demoStartDate)
+          : null,
+        demoEndDate: submitData.demoEndDate
+          ? new Date(submitData.demoEndDate)
+          : null,
+      });
+
+      // undefined인 날짜 필드들 제거
       if (!submitData.demoPaymentDate) {
         delete submitData.demoPaymentDate;
+        console.log("[디버깅] demoPaymentDate 제거됨");
       }
+      if (!submitData.demoStartDate) {
+        delete submitData.demoStartDate;
+        console.log("[디버깅] demoStartDate 제거됨");
+      }
+      if (!submitData.demoEndDate) {
+        delete submitData.demoEndDate;
+        console.log("[디버깅] demoEndDate 제거됨");
+      }
+
+      // 최종 제거 후 디버깅
+      console.log("[디버깅] 최종 제출 데이터:", {
+        demoPaymentDate: submitData.demoPaymentDate,
+        demoStartDate: submitData.demoStartDate,
+        demoEndDate: submitData.demoEndDate,
+      });
+
+      // 전체 submitData 확인
+      console.log(
+        "[디버깅] 전체 submitData:",
+        JSON.stringify(submitData, null, 2)
+      );
+
+      // 서버 전송 전 최종 검증
+      const finalSubmitData = { ...submitData };
+
+      // 빈 문자열이나 undefined인 날짜 필드 제거
+      if (
+        !finalSubmitData.demoPaymentDate ||
+        finalSubmitData.demoPaymentDate === ""
+      ) {
+        delete finalSubmitData.demoPaymentDate;
+      }
+      if (
+        !finalSubmitData.demoStartDate ||
+        finalSubmitData.demoStartDate === ""
+      ) {
+        delete finalSubmitData.demoStartDate;
+      }
+      if (!finalSubmitData.demoEndDate || finalSubmitData.demoEndDate === "") {
+        delete finalSubmitData.demoEndDate;
+      }
+
+      console.log("[디버깅] 서버 전송 전 최종 데이터:", {
+        demoPaymentDate: finalSubmitData.demoPaymentDate,
+        demoStartDate: finalSubmitData.demoStartDate,
+        demoEndDate: finalSubmitData.demoEndDate,
+      });
 
       // demoItems 부분만 alert로 출력
       // alert(
@@ -619,7 +877,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
 
       const response = await updateDemoMutation.mutateAsync({
         id: demo.id,
-        data: submitData,
+        data: finalSubmitData,
       });
 
       if (response.success) {
@@ -1055,7 +1313,10 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                       onTimeChange={(time) =>
                         setFormData((prev) => ({
                           ...prev,
-                          demoStartTime: time,
+                          demoStartTime:
+                            time && time.trim() !== ""
+                              ? convertToUTC9(time)
+                              : time,
                         }))
                       }
                       placeholder="상차 일자와 시간을 선택하세요"
@@ -1116,7 +1377,13 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                         setFormData((prev) => ({ ...prev, demoEndDate: date }))
                       }
                       onTimeChange={(time) =>
-                        setFormData((prev) => ({ ...prev, demoEndTime: time }))
+                        setFormData((prev) => ({
+                          ...prev,
+                          demoEndTime:
+                            time && time.trim() !== ""
+                              ? convertToUTC9(time)
+                              : time,
+                        }))
                       }
                       placeholder="회수 일자와 시간을 선택하세요"
                       helperText="시연품을 창고로 반입하는 일정입니다"

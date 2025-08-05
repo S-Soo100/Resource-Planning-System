@@ -278,7 +278,7 @@ export default function UserEditModal({
   if (isLoadingUser) {
     return (
       <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
-        <div className="w-full max-w-2xl p-6 mx-4 bg-white rounded-lg shadow-xl">
+        <div className="p-6 mx-4 w-full max-w-2xl bg-white rounded-lg shadow-xl">
           <div className="flex justify-center items-center py-10">
             <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-blue-500 animate-spin"></div>
             <p className="ml-3 text-gray-600">사용자 정보를 불러오는 중...</p>

@@ -37,7 +37,7 @@ export default function UserEditModal({
       setIsLoadingWarehouses(true);
       try {
         const response = await warehouseApi.getTeamWarehouses(team.id);
-        console.log("[UserEditModal] 창고 API 응답:", response);
+        // console.log("[UserEditModal] 창고 API 응답:", response);
         if (response.success && response.data) {
           // response.data가 { data: Warehouse[], success: true } 형태로 오므로
           // response.data.data로 실제 배열에 접근
@@ -99,9 +99,9 @@ export default function UserEditModal({
         restrictedIds = [];
       }
 
-      console.log("[UserEditModal] 제한된 창고:", restrictedIds.length, "개");
-      console.log("[UserEditModal] 제한된 창고 ID:", restrictedIds);
-      console.log("[UserEditModal] 원본 restrictedWhs:", user.restrictedWhs);
+      // console.log("[UserEditModal] 제한된 창고:", restrictedIds.length, "개");
+      // console.log("[UserEditModal] 제한된 창고 ID:", restrictedIds);
+      // console.log("[UserEditModal] 원본 restrictedWhs:", user.restrictedWhs);
       setSelectedWarehouses(restrictedIds);
     }
   }, [user]);
@@ -109,21 +109,21 @@ export default function UserEditModal({
   // 창고 목록이 로딩된 후 선택된 창고 상태 업데이트
   useEffect(() => {
     if (Array.isArray(warehouses) && warehouses.length > 0 && user) {
-      console.log(
-        "[UserEditModal] 창고 목록 로딩 완료:",
-        warehouses.length,
-        "개"
-      );
+      // console.log(
+      //   "[UserEditModal] 창고 목록 로딩 완료:",
+      //   warehouses.length,
+      //   "개"
+      // );
     } else if (warehouses === null && !isLoadingWarehouses) {
-      console.log("[UserEditModal] 창고 목록 로딩 실패");
+      // console.log("[UserEditModal] 창고 목록 로딩 실패");
     } else if (Array.isArray(warehouses) && warehouses.length === 0) {
-      console.log("[UserEditModal] 창고 목록이 비어있음");
+      // console.log("[UserEditModal] 창고 목록이 비어있음");
     } else {
-      console.log("[UserEditModal] 창고 목록 로딩 중:", {
-        isLoading: isLoadingWarehouses,
-        isArray: Array.isArray(warehouses),
-        length: Array.isArray(warehouses) ? warehouses.length : "N/A",
-      });
+      // console.log("[UserEditModal] 창고 목록 로딩 중:", {
+      //   isLoading: isLoadingWarehouses,
+      //   isArray: Array.isArray(warehouses),
+      //   length: Array.isArray(warehouses) ? warehouses.length : "N/A",
+      // });
     }
   }, [warehouses, user, isLoadingWarehouses]);
 
@@ -138,7 +138,7 @@ export default function UserEditModal({
       };
 
       // restrictedWhs가 빈 문자열인 경우 빈 문자열로 유지 (서버에서 처리하도록)
-      console.log("[UserEditModal] 제출 전 restrictedWhs:", updateData.restrictedWhs);
+      // console.log("[UserEditModal] 제출 전 restrictedWhs:", updateData.restrictedWhs);
 
       // 빈 필드는 제거 (restrictedWhs는 제외)
       Object.keys(updateData).forEach((key) => {
@@ -149,20 +149,36 @@ export default function UserEditModal({
       });
 
       // 디버깅 정보 출력
-      console.log("[UserEditModal] 최종 수정 요청:", {
-        userId: user.id,
-        selectedWarehouses: selectedWarehouses.length,
-        restrictedWhs: updateData.restrictedWhs,
-        updateData: updateData,
-      });
+      // console.log("[UserEditModal] 최종 수정 요청:", {
+      //   userId: user.id,
+      //   selectedWarehouses: selectedWarehouses.length,
+      //   restrictedWhs: updateData.restrictedWhs,
+      //   updateData: updateData,
+      // });
 
       // useTeamAdmin의 updateUser 사용
       await updateUser({ userId: user.id, userData: updateData });
 
+      // 보낸 값과 응답 값 비교를 위해 직접 API 호출
+      try {
+        const userApi = (await import("@/api/user-api")).userApi;
+        const response = await userApi.getUser(user.id.toString());
+
+        if (response.success && response.data) {
+          const sentRestrictedWhs = updateData.restrictedWhs || "";
+          const receivedRestrictedWhs = response.data.restrictedWhs || "";
+
+          const comparisonMessage = `[내가보낸값]\n${sentRestrictedWhs}\n\n[응답받은값]\n${receivedRestrictedWhs}`;
+          alert(comparisonMessage);
+        }
+      } catch (error) {
+        console.error("사용자 정보 조회 실패:", error);
+      }
+
       onUserUpdated();
       onClose();
-    } catch (error) {
-      console.error("[UserEditModal] 수정 중 오류:", error);
+    } catch {
+      // console.error("[UserEditModal] 수정 중 오류:", error);
       alert("사용자 정보 수정 중 오류가 발생했습니다.");
     }
   };
@@ -175,11 +191,11 @@ export default function UserEditModal({
         ? prev.filter((id) => id !== warehouseId)
         : [...prev, warehouseId];
 
-      console.log("[UserEditModal] 창고 선택 변경:", {
-        warehouseId,
-        newSelection: newSelected,
-        prevSelection: prev,
-      });
+      // console.log("[UserEditModal] 창고 선택 변경:", {
+      //   warehouseId,
+      //   newSelection: newSelected,
+      //   prevSelection: prev,
+      // });
       return newSelected;
     });
   };

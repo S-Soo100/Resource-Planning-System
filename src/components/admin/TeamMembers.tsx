@@ -34,8 +34,6 @@ export default function TeamMembers({
     isCreatingUser,
     removeUser,
     isRemovingUser,
-    updateUser,
-    isUpdatingUser,
   } = useTeamAdmin(teamId || 0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -75,15 +73,16 @@ export default function TeamMembers({
   };
 
   const handleUserUpdated = () => {
-    // 팀 멤버 목록 새로고침 (React Query 캐시 무효화)
-    console.log("[TeamMembers] 사용자 정보 업데이트 완료, 캐시 무효화됨");
+    // 사용자 정보가 업데이트되면 모달을 닫고 상태를 초기화
+    setIsEditModalOpen(false);
+    setSelectedUser(null);
   };
 
   if (isLoading) {
     return (
       <div className="p-5 bg-white rounded-lg shadow-sm">
         <div className="py-10 text-center">
-          <div className="w-10 h-10 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
+          <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-blue-500 animate-spin"></div>
           <p className="mt-2 text-gray-600">팀 멤버 정보를 불러오는 중...</p>
         </div>
       </div>
@@ -104,11 +103,11 @@ export default function TeamMembers({
 
   return (
     <div className="p-5 bg-white rounded-lg shadow-sm">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">팀 멤버 관리</h2>
         <div className="flex items-center space-x-2">
           {isReadOnly && (
-            <div className="px-4 py-2 text-sm text-yellow-700 rounded-md bg-yellow-50">
+            <div className="px-4 py-2 text-sm text-yellow-700 bg-yellow-50 rounded-md">
               읽기 전용 모드
             </div>
           )}
@@ -136,12 +135,12 @@ export default function TeamMembers({
           teamUsers.map((member: IMappingUser) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+              className="flex justify-between items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50"
             >
               <div className="flex-1">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
-                    <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
+                    <div className="flex justify-center items-center w-10 h-10 bg-blue-100 rounded-full">
                       <span className="font-medium text-blue-600">
                         {member.user.name.charAt(0)}
                       </span>

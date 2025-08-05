@@ -3,7 +3,7 @@ import { teamApi } from "@/api/team-api";
 import { userApi } from "@/api/user-api";
 import { Team } from "@/types/team";
 import { IMappingUser } from "@/types/mappingUser";
-import { CreateUserDto } from "@/types/(auth)/user";
+import { CreateUserDto, UpdateUserRequest } from "@/types/(auth)/user";
 import toast from "react-hot-toast";
 
 /**
@@ -129,7 +129,7 @@ export const useTeamAdmin = (teamId: number) => {
       userData,
     }: {
       userId: number;
-      userData: any;
+      userData: UpdateUserRequest;
     }) => {
       console.log("API 호출: 사용자 정보 업데이트", { userId, userData });
       const response = await userApi.updateUser(userId.toString(), userData);
@@ -193,7 +193,7 @@ export const useTeamAdmin = (teamId: number) => {
     isRemovingUser: removeUser.isPending,
 
     // 사용자 정보 업데이트 함수
-    updateUser: updateUser.mutate,
+    updateUser: updateUser.mutateAsync,
 
     // 사용자 정보 업데이트 중 상태
     isUpdatingUser: updateUser.isPending,

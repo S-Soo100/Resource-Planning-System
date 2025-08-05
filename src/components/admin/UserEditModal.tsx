@@ -5,11 +5,13 @@ import { warehouseApi } from "@/api/warehouse-api";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useTeamAdmin } from "@/hooks/admin/useTeamAdmin";
 import { Warehouse } from "@/types/warehouse";
+import { IMappingUser } from "@/types/mappingUser";
 
 interface UserEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: IUser | null;
+  selectedUserId: number | null;
+  teamUsers: IMappingUser[];
   onUserUpdated: () => void;
   isReadOnly?: boolean;
 }
@@ -17,7 +19,8 @@ interface UserEditModalProps {
 export default function UserEditModal({
   isOpen,
   onClose,
-  user,
+  selectedUserId,
+  teamUsers,
   onUserUpdated,
   isReadOnly = false,
 }: UserEditModalProps) {
@@ -28,6 +31,46 @@ export default function UserEditModal({
   const [formData, setFormData] = useState<UpdateUserRequest>({});
 
   const [selectedWarehouses, setSelectedWarehouses] = useState<number[]>([]);
+
+  // selectedUserId로부터 사용자 정보 가져오기 (API에서 직접 가져오기)
+  const [user, setUser] = useState<IUser | null>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!selectedUserId) {
+        setUser(null);
+        return;
+      }
+
+      setIsLoadingUser(true);
+      try {
+        const userApi = (await import("@/api/user-api")).userApi;
+        const response = await userApi.getUser(selectedUserId.toString());
+
+        if (response.success && response.data) {
+          setUser(response.data);
+          console.log(
+            "[UserEditModal] API에서 가져온 사용자 정보:",
+            response.data
+          );
+        } else {
+          console.error(
+            "[UserEditModal] 사용자 정보 가져오기 실패:",
+            response.error
+          );
+          setUser(null);
+        }
+      } catch (error) {
+        console.error("[UserEditModal] 사용자 정보 가져오기 오류:", error);
+        setUser(null);
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+
+    fetchUser();
+  }, [selectedUserId]);
 
   // 팀의 모든 창고 목록 로딩
   useEffect(() => {
@@ -74,16 +117,31 @@ export default function UserEditModal({
       let restrictedIds: number[] = [];
 
       if (user.restrictedWhs) {
+        console.log(
+          "[UserEditModal] restrictedWhs 타입:",
+          typeof user.restrictedWhs
+        );
+        console.log("[UserEditModal] restrictedWhs 값:", user.restrictedWhs);
+
         if (typeof user.restrictedWhs === "string") {
           const trimmed = user.restrictedWhs.trim();
+          console.log("[UserEditModal] trimmed:", trimmed);
+
           if (trimmed === "") {
             restrictedIds = [];
           } else {
             const splitResult = trimmed.split(",");
+            console.log("[UserEditModal] splitResult:", splitResult);
+
             restrictedIds = splitResult
               .map((id) => {
                 const idTrimmed = id.trim();
                 const parsed = parseInt(idTrimmed);
+                console.log("[UserEditModal] id 변환:", {
+                  original: id,
+                  trimmed: idTrimmed,
+                  parsed,
+                });
                 return parsed;
               })
               .filter((id) => !isNaN(id));
@@ -99,12 +157,12 @@ export default function UserEditModal({
         restrictedIds = [];
       }
 
-      // console.log("[UserEditModal] 제한된 창고:", restrictedIds.length, "개");
-      // console.log("[UserEditModal] 제한된 창고 ID:", restrictedIds);
-      // console.log("[UserEditModal] 원본 restrictedWhs:", user.restrictedWhs);
+      console.log("[UserEditModal] 제한된 창고:", restrictedIds.length, "개");
+      console.log("[UserEditModal] 제한된 창고 ID:", restrictedIds);
+      console.log("[UserEditModal] 원본 restrictedWhs:", user.restrictedWhs);
       setSelectedWarehouses(restrictedIds);
     }
-  }, [user]);
+  }, [selectedUserId, teamUsers]);
 
   // 창고 목록이 로딩된 후 선택된 창고 상태 업데이트
   useEffect(() => {
@@ -125,11 +183,11 @@ export default function UserEditModal({
       //   length: Array.isArray(warehouses) ? warehouses.length : "N/A",
       // });
     }
-  }, [warehouses, user, isLoadingWarehouses]);
+  }, [warehouses, selectedUserId, teamUsers, isLoadingWarehouses]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || isReadOnly) return;
+    if (!selectedUserId || !user || isReadOnly) return;
     try {
       const updateData: UpdateUserRequest = {
         ...formData,
@@ -149,20 +207,20 @@ export default function UserEditModal({
       });
 
       // 디버깅 정보 출력
-      // console.log("[UserEditModal] 최종 수정 요청:", {
-      //   userId: user.id,
-      //   selectedWarehouses: selectedWarehouses.length,
-      //   restrictedWhs: updateData.restrictedWhs,
-      //   updateData: updateData,
-      // });
+      console.log("[UserEditModal] 최종 수정 요청:", {
+        userId: selectedUserId,
+        selectedWarehouses: selectedWarehouses.length,
+        restrictedWhs: updateData.restrictedWhs,
+        updateData: updateData,
+      });
 
       // useTeamAdmin의 updateUser 사용
-      await updateUser({ userId: user.id, userData: updateData });
+      await updateUser({ userId: selectedUserId, userData: updateData });
 
       // 보낸 값과 응답 값 비교를 위해 직접 API 호출
       try {
         const userApi = (await import("@/api/user-api")).userApi;
-        const response = await userApi.getUser(user.id.toString());
+        const response = await userApi.getUser(selectedUserId.toString());
 
         if (response.success && response.data) {
           const sentRestrictedWhs = updateData.restrictedWhs || "";
@@ -215,7 +273,22 @@ export default function UserEditModal({
     }
   };
 
-  if (!isOpen || !user) return null;
+  if (!isOpen) return null;
+
+  if (isLoadingUser) {
+    return (
+      <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
+        <div className="w-full max-w-2xl p-6 mx-4 bg-white rounded-lg shadow-xl">
+          <div className="flex justify-center items-center py-10">
+            <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+            <p className="ml-3 text-gray-600">사용자 정보를 불러오는 중...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
@@ -352,6 +425,14 @@ export default function UserEditModal({
                     <div>선택된 창고: [{selectedWarehouses.join(", ")}]</div>
                     <div>
                       창고 로딩 중: {isLoadingWarehouses ? "예" : "아니오"}
+                    </div>
+                    <div>
+                      창고 목록:{" "}
+                      {Array.isArray(warehouses)
+                        ? warehouses
+                            .map((w) => `${w.id}:${w.warehouseName}`)
+                            .join(", ")
+                        : "없음"}
                     </div>
                   </div>
                 )}

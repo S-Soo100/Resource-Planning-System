@@ -38,7 +38,7 @@ export default function TeamMembers({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
 
   const handleAddUser = async (userId: number) => {
     await addUser(userId);
@@ -63,19 +63,19 @@ export default function TeamMembers({
   };
 
   const handleEditUser = (user: IUser) => {
-    setSelectedUser(user);
+    setSelectedUserId(user.id);
     setIsEditModalOpen(true);
   };
 
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
-    setSelectedUser(null);
+    setSelectedUserId(null);
   };
 
   const handleUserUpdated = () => {
     // 사용자 정보가 업데이트되면 모달을 닫고 상태를 초기화
     setIsEditModalOpen(false);
-    setSelectedUser(null);
+    setSelectedUserId(null);
   };
 
   if (isLoading) {
@@ -221,7 +221,8 @@ export default function TeamMembers({
       <UserEditModal
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
-        user={selectedUser}
+        selectedUserId={selectedUserId}
+        teamUsers={teamUsers}
         onUserUpdated={handleUserUpdated}
         isReadOnly={isReadOnly}
       />

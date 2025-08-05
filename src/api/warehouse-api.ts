@@ -71,19 +71,9 @@ export const warehouseApi = {
     data: UpdateWarehouseRequest
   ): Promise<ApiResponse<Warehouse>> => {
     try {
-      console.log("[API 창고 수정 요청]", {
-        id,
-        url: `/warehouse/${id}`,
-        data,
-      });
-
       const response = await api.patch<Warehouse>(`/warehouse/${id}`, data);
-
-      console.log("[API 창고 수정 응답]", response.data);
-
       return { success: true, data: response.data };
     } catch (error) {
-      console.error("[API 창고 수정 오류]", error);
       return { success: false, error: "창고 정보 수정에 실패했습니다." };
     }
   },

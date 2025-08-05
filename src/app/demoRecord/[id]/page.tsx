@@ -428,9 +428,6 @@ const DemoRecordDetail = () => {
       console.log("🔍 로그인 상태 확인:", {
         auth,
         isAuthenticated,
-        currentAuth,
-        demoId,
-        teamId,
       });
 
       // 로그인되지 않은 상태에서는 모달을 먼저 표시

@@ -11,6 +11,7 @@ import { Send, Calendar, User, Paperclip, X } from "lucide-react";
 import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { toast } from "react-hot-toast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { getTodayString } from "@/utils/dateUtils";
 import AddressSection from "@/components/common/AddressSection";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
@@ -19,12 +20,13 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Address } from "react-daum-postcode";
 import { useCreateDemo } from "@/hooks/(useDemo)/useDemoMutations";
 import { CreateDemoRequest, DemonstrationFormData } from "@/types/demo/demo";
-import { uploadMultipleDemoFileById } from "@/api/demo-api";
+import { uploadMultipleDemoFileById, getDemoByTeamId } from "@/api/demo-api";
 import { getDisplayFileName, formatFileSize } from "@/utils/fileUtils";
 
 const SimpleDemonstrationForm: React.FC = () => {
   const router = useRouter();
   const { user } = useCurrentUser();
+  const { team: currentTeam } = useCurrentTeam();
   const { warehouses } = useWarehouseItems();
   const [selectedItems, setSelectedItems] = useState<SelectedDemoItem[]>([]);
   const [isHandlerSelf, setIsHandlerSelf] = useState(false);
@@ -276,6 +278,89 @@ const SimpleDemonstrationForm: React.FC = () => {
     return true;
   };
 
+  // 타임아웃 후 시연 생성 확인 함수
+  const checkDemoCreationAfterTimeout = async () => {
+    try {
+      // 3초 후에 시연 목록을 다시 조회해서 최근 생성된 시연이 있는지 확인
+      setTimeout(async () => {
+        try {
+          if (!currentTeam?.id) return;
+
+          // 최근 시연 목록 조회 (최근 생성된 것 확인)
+          const response = await getDemoByTeamId(currentTeam.id);
+          if (response.success && response.data?.data) {
+            // 방금 입력한 시연 제목과 일치하는 최근 시연이 있는지 확인
+            const recentDemo = response.data.data.find(
+              (demo: {
+                demoTitle: string;
+                requester: string;
+                createdAt: string;
+              }) =>
+                demo.demoTitle === formData.demoTitle &&
+                demo.requester === formData.requester &&
+                // 최근 1분 내에 생성된 것만 확인
+                new Date(demo.createdAt).getTime() > Date.now() - 60000
+            );
+
+            if (recentDemo) {
+              toast.success("시연이 성공적으로 생성되었습니다!", {
+                duration: 5000,
+              });
+
+              // 폼 초기화 및 페이지 이동
+              setFormData({
+                requester: user?.name || "",
+                handler: "",
+                demoManager: "",
+                demoManagerPhone: "",
+                memo: "",
+                demoTitle: "",
+                demoNationType: "국내",
+                demoAddress: "",
+                demoPaymentType: "",
+                demoPrice: undefined,
+                demoPaymentDate: "",
+                demoCurrencyUnit: "KRW",
+                demoStartDate: "",
+                demoStartTime: "",
+                demoStartDeliveryMethod: "",
+                demoEndDate: "",
+                demoEndTime: "",
+                demoEndDeliveryMethod: "",
+                userId: user?.id || 0,
+                warehouseId: 0,
+                address: "",
+                detailAddress: "",
+              });
+              setSelectedItems([]);
+              fileUpload.resetFiles();
+              setDemoPriceDisplay("");
+
+              router.push("/demonstration-record");
+            } else {
+              toast.error(
+                "시연 생성을 확인할 수 없습니다. 시연 기록을 확인해보세요.",
+                {
+                  duration: 6000,
+                }
+              );
+            }
+          }
+        } catch (checkError) {
+          console.error("시연 생성 확인 오류:", checkError);
+          toast.error(
+            "시연 생성 확인 중 오류가 발생했습니다. 시연 기록을 직접 확인해보세요.",
+            {
+              duration: 6000,
+            }
+          );
+        }
+      }, 3000);
+    } catch (error) {
+      console.error("타임아웃 후 확인 로직 오류:", error);
+    }
+  };
+
   // 제출 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -409,9 +494,40 @@ const SimpleDemonstrationForm: React.FC = () => {
       } else {
         toast.error(response.message || "시연 신청에 실패했습니다.");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("시연 신청 오류:", error);
-      toast.error("시연 신청 중 오류가 발생했습니다.");
+
+      // 에러 타입별 구체적인 메시지
+      if (error instanceof Error) {
+        if (error.message?.includes("timeout")) {
+          // 타임아웃 발생 시 시연이 실제로 생성되었는지 확인
+          checkDemoCreationAfterTimeout();
+          toast.error(
+            "처리 시간이 길어지고 있습니다. 시연이 생성되었는지 확인 중...",
+            {
+              duration: 8000,
+            }
+          );
+        } else if (error.message?.includes("Network Error")) {
+          toast.error("네트워크 연결을 확인해주세요.", {
+            duration: 6000,
+          });
+        } else {
+          toast.error(
+            "시연 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+            {
+              duration: 6000,
+            }
+          );
+        }
+      } else {
+        toast.error(
+          "시연 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+          {
+            duration: 6000,
+          }
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -914,7 +1030,7 @@ const SimpleDemonstrationForm: React.FC = () => {
             {isSubmitting ? (
               <>
                 <div className="w-5 h-5 rounded-full border-b-2 border-white animate-spin" />
-                <span>제출 중...</span>
+                <span>시연 신청 처리 중... (최대 1-2분 소요)</span>
               </>
             ) : (
               <>

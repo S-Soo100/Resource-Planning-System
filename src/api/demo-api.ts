@@ -13,9 +13,41 @@ export const createDemo = async (
   demoData: CreateDemoRequest
 ): Promise<ApiResponse> => {
   try {
-    const response = await api.post<ApiResponse>("/demo", demoData);
+    // 시연 생성은 복잡한 작업이므로 더 긴 타임아웃 설정 (30초)
+    const response = await api.post<ApiResponse>("/demo", demoData, {
+      timeout: 30000,
+    });
     return response.data;
-  } catch {
+  } catch (error: unknown) {
+    console.error("[API] 시연 생성 오류:", error);
+
+    // AxiosError 타입 체크
+    if (error instanceof AxiosError) {
+      // 타임아웃 오류 처리
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        return {
+          success: false,
+          message: "요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.",
+        };
+      }
+
+      // 네트워크 오류 처리
+      if (error.code === "ERR_NETWORK") {
+        return {
+          success: false,
+          message: "네트워크 연결을 확인해주세요.",
+        };
+      }
+
+      // 서버 응답이 있는 경우
+      if (error.response?.data?.message) {
+        return {
+          success: false,
+          message: error.response.data.message,
+        };
+      }
+    }
+
     return { success: false, message: "시연 생성에 실패했습니다." };
   }
 };
@@ -224,7 +256,9 @@ export const uploadMultipleDemoFileById = async (
     console.log("[데모 파일 업로드 API] 서버 응답:", {
       success: response.data.success,
       fileCount: response.data.data?.length,
-      fileNames: response.data.data?.map((f: any) => f.fileName),
+      fileNames: response.data.data?.map(
+        (f: { fileName: string }) => f.fileName
+      ),
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

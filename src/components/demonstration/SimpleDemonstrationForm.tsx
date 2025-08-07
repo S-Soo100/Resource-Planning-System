@@ -301,9 +301,10 @@ const SimpleDemonstrationForm: React.FC = () => {
         demoAddress: fullAddress,
         demoPaymentType: formData.demoPaymentType,
         demoPrice: formData.demoPrice,
-        demoPaymentDate: formData.demoPaymentDate
-          ? new Date(formData.demoPaymentDate)
-          : undefined,
+        demoPaymentDate:
+          formData.demoPaymentDate && formData.demoPaymentDate.trim() !== ""
+            ? formData.demoPaymentDate
+            : undefined,
         demoStartDate: formData.demoStartDate,
         demoStartTime: formData.demoStartTime,
         demoStartDeliveryMethod: formData.demoStartDeliveryMethod,
@@ -318,6 +319,17 @@ const SimpleDemonstrationForm: React.FC = () => {
           memo: item.memo,
         })),
       };
+
+      // 날짜 필드 디버깅 로그
+      console.log("[디버깅] 날짜 필드 상세 정보:", {
+        demoPaymentDate: {
+          value: formData.demoPaymentDate,
+          type: typeof formData.demoPaymentDate,
+          length: formData.demoPaymentDate?.length,
+          isEmpty:
+            !formData.demoPaymentDate || formData.demoPaymentDate.trim() === "",
+        },
+      });
 
       console.log("selectedItems:", selectedItems);
       console.log("시연 신청 데이터:", submitData);
@@ -363,40 +375,40 @@ const SimpleDemonstrationForm: React.FC = () => {
           toast.success("시연 신청이 완료되었습니다!");
         }
 
+        // 폼 초기화 (성공 시에만)
+        setFormData({
+          requester: user?.name || "",
+          handler: "",
+          demoManager: "",
+          demoManagerPhone: "",
+          memo: "",
+          demoTitle: "",
+          demoNationType: "국내",
+          demoAddress: "",
+          demoPaymentType: "",
+          demoPrice: undefined,
+          demoPaymentDate: "",
+          demoCurrencyUnit: "KRW",
+          demoStartDate: "",
+          demoStartTime: "",
+          demoStartDeliveryMethod: "",
+          demoEndDate: "",
+          demoEndTime: "",
+          demoEndDeliveryMethod: "",
+          userId: user?.id || 0,
+          warehouseId: 0,
+          address: "",
+          detailAddress: "",
+        });
+        setSelectedItems([]);
+        fileUpload.resetFiles();
+        setDemoPriceDisplay("");
+
         // 시연 기록 페이지로 이동
         router.push("/demonstration-record");
       } else {
         toast.error(response.message || "시연 신청에 실패했습니다.");
       }
-
-      // 폼 초기화
-      setFormData({
-        requester: user?.name || "",
-        handler: "",
-        demoManager: "",
-        demoManagerPhone: "",
-        memo: "",
-        demoTitle: "",
-        demoNationType: "국내",
-        demoAddress: "",
-        demoPaymentType: "",
-        demoPrice: undefined,
-        demoPaymentDate: "",
-        demoCurrencyUnit: "KRW",
-        demoStartDate: "",
-        demoStartTime: "",
-        demoStartDeliveryMethod: "",
-        demoEndDate: "",
-        demoEndTime: "",
-        demoEndDeliveryMethod: "",
-        userId: user?.id || 0,
-        warehouseId: 0,
-        address: "",
-        detailAddress: "",
-      });
-      setSelectedItems([]);
-      fileUpload.resetFiles();
-      setDemoPriceDisplay("");
     } catch (error) {
       console.error("시연 신청 오류:", error);
       toast.error("시연 신청 중 오류가 발생했습니다.");

@@ -203,7 +203,7 @@ export interface CreateDemoRequest {
   demoAddress: string;
   demoPaymentType: string;
   demoPrice?: number;
-  demoPaymentDate?: Date;
+  demoPaymentDate?: string;
   demoStartDate: string;
   demoStartTime: string;
   demoStartDeliveryMethod: string;

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Minus, X, AlertCircle } from "lucide-react";
 import { useOrder } from "@/hooks/useOrder";
@@ -26,8 +26,10 @@ import {
   getWarehouseAccessDeniedMessage,
 } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { getTodayString } from "@/utils/dateUtils";
 import ItemSelectionModal from "../ui/ItemSelectionModal";
+import LoadingOverlay from "../ui/LoadingOverlay";
 import {
   FileUploadSection,
   ContactInfoSection,
@@ -55,12 +57,21 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const [requestDate, setRequestDate] = useState("");
   const [setupDate, setSetupDate] = useState("");
 
+  // 로딩 상태 관리
+  const [loadingState, setLoadingState] = useState({
+    isVisible: false,
+    title: "처리 중...",
+    message: "잠시만 기다려주세요.",
+    progress: 0,
+  });
+
   // 공통 훅 사용
   const fileUpload = useFileUpload();
   const addressSearch = useAddressSearch();
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const auth = authStore((state) => state.user);
   const { user } = useCurrentUser();
+  const { team: currentTeam } = useCurrentTeam();
 
   // 아이템 관련 상태
   const [orderItems, setOrderItems] = useState<
@@ -220,6 +231,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     if (hasChanges) {
       setOrderItems(updatedItems);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWarehouseItems, formData.warehouseId]); // orderItems는 무한 루프 방지를 위해 의존성에서 제외
 
   // 초기 날짜 설정
@@ -439,6 +451,70 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
   };
 
+  // 테스트 데이터 자동 채우기 함수 (팀 ID가 1인 경우)
+  const fillTestData = useCallback(() => {
+    if (currentTeam?.id !== 1) return; // 팀 ID가 1이 아니면 실행하지 않음
+
+    console.log(
+      "[테스트 모드] 개별품목발주 테스트 데이터로 폼을 자동으로 채웁니다..."
+    );
+
+    // 오늘 날짜 기준으로 계산
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+
+    const formatDate = (date: Date) => {
+      return date.toISOString().split("T")[0];
+    };
+
+    setFormData((prev) => ({
+      ...prev,
+      title: "🧪 [테스트] 자동화 개별품목 발주",
+      manager: "김개발",
+      receiver: "박수령",
+      receiverPhone: "010-9876-5432",
+      address: "서울특별시 강남구 테헤란로 456",
+      detailAddress: "테스트타워 3층 301호",
+      requestDate: formatDate(tomorrow),
+      setupDate: formatDate(nextWeek),
+      notes:
+        "🧪 이것은 테스트 팀의 테스트 발주 데이터입니다.\n\n- 자동화된 테스트 개별품목 발주\n- 모든 필드가 테스트용 더미 데이터로 채워짐\n- 실제 발주가 아닌 개발/테스트 목적\n\n※ 주의: 실제 운영 환경에서는 이 기능이 비활성화됩니다.",
+      supplierId: suppliers.length > 0 ? suppliers[0].id : null,
+      warehouseId: warehouses.length > 0 ? warehouses[0].id : null,
+    }));
+
+    // 날짜 상태도 업데이트
+    setRequestDate(formatDate(tomorrow));
+    setSetupDate(formatDate(nextWeek));
+
+    // 테스트 토스트 메시지
+    toast.success("🧪 테스트 데이터가 자동으로 채워졌습니다!", {
+      duration: 4000,
+      icon: "🧪",
+    });
+
+    console.log(
+      "[테스트 모드] 개별품목발주 폼 데이터 자동 입력 완료 (아이템 제외)"
+    );
+  }, [currentTeam?.id, suppliers, warehouses]);
+
+  // 테스트 데이터 자동 채우기 (팀 ID가 1인 경우, 2초 후 실행)
+  useEffect(() => {
+    if (currentTeam?.id === 1) {
+      console.log(
+        "[테스트 모드] 2초 후 개별품목발주 테스트 데이터를 자동으로 채웁니다..."
+      );
+      const timer = setTimeout(() => {
+        fillTestData();
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentTeam?.id, fillTestData]);
+
   const validateForm = (): boolean => {
     if (!formData.title.trim()) {
       toast.error("제목을 입력해주세요");
@@ -492,6 +568,12 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
 
     setIsSubmitting(true);
+    setLoadingState({
+      isVisible: true,
+      title: "발주 요청서 검증 중...",
+      message: "입력하신 정보를 확인하고 있습니다.",
+      progress: 10,
+    });
 
     try {
       const toKSTISOString = (dateString: string) => {
@@ -522,12 +604,35 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             memo: formData.notes,
           })),
       };
+
+      // 서버로 전송 중
+      setLoadingState({
+        isVisible: true,
+        title: "발주 요청서 전송 중...",
+        message: "서버에 데이터를 전송하고 있습니다. 잠시만 기다려주세요.",
+        progress: 30,
+      });
+
       console.log(orderData);
       createOrder(orderData, {
         onSuccess: async (response) => {
           if (response.success && response.data) {
+            // 발주 생성 성공
+            setLoadingState({
+              isVisible: true,
+              title: "발주 요청이 완료되었습니다!",
+              message: "발주 정보가 성공적으로 저장되었습니다.",
+              progress: 60,
+            });
+
             //! 파일이 첨부된 경우 추가 처리
             if (fileUpload.files.length > 0) {
+              setLoadingState({
+                isVisible: true,
+                title: "파일 업로드 중...",
+                message: `${fileUpload.files.length}개의 첨부파일을 업로드하고 있습니다.`,
+                progress: 70,
+              });
               try {
                 const orderId = response.data.id;
 
@@ -630,8 +735,25 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   queryKey: ["orders", "team", currentTeamId],
                 });
 
-                // 페이지 이동
-                router.replace("/orderRecord");
+                // 최종 완료 상태
+                setLoadingState({
+                  isVisible: true,
+                  title: "완료!",
+                  message: "발주 요청이 성공적으로 처리되었습니다.",
+                  progress: 100,
+                });
+
+                // 잠시 완료 상태 보여주기
+                setTimeout(() => {
+                  setLoadingState({
+                    isVisible: false,
+                    title: "",
+                    message: "",
+                    progress: 0,
+                  });
+                  // 페이지 이동
+                  router.replace("/orderRecord");
+                }, 1500);
               } catch (error) {
                 console.error("처리 중 오류 발생:", error);
                 toast.error("처리 중 오류가 발생했습니다");
@@ -642,17 +764,35 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             }, 2000);
           } else {
             setIsSubmitting(false);
+            setLoadingState({
+              isVisible: false,
+              title: "",
+              message: "",
+              progress: 0,
+            });
             toast.error(response.message || "발주 요청에 실패했습니다");
           }
         },
         onError: (error) => {
           setIsSubmitting(false);
+          setLoadingState({
+            isVisible: false,
+            title: "",
+            message: "",
+            progress: 0,
+          });
           console.error("발주 요청 실패:", error);
           toast.error("발주 요청에 실패했습니다");
         },
       });
     } catch (error) {
       setIsSubmitting(false);
+      setLoadingState({
+        isVisible: false,
+        title: "",
+        message: "",
+        progress: 0,
+      });
       console.error("발주 요청 실패:", error);
       toast.error("발주 요청에 실패했습니다");
     }
@@ -697,293 +837,328 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   };
 
   return (
-    <div className="container p-4 mx-auto">
-      <h1 className="mb-4 text-2xl font-bold text-center">{title}</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
-        {/* 제목 입력 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            제목 <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="발주 제목을 입력하세요"
-            required
-          />
-        </div>
+    <>
+      <LoadingOverlay
+        isVisible={loadingState.isVisible}
+        title={loadingState.title}
+        message={loadingState.message}
+        progress={loadingState.progress}
+      />
+      <div className="container p-4 mx-auto">
+        <h1 className="mb-4 text-2xl font-bold text-center">{title}</h1>
 
-        {/* 창고 선택 */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            발주 창고 선택 <span className="text-red-500">*</span>
-          </label>
-          <select
-            name="warehouseId"
-            onChange={handleWarehouseChange}
-            value={formData.warehouseId || 0}
-            className="px-3 py-2 w-full rounded-md border"
-            required
-          >
-            <option value="0">창고 선택</option>
-            {effectiveWarehousesList.map((warehouse) => {
-              const hasAccess = !user || hasWarehouseAccess(user, warehouse.id);
-              return (
-                <option
-                  key={warehouse.id}
-                  value={warehouse.id}
-                  disabled={!hasAccess}
-                  style={{ color: hasAccess ? "inherit" : "#9CA3AF" }}
-                >
-                  {warehouse.warehouseName}
-                  {!hasAccess ? " (접근 불가)" : ""}
-                </option>
-              );
-            })}
-          </select>
-          {user &&
-            effectiveWarehousesList.some(
-              (w) => !hasWarehouseAccess(user, w.id)
-            ) && (
-              <p className="text-xs text-amber-600">
-                일부 창고는 접근 권한이 제한되어 있습니다.
-              </p>
-            )}
-        </div>
-
-        {/* 패키지 선택 (패키지 발주 요청인 경우에만 표시) */}
-        {isPackageOrder && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              패키지 선택
-            </label>
-            <div className="flex gap-2 items-center">
-              <select
-                name="packageId"
-                onChange={handlePackageSelect}
-                className="flex-1 px-3 py-2 rounded-md border"
-                required={isPackageOrder}
-                disabled={!formData.warehouseId}
-              >
-                <option value="0">패키지 선택</option>
-                {packages?.map((pkg: PackageApi) => (
-                  <option key={pkg.id} value={pkg.id}>
-                    {pkg.packageName}
-                  </option>
-                ))}
-              </select>
-              {formData.packageId && (
-                <div className="flex gap-2 items-center">
-                  <button
-                    type="button"
-                    onClick={() => handlePackageQuantityChange(false)}
-                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                  >
-                    <Minus size={16} />
-                  </button>
-                  <span className="w-8 text-center">{packageQuantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => handlePackageQuantityChange(true)}
-                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-              )}
-            </div>
-            {!formData.warehouseId && (
-              <p className="text-xs text-amber-600">
-                창고를 먼저 선택해주세요.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* 개별품목 선택 (개별품목 발주 요청인 경우에만 표시) */}
-        {!isPackageOrder && (
-          <div className="space-y-2">
+        {/* 테스트 모드 표시 */}
+        {currentTeam?.id === 1 && (
+          <div className="p-3 mx-auto mb-6 max-w-md bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-l-4 border-yellow-400">
             <div className="flex justify-between items-center">
-              <label className="block text-sm font-medium text-gray-700">
-                품목 선택
-              </label>
+              <div className="flex items-center">
+                <div className="text-lg">🧪</div>
+                <div className="ml-2">
+                  <p className="text-sm font-medium text-yellow-800">
+                    테스트 모드 활성화
+                  </p>
+                  <p className="text-xs text-yellow-700">
+                    2초 후 자동으로 테스트 데이터가 채워집니다
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={handleOpenItemModal}
-                disabled={!formData.warehouseId}
-                className="px-4 py-2 text-white bg-blue-500 rounded-md transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={fillTestData}
+                className="px-3 py-1 text-xs font-medium text-yellow-800 bg-yellow-200 rounded-md hover:bg-yellow-300 transition-colors"
               >
-                <Plus size={16} className="inline mr-1" />
-                품목 추가
+                지금 채우기
               </button>
             </div>
-            {!formData.warehouseId && (
-              <p className="text-xs text-amber-600">
-                창고를 먼저 선택해주세요.
-              </p>
-            )}
-            {orderItems.length === 0 && formData.warehouseId && (
-              <p className="text-xs text-gray-500">
-                품목 추가 버튼을 클릭하여 품목을 선택하세요.
-              </p>
-            )}
           </div>
         )}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
+          {/* 제목 입력 */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              제목 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="발주 제목을 입력하세요"
+              required
+            />
+          </div>
 
-        {orderItems.length > 0 && (
-          <div className="mt-4">
-            <h3 className="mb-2 font-medium">선택된 품목</h3>
-            <div className="p-3 rounded-md border">
-              {orderItems.map((item, index) => (
-                <div
-                  key={item.warehouseItemId}
-                  className="flex justify-between items-center py-2 border-b last:border-0"
+          {/* 창고 선택 */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              발주 창고 선택 <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="warehouseId"
+              onChange={handleWarehouseChange}
+              value={formData.warehouseId || 0}
+              className="px-3 py-2 w-full rounded-md border"
+              required
+            >
+              <option value="0">창고 선택</option>
+              {effectiveWarehousesList.map((warehouse) => {
+                const hasAccess =
+                  !user || hasWarehouseAccess(user, warehouse.id);
+                return (
+                  <option
+                    key={warehouse.id}
+                    value={warehouse.id}
+                    disabled={!hasAccess}
+                    style={{ color: hasAccess ? "inherit" : "#9CA3AF" }}
+                  >
+                    {warehouse.warehouseName}
+                    {!hasAccess ? " (접근 불가)" : ""}
+                  </option>
+                );
+              })}
+            </select>
+            {user &&
+              effectiveWarehousesList.some(
+                (w) => !hasWarehouseAccess(user, w.id)
+              ) && (
+                <p className="text-xs text-amber-600">
+                  일부 창고는 접근 권한이 제한되어 있습니다.
+                </p>
+              )}
+          </div>
+
+          {/* 패키지 선택 (패키지 발주 요청인 경우에만 표시) */}
+          {isPackageOrder && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                패키지 선택
+              </label>
+              <div className="flex gap-2 items-center">
+                <select
+                  name="packageId"
+                  onChange={handlePackageSelect}
+                  className="flex-1 px-3 py-2 rounded-md border"
+                  required={isPackageOrder}
+                  disabled={!formData.warehouseId}
                 >
-                  <div className="flex-1">
-                    <div className="flex gap-2 items-center">
-                      <p className="font-medium">{item.teamItem.itemName}</p>
-                      {formData.warehouseId &&
-                        item.stockAvailable === false && (
-                          <div className="flex items-center text-xs text-red-500">
-                            <AlertCircle size={14} className="mr-1" />
-                            재고 부족
-                          </div>
-                        )}
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      코드: {item.teamItem.itemCode}
-                      {formData.warehouseId &&
-                        item.stockQuantity !== undefined && (
-                          <span className="ml-2">
-                            (재고: {item.stockQuantity}개)
-                          </span>
-                        )}
-                    </p>
-                  </div>
+                  <option value="0">패키지 선택</option>
+                  {packages?.map((pkg: PackageApi) => (
+                    <option key={pkg.id} value={pkg.id}>
+                      {pkg.packageName}
+                    </option>
+                  ))}
+                </select>
+                {formData.packageId && (
                   <div className="flex gap-2 items-center">
                     <button
                       type="button"
-                      onClick={() => handleQuantityChange(index, false)}
+                      onClick={() => handlePackageQuantityChange(false)}
                       className="p-1 bg-gray-200 rounded hover:bg-gray-300"
                     >
                       <Minus size={16} />
                     </button>
-                    <span className="w-8 text-center">{item.quantity}</span>
+                    <span className="w-8 text-center">{packageQuantity}</span>
                     <button
                       type="button"
-                      onClick={() => handleQuantityChange(index, true)}
+                      onClick={() => handlePackageQuantityChange(true)}
                       className="p-1 bg-gray-200 rounded hover:bg-gray-300"
                     >
                       <Plus size={16} />
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveItem(item.warehouseItemId)}
-                      className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
-                    >
-                      <X size={16} />
-                    </button>
                   </div>
-                </div>
-              ))}
+                )}
+              </div>
+              {!formData.warehouseId && (
+                <p className="text-xs text-amber-600">
+                  창고를 먼저 선택해주세요.
+                </p>
+              )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* 기타 요청 사항 */}
-        <NotesSection
-          notes={formData.notes}
-          onChange={handleChange}
-          focusRingColor="blue"
-        />
+          {/* 개별품목 선택 (개별품목 발주 요청인 경우에만 표시) */}
+          {!isPackageOrder && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-gray-700">
+                  품목 선택
+                </label>
+                <button
+                  type="button"
+                  onClick={handleOpenItemModal}
+                  disabled={!formData.warehouseId}
+                  className="px-4 py-2 text-white bg-blue-500 rounded-md transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus size={16} className="inline mr-1" />
+                  품목 추가
+                </button>
+              </div>
+              {!formData.warehouseId && (
+                <p className="text-xs text-amber-600">
+                  창고를 먼저 선택해주세요.
+                </p>
+              )}
+              {orderItems.length === 0 && formData.warehouseId && (
+                <p className="text-xs text-gray-500">
+                  품목 추가 버튼을 클릭하여 품목을 선택하세요.
+                </p>
+              )}
+            </div>
+          )}
 
-        {/* 담당자 정보 */}
-        <ContactInfoSection
-          requester={formData.requester}
-          manager={formData.manager}
-          onChange={handleChange}
-          focusRingColor="blue"
-          userAccessLevel={user?.accessLevel}
-        />
+          {orderItems.length > 0 && (
+            <div className="mt-4">
+              <h3 className="mb-2 font-medium">선택된 품목</h3>
+              <div className="p-3 rounded-md border">
+                {orderItems.map((item, index) => (
+                  <div
+                    key={item.warehouseItemId}
+                    className="flex justify-between items-center py-2 border-b last:border-0"
+                  >
+                    <div className="flex-1">
+                      <div className="flex gap-2 items-center">
+                        <p className="font-medium">{item.teamItem.itemName}</p>
+                        {formData.warehouseId &&
+                          item.stockAvailable === false && (
+                            <div className="flex items-center text-xs text-red-500">
+                              <AlertCircle size={14} className="mr-1" />
+                              재고 부족
+                            </div>
+                          )}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        코드: {item.teamItem.itemCode}
+                        {formData.warehouseId &&
+                          item.stockQuantity !== undefined && (
+                            <span className="ml-2">
+                              (재고: {item.stockQuantity}개)
+                            </span>
+                          )}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <button
+                        type="button"
+                        onClick={() => handleQuantityChange(index, false)}
+                        className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 text-center">{item.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleQuantityChange(index, true)}
+                        className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                      >
+                        <Plus size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(item.warehouseItemId)}
+                        className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-        {/* 날짜 정보 */}
-        <DateInfoSection
-          requestDate={requestDate}
-          setupDate={setupDate}
-          onDateChange={handleDateChange}
-          focusRingColor="blue"
-        />
-
-        {/* 거래처 선택 */}
-        {user?.accessLevel !== "supplier" && (
-          <SupplierSection
-            suppliers={suppliers}
-            onChange={handleSupplierChange}
+          {/* 기타 요청 사항 */}
+          <NotesSection
+            notes={formData.notes}
+            onChange={handleChange}
             focusRingColor="blue"
           />
-        )}
 
-        {/* 수령인 정보 */}
-        <RecipientInfoSection
-          receiver={formData.receiver}
-          receiverPhone={formData.receiverPhone}
-          onChange={handleChange}
-          focusRingColor="blue"
+          {/* 담당자 정보 */}
+          <ContactInfoSection
+            requester={formData.requester}
+            manager={formData.manager}
+            onChange={handleChange}
+            focusRingColor="blue"
+            userAccessLevel={user?.accessLevel}
+          />
+
+          {/* 날짜 정보 */}
+          <DateInfoSection
+            requestDate={requestDate}
+            setupDate={setupDate}
+            onDateChange={handleDateChange}
+            focusRingColor="blue"
+          />
+
+          {/* 거래처 선택 */}
+          {user?.accessLevel !== "supplier" && (
+            <SupplierSection
+              suppliers={suppliers}
+              onChange={handleSupplierChange}
+              focusRingColor="blue"
+            />
+          )}
+
+          {/* 수령인 정보 */}
+          <RecipientInfoSection
+            receiver={formData.receiver}
+            receiverPhone={formData.receiverPhone}
+            onChange={handleChange}
+            focusRingColor="blue"
+          />
+
+          {/* 수령지 주소 */}
+          <AddressSection
+            address={formData.address}
+            detailAddress={formData.detailAddress}
+            isAddressOpen={addressSearch.isAddressOpen}
+            onChange={handleChange}
+            onAddressChange={(data) =>
+              addressSearch.handleAddressChange(data, setFormData)
+            }
+            onToggleAddressModal={addressSearch.handleToggleAddressModal}
+            onCloseAddressModal={addressSearch.handleCloseAddressModal}
+            focusRingColor="blue"
+          />
+
+          {/* 파일 업로드 */}
+          <FileUploadSection
+            files={fileUpload.files}
+            isDragOver={fileUpload.isDragOver}
+            onFileSelection={fileUpload.handleFileSelection}
+            onDragOver={fileUpload.handleDragOver}
+            onDragLeave={fileUpload.handleDragLeave}
+            onDrop={fileUpload.handleDrop}
+            onRemoveFile={fileUpload.handleRemoveFile}
+            selectedFiles={fileUpload.selectedFiles}
+          />
+
+          {/* 제출 버튼 */}
+          <SubmitButton
+            isSubmitting={isSubmitting}
+            isProcessing={isProcessing}
+            buttonText="발주 요청하기"
+            processingText="발주 처리 중..."
+            completingText="완료 처리 중..."
+            color="blue"
+          />
+        </form>
+        <div className="flex flex-col mb-12 h-32 text-white"> - </div>
+        <div className="flex flex-col mb-12 h-32 text-white"> - </div>
+        <div className="flex flex-col mb-12 h-32 text-white"> - </div>
+
+        {/* 품목 추가 모달 */}
+        <ItemSelectionModal
+          isOpen={isItemModalOpen}
+          onClose={handleCloseItemModal}
+          onAddItem={handleAddItemFromModal}
+          currentWarehouseItems={currentWarehouseItems}
+          orderItems={orderItems}
+          title="품목 추가"
         />
-
-        {/* 수령지 주소 */}
-        <AddressSection
-          address={formData.address}
-          detailAddress={formData.detailAddress}
-          isAddressOpen={addressSearch.isAddressOpen}
-          onChange={handleChange}
-          onAddressChange={(data) =>
-            addressSearch.handleAddressChange(data, setFormData)
-          }
-          onToggleAddressModal={addressSearch.handleToggleAddressModal}
-          onCloseAddressModal={addressSearch.handleCloseAddressModal}
-          focusRingColor="blue"
-        />
-
-        {/* 파일 업로드 */}
-        <FileUploadSection
-          files={fileUpload.files}
-          isDragOver={fileUpload.isDragOver}
-          onFileSelection={fileUpload.handleFileSelection}
-          onDragOver={fileUpload.handleDragOver}
-          onDragLeave={fileUpload.handleDragLeave}
-          onDrop={fileUpload.handleDrop}
-          onRemoveFile={fileUpload.handleRemoveFile}
-          selectedFiles={fileUpload.selectedFiles}
-        />
-
-        {/* 제출 버튼 */}
-        <SubmitButton
-          isSubmitting={isSubmitting}
-          isProcessing={isProcessing}
-          buttonText="발주 요청하기"
-          processingText="발주 처리 중..."
-          completingText="완료 처리 중..."
-          color="blue"
-        />
-      </form>
-      <div className="flex flex-col mb-12 h-32 text-white"> - </div>
-      <div className="flex flex-col mb-12 h-32 text-white"> - </div>
-      <div className="flex flex-col mb-12 h-32 text-white"> - </div>
-
-      {/* 품목 추가 모달 */}
-      <ItemSelectionModal
-        isOpen={isItemModalOpen}
-        onClose={handleCloseItemModal}
-        onAddItem={handleAddItemFromModal}
-        currentWarehouseItems={currentWarehouseItems}
-        orderItems={orderItems}
-        title="품목 추가"
-      />
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -19,9 +19,41 @@ export const createOrder = async (
   data: CreateOrderDto
 ): Promise<ApiResponse<CreatOrderResponse>> => {
   try {
-    const response = await api.post<ApiResponse>("/order", data);
+    // 개별품목발주는 복잡한 작업이므로 더 긴 타임아웃 설정 (30초)
+    const response = await api.post<ApiResponse>("/order", data, {
+      timeout: 30000,
+    });
     return response.data as ApiResponse<CreatOrderResponse>;
-  } catch {
+  } catch (error: unknown) {
+    console.error("[API] 주문 생성 오류:", error);
+
+    // AxiosError 타입 체크
+    if (error instanceof AxiosError) {
+      // 타임아웃 오류 처리
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        return {
+          success: false,
+          message: "요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.",
+        };
+      }
+
+      // 네트워크 오류 처리
+      if (error.code === "ERR_NETWORK") {
+        return {
+          success: false,
+          message: "네트워크 연결을 확인해주세요.",
+        };
+      }
+
+      // 서버 응답이 있는 경우
+      if (error.response?.data?.message) {
+        return {
+          success: false,
+          message: error.response.data.message,
+        };
+      }
+    }
+
     return { success: false, message: "주문 생성에 실패했습니다." };
   }
 };

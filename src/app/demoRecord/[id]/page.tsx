@@ -15,6 +15,7 @@ import {
   Plane,
   Ship,
   Trash2,
+  Printer,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
@@ -848,6 +849,20 @@ const DemoRecordDetail = () => {
                     <h1 className="text-2xl font-bold text-gray-900">
                       {demo.demoTitle} 상세정보
                     </h1>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        window.open(
+                          `/demonstration-record/print/${demoId}`,
+                          "_blank"
+                        )
+                      }
+                      className="flex gap-2 items-center px-4 py-2 text-gray-600 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200"
+                    >
+                      <Printer size={16} />
+                      <span>인쇄</span>
+                    </button>
                   </div>
                 </div>
 

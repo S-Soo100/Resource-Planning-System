@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { getOrder } from "@/api/order-api";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
-import { ArrowLeft, Package, Truck } from "lucide-react";
+import { ArrowLeft, Package, Truck, Printer } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useUpdateOrderStatus } from "@/hooks/(useOrder)/useOrderMutations";
 import { useQueryClient } from "@tanstack/react-query";
@@ -715,6 +715,17 @@ const OrderRecordDetail = () => {
                     >
                       <ArrowLeft size={20} />
                       <span>목록으로</span>
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        window.open(`/orderRecord/print/${orderId}`, "_blank")
+                      }
+                      className="flex gap-2 items-center px-4 py-2 text-gray-600 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200"
+                    >
+                      <Printer size={16} />
+                      <span>인쇄</span>
                     </button>
                   </div>
                 </div>

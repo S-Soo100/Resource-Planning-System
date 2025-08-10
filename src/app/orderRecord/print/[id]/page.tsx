@@ -223,12 +223,61 @@ const OrderRecordPrint = () => {
         }
 
         @media screen {
+          body {
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+          }
+
           .print-container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 40px;
+            max-width: 210mm; /* A4 너비 */
+            min-height: 297mm; /* A4 높이 */
+            margin: 0 auto;
+            padding: 20mm; /* 인쇄 여백과 동일 */
             background: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+            line-height: 1.4;
+            border: 1px solid #ddd;
+          }
+
+          /* 화면에서도 인쇄 스타일과 비슷하게 */
+          .print-section {
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            padding: 10px;
+          }
+
+          .print-section-title {
+            font-weight: bold;
+            font-size: 14px;
+            border-bottom: 1px solid #666;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+          }
+
+          .print-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+          }
+
+          .print-items-table th,
+          .print-items-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+          }
+
+          .print-items-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+          }
+
+          .print-header {
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
           }
         }
       `}</style>

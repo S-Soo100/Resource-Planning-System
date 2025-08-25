@@ -634,23 +634,28 @@ const DemoRecordDetail = () => {
 
       if (error instanceof Error) {
         errorMessage = error.message || errorMessage;
-        
+
         // 에러 타입별로 추가 정보 제공
         if (error.message.includes("재고")) {
           errorTitle = "재고 부족";
-          errorDetails = "재고가 부족하여 상태 변경이 불가능합니다.\n\n• 재고 현황을 확인해주세요\n• 품목 수량을 조정해주세요\n• 담당자에게 문의해주세요";
+          errorDetails =
+            "재고가 부족하여 상태 변경이 불가능합니다.\n\n• 재고 현황을 확인해주세요\n• 품목 수량을 조정해주세요\n• 담당자에게 문의해주세요";
         } else if (error.message.includes("권한")) {
           errorTitle = "권한 부족";
-          errorDetails = "해당 작업을 수행할 권한이 없습니다.\n\n• 관리자에게 문의해주세요\n• 필요한 권한을 요청해주세요";
+          errorDetails =
+            "해당 작업을 수행할 권한이 없습니다.\n\n• 관리자에게 문의해주세요\n• 필요한 권한을 요청해주세요";
         } else if (error.message.includes("네트워크")) {
           errorTitle = "네트워크 오류";
-          errorDetails = "네트워크 연결에 문제가 있습니다.\n\n• 인터넷 연결을 확인해주세요\n• 잠시 후 다시 시도해주세요";
+          errorDetails =
+            "네트워크 연결에 문제가 있습니다.\n\n• 인터넷 연결을 확인해주세요\n• 잠시 후 다시 시도해주세요";
         } else if (error.message.includes("시간")) {
           errorTitle = "요청 시간 초과";
-          errorDetails = "요청 시간이 초과되었습니다.\n\n• 잠시 후 다시 시도해주세요\n• 서버 상태를 확인해주세요";
+          errorDetails =
+            "요청 시간이 초과되었습니다.\n\n• 잠시 후 다시 시도해주세요\n• 서버 상태를 확인해주세요";
         } else if (error.message.includes("서버")) {
           errorTitle = "서버 오류";
-          errorDetails = "서버에서 오류가 발생했습니다.\n\n• 잠시 후 다시 시도해주세요\n• 문제가 지속되면 관리자에게 문의해주세요";
+          errorDetails =
+            "서버에서 오류가 발생했습니다.\n\n• 잠시 후 다시 시도해주세요\n• 문제가 지속되면 관리자에게 문의해주세요";
         }
       }
 
@@ -661,7 +666,7 @@ const DemoRecordDetail = () => {
         message: errorMessage,
         details: errorDetails,
       });
-      
+
       // 토스트로도 간단한 메시지 표시
       toast.error(errorMessage, {
         duration: 5000,
@@ -1147,7 +1152,7 @@ const DemoRecordDetail = () => {
                       >
                         <path
                           fillRule="evenodd"
-                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.667-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
                           clipRule="evenodd"
                         />
                       </svg>
@@ -1493,11 +1498,11 @@ const DemoRecordDetail = () => {
 
                 {/* 에러 모달 */}
                 {errorModal.isOpen && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-                    <div className="p-6 mx-4 w-full max-w-lg bg-white rounded-2xl border border-red-100 shadow-2xl">
+                  <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-lg bg-white rounded-2xl border border-red-100 shadow-2xl max-h-[90vh] overflow-y-auto">
                       {/* 헤더 */}
-                      <div className="flex gap-3 items-center mb-4">
-                        <div className="flex justify-center items-center w-10 h-10 bg-red-100 rounded-full">
+                      <div className="flex gap-3 items-start p-6 pb-4 border-b border-red-100">
+                        <div className="flex-shrink-0 flex justify-center items-center w-10 h-10 bg-red-100 rounded-full">
                           <svg
                             className="w-6 h-6 text-red-600"
                             fill="none"
@@ -1512,55 +1517,69 @@ const DemoRecordDetail = () => {
                             />
                           </svg>
                         </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-red-700">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg sm:text-xl font-bold text-red-700 mb-1">
                             {errorModal.title}
                           </h3>
-                          <p className="text-sm text-red-600">{errorModal.message}</p>
+                          <p className="text-sm text-red-600 leading-relaxed">
+                            {errorModal.message}
+                          </p>
                         </div>
                       </div>
 
                       {/* 상세 내용 */}
                       {errorModal.details && (
-                        <div className="p-4 mb-6 bg-red-50 rounded-xl border border-red-200">
-                          <h4 className="flex gap-2 items-center mb-3 font-semibold text-red-800">
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                            해결 방법
-                          </h4>
-                          <div className="text-sm leading-relaxed text-red-700">
-                            {errorModal.details.split("\n").map((line, index) => (
-                              <div key={index} className="mb-1">
-                                {line.startsWith("•") ? (
-                                  <span className="flex gap-2 items-start">
-                                    <span className="mt-1 text-red-500">•</span>
-                                    <span>{line.substring(1).trim()}</span>
-                                  </span>
-                                ) : (
-                                  <span>{line}</span>
-                                )}
-                              </div>
-                            ))}
+                        <div className="p-6 pt-4">
+                          <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                            <h4 className="flex gap-2 items-center mb-3 font-semibold text-red-800">
+                              <svg
+                                className="w-4 h-4 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                              <span className="text-sm sm:text-base">
+                                해결 방법
+                              </span>
+                            </h4>
+                            <div className="text-sm leading-relaxed text-red-700 space-y-2">
+                              {errorModal.details
+                                .split("\n")
+                                .map((line, index) => (
+                                  <div key={index}>
+                                    {line.startsWith("•") ? (
+                                      <div className="flex gap-2 items-start">
+                                        <span className="flex-shrink-0 mt-1 text-red-500 text-xs">
+                                          •
+                                        </span>
+                                        <span className="text-sm">
+                                          {line.substring(1).trim()}
+                                        </span>
+                                      </div>
+                                    ) : line.trim() ? (
+                                      <span className="block">{line}</span>
+                                    ) : null}
+                                  </div>
+                                ))}
+                            </div>
                           </div>
                         </div>
                       )}
 
                       {/* 버튼 */}
-                      <div className="flex justify-end">
+                      <div className="flex justify-end p-6 pt-4 border-t border-red-100">
                         <button
-                          onClick={() => setErrorModal({ ...errorModal, isOpen: false })}
-                          className="px-6 py-3 text-sm font-medium text-white bg-red-600 rounded-xl shadow-sm transition-colors duration-200 hover:bg-red-700 active:bg-red-800 hover:shadow-md"
+                          onClick={() =>
+                            setErrorModal({ ...errorModal, isOpen: false })
+                          }
+                          className="w-full sm:w-auto px-6 py-3 text-sm font-medium text-white bg-red-600 rounded-xl shadow-sm transition-colors duration-200 hover:bg-red-700 active:bg-red-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                         >
                           확인
                         </button>

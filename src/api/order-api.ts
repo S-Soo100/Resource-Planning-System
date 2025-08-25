@@ -137,8 +137,40 @@ export const updateOrderStatus = async (
   try {
     const response = await api.patch<ApiResponse>(`/order/${id}/status`, data);
     return response.data;
-  } catch {
-    return { success: false, message: "주문 상태 변경에 실패했습니다." };
+  } catch (error: unknown) {
+    console.error("[API] 주문 상태 변경 오류:", error);
+
+    // AxiosError 타입 체크
+    if (error instanceof AxiosError) {
+      // 서버 응답이 있는 경우 서버 에러 메시지 사용
+      if (error.response?.data?.message) {
+        return {
+          success: false,
+          message: error.response.data.message,
+        };
+      }
+
+      // 네트워크 오류 처리
+      if (error.code === "ERR_NETWORK") {
+        return {
+          success: false,
+          message: "네트워크 연결을 확인해주세요.",
+        };
+      }
+
+      // 타임아웃 오류 처리
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        return {
+          success: false,
+          message: "요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.",
+        };
+      }
+    }
+
+    return { 
+      success: false, 
+      message: "주문 상태 변경에 실패했습니다." 
+    };
   }
 };
 

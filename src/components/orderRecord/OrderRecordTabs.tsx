@@ -143,6 +143,17 @@ const OrderRecordTabs = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedOrderForEdit, setSelectedOrderForEdit] =
     useState<IOrderRecord | null>(null);
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    details: string;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    details: "",
+  });
 
   const { useAllOrders, useSupplierOrders } = useOrder();
   const { useGetSuppliers } = useSuppliers();
@@ -157,6 +168,16 @@ const OrderRecordTabs = () => {
 
   // 주문 삭제 hook - 확장 기능 제거로 인해 주석 처리
   // const deleteOrderMutation = useDeleteOrder();
+
+  // 에러 모달 닫기
+  const closeErrorModal = () => {
+    setErrorModal({
+      isOpen: false,
+      title: "",
+      message: "",
+      details: "",
+    });
+  };
 
   // 현재 로그인한 사용자 ID 가져오기
   useEffect(() => {
@@ -636,7 +657,59 @@ const OrderRecordTabs = () => {
       handleRefresh();
     } catch (error) {
       console.error("상태 업데이트 실패:", error);
-      alert("주문 상태 업데이트에 실패했습니다.");
+
+      // 서버에서 오는 에러 메시지를 그대로 표시
+      let errorMessage = "상태 변경에 실패했습니다.";
+      let errorDetails = "";
+      let errorTitle = "상태 변경 실패";
+
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+
+        // 에러 타입별로 추가 정보 제공
+        if (error.message.includes("재고")) {
+          errorTitle = "재고 부족";
+          errorDetails =
+            "재고가 부족하여 출고가 불가능합니다.\n\n• 재고 현황을 확인해주세요\n• 품목 수량을 조정해주세요\n• 담당자에게 문의해주세요";
+        } else if (error.message.includes("권한")) {
+          errorTitle = "권한 부족";
+          errorDetails =
+            "해당 작업을 수행할 권한이 없습니다.\n\n• 관리자에게 문의해주세요\n• 필요한 권한을 요청해주세요";
+        } else if (error.message.includes("네트워크")) {
+          errorTitle = "네트워크 오류";
+          errorDetails =
+            "네트워크 연결에 문제가 있습니다.\n\n• 인터넷 연결을 확인해주세요\n• 잠시 후 다시 시도해주세요";
+        } else if (error.message.includes("시간")) {
+          errorTitle = "요청 시간 초과";
+          errorDetails =
+            "요청 시간이 초과되었습니다.\n\n• 잠시 후 다시 시도해주세요\n• 서버 상태를 확인해주세요";
+        } else if (error.message.includes("서버")) {
+          errorTitle = "서버 오류";
+          errorDetails =
+            "서버에서 오류가 발생했습니다.\n\n• 잠시 후 다시 시도해주세요\n• 문제가 지속되면 관리자에게 문의해주세요";
+        }
+      }
+
+      // 에러 모달 표시
+      setErrorModal({
+        isOpen: true,
+        title: errorTitle,
+        message: errorMessage,
+        details: errorDetails,
+      });
+
+      // 토스트로도 간단한 메시지 표시
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+        style: {
+          background: "#F44336",
+          color: "#fff",
+          padding: "16px",
+          borderRadius: "8px",
+          maxWidth: "400px",
+        },
+      });
     } finally {
       setIsUpdatingStatus(null);
     }
@@ -1367,6 +1440,92 @@ const OrderRecordTabs = () => {
         onClose={handleEditModalClose}
         orderRecord={selectedOrderForEdit}
       />
+
+      {/* 에러 모달 */}
+      {errorModal.isOpen && (
+        <div className="flex fixed inset-0 z-50 justify-center items-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-white rounded-2xl border border-red-100 shadow-2xl max-h-[90vh] overflow-y-auto">
+            {/* 헤더 */}
+            <div className="flex gap-3 items-start p-6 pb-4 border-b border-red-100">
+              <div className="flex flex-shrink-0 justify-center items-center w-10 h-10 bg-red-100 rounded-full">
+                <svg
+                  className="w-6 h-6 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="mb-1 text-lg font-bold text-red-700 sm:text-xl">
+                  {errorModal.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-red-600">
+                  {errorModal.message}
+                </p>
+              </div>
+            </div>
+
+            {/* 상세 내용 */}
+            {errorModal.details && (
+              <div className="p-6 pt-4">
+                <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                  <h4 className="flex gap-2 items-center mb-3 font-semibold text-red-800">
+                    <svg
+                      className="flex-shrink-0 w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span className="text-sm sm:text-base">해결 방법</span>
+                  </h4>
+                  <div className="space-y-2 text-sm leading-relaxed text-red-700">
+                    {errorModal.details.split("\n").map((line, index) => (
+                      <div key={index}>
+                        {line.startsWith("•") ? (
+                          <div className="flex gap-2 items-start">
+                            <span className="flex-shrink-0 mt-1 text-xs text-red-500">
+                              •
+                            </span>
+                            <span className="text-sm">
+                              {line.substring(1).trim()}
+                            </span>
+                          </div>
+                        ) : line.trim() ? (
+                          <span className="block">{line}</span>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 버튼 */}
+            <div className="flex justify-end p-6 pt-4 border-t border-red-100">
+              <button
+                onClick={closeErrorModal}
+                className="px-6 py-3 w-full text-sm font-medium text-white bg-red-600 rounded-xl shadow-sm transition-colors duration-200 sm:w-auto hover:bg-red-700 active:bg-red-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -24,7 +24,7 @@ import { useRouter } from "next/navigation";
 // import { useDeleteDemo } from "@/hooks/(useDemo)/useDemoMutations"; // 제거됨
 import { DemoStatus } from "@/types/demo/demo";
 
-type TabType = "all" | "user" | "supplier";
+type TabType = "ongoing" | "completed";
 
 // API 응답 데이터를 DemoResponse 형식으로 변환하는 함수
 const convertToDemoRecord = (demo: DemoResponse): DemoResponse => {
@@ -76,8 +76,7 @@ const formatDate = (dateString: string): string => {
 
 const DemonstrationRecordTabs = () => {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>("all");
-  const [userId, setUserId] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<TabType>("ongoing");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -111,17 +110,13 @@ const DemonstrationRecordTabs = () => {
   // 삭제 훅 - 제거됨 (확장 기능과 함께 사용됨)
   // const deleteDemoMutation = useDeleteDemo();
 
-  // 현재 로그인한 사용자 ID 가져오기
-  useEffect(() => {
-    const user = authStore.getState().user;
-    if (user && user.id) {
-      setUserId(user.id.toString());
-      console.log("현재 사용자 ID:", user.id.toString());
-
-      // 사용자 접근 레벨 설정
-      // setUserAccessLevel(user.isAdmin ? "admin" : "user"); // Removed as per edit hint
-    }
-  }, []);
+  // 현재 로그인한 사용자 ID 가져오기 (사용하지 않음)
+  // useEffect(() => {
+  //   const user = authStore.getState().user;
+  //   if (user && user.id) {
+  //     console.log("현재 사용자 ID:", user.id.toString());
+  //   }
+  // }, []);
 
   // 시연 데이터 조회 - 팀별 시연 목록
   const {
@@ -148,30 +143,24 @@ const DemonstrationRecordTabs = () => {
 
   // 현재 탭에 맞게 필터링된 시연 기록
   const demoRecords = useMemo((): DemoResponse[] => {
-    if (activeTab === "user" && userId) {
-      // '내 시연 기록' 탭인 경우 전체 데이터에서 현재 사용자의 시연만 필터링
-      const userIdNum = parseInt(userId);
-      const filtered = allDemoRecords.filter((record: DemoResponse) => {
-        if (record.userId === null || record.userId === undefined) {
-          return false;
-        }
-
-        const recordUserId =
-          typeof record.userId === "string"
-            ? parseInt(record.userId)
-            : record.userId;
-
-        return recordUserId === userIdNum;
+    if (activeTab === "ongoing") {
+      // '진행중' 탭인 경우 진행 중인 시연만 필터링
+      return allDemoRecords.filter((record: DemoResponse) => {
+        // 시연이 완료되지 않은 상태들
+        return !["demoCompleted", "demoCompletedAndReturned"].includes(
+          record.demoStatus
+        );
       });
-
-      // console.log(`사용자별 필터링 결과: ${filtered.length}개`);
-      return filtered;
+    } else {
+      // '시연종료' 탭인 경우 완료된 시연만 필터링
+      return allDemoRecords.filter((record: DemoResponse) => {
+        // 시연이 완료된 상태들
+        return ["demoCompleted", "demoCompletedAndReturned"].includes(
+          record.demoStatus
+        );
+      });
     }
-
-    // '전체 시연 기록' 탭인 경우 전체 데이터 반환
-    // console.log(`전체 시연 기록: ${allDemoRecords.length}개`);
-    return allDemoRecords;
-  }, [allDemoRecords, activeTab, userId]);
+  }, [allDemoRecords, activeTab]);
 
   // 검색 및 필터링 적용
   const filteredRecords = useMemo((): DemoResponse[] => {
@@ -491,7 +480,9 @@ const DemonstrationRecordTabs = () => {
             시연 기록
           </h1>
           <p className="mt-1 text-base text-gray-500">
-            시연 요청 및 진행 상황을 확인할 수 있습니다.
+            {activeTab === "ongoing"
+              ? "진행 중인 시연 요청 및 진행 상황을 확인할 수 있습니다."
+              : "완료된 시연 기록을 확인할 수 있습니다."}
           </p>
         </div>
         <button
@@ -503,30 +494,6 @@ const DemonstrationRecordTabs = () => {
             className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
           />
           새로고침
-        </button>
-      </div>
-
-      {/* 탭 */}
-      <div className="flex mb-4 space-x-2">
-        <button
-          onClick={() => handleTabChange("all")}
-          className={`px-5 py-2 rounded-xl font-semibold text-base transition-colors shadow-sm ${
-            activeTab === "all"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-        >
-          전체 시연 기록
-        </button>
-        <button
-          onClick={() => handleTabChange("user")}
-          className={`px-5 py-2 rounded-xl font-semibold text-base transition-colors shadow-sm ${
-            activeTab === "user"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-        >
-          내 시연 기록
         </button>
       </div>
 
@@ -558,6 +525,46 @@ const DemonstrationRecordTabs = () => {
             <option value="demoShipmentRejected">출고팀 반려</option>
             <option value="demoCompletedAndReturned">시연 복귀 완료</option>
           </select>
+        </div>
+      </div>
+
+      {/* 탭 */}
+      <div className="flex mb-4 space-x-2">
+        <button
+          onClick={() => handleTabChange("ongoing")}
+          className={`flex-1 px-5 py-2 rounded-xl font-semibold text-base transition-colors shadow-sm ${
+            activeTab === "ongoing"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          진행중
+        </button>
+        <button
+          onClick={() => handleTabChange("completed")}
+          className={`flex-1 px-5 py-2 rounded-xl font-semibold text-base transition-colors shadow-sm ${
+            activeTab === "completed"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          시연종료
+        </button>
+      </div>
+
+      {/* 탭별 기록 수 표시 */}
+      <div className="mb-4 p-4 bg-gray-50 rounded-xl">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            {activeTab === "ongoing" ? "진행중" : "시연종료"} 시연:{" "}
+            <span className="font-semibold text-gray-900">
+              {filteredRecords.length}
+            </span>
+            개
+          </div>
+          <div className="text-xs text-gray-500">
+            전체 시연: {allDemoRecords.length}개
+          </div>
         </div>
       </div>
 

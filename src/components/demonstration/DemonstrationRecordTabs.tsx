@@ -703,11 +703,11 @@ const DemonstrationRecordTabs = () => {
 
       {/* 에러 모달 */}
       {errorModal.isOpen && (
-        <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="p-6 mx-4 w-full max-w-lg bg-white rounded-2xl border border-red-100 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg bg-white rounded-2xl border border-red-100 shadow-2xl max-h-[90vh] overflow-y-auto">
             {/* 헤더 */}
-            <div className="flex gap-3 items-center mb-4">
-              <div className="flex justify-center items-center w-10 h-10 bg-red-100 rounded-full">
+            <div className="flex gap-3 items-start p-6 pb-4 border-b border-red-100">
+              <div className="flex-shrink-0 flex justify-center items-center w-10 h-10 bg-red-100 rounded-full">
                 <svg
                   className="w-6 h-6 text-red-600"
                   fill="none"
@@ -722,55 +722,63 @@ const DemonstrationRecordTabs = () => {
                   />
                 </svg>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-red-700">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold text-red-700 mb-1">
                   {errorModal.title}
                 </h3>
-                <p className="text-sm text-red-600">{errorModal.message}</p>
+                <p className="text-sm text-red-600 leading-relaxed">
+                  {errorModal.message}
+                </p>
               </div>
             </div>
 
             {/* 상세 내용 */}
             {errorModal.details && (
-              <div className="p-4 mb-6 bg-red-50 rounded-xl border border-red-200">
-                <h4 className="flex gap-2 items-center mb-3 font-semibold text-red-800">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  해결 방법
-                </h4>
-                <div className="text-sm leading-relaxed text-red-700">
-                  {errorModal.details.split("\n").map((line, index) => (
-                    <div key={index} className="mb-1">
-                      {line.startsWith("•") ? (
-                        <span className="flex gap-2 items-start">
-                          <span className="mt-1 text-red-500">•</span>
-                          <span>{line.substring(1).trim()}</span>
-                        </span>
-                      ) : (
-                        <span>{line}</span>
-                      )}
-                    </div>
-                  ))}
+              <div className="p-6 pt-4">
+                <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                  <h4 className="flex gap-2 items-center mb-3 font-semibold text-red-800">
+                    <svg
+                      className="w-4 h-4 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span className="text-sm sm:text-base">해결 방법</span>
+                  </h4>
+                  <div className="text-sm leading-relaxed text-red-700 space-y-2">
+                    {errorModal.details.split("\n").map((line, index) => (
+                      <div key={index}>
+                        {line.startsWith("•") ? (
+                          <div className="flex gap-2 items-start">
+                            <span className="flex-shrink-0 mt-1 text-red-500 text-xs">
+                              •
+                            </span>
+                            <span className="text-sm">
+                              {line.substring(1).trim()}
+                            </span>
+                          </div>
+                        ) : line.trim() ? (
+                          <span className="block">{line}</span>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
 
             {/* 버튼 */}
-            <div className="flex justify-end">
+            <div className="flex justify-end p-6 pt-4 border-t border-red-100">
               <button
                 onClick={closeErrorModal}
-                className="px-6 py-3 text-sm font-medium text-white bg-red-600 rounded-xl shadow-sm transition-colors duration-200 hover:bg-red-700 active:bg-red-800 hover:shadow-md"
+                className="w-full sm:w-auto px-6 py-3 text-sm font-medium text-white bg-red-600 rounded-xl shadow-sm transition-colors duration-200 hover:bg-red-700 active:bg-red-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 확인
               </button>

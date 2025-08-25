@@ -22,6 +22,7 @@ import { authStore } from "@/store/authStore";
 import DemoEditModal from "./DemoEditModal";
 import { useRouter } from "next/navigation";
 // import { useDeleteDemo } from "@/hooks/(useDemo)/useDemoMutations"; // 제거됨
+import { DemoStatus } from "@/types/demo/demo";
 
 type TabType = "all" | "user" | "supplier";
 
@@ -82,6 +83,18 @@ const DemonstrationRecordTabs = () => {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDemo, setSelectedDemo] = useState<DemoResponse | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null);
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    details: string;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    details: "",
+  });
 
   const recordsPerPage = 10;
 
@@ -275,6 +288,114 @@ const DemonstrationRecordTabs = () => {
     }
   };
 
+  // 에러 모달 닫기
+  const closeErrorModal = () => {
+    setErrorModal({
+      isOpen: false,
+      title: "",
+      message: "",
+      details: "",
+    });
+  };
+
+  // 상태 변경 핸들러 추가
+  const handleStatusChange = async (demoId: number, newStatus: DemoStatus) => {
+    if (!currentTeam?.id) {
+      toast.error("팀 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    // 확인 다이얼로그
+    if (
+      !window.confirm(
+        `정말 시연 상태를 '${getStatusText(newStatus)}'(으)로 변경하시겠습니까?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setUpdatingStatusId(demoId);
+
+      // 서버에 상태 변경 요청
+      await updateDemoStatusMutation.mutateAsync({
+        id: demoId,
+        data: { status: newStatus },
+      });
+
+      // 성공 시 토스트 메시지
+      toast.success(
+        `시연 상태가 '${getStatusText(newStatus)}'로 변경되었습니다.`
+      );
+
+      // 데이터 새로고침
+      await refetch();
+    } catch (error) {
+      console.error("상태 변경 실패:", error);
+
+      // 서버에서 오는 에러 메시지를 그대로 표시
+      let errorMessage = "상태 변경에 실패했습니다.";
+      let errorDetails = "";
+      let errorTitle = "상태 변경 실패";
+
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+
+        // 에러 타입별로 추가 정보 제공
+        if (error.message.includes("재고")) {
+          errorTitle = "재고 부족";
+          errorDetails =
+            "재고가 부족하여 상태 변경이 불가능합니다.\n\n• 재고 현황을 확인해주세요\n• 품목 수량을 조정해주세요\n• 담당자에게 문의해주세요";
+        } else if (error.message.includes("권한")) {
+          errorTitle = "권한 부족";
+          errorDetails =
+            "해당 작업을 수행할 권한이 없습니다.\n\n• 관리자에게 문의해주세요\n• 필요한 권한을 요청해주세요";
+        } else if (error.message.includes("네트워크")) {
+          errorTitle = "네트워크 오류";
+          errorDetails =
+            "네트워크 연결에 문제가 있습니다.\n\n• 인터넷 연결을 확인해주세요\n• 잠시 후 다시 시도해주세요";
+        } else if (error.message.includes("시간")) {
+          errorTitle = "요청 시간 초과";
+          errorDetails =
+            "요청 시간이 초과되었습니다.\n\n• 잠시 후 다시 시도해주세요\n• 서버 상태를 확인해주세요";
+        } else if (error.message.includes("서버")) {
+          errorTitle = "서버 오류";
+          errorDetails =
+            "서버에서 오류가 발생했습니다.\n\n• 잠시 후 다시 시도해주세요\n• 문제가 지속되면 관리자에게 문의해주세요";
+        }
+      }
+
+      // 에러 모달 표시
+      setErrorModal({
+        isOpen: true,
+        title: errorTitle,
+        message: errorMessage,
+        details: errorDetails,
+      });
+
+      // 토스트로도 간단한 메시지 표시
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+        style: {
+          background: "#F44336",
+          color: "#fff",
+          padding: "16px",
+          borderRadius: "8px",
+          maxWidth: "400px",
+        },
+      });
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  };
+
+  // 상태 변경 권한 확인
+  const canChangeStatus = () => {
+    const user = authStore.getState().user;
+    return user?.accessLevel === "admin" || user?.accessLevel === "moderator";
+  };
+
   // 상태 색상 클래스
   const getStatusColorClass = (status: string): string => {
     switch (status) {
@@ -334,11 +455,6 @@ const DemonstrationRecordTabs = () => {
   // 현재 상태에서 가능한 다음 상태들 반환 - 제거됨 (확장 기능과 함께 사용됨)
   // const getAvailableStatuses = (currentStatus: string): DemoStatus[] => {
   //   // 상태 반환 로직
-  // };
-
-  // 상태 변경 핸들러 - 제거됨 (확장 기능과 함께 사용됨)
-  // const handleStatusChange = async (demoId: number, newStatus: DemoStatus) => {
-  //   // 상태 변경 로직
   // };
 
   // 수정 모달 닫기
@@ -467,8 +583,7 @@ const DemonstrationRecordTabs = () => {
           currentRecords.map((record: DemoResponse) => (
             <div
               key={record.id}
-              className="bg-white rounded-xl border border-gray-100 shadow-sm transition-shadow cursor-pointer hover:shadow-md"
-              onClick={() => handleRowClick(record.id)}
+              className="bg-white rounded-xl border border-gray-100 shadow-sm transition-shadow hover:shadow-md"
             >
               {/* 상단 요약 */}
               <div className="flex justify-between items-start px-4 py-3 border-b border-gray-100">
@@ -502,12 +617,48 @@ const DemonstrationRecordTabs = () => {
                   </span>
                 </div>
               </div>
-              {/* 상세 정보 - 확장 기능 제거됨 */}
-              {/* {expandedRowId === record.id && (
-                <div className="px-4 py-4 bg-gray-50 rounded-b-xl">
-                  상세 정보 내용...
+
+              {/* 하단: 상태 변경 드롭다운 + 상세보기 버튼 */}
+              <div className="flex justify-between items-center px-4 py-3">
+                <div className="flex items-center space-x-3">
+                  {/* 상태 변경 드롭다운 (권한이 있는 경우만) */}
+                  {canChangeStatus() && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">상태 변경:</span>
+                      <select
+                        value={record.demoStatus}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            record.id,
+                            e.target.value as DemoStatus
+                          )
+                        }
+                        disabled={updatingStatusId === record.id}
+                        className="px-3 py-1 text-sm bg-white rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent disabled:opacity-50"
+                      >
+                        <option value="requested">요청</option>
+                        <option value="approved">승인</option>
+                        <option value="rejected">반려</option>
+                        <option value="confirmedByShipper">출고팀 확인</option>
+                        <option value="shipmentCompleted">출고 완료</option>
+                        <option value="rejectedByShipper">출고팀 반려</option>
+                        <option value="demoCompleted">시연 완료</option>
+                      </select>
+                      {updatingStatusId === record.id && (
+                        <div className="w-4 h-4 rounded-full border-2 border-blue-500 animate-spin border-t-transparent"></div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )} */}
+
+                {/* 상세보기 버튼 */}
+                <button
+                  onClick={() => handleRowClick(record.id)}
+                  className="px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-lg transition-colors hover:bg-blue-100 active:bg-blue-200"
+                >
+                  상세보기
+                </button>
+              </div>
             </div>
           ))
         )}
@@ -546,6 +697,84 @@ const DemonstrationRecordTabs = () => {
             >
               다음
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 에러 모달 */}
+      {errorModal.isOpen && (
+        <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="p-6 mx-4 w-full max-w-lg bg-white rounded-2xl border border-red-100 shadow-2xl">
+            {/* 헤더 */}
+            <div className="flex gap-3 items-center mb-4">
+              <div className="flex justify-center items-center w-10 h-10 bg-red-100 rounded-full">
+                <svg
+                  className="w-6 h-6 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-red-700">
+                  {errorModal.title}
+                </h3>
+                <p className="text-sm text-red-600">{errorModal.message}</p>
+              </div>
+            </div>
+
+            {/* 상세 내용 */}
+            {errorModal.details && (
+              <div className="p-4 mb-6 bg-red-50 rounded-xl border border-red-200">
+                <h4 className="flex gap-2 items-center mb-3 font-semibold text-red-800">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  해결 방법
+                </h4>
+                <div className="text-sm leading-relaxed text-red-700">
+                  {errorModal.details.split("\n").map((line, index) => (
+                    <div key={index} className="mb-1">
+                      {line.startsWith("•") ? (
+                        <span className="flex gap-2 items-start">
+                          <span className="mt-1 text-red-500">•</span>
+                          <span>{line.substring(1).trim()}</span>
+                        </span>
+                      ) : (
+                        <span>{line}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 버튼 */}
+            <div className="flex justify-end">
+              <button
+                onClick={closeErrorModal}
+                className="px-6 py-3 text-sm font-medium text-white bg-red-600 rounded-xl shadow-sm transition-colors duration-200 hover:bg-red-700 active:bg-red-800 hover:shadow-md"
+              >
+                확인
+              </button>
+            </div>
           </div>
         </div>
       )}

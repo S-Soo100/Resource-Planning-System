@@ -34,8 +34,22 @@ export const useUpdateDemoStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateDemoStatusDto }) =>
-      updateDemoStatusById(id, { status: data.status }),
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: UpdateDemoStatusDto;
+    }) => {
+      const response = await updateDemoStatusById(id, { status: data.status });
+
+      // 서버 응답이 실패인 경우 에러를 던져서 클라이언트에서 처리할 수 있도록 함
+      if (!response.success) {
+        throw new Error(response.message || "상태 변경에 실패했습니다.");
+      }
+
+      return response;
+    },
     onSuccess: async (response, variables) => {
       if (response.success) {
         // 데모 정보 캐시 무효화
@@ -54,6 +68,10 @@ export const useUpdateDemoStatus = () => {
           await queryClient.invalidateQueries({ queryKey: ["warehouseItems"] });
         }
       }
+    },
+    onError: (error) => {
+      // 에러가 발생해도 여기서는 처리하지 않고, 컴포넌트에서 처리하도록 함
+      console.error("상태 변경 에러:", error);
     },
   });
 };

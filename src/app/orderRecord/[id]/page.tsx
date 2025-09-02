@@ -548,7 +548,34 @@ const OrderRecordDetail = () => {
       window.location.reload();
     } catch (error) {
       console.error("상태 업데이트 실패:", error);
-      alert("주문 상태 업데이트에 실패했습니다.");
+
+      let errorMessage = "주문 상태 업데이트에 실패했습니다.";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+
+        // 타임아웃 에러인 경우 새로고침 안내
+        if (error.message.includes("시간")) {
+          alert(
+            `${errorMessage}\n\n서버에서 처리가 완료되었을 수 있으니 새로고침 후 확인해주세요.`
+          );
+
+          // 3초 후 자동 새로고침 제안
+          setTimeout(() => {
+            if (
+              window.confirm(
+                "상태를 확인하기 위해 페이지를 새로고침하시겠습니까?"
+              )
+            ) {
+              window.location.reload();
+            }
+          }, 3000);
+        } else {
+          alert(errorMessage);
+        }
+      } else {
+        alert(errorMessage);
+      }
     } finally {
       setIsUpdatingStatus(false);
     }

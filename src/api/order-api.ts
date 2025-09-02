@@ -135,18 +135,22 @@ export const updateOrderStatus = async (
   data: UpdateOrderStatusDto
 ): Promise<ApiResponse> => {
   try {
-    const response = await api.patch<ApiResponse>(`/order/${id}/status`, data);
+    // 상태 변경은 복잡한 작업이므로 더 긴 타임아웃 설정 (45초)
+    const response = await api.patch<ApiResponse>(`/order/${id}/status`, data, {
+      timeout: 45000,
+    });
     return response.data;
   } catch (error: unknown) {
     console.error("[API] 주문 상태 변경 오류:", error);
 
     // AxiosError 타입 체크
     if (error instanceof AxiosError) {
-      // 서버 응답이 있는 경우 서버 에러 메시지 사용
-      if (error.response?.data?.message) {
+      // 타임아웃 오류 처리 - 서버에서 처리가 완료되었을 수 있음을 안내
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
         return {
           success: false,
-          message: error.response.data.message,
+          message: "요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.",
+          data: { shouldRefresh: true }, // 새로고침 필요 플래그
         };
       }
 
@@ -158,18 +162,18 @@ export const updateOrderStatus = async (
         };
       }
 
-      // 타임아웃 오류 처리
-      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      // 서버 응답이 있는 경우 서버 에러 메시지 사용
+      if (error.response?.data?.message) {
         return {
           success: false,
-          message: "요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.",
+          message: error.response.data.message,
         };
       }
     }
 
-    return { 
-      success: false, 
-      message: "주문 상태 변경에 실패했습니다." 
+    return {
+      success: false,
+      message: "주문 상태 변경에 실패했습니다.",
     };
   }
 };

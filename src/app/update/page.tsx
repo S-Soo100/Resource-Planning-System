@@ -67,6 +67,98 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.6.4 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.6.4
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-08-05
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>발주/시연 승인 타임아웃 처리 개선</strong>:
+                        중간관리자 승인 시 타임아웃 에러 개선
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li>
+                          • 발주 상태 변경 API 타임아웃을 45초로 연장 (기존 15초
+                          → 45초)
+                        </li>
+                        <li>
+                          • 시연 상태 변경 API 타임아웃을 45초로 연장 (기존 15초
+                          → 45초)
+                        </li>
+                        <li>
+                          • 타임아웃 에러 시 서버에서 처리 완료 가능성 안내
+                          메시지 추가
+                        </li>
+                        <li>
+                          • 타임아웃 에러 발생 시 새로고침 버튼이 포함된 사용자
+                          친화적 에러 모달 제공
+                        </li>
+                        <li>
+                          • 발주 상세 페이지에서 타임아웃 에러 시 3초 후 자동
+                          새로고침 확인 대화상자 표시
+                        </li>
+                        <li>
+                          • 에러 상황별 맞춤형 해결 방법 안내 추가 (재고 부족,
+                          권한 부족, 네트워크 오류 등)
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 수정됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("수정됨")}
+                    <span className="ml-2">수정됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <h4 className="mb-2 font-medium text-red-900">
+                        <strong>승인 처리 시간 초과 문제</strong>: 발주 승인
+                        처리가 10초 이상 걸릴 때 발생하는 타임아웃 에러 해결
+                      </h4>
+                      <ul className="space-y-1 text-sm text-red-800">
+                        <li>
+                          • 클라이언트 타임아웃 에러 발생 후에도 서버에서 정상
+                          처리되는 상황 개선
+                        </li>
+                        <li>
+                          • 사용자가 에러 후 새로고침하여 상태 확인 가능하도록
+                          안내 개선
+                        </li>
+                        <li>• 네트워크 지연 상황에서의 사용자 경험 향상</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.6.3 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +167,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.6.3
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

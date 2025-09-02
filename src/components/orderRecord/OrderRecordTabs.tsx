@@ -148,11 +148,13 @@ const OrderRecordTabs = () => {
     title: string;
     message: string;
     details: string;
+    shouldRefresh?: boolean;
   }>({
     isOpen: false,
     title: "",
     message: "",
     details: "",
+    shouldRefresh: false,
   });
 
   const { useAllOrders, useSupplierOrders } = useOrder();
@@ -176,7 +178,14 @@ const OrderRecordTabs = () => {
       title: "",
       message: "",
       details: "",
+      shouldRefresh: false,
     });
+  };
+
+  // 에러 모달에서 새로고침 핸들러
+  const handleErrorModalRefresh = () => {
+    handleRefresh();
+    closeErrorModal();
   };
 
   // 현재 로그인한 사용자 ID 가져오기
@@ -662,6 +671,7 @@ const OrderRecordTabs = () => {
       let errorMessage = "상태 변경에 실패했습니다.";
       let errorDetails = "";
       let errorTitle = "상태 변경 실패";
+      let shouldRefresh = false;
 
       if (error instanceof Error) {
         errorMessage = error.message || errorMessage;
@@ -681,8 +691,9 @@ const OrderRecordTabs = () => {
             "네트워크 연결에 문제가 있습니다.\n\n• 인터넷 연결을 확인해주세요\n• 잠시 후 다시 시도해주세요";
         } else if (error.message.includes("시간")) {
           errorTitle = "요청 시간 초과";
+          shouldRefresh = true;
           errorDetails =
-            "요청 시간이 초과되었습니다.\n\n• 잠시 후 다시 시도해주세요\n• 서버 상태를 확인해주세요";
+            "요청 시간이 초과되었습니다. 서버에서 처리가 완료되었을 수 있으니 새로고침 후 확인해주세요.\n\n• 아래 '새로고침' 버튼을 클릭해주세요\n• 상태가 변경되지 않았다면 다시 시도해주세요\n• 문제가 지속되면 관리자에게 문의해주세요";
         } else if (error.message.includes("서버")) {
           errorTitle = "서버 오류";
           errorDetails =
@@ -696,6 +707,7 @@ const OrderRecordTabs = () => {
         title: errorTitle,
         message: errorMessage,
         details: errorDetails,
+        shouldRefresh: shouldRefresh,
       });
 
       // 토스트로도 간단한 메시지 표시
@@ -1515,10 +1527,19 @@ const OrderRecordTabs = () => {
             )}
 
             {/* 버튼 */}
-            <div className="flex justify-end p-6 pt-4 border-t border-red-100">
+            <div className="flex gap-3 justify-end p-6 pt-4 border-t border-red-100">
+              {errorModal.shouldRefresh && (
+                <button
+                  onClick={handleErrorModalRefresh}
+                  className="px-6 py-3 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-xl shadow-sm transition-colors duration-200 hover:bg-blue-100 hover:border-blue-300 active:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  <RefreshCw size={16} className="inline mr-2" />
+                  새로고침
+                </button>
+              )}
               <button
                 onClick={closeErrorModal}
-                className="px-6 py-3 w-full text-sm font-medium text-white bg-red-600 rounded-xl shadow-sm transition-colors duration-200 sm:w-auto hover:bg-red-700 active:bg-red-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                className="px-6 py-3 text-sm font-medium text-white bg-red-600 rounded-xl shadow-sm transition-colors duration-200 hover:bg-red-700 active:bg-red-800 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 확인
               </button>

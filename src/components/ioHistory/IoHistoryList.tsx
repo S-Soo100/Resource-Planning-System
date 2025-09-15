@@ -21,17 +21,9 @@ import {
 } from "@/hooks/useInventoryRecord";
 import { useCategory } from "@/hooks/useCategory";
 import { useQueryClient } from "@tanstack/react-query";
-import { getTodayString, formatDateToLocalString } from "@/utils/dateUtils";
+import { getTodayString, formatDateToLocalString, formatDateForDisplayUTC } from "@/utils/dateUtils";
 
-// 날짜 포맷팅 유틸리티 함수
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-};
+// 로컬 formatDate 함수 완전 제거 - formatDateForDisplayUTC 직접 사용
 
 // 타입 필터 옵션
 type TypeFilter = "all" | "inbound" | "outbound";
@@ -892,8 +884,8 @@ export default function IoHistoryList() {
                   >
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                       {record.inboundQuantity
-                        ? formatDate(record.inboundDate)
-                        : formatDate(record.outboundDate)}
+                        ? (record.inboundDate ? formatDateForDisplayUTC(record.inboundDate) : "N/A")
+                        : (record.outboundDate ? formatDateForDisplayUTC(record.outboundDate) : "N/A")}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span

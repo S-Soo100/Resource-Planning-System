@@ -24,15 +24,9 @@ import {
 } from "@/types/(order)/orderComment";
 import { OrderComment } from "@/types/(order)/orderComment";
 import { IUser } from "@/types/(auth)/user";
+import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
 
-// 날짜 포맷팅 함수
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const year = date.getFullYear().toString().slice(-2);
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  return `${year}.${month}.${day}`;
-};
+// 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
 
 // 전화번호 포맷팅 함수
 const formatPhoneNumber = (phone: string): string => {
@@ -928,7 +922,7 @@ const OrderRecordDetail = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">생성일:</span>
                         <span className="font-medium">
-                          {formatDate(order.createdAt)}
+                          {formatDateForDisplayUTC(order.createdAt)}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -971,7 +965,7 @@ const OrderRecordDetail = () => {
                         <span className="text-gray-600">구매일:</span>
                         <span className="font-medium">
                           {order.purchaseDate
-                            ? formatDate(order.purchaseDate)
+                            ? formatDateForDisplayUTC(order.purchaseDate)
                             : "-"}
                         </span>
                       </div>
@@ -979,7 +973,7 @@ const OrderRecordDetail = () => {
                         <span className="text-gray-600">출고예정일:</span>
                         <span className="font-medium">
                           {order.outboundDate
-                            ? formatDate(order.outboundDate)
+                            ? formatDateForDisplayUTC(order.outboundDate)
                             : "-"}
                         </span>
                       </div>
@@ -987,7 +981,7 @@ const OrderRecordDetail = () => {
                         <span className="text-gray-600">설치요청일:</span>
                         <span className="font-medium">
                           {order.installationDate
-                            ? formatDate(order.installationDate)
+                            ? formatDateForDisplayUTC(order.installationDate)
                             : "-"}
                         </span>
                       </div>
@@ -1096,7 +1090,7 @@ const OrderRecordDetail = () => {
                                 {getDisplayFileName(file.fileName)}
                               </div>
                               {/* <div className="text-sm text-gray-500">
-                                업로드: {formatDate(file.createdAt)}
+                                업로드: {formatDateForDisplayUTC(file.createdAt)}
                               </div> */}
                             </div>
                           </div>

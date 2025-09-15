@@ -18,6 +18,7 @@ import {
   Printer,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
 import {
   useUpdateDemoStatus,
   useDeleteDemo,
@@ -37,14 +38,7 @@ import {
   type DemoComment,
 } from "@/hooks/(useDemo)/useDemoComments";
 
-// 날짜 포맷팅 함수
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const year = date.getFullYear().toString().slice(-2);
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  return `${year}.${month}.${day}`;
-};
+// 로컬 formatDate 함수 제거 - dateUtils의 formatDateForDisplayUTC 사용
 
 // 상태 텍스트 변환 함수
 const getStatusText = (status: string): string => {
@@ -1188,7 +1182,7 @@ const DemoRecordDetail = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">생성일:</span>
                         <span className="font-medium">
-                          {formatDate(demo.createdAt)}
+                          {formatDateForDisplayUTC(demo.createdAt)}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -1247,7 +1241,7 @@ const DemoRecordDetail = () => {
                             <span className="text-gray-600">결제 예정일:</span>
                             <span className="font-medium">
                               {demo.demoPaymentDate
-                                ? formatDate(demo.demoPaymentDate)
+                                ? formatDateForDisplayUTC(demo.demoPaymentDate)
                                 : "-"}
                             </span>
                           </div>
@@ -1294,7 +1288,7 @@ const DemoRecordDetail = () => {
                           <span className="text-gray-600">상차 날짜:</span>
                           <span className="font-medium">
                             {demo.demoStartDate
-                              ? formatDate(demo.demoStartDate)
+                              ? formatDateForDisplayUTC(demo.demoStartDate)
                               : "-"}
                           </span>
                         </div>
@@ -1325,7 +1319,7 @@ const DemoRecordDetail = () => {
                           <span className="text-gray-600">하차 날짜:</span>
                           <span className="font-medium">
                             {demo.demoEndDate
-                              ? formatDate(demo.demoEndDate)
+                              ? formatDateForDisplayUTC(demo.demoEndDate)
                               : "-"}
                           </span>
                         </div>
@@ -1460,7 +1454,7 @@ const DemoRecordDetail = () => {
                                 {getDisplayFileName(file.fileName)}
                               </div>
                               {/* <div className="text-sm text-gray-500">
-                                업로드: {formatDate(demo.createdAt)}
+                                업로드: {formatDateForDisplayUTC(demo.createdAt)}
                               </div> */}
                             </div>
                           </div>

@@ -1,8 +1,7 @@
 import React from "react";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
 import { Download } from "lucide-react";
 import { getDisplayFileName } from "@/utils/fileUtils";
+import { formatDateForDisplayUTC } from "@/utils/dateUtils";
 import { InventoryRecord } from "@/types/(inventoryRecord)/inventory";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 
@@ -16,16 +15,7 @@ interface InventoryRecordDetailProps {
   record: InventoryRecord;
 }
 
-// 날짜 포맷팅 유틸리티 함수
-const formatDate = (dateString: string | null | undefined) => {
-  if (!dateString) return "-";
-  try {
-    return format(new Date(dateString), "yyyy-MM-dd HH:mm", { locale: ko });
-  } catch (error) {
-    console.error("날짜 포맷팅 에러:", error);
-    return dateString;
-  }
-};
+// 로컬 formatDate 함수 완전 제거 - formatDateForDisplayUTC 직접 사용
 
 function formatFileSize(bytes?: number) {
   if (!bytes) return "";
@@ -119,11 +109,11 @@ export default function InventoryRecordDetail({
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="text-gray-600">입고일</div>
               <div className="font-medium">
-                {formatDate(record.inboundDate) || "-"}
+                {record.inboundDate ? formatDateForDisplayUTC(record.inboundDate) : "-"}
               </div>
               <div className="text-gray-600">출고일</div>
               <div className="font-medium">
-                {formatDate(record.outboundDate) || "-"}
+                {record.outboundDate ? formatDateForDisplayUTC(record.outboundDate) : "-"}
               </div>
             </div>
           </div>

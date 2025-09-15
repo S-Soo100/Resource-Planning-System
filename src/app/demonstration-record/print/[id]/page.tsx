@@ -6,15 +6,9 @@ import { getDemoById } from "@/api/demo-api";
 import { DemoResponse } from "@/types/demo/demo";
 import { DemoStatus } from "@/types/demo/demo";
 import { getDisplayFileName } from "@/utils/fileUtils";
+import { formatDateForDisplayFullUTC } from "@/utils/dateUtils";
 
-// 날짜 포맷팅 함수
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  return `${year}.${month}.${day}`;
-};
+// 로컬 formatDate 함수 제거 - dateUtils의 formatDateForDisplayFullUTC 사용
 
 // 전화번호 포맷팅 함수
 const formatPhoneNumber = (phone: string): string => {
@@ -370,7 +364,7 @@ const DemoRecordPrint = () => {
           <div className="print-info-row">
             <span className="print-info-label">출력 일시:</span>
             <span className="print-info-value">
-              {formatDate(new Date().toISOString())}
+              {formatDateForDisplayFullUTC(new Date().toISOString())}
             </span>
           </div>
         </div>
@@ -393,7 +387,7 @@ const DemoRecordPrint = () => {
           <div className="print-info-row">
             <span className="print-info-label">생성일:</span>
             <span className="print-info-value">
-              {formatDate(demo.createdAt)}
+              {formatDateForDisplayFullUTC(demo.createdAt)}
             </span>
           </div>
           <div className="print-info-row">
@@ -439,7 +433,7 @@ const DemoRecordPrint = () => {
                 <span className="print-info-label">결제 예정일:</span>
                 <span className="print-info-value">
                   {demo.demoPaymentDate
-                    ? formatDate(demo.demoPaymentDate)
+                    ? formatDateForDisplayFullUTC(demo.demoPaymentDate)
                     : "-"}
                 </span>
               </div>
@@ -479,7 +473,7 @@ const DemoRecordPrint = () => {
               <div className="print-info-row">
                 <span className="print-info-label">날짜:</span>
                 <span className="print-info-value">
-                  {demo.demoStartDate ? formatDate(demo.demoStartDate) : "-"}
+                  {demo.demoStartDate ? formatDateForDisplayFullUTC(demo.demoStartDate) : "-"}
                 </span>
               </div>
               <div className="print-info-row">
@@ -500,7 +494,7 @@ const DemoRecordPrint = () => {
               <div className="print-info-row">
                 <span className="print-info-label">날짜:</span>
                 <span className="print-info-value">
-                  {demo.demoEndDate ? formatDate(demo.demoEndDate) : "-"}
+                  {demo.demoEndDate ? formatDateForDisplayFullUTC(demo.demoEndDate) : "-"}
                 </span>
               </div>
               <div className="print-info-row">

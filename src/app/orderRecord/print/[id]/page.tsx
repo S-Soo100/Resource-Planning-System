@@ -6,15 +6,9 @@ import { getOrder } from "@/api/order-api";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
 import { getDisplayFileName } from "@/utils/fileUtils";
+import { formatDateForDisplayFull, formatDateForDisplayFullUTC } from "@/utils/dateUtils";
 
-// 날짜 포맷팅 함수
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  return `${year}.${month}.${day}`;
-};
+// 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
 
 // 전화번호 포맷팅 함수
 const formatPhoneNumber = (phone: string): string => {
@@ -302,7 +296,7 @@ const OrderRecordPrint = () => {
           <div className="print-info-row">
             <span className="print-info-label">출력 일시:</span>
             <span className="print-info-value">
-              {formatDate(new Date().toISOString())}
+              {formatDateForDisplayFull(new Date().toISOString())}
             </span>
           </div>
         </div>
@@ -327,7 +321,7 @@ const OrderRecordPrint = () => {
           <div className="print-info-row">
             <span className="print-info-label">생성일:</span>
             <span className="print-info-value">
-              {formatDate(order.createdAt)}
+              {formatDateForDisplayFullUTC(order.createdAt)}
             </span>
           </div>
           <div className="print-info-row">
@@ -377,20 +371,20 @@ const OrderRecordPrint = () => {
           <div className="print-info-row">
             <span className="print-info-label">구매일:</span>
             <span className="print-info-value">
-              {order.purchaseDate ? formatDate(order.purchaseDate) : "-"}
+              {order.purchaseDate ? formatDateForDisplayFullUTC(order.purchaseDate) : "-"}
             </span>
           </div>
           <div className="print-info-row">
             <span className="print-info-label">출고예정일:</span>
             <span className="print-info-value">
-              {order.outboundDate ? formatDate(order.outboundDate) : "-"}
+              {order.outboundDate ? formatDateForDisplayFullUTC(order.outboundDate) : "-"}
             </span>
           </div>
           <div className="print-info-row">
             <span className="print-info-label">설치요청일:</span>
             <span className="print-info-value">
               {order.installationDate
-                ? formatDate(order.installationDate)
+                ? formatDateForDisplayFullUTC(order.installationDate)
                 : "-"}
             </span>
           </div>

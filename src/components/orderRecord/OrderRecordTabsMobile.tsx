@@ -16,7 +16,8 @@ interface Props {
   records: IOrderRecord[];
   expandedRowId: number | null;
   onRowClick: (id: number) => void;
-  formatDate: (date: string) => string;
+  formatDateForDisplay: (date: string) => string;
+  formatDateForDisplayUTC: (date: string) => string;
   getStatusText: (status: string) => string;
   getStatusColorClass: (status: string) => string;
   hasPermissionToEdit: (record: IOrderRecord) => boolean;
@@ -338,7 +339,8 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
   records,
   expandedRowId,
   onRowClick,
-  formatDate,
+  formatDateForDisplay,
+  formatDateForDisplayUTC,
   getStatusText,
   getStatusColorClass,
   hasPermissionToEdit,
@@ -501,7 +503,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
             <div className="flex gap-2 items-center">
               <span className="flex items-center text-xs text-gray-500">
                 <Calendar size={14} className="mr-1" />
-                {formatDate(record.createdAt)}
+                {formatDateForDisplayUTC(record.createdAt)}
               </span>
               <span className="flex-1 text-xs text-gray-700 truncate">
                 {record.package?.packageName &&
@@ -609,14 +611,14 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                   <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">생성일:</span>
                     <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
-                      {formatDate(record.createdAt)}
+                      {formatDateForDisplayUTC(record.createdAt)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">구매일:</span>
                     <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.purchaseDate
-                        ? formatDate(record.purchaseDate)
+                        ? formatDateForDisplayUTC(record.purchaseDate)
                         : "-"}
                     </span>
                   </div>
@@ -626,7 +628,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                     </span>
                     <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.outboundDate
-                        ? formatDate(record.outboundDate)
+                        ? formatDateForDisplayUTC(record.outboundDate)
                         : "-"}
                     </span>
                   </div>
@@ -636,7 +638,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                     </span>
                     <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.installationDate
-                        ? formatDate(record.installationDate)
+                        ? formatDateForDisplayUTC(record.installationDate)
                         : "-"}
                     </span>
                   </div>

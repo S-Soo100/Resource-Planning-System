@@ -27,7 +27,7 @@ import {
 } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
-import { getTodayString } from "@/utils/dateUtils";
+import { getTodayString, formatDateToLocalString, formatDateForServer } from "@/utils/dateUtils";
 import ItemSelectionModal from "../ui/ItemSelectionModal";
 import LoadingOverlay from "../ui/LoadingOverlay";
 import {
@@ -466,8 +466,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
 
+    // 통합 날짜 유틸리티 사용
     const formatDate = (date: Date) => {
-      return date.toISOString().split("T")[0];
+      return formatDateToLocalString(date);
     };
 
     setFormData((prev) => ({
@@ -576,9 +577,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     });
 
     try {
+      // 통합 날짜 유틸리티 사용
       const toKSTISOString = (dateString: string) => {
         if (!dateString) return "";
-        return `${dateString}T00:00:00+09:00`;
+        const serverDate = formatDateForServer(dateString);
+        return serverDate ? `${serverDate}T00:00:00+09:00` : "";
       };
       const orderData: CreateOrderDto = {
         userId: auth?.id ?? 0,

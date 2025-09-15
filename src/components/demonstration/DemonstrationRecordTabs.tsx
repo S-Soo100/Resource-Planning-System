@@ -23,6 +23,7 @@ import DemoEditModal from "./DemoEditModal";
 import { useRouter } from "next/navigation";
 // import { useDeleteDemo } from "@/hooks/(useDemo)/useDemoMutations"; // 제거됨
 import { DemoStatus } from "@/types/demo/demo";
+import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
 
 type TabType = "ongoing" | "completed";
 
@@ -65,14 +66,7 @@ const convertToDemoRecord = (demo: DemoResponse): DemoResponse => {
   };
 };
 
-// 날짜 포맷팅 함수 추가
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const year = date.getFullYear().toString().slice(-2);
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  return `${year}.${month}.${day}`;
-};
+// 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
 
 const DemonstrationRecordTabs = () => {
   const router = useRouter();
@@ -609,8 +603,8 @@ const DemonstrationRecordTabs = () => {
                 {/* 오른쪽: 날짜 + 상태 */}
                 <div className="flex flex-col gap-1 items-end ml-3">
                   <div className="text-xs text-gray-400">
-                    {formatDate(record.demoStartDate)} ~{" "}
-                    {formatDate(record.demoEndDate)}
+                    {formatDateForDisplayUTC(record.demoStartDate)} ~{" "}
+                    {formatDateForDisplayUTC(record.demoEndDate)}
                   </div>
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColorClass(

@@ -17,6 +17,7 @@ import { getDisplayFileName, formatFileSize } from "@/utils/fileUtils";
 import { useQueryClient } from "@tanstack/react-query";
 import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { formatDateForServer } from "@/utils/dateUtils";
 import { Modal } from "@/components/ui";
 import { ItemSelectionModal } from "@/components/ui";
 import { useWarehouseWithItems } from "@/hooks/useWarehouseWithItems";
@@ -690,9 +691,11 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     setIsSubmitting(true);
 
     try {
+      // 통합 날짜 유틸리티 사용
       const toKSTISOString = (dateString: string) => {
         if (!dateString) return "";
-        return `${dateString}T00:00:00+09:00`;
+        const serverDate = formatDateForServer(dateString);
+        return serverDate ? `${serverDate}T00:00:00+09:00` : "";
       };
 
       const orderData = {

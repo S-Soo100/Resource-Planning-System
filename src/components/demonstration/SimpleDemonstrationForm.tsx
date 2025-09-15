@@ -12,7 +12,7 @@ import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { toast } from "react-hot-toast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
-import { getTodayString } from "@/utils/dateUtils";
+import { getTodayString, formatDateToLocalString } from "@/utils/dateUtils";
 import AddressSection from "@/components/common/AddressSection";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useFileUpload } from "@/hooks/useFileUpload";
@@ -302,8 +302,9 @@ const SimpleDemonstrationForm: React.FC = () => {
     const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
 
+    // 통합 날짜 유틸리티 사용
     const formatDate = (date: Date) => {
-      return date.toISOString().split("T")[0];
+      return formatDateToLocalString(date);
     };
 
     setFormData({

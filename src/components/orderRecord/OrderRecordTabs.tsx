@@ -31,6 +31,7 @@ import dynamic from "next/dynamic";
 import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import OrderEditModal from "./OrderEditModal";
+import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
 
 // 사용자 접근 레벨 타입 추가
 type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
@@ -95,14 +96,7 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
   };
 };
 
-// 날짜 포맷팅 함수 추가
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const year = date.getFullYear().toString().slice(-2);
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  return `${year}.${month}.${day}`;
-};
+// 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
 
 const OrderRecordTabsMobile = dynamic(() => import("./OrderRecordTabsMobile"), {
   ssr: false,
@@ -1179,7 +1173,8 @@ const OrderRecordTabs = () => {
             records={currentRecords}
             expandedRowId={expandedRowId}
             onRowClick={handleRowClick}
-            formatDate={formatDate}
+            formatDateForDisplay={formatDateForDisplay}
+            formatDateForDisplayUTC={formatDateForDisplayUTC}
             getStatusText={getStatusText}
             getStatusColorClass={getStatusColorClass}
             hasPermissionToEdit={hasPermissionToEdit}
@@ -1233,7 +1228,7 @@ const OrderRecordTabs = () => {
                               size={14}
                               className="inline-block mr-1 text-gray-500"
                             />
-                            {formatDate(record.createdAt)}
+                            {formatDateForDisplayUTC(record.createdAt)}
                           </td>
                           <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-gray-700 truncate max-w-[120px] sm:max-w-[200px]">
                             <div className="truncate" title={record.title}>
@@ -1283,7 +1278,7 @@ const OrderRecordTabs = () => {
                                 className="inline-block mr-1 text-blue-500"
                               />
                             )}
-                            {formatDate(record.outboundDate)}
+                            {formatDateForDisplayUTC(record.outboundDate)}
                           </td>
                           <td className="hidden px-1 py-2 text-xs text-gray-700 whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
                             <div className="flex justify-between items-center">
@@ -1318,7 +1313,7 @@ const OrderRecordTabs = () => {
                                 <div className="flex items-center text-gray-500">
                                   <Calendar size={14} className="mr-1" />
                                   <span className="text-xs">
-                                    {formatDate(record.createdAt)}
+                                    {formatDateForDisplayUTC(record.createdAt)}
                                   </span>
                                 </div>
                                 <div className="flex-1 text-xs font-medium text-gray-700 truncate">
@@ -1354,7 +1349,7 @@ const OrderRecordTabs = () => {
                                     />
                                   )}
                                   <span className="text-xs">
-                                    {formatDate(record.outboundDate)}
+                                    {formatDateForDisplayUTC(record.outboundDate)}
                                   </span>
                                 </div>
                               </div>

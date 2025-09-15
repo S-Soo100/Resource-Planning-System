@@ -34,126 +34,20 @@ import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { TeamItem } from "@/types/(item)/team-item";
 import { useQueryClient } from "@tanstack/react-query";
 import { getDisplayFileName, formatFileSize } from "@/utils/fileUtils";
-import { getTodayString } from "@/utils/dateUtils";
-import { convertToUTC9 } from "@/utils/dateUtils";
+import {
+  getTodayString,
+  convertToUTC9,
+  formatDateForServer,
+  normalizeDateForDisplay,
+  normalizeTimeForDisplay,
+  isValidDateString
+} from "@/utils/dateUtils";
 
-const toKSTDateString = (dateString: string): string | undefined => {
-  if (!dateString || dateString.trim() === "") return undefined;
+// 통합 날짜 유틸리티 사용 - toKSTDateString은 formatDateForServer로 대체됨
 
-  // 다양한 날짜 형식을 YYYY-MM-DD로 정규화
-  const normalizedDate = dateString.replace(/[/.]/g, "-");
+// 통합 날짜 유틸리티 사용 - normalizeDateForDisplay는 dateUtils에서 제공됨
 
-  // YYYY-MM-DD 형식 검증
-  const dateRegex = /^\d{4}-\d{1,2}-\d{1,2}$/;
-  if (!dateRegex.test(normalizedDate)) {
-    console.warn(`유효하지 않은 날짜 형식: ${dateString}`);
-    return undefined;
-  }
-
-  // Date 객체로 유효성 검증
-  const testDate = new Date(normalizedDate);
-  if (isNaN(testDate.getTime())) {
-    console.warn(`유효하지 않은 날짜: ${dateString}`);
-    return undefined;
-  }
-
-  // 서버 파싱 테스트
-  const serverTestDate = new Date(normalizedDate);
-  if (isNaN(serverTestDate.getTime())) {
-    console.error(`서버에서 파싱할 수 없는 날짜: ${normalizedDate}`);
-    return undefined;
-  }
-
-  console.log(
-    `[날짜 변환] ${dateString} -> ${normalizedDate} (서버 파싱 테스트: ${serverTestDate.toISOString()})`
-  );
-
-  // 서버가 기대하는 형식: YYYY-MM-DD (ISO 날짜 문자열)
-  // 서버에서 new Date()로 파싱할 때 문제가 없도록 단순한 형식 사용
-  // 추가로 ISO 문자열 형식도 시도해보자
-  const isoString = `${normalizedDate}T00:00:00.000Z`;
-  console.log(
-    `[날짜 변환 최종] ${dateString} -> ${normalizedDate} (ISO: ${isoString})`
-  );
-
-  return normalizedDate;
-};
-
-// 기존 데이터 로드 시 날짜 정규화 함수
-const normalizeDateForDisplay = (dateString: string): string => {
-  if (!dateString || dateString.trim() === "") return "";
-
-  // ISO 문자열인 경우 (예: "2024-01-15T00:00:00+09:00")
-  if (dateString.includes("T")) {
-    const datePart = dateString.split("T")[0];
-    // 유효성 검증
-    const testDate = new Date(datePart);
-    if (isNaN(testDate.getTime())) {
-      console.warn(`유효하지 않은 ISO 날짜: ${dateString}`);
-      return "";
-    }
-    return datePart;
-  }
-
-  // 다른 형식의 날짜를 YYYY-MM-DD로 정규화
-  const normalizedDate = dateString.replace(/[/.]/g, "-");
-
-  // YYYY-MM-DD 형식 검증
-  const dateRegex = /^\d{4}-\d{1,2}-\d{1,2}$/;
-  if (!dateRegex.test(normalizedDate)) {
-    console.warn(`날짜 형식이 올바르지 않습니다: ${dateString}`);
-    return "";
-  }
-
-  // Date 객체로 유효성 검증
-  const testDate = new Date(normalizedDate);
-  if (isNaN(testDate.getTime())) {
-    console.warn(`유효하지 않은 날짜: ${dateString}`);
-    return "";
-  }
-
-  return normalizedDate;
-};
-
-// 기존 데이터 로드 시 시간 처리 함수 (UTC+9 형식 확인)
-const normalizeTimeForDisplay = (timeString: string): string => {
-  if (!timeString || timeString.trim() === "") return "";
-
-  // 이미 UTC+9 형식인지 확인 (예: "09:30+09:00" 또는 "09:30Z")
-  if (timeString.includes("+09:00") || timeString.includes("Z")) {
-    // UTC+9 형식이면 시간 부분만 추출
-    const timePart = timeString.split(/[+Z]/)[0];
-    return timePart;
-  }
-
-  // 일반 HH:MM 형식이면 그대로 반환 (이미 로컬 시간으로 저장된 것으로 가정)
-  const timeRegex = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
-  if (timeRegex.test(timeString)) {
-    return timeString;
-  }
-
-  // 형식이 맞지 않으면 변환 시도
-  const parts = timeString.split(":");
-  if (parts.length === 2) {
-    const hours = parseInt(parts[0], 10);
-    const minutes = parseInt(parts[1], 10);
-
-    if (
-      !isNaN(hours) &&
-      !isNaN(minutes) &&
-      hours >= 0 &&
-      hours <= 23 &&
-      minutes >= 0 &&
-      minutes <= 59
-    ) {
-      return `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
-    }
-  }
-
-  return timeString; // 변환 불가능한 경우 원본 반환
-};
+// 통합 날짜 유틸리티 사용 - normalizeTimeForDisplay는 dateUtils에서 제공됨
 
 // 상태 텍스트 함수
 const getStatusText = (status: string): string => {
@@ -569,14 +463,10 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       return false;
     }
 
-    // 날짜 형식 검증 - 더 유연하게 처리
+    // 날짜 형식 검증 - 통합 유틸리티 사용
     const validateDate = (dateString: string): boolean => {
       if (!dateString) return true;
-      // YYYY-MM-DD, YYYY/MM/DD, YYYY.MM.DD 등 다양한 형식 허용
-      const dateRegex = /^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}$/;
-      const isValid = dateRegex.test(dateString);
-      console.log(`[날짜 검증] ${dateString}: ${isValid}`);
-      return isValid;
+      return isValidDateString(dateString);
     };
 
     if (formData.demoStartDate && !validateDate(formData.demoStartDate)) {
@@ -767,15 +657,15 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
         ...formData,
         demoPaymentDate:
           formData.demoPaymentDate && formData.demoPaymentDate.trim() !== ""
-            ? toKSTDateString(formData.demoPaymentDate)
+            ? formatDateForServer(formData.demoPaymentDate)
             : undefined,
         demoStartDate:
           formData.demoStartDate && formData.demoStartDate.trim() !== ""
-            ? toKSTDateString(formData.demoStartDate)
+            ? formatDateForServer(formData.demoStartDate)
             : undefined,
         demoEndDate:
           formData.demoEndDate && formData.demoEndDate.trim() !== ""
-            ? toKSTDateString(formData.demoEndDate)
+            ? formatDateForServer(formData.demoEndDate)
             : undefined,
         demoStartTime:
           formData.demoStartTime && formData.demoStartTime.trim() !== ""
@@ -1246,7 +1136,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                           }
                           placeholder="결제 예정일을 선택하세요"
                           helperText="시연 비용 결제 예정일입니다"
-                          minDate={new Date().toISOString().split("T")[0]}
+                          minDate={getTodayString()}
                         />
                       </div>
                     </div>

@@ -21,7 +21,7 @@ import {
 } from "@/hooks/useInventoryRecord";
 import { useCategory } from "@/hooks/useCategory";
 import { useQueryClient } from "@tanstack/react-query";
-import { getTodayString } from "@/utils/dateUtils";
+import { getTodayString, formatDateToLocalString } from "@/utils/dateUtils";
 
 // 날짜 포맷팅 유틸리티 함수
 const formatDate = (dateString: string | null) => {
@@ -51,14 +51,14 @@ export default function IoHistoryList() {
       today.getMonth() - 2,
       1
     );
-    return threeMonthsAgo.toISOString().split("T")[0];
+    return formatDateToLocalString(threeMonthsAgo);
   };
 
   const [startDate, setStartDate] = useState<string>(getThreeMonthsAgo());
   const [endDate, setEndDate] = useState<string>(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split("T")[0];
+    return formatDateToLocalString(tomorrow);
   });
   const [expandedRecordId, setExpandedRecordId] = useState<number | null>(null);
 
@@ -528,7 +528,7 @@ export default function IoHistoryList() {
           itemCode: "",
           itemName: "",
           quantity: 1,
-          date: new Date().toISOString().split("T")[0],
+          date: getTodayString(),
           inboundPlace: "",
           inboundAddress: "",
           inboundAddressDetail: "",

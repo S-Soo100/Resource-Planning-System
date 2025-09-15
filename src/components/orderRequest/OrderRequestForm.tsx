@@ -577,11 +577,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     });
 
     try {
-      // 통합 날짜 유틸리티 사용
-      const toKSTISOString = (dateString: string) => {
+      // UTC 기반 날짜 처리로 시간대 변환 오류 방지
+      const toUTCISOString = (dateString: string) => {
         if (!dateString) return "";
         const serverDate = formatDateForServer(dateString);
-        return serverDate ? `${serverDate}T00:00:00+09:00` : "";
+        return serverDate ? `${serverDate}T00:00:00.000Z` : "";
       };
       const orderData: CreateOrderDto = {
         userId: auth?.id ?? 0,
@@ -594,9 +594,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         receiver: formData.receiver,
         receiverPhone: formData.receiverPhone,
         receiverAddress: `${formData.address} ${formData.detailAddress}`.trim(),
-        purchaseDate: toKSTISOString(formData.requestDate),
-        outboundDate: toKSTISOString(formData.requestDate),
-        installationDate: toKSTISOString(formData.setupDate),
+        purchaseDate: toUTCISOString(formData.requestDate),
+        outboundDate: toUTCISOString(formData.requestDate),
+        installationDate: toUTCISOString(formData.setupDate),
         status: OrderStatus.requested,
         memo: formData.notes,
         orderItems: orderItems

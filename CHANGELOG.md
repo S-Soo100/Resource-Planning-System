@@ -5,6 +5,32 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## v1.7.0 (2025-09-15)
+
+### 개선됨 (Improved)
+
+- **전체 프로젝트 날짜 표시 통합**: 시간대 변환 오류를 해결하고 UTC 기반 정확한 날짜 표시로 통합
+  - 발주 관리: createdAt, purchaseDate, outboundDate, installationDate 등 모든 날짜 필드 UTC 적용
+  - 시연 관리: createdAt, demoPaymentDate, demoStartDate, demoEndDate 등 모든 날짜 필드 UTC 적용
+  - 재고 관리: inboundDate, outboundDate 등 입출고 날짜 필드 UTC 적용
+  - formatDateForDisplayUTC, formatDateForDisplayFullUTC 함수 활용으로 일관된 날짜 표시
+  - 로컬 중복 formatDate 함수 제거 및 통합된 dateUtils 사용으로 코드 최적화
+
+### 수정됨 (Fixed)
+
+- **날짜 표시 시간대 변환 오류**: DB 날짜와 화면 표시 날짜 불일치 문제 완전 해결
+  - UTC 16:46 → KST 01:46(다음날) 변환으로 인한 날짜 오차 제거
+  - 예시: DB "2025-09-15" → 화면 "9월 16일" 표시 오류 → "9월 15일" 정확 표시
+  - 사용자 입력 날짜가 그대로 정확히 표시되도록 개선
+  - 전체 시스템에서 일관된 날짜 표시 형식 적용
+
+### 기술 개선 (Technical Improvements)
+
+- **코드 중복 제거**: 각 컴포넌트별 로컬 formatDate 함수 제거로 유지보수성 향상
+- **번들 크기 최적화**: 불필요한 date-fns import 정리로 번들 크기 감소
+- **타입 안전성**: 통합된 dateUtils 함수 사용으로 타입 안전성 향상
+- **확장성**: 새로운 날짜 필드 추가 시 일관된 처리 방식 보장
+
 ## v1.6.4 (2025-08-05)
 
 ### 개선됨 (Improved)

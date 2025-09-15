@@ -67,6 +67,93 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.7.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.7.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-09-15
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>전체 프로젝트 날짜 표시 통합</strong>: 시간대 변환 오류를 해결하고 UTC 기반 정확한 날짜 표시로 통합
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li>• 발주 관리: createdAt, purchaseDate, outboundDate, installationDate 등 모든 날짜 필드 UTC 적용</li>
+                        <li>• 시연 관리: createdAt, demoPaymentDate, demoStartDate, demoEndDate 등 모든 날짜 필드 UTC 적용</li>
+                        <li>• 재고 관리: inboundDate, outboundDate 등 입출고 날짜 필드 UTC 적용</li>
+                        <li>• formatDateForDisplayUTC, formatDateForDisplayFullUTC 함수 활용으로 일관된 날짜 표시</li>
+                        <li>• 로컬 중복 formatDate 함수 제거 및 통합된 dateUtils 사용으로 코드 최적화</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 수정됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("수정됨")}
+                    <span className="ml-2">수정됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <h4 className="mb-2 font-medium text-red-900">
+                        <strong>날짜 표시 시간대 변환 오류</strong>: DB 날짜와 화면 표시 날짜 불일치 문제 완전 해결
+                      </h4>
+                      <ul className="space-y-1 text-sm text-red-800">
+                        <li>• UTC 16:46 → KST 01:46(다음날) 변환으로 인한 날짜 오차 제거</li>
+                        <li>• 예시: DB "2025-09-15" → 화면 "9월 16일" 표시 오류 → "9월 15일" 정확 표시</li>
+                        <li>• 사용자 입력 날짜가 그대로 정확히 표시되도록 개선</li>
+                        <li>• 전체 시스템에서 일관된 날짜 표시 형식 적용</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 기술 개선 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("변경됨")}
+                    <span className="ml-2">기술 개선</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h4 className="mb-2 font-medium text-blue-900">
+                        <strong>코드 품질 및 성능 향상</strong>
+                      </h4>
+                      <ul className="space-y-1 text-sm text-blue-800">
+                        <li>• 각 컴포넌트별 로컬 formatDate 함수 제거로 유지보수성 향상</li>
+                        <li>• 불필요한 date-fns import 정리로 번들 크기 감소</li>
+                        <li>• 통합된 dateUtils 함수 사용으로 타입 안전성 향상</li>
+                        <li>• 새로운 날짜 필드 추가 시 일관된 처리 방식 보장</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.6.4 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +162,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.6.4
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

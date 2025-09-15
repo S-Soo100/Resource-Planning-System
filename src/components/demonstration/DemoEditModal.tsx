@@ -653,19 +653,25 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
         },
       });
 
+      // UTC 기반 날짜 처리로 시간대 변환 오류 방지
+      const formatDateForServerUTC = (dateString: string) => {
+        const serverDate = formatDateForServer(dateString);
+        return serverDate ? `${serverDate}T00:00:00.000Z` : undefined;
+      };
+
       const submitData: PatchDemoRequest = {
         ...formData,
         demoPaymentDate:
           formData.demoPaymentDate && formData.demoPaymentDate.trim() !== ""
-            ? formatDateForServer(formData.demoPaymentDate)
+            ? formatDateForServerUTC(formData.demoPaymentDate)
             : undefined,
         demoStartDate:
           formData.demoStartDate && formData.demoStartDate.trim() !== ""
-            ? formatDateForServer(formData.demoStartDate)
+            ? formatDateForServerUTC(formData.demoStartDate)
             : undefined,
         demoEndDate:
           formData.demoEndDate && formData.demoEndDate.trim() !== ""
-            ? formatDateForServer(formData.demoEndDate)
+            ? formatDateForServerUTC(formData.demoEndDate)
             : undefined,
         demoStartTime:
           formData.demoStartTime && formData.demoStartTime.trim() !== ""

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useWeekNavigation } from '@/hooks/calendar/useWeekNavigation';
 import { useCalendarData } from '@/hooks/calendar/useCalendarData';
 import { CalendarEvent, OrderEventDetails, DemoEventDetails } from '@/types/calendar/calendar';
+import { formatDateTimeToKorean } from '@/utils/calendar/calendarUtils';
 import CalendarNavigation from './CalendarNavigation';
 import WeekView from './WeekView';
 import MobileWeekView from './MobileWeekView';
@@ -68,8 +69,8 @@ const EventDetailModal: React.FC<{
                 <div><strong>현지 담당자:</strong> {(event.details as DemoEventDetails).demoManager}</div>
                 <div><strong>담당자 연락처:</strong> {(event.details as DemoEventDetails).demoManagerPhone}</div>
                 <div><strong>시연 장소:</strong> {(event.details as DemoEventDetails).demoAddress}</div>
-                <div><strong>시작일시:</strong> {(event.details as DemoEventDetails).demoStartDate} {(event.details as DemoEventDetails).demoStartTime}</div>
-                <div><strong>종료일시:</strong> {(event.details as DemoEventDetails).demoEndDate} {(event.details as DemoEventDetails).demoEndTime}</div>
+                <div><strong>시작일시:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoStartDate, (event.details as DemoEventDetails).demoStartTime, (event.details as DemoEventDetails).demoStartDeliveryMethod)}</div>
+                <div><strong>종료일시:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoEndDate, (event.details as DemoEventDetails).demoEndTime, (event.details as DemoEventDetails).demoEndDeliveryMethod)}</div>
                 <div><strong>창고:</strong> {(event.details as DemoEventDetails).warehouseName}</div>
               </div>
             )}

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
+import { formatDateTimeToKorean } from "@/utils/calendar/calendarUtils";
 import {
   useUpdateDemoStatus,
   useDeleteDemo,
@@ -1288,7 +1289,7 @@ const DemoRecordDetail = () => {
                           <span className="text-gray-600">상차 날짜:</span>
                           <span className="font-medium">
                             {demo.demoStartDate
-                              ? formatDateForDisplayUTC(demo.demoStartDate)
+                              ? formatDateTimeToKorean(demo.demoStartDate)
                               : "-"}
                           </span>
                         </div>
@@ -1319,7 +1320,7 @@ const DemoRecordDetail = () => {
                           <span className="text-gray-600">하차 날짜:</span>
                           <span className="font-medium">
                             {demo.demoEndDate
-                              ? formatDateForDisplayUTC(demo.demoEndDate)
+                              ? formatDateTimeToKorean(demo.demoEndDate)
                               : "-"}
                           </span>
                         </div>

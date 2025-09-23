@@ -27,6 +27,7 @@ import { useRouter } from "next/navigation";
 // import { useDeleteDemo } from "@/hooks/(useDemo)/useDemoMutations"; // 제거됨
 import { DemoStatus } from "@/types/demo/demo";
 import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
+import { formatDateTimeToKorean } from "@/utils/calendar/calendarUtils";
 
 type TabType = "ongoing" | "completed";
 
@@ -666,7 +667,7 @@ const DemonstrationRecordTabs = () => {
                         {record.demoTitle || "제목 없음"}
                       </h3>
                       <div className="text-sm text-gray-500 mt-0.5">
-                        {record.requester} • {formatDateForDisplayUTC(record.demoStartDate)}
+                        {record.requester} • {formatDateTimeToKorean(record.demoStartDate)}
                         {record.demoPaymentType === "유료" && record.demoPrice && (
                           <span className="text-green-600 font-medium">
                             {" "}({record.demoPrice.toLocaleString()}원)
@@ -731,7 +732,7 @@ const DemonstrationRecordTabs = () => {
                       <div className="flex items-center space-x-2">
                         <span className="font-medium text-gray-700">시연 기간:</span>
                         <span className="text-gray-600">
-                          {formatDateForDisplayUTC(record.demoStartDate)} ~ {formatDateForDisplayUTC(record.demoEndDate)}
+                          {formatDateTimeToKorean(record.demoStartDate)} ~ {formatDateTimeToKorean(record.demoEndDate)}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">

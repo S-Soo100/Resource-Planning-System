@@ -35,6 +35,8 @@ export interface DemoEventDetails {
   demoStartTime: string;
   demoEndDate: string;
   demoEndTime: string;
+  demoStartDeliveryMethod: string; // 상차 방법
+  demoEndDeliveryMethod: string; // 하차 방법
   demoStatus: string;
   warehouseName: string;
 }

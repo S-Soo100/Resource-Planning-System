@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { CalendarEvent, OrderEventDetails, DemoEventDetails } from '@/types/calendar/calendar';
 import { useCalendarEvents } from '@/hooks/calendar/useCalendarEvents';
+import { formatDateTimeToKorean } from '@/utils/calendar/calendarUtils';
 import { FaTruck, FaTheaterMasks, FaInfoCircle } from 'react-icons/fa';
 
 interface EventItemProps {
@@ -125,7 +126,7 @@ const EventItem: React.FC<EventItemProps> = ({
           <div>
             <p><strong>담당자:</strong> {(event.details as DemoEventDetails).demoManager}</p>
             <p><strong>시연지:</strong> {(event.details as DemoEventDetails).demoAddress}</p>
-            <p><strong>시작일:</strong> {(event.details as DemoEventDetails).demoStartDate} {(event.details as DemoEventDetails).demoStartTime}</p>
+            <p><strong>시작일:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoStartDate, (event.details as DemoEventDetails).demoStartTime, (event.details as DemoEventDetails).demoStartDeliveryMethod)}</p>
           </div>
         )}
       </div>

@@ -287,7 +287,7 @@ const MainMenu = () => {
             {user.name}님, 환영합니다!
           </h1>
           <div className="flex gap-3 items-center">
-            {user.accessLevel === "admin" && (
+            {user.accessLevel !== "supplier" && (
               <button
                 onClick={() => router.push("/calendar")}
                 className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg transition-colors duration-200 hover:bg-green-100"

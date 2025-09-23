@@ -14,7 +14,7 @@ export default function CalendarPage() {
     if (!userLoading) {
       if (!user) {
         router.push("/signin");
-      } else if (user.accessLevel !== "admin") {
+      } else if (user.accessLevel === "supplier") {
         router.push("/menu");
       }
     }
@@ -33,7 +33,7 @@ export default function CalendarPage() {
   }
 
   // 사용자가 없거나 권한이 없는 경우 로딩 표시 (리다이렉트는 useEffect에서 처리)
-  if (!userLoading && (!user || user.accessLevel !== "admin")) {
+  if (!userLoading && (!user || user.accessLevel === "supplier")) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">

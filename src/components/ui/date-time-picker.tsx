@@ -317,9 +317,15 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                         const isSelected =
                           selectedDate &&
                           day.toDateString() === selectedDate.toDateString();
+                        // minDate와 maxDate를 날짜만 비교하도록 수정 (시간 정보 무시)
+                        const getDateOnly = (dateStr: string) => {
+                          const date = new Date(dateStr + "T00:00:00");
+                          return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                        };
+
                         const isDisabled =
-                          (minDate && day < new Date(minDate)) ||
-                          (maxDate && day > new Date(maxDate)) ||
+                          (minDate && day < getDateOnly(minDate)) ||
+                          (maxDate && day > getDateOnly(maxDate)) ||
                           day < today;
 
                         return (

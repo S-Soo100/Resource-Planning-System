@@ -96,6 +96,21 @@ export default function UpdatePage() {
                   <div className="space-y-4">
                     <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                       <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>시연 기록 페이지 UI/UX 대폭 개선</strong>: 정렬, 카드 레이아웃, 정보 표시 등 전면 개선
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li>• <strong>시연 시작일 기준 정렬</strong>: 최신순/오래된순 토글 정렬 기능 추가로 시연 일정 관리 효율성 증대</li>
+                        <li>• <strong>카드 레이아웃 최적화</strong>: 2줄 구조 → 1줄 통합으로 화면 공간 효율성 향상</li>
+                        <li>• <strong>인덱스 번호 표시</strong>: 페이지네이션 고려한 순차 번호로 목록 추적 편의성 개선</li>
+                        <li>• <strong>카드 토글 기능</strong>: 클릭 시 시연 기간, 장소, 품목 등 상세 정보 확장 표시</li>
+                        <li>• <strong>상세보기 버튼</strong>: 명확한 상세페이지 이동 버튼으로 사용자 경험 개선</li>
+                        <li>• <strong>유료 시연 가격 표시</strong>: 유료 시연 시 금액 정보를 괄호 안에 명확히 표시</li>
+                        <li>• <strong>배송 방법 정보</strong>: 시연 장소 뒤에 상차/하차 방법 표시로 물류 정보 가시성 향상</li>
+                        <li>• <strong>품목 정보 정확성</strong>: item.teamItem.itemName 경로 수정으로 정확한 품목명 표시</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
                         <strong>전체 프로젝트 날짜 표시 통합</strong>: 시간대 변환 오류를 해결하고 UTC 기반 정확한 날짜 표시로 통합
                       </h4>
                       <ul className="space-y-1 text-sm text-orange-800">

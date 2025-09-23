@@ -78,6 +78,7 @@ const DemonstrationRecordTabs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDemo, setSelectedDemo] = useState<DemoResponse | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null);
@@ -231,6 +232,19 @@ const DemonstrationRecordTabs = () => {
   const handleSortOrderChange = () => {
     setSortOrder(sortOrder === "desc" ? "asc" : "desc");
     setCurrentPage(1);
+  };
+
+  // 카드 토글 핸들러
+  const handleCardToggle = (recordId: number) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(recordId)) {
+        newSet.delete(recordId);
+      } else {
+        newSet.add(recordId);
+      }
+      return newSet;
+    });
   };
 
   // 검색 핸들러
@@ -631,71 +645,128 @@ const DemonstrationRecordTabs = () => {
             </p>
           </div>
         ) : (
-          currentRecords.map((record: DemoResponse, index: number) => (
-            <div
-              key={record.id}
-              className="bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-all cursor-pointer"
-              onClick={() => handleRowClick(record.id)}
-            >
-              <div className="flex items-center justify-between px-4 py-3">
-                {/* 왼쪽: 인덱스 + 기본 정보 */}
-                <div className="flex items-center space-x-3 flex-1 min-w-0">
-                  <span className="text-sm text-gray-500 font-medium w-6">
-                    {startIndex + index + 1}.
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">
-                      {record.demoTitle || "제목 없음"}
-                    </h3>
-                    <div className="text-sm text-gray-500 mt-0.5">
-                      {record.requester} • {formatDateForDisplayUTC(record.demoStartDate)}
-                      {record.demoPaymentType === "유료" && record.demoPrice && (
-                        <span className="text-green-600 font-medium">
-                          {" "}({record.demoPrice.toLocaleString()}원)
-                        </span>
-                      )}
+          currentRecords.map((record: DemoResponse, index: number) => {
+            const isExpanded = expandedCards.has(record.id);
+            return (
+              <div
+                key={record.id}
+                className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all"
+              >
+                <div
+                  className="flex items-center justify-between px-4 py-3 cursor-pointer"
+                  onClick={() => handleCardToggle(record.id)}
+                >
+                  {/* 왼쪽: 인덱스 + 기본 정보 */}
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <span className="text-sm text-gray-500 font-medium w-6">
+                      {startIndex + index + 1}.
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">
+                        {record.demoTitle || "제목 없음"}
+                      </h3>
+                      <div className="text-sm text-gray-500 mt-0.5">
+                        {record.requester} • {formatDateForDisplayUTC(record.demoStartDate)}
+                        {record.demoPaymentType === "유료" && record.demoPrice && (
+                          <span className="text-green-600 font-medium">
+                            {" "}({record.demoPrice.toLocaleString()}원)
+                          </span>
+                        )}
+                      </div>
                     </div>
+                  </div>
+
+                  {/* 오른쪽: 상태 + 상세보기 버튼 */}
+                  <div className="flex items-center space-x-3">
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${getStatusColorClass(
+                        record.demoStatus
+                      )}`}
+                    >
+                      {getStatusText(record.demoStatus)}
+                    </span>
+
+                    {/* 상태 변경 (권한이 있는 경우만) */}
+                    {canChangeStatus() && (
+                      <select
+                        value={record.demoStatus}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(
+                            record.id,
+                            e.target.value as DemoStatus
+                          );
+                        }}
+                        disabled={updatingStatusId === record.id}
+                        className="text-xs bg-white border border-gray-300 rounded px-2 py-1 disabled:opacity-50"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <option value="requested">요청</option>
+                        <option value="approved">승인</option>
+                        <option value="rejected">반려</option>
+                        <option value="confirmedByShipper">출고팀 확인</option>
+                        <option value="shipmentCompleted">출고 완료</option>
+                        <option value="rejectedByShipper">출고팀 반려</option>
+                        <option value="demoCompleted">시연 완료</option>
+                      </select>
+                    )}
+
+                    {/* 상세보기 버튼 */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRowClick(record.id);
+                      }}
+                      className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 active:bg-blue-200 transition-colors"
+                    >
+                      상세보기
+                    </button>
                   </div>
                 </div>
 
-                {/* 오른쪽: 상태 */}
-                <div className="flex items-center space-x-2">
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${getStatusColorClass(
-                      record.demoStatus
-                    )}`}
-                  >
-                    {getStatusText(record.demoStatus)}
-                  </span>
-
-                  {/* 상태 변경 (권한이 있는 경우만) */}
-                  {canChangeStatus() && (
-                    <select
-                      value={record.demoStatus}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        handleStatusChange(
-                          record.id,
-                          e.target.value as DemoStatus
-                        );
-                      }}
-                      disabled={updatingStatusId === record.id}
-                      className="text-xs bg-white border border-gray-300 rounded px-2 py-1 disabled:opacity-50"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <option value="requested">요청</option>
-                      <option value="approved">승인</option>
-                      <option value="rejected">반려</option>
-                      <option value="confirmedByShipper">출고팀 확인</option>
-                      <option value="shipmentCompleted">출고 완료</option>
-                      <option value="rejectedByShipper">출고팀 반려</option>
-                      <option value="demoCompleted">시연 완료</option>
-                    </select>
-                  )}
-                </div>
+                {/* 확장된 정보 */}
+                {isExpanded && (
+                  <div className="px-4 pb-3 border-t border-gray-100 bg-gray-50">
+                    <div className="pt-3 space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-700">시연 기간:</span>
+                        <span className="text-gray-600">
+                          {formatDateForDisplayUTC(record.demoStartDate)} ~ {formatDateForDisplayUTC(record.demoEndDate)}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-700">시연 장소:</span>
+                        <span className="text-gray-600">
+                          {record.demoAddress || "미정"}
+                          {(record.demoStartDeliveryMethod || record.demoEndDeliveryMethod) && (
+                            <span className="text-gray-500">
+                              {" "}(상차: {record.demoStartDeliveryMethod || "미정"} / 하차: {record.demoEndDeliveryMethod || "미정"})
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <span className="font-medium text-gray-700 flex-shrink-0">시연 품목:</span>
+                        <div className="text-gray-600">
+                          {record.demoItems && record.demoItems.length > 0 ? (
+                            <div className="space-y-1">
+                              {record.demoItems.map((item, itemIndex) => (
+                                <div key={itemIndex} className="text-sm">
+                                  {item.item?.teamItem?.itemName || "품목명 없음"} ({item.quantity || 0}개)
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            "품목 정보 없음"
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

@@ -273,8 +273,8 @@ const SimpleDemonstrationForm: React.FC = () => {
         `${formData.demoEndDate}T${formData.demoEndTime || "00:00"}`
       );
 
-      if (endDate <= startDate) {
-        toast.error("회수 일정은 상차 일정보다 이후여야 합니다.");
+      if (endDate < startDate) {
+        toast.error("회수 일정은 상차 일정과 같거나 이후여야 합니다.");
         return false;
       }
     }

@@ -64,7 +64,7 @@ export default function CalendarPage() {
           </div>
         </div>
         <p className="mt-2 text-sm md:text-lg text-gray-600">
-          발주와 시연 일정을 주별로 관리하고 메모를 작성할 수 있습니다.
+          발주와 시연 일정을 주별로 관리하고 메모를 작성할 수 있습니다.(메모 기능 개발중 by noah)
         </p>
       </div>
 

@@ -1,0 +1,72 @@
+"use client";
+import React from 'react';
+import { WeekInfo } from '@/types/calendar/calendar';
+import { getWeekTitle } from '@/utils/calendar/calendarUtils';
+import { FaChevronLeft, FaChevronRight, FaCalendarDay } from 'react-icons/fa';
+
+interface CalendarNavigationProps {
+  weekInfo: WeekInfo;
+  onPreviousWeek: () => void;
+  onNextWeek: () => void;
+  onToday: () => void;
+  isCurrentWeek: boolean;
+  className?: string;
+}
+
+const CalendarNavigation: React.FC<CalendarNavigationProps> = ({
+  weekInfo,
+  onPreviousWeek,
+  onNextWeek,
+  onToday,
+  isCurrentWeek,
+  className = '',
+}) => {
+  const weekTitle = getWeekTitle(weekInfo);
+
+  return (
+    <div className={`flex items-center justify-between bg-white rounded-lg shadow-md p-4 ${className}`}>
+      {/* 이전 주 버튼 */}
+      <button
+        onClick={onPreviousWeek}
+        className="flex items-center justify-center w-10 h-10 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-all duration-200"
+        title="이전 주"
+      >
+        <FaChevronLeft className="text-lg" />
+      </button>
+
+      {/* 주 정보 및 오늘 버튼 */}
+      <div className="flex items-center gap-4">
+        <h2 className="text-xl font-semibold text-gray-800">
+          {weekTitle}
+        </h2>
+
+        {!isCurrentWeek && (
+          <button
+            onClick={onToday}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+          >
+            <FaCalendarDay className="text-sm" />
+            오늘로
+          </button>
+        )}
+
+        {isCurrentWeek && (
+          <span className="px-3 py-1.5 text-sm font-medium text-green-600 bg-green-50 rounded-lg">
+            이번 주
+          </span>
+        )}
+      </div>
+
+      {/* 다음 주 버튼 */}
+      <button
+        onClick={onNextWeek}
+        className="flex items-center justify-center w-10 h-10 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-all duration-200"
+        title="다음 주"
+      >
+        <FaChevronRight className="text-lg" />
+      </button>
+    </div>
+  );
+};
+
+export default CalendarNavigation;

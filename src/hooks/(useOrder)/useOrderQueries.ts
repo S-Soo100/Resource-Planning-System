@@ -14,6 +14,7 @@ export const useAllOrders = (teamId: number) => {
   return useQuery({
     queryKey: ["orders", "team", teamId],
     queryFn: () => getOrdersByTeamId(teamId),
+    enabled: !!teamId,
     staleTime: CACHE_TIME,
     gcTime: CACHE_TIME,
     refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지

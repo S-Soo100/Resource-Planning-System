@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
 import { IUser } from "@/types/(auth)/user";
@@ -32,6 +32,9 @@ interface Props {
   isUpdatingStatus: number | null;
   userAccessLevel: string;
   auth: IUser | null | undefined;
+  // 카드 토글 관련 props 추가
+  expandedCards?: Set<number>;
+  onCardToggle?: (id: number) => void;
 }
 
 // 댓글 섹션 컴포넌트
@@ -352,8 +355,32 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
   isUpdatingStatus,
   userAccessLevel,
   auth,
+  // 카드 토글 관련 props 추가
+  expandedCards,
+  onCardToggle,
 }) => {
   const { user: currentUser } = useCurrentUser();
+
+  // 내부 상태로 expandedCards 관리 (props로 받지 않은 경우)
+  const [internalExpandedCards, setInternalExpandedCards] = React.useState<Set<number>>(new Set());
+
+  const currentExpandedCards = expandedCards || internalExpandedCards;
+
+  const handleInternalCardToggle = (recordId: number) => {
+    if (onCardToggle) {
+      onCardToggle(recordId);
+    } else {
+      setInternalExpandedCards(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(recordId)) {
+          newSet.delete(recordId);
+        } else {
+          newSet.add(recordId);
+        }
+        return newSet;
+      });
+    }
+  };
 
   // 상태 변경 드롭다운 컴포넌트
   const StatusDropdown = ({ record }: { record: IOrderRecord }) => {
@@ -497,7 +524,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
           {/* 클릭 가능한 헤더 영역 */}
           <div
             className="px-2 py-3 cursor-pointer hover:bg-gray-50"
-            onClick={() => onRowClick(record.id)}
+            onClick={() => handleInternalCardToggle(record.id)}
           >
             {/* 1번째 줄 */}
             <div className="flex gap-2 items-center">
@@ -533,7 +560,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
             {/* 2번째 줄 */}
             <div className="flex justify-between items-center mt-1">
               <span className="text-xs text-gray-600">{record.requester}</span>
-              <span className="flex gap-1 items-center">
+              <span className="flex gap-2 items-center">
                 <span
                   className={`px-2 py-0.5 text-xs rounded-full ${getStatusColorClass(
                     record.status
@@ -541,31 +568,77 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                 >
                   {getStatusText(record.status)}
                 </span>
-                <span
-                  className="flex justify-center items-center w-5 h-5 bg-gray-100 rounded-full"
-                  role="button"
-                  aria-label={
-                    expandedRowId === record.id
-                      ? "상세 정보 접기"
-                      : "상세 정보 펼치기"
-                  }
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDetailClick(record);
+                  }}
+                  className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:border-blue-300 transition-colors"
                 >
-                  {expandedRowId === record.id ? (
-                    <ChevronUp size={14} className="text-gray-500" />
-                  ) : (
-                    <ChevronDown size={14} className="text-gray-500" />
-                  )}
-                </span>
+                  상세보기
+                </button>
               </span>
             </div>
           </div>
 
           {/* 확장된 내용 영역 - 클릭 이벤트 차단 */}
-          {expandedRowId === record.id && (
+          {currentExpandedCards.has(record.id) && (
             <div
               className="px-2 pb-3 space-y-3 animate-fadeIn"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* 발주 기본 정보 섹션 */}
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 shadow-sm">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-700">발주 기간:</span>
+                    <span className="text-gray-600 text-xs">
+                      {formatDateForDisplayUTC(record.createdAt)} ~ {formatDateForDisplayUTC(record.outboundDate)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-700">발주 창고:</span>
+                    <span className="text-gray-600 text-xs">
+                      {record.warehouse?.warehouseName || "창고 정보 없음"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-700">배송 주소:</span>
+                    <span className="text-gray-600 text-xs truncate max-w-[150px]" title={record.receiverAddress}>
+                      {record.receiverAddress || "배송 주소 미정"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-700">담당자:</span>
+                    <span className="text-gray-600 text-xs">
+                      {record.manager || "담당자 미정"}
+                    </span>
+                  </div>
+                  <div className="border-t pt-2">
+                    <span className="font-medium text-gray-700">발주 품목:</span>
+                    <div className="mt-1 space-y-1">
+                      {record.orderItems && record.orderItems.length > 0 ? (
+                        record.orderItems.map((item, itemIndex) => (
+                          <div key={itemIndex} className="text-gray-600 text-xs ml-2">
+                            • {item.item?.teamItem?.itemName || "품목명 없음"} ({item.quantity || 0}개)
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-600 text-xs ml-2">품목 정보 없음</div>
+                      )}
+                    </div>
+                  </div>
+                  {record.memo && (
+                    <div className="border-t pt-2">
+                      <span className="font-medium text-gray-700">메모:</span>
+                      <div className="mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded text-gray-600 text-xs">
+                        {record.memo}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* 상태 변경 섹션 */}
               {hasPermissionToChangeStatus() && (
                 <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">

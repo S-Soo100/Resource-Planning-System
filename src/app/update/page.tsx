@@ -107,6 +107,20 @@ export default function UpdatePage() {
                         <li>• <strong>유료 시연 가격 표시</strong>: 유료 시연 시 금액 정보를 괄호 안에 명확히 표시</li>
                         <li>• <strong>배송 방법 정보</strong>: 시연 장소 뒤에 상차/하차 방법 표시로 물류 정보 가시성 향상</li>
                         <li>• <strong>품목 정보 정확성</strong>: item.teamItem.itemName 경로 수정으로 정확한 품목명 표시</li>
+                        <li>• <strong>모바일 UI 최적화</strong>: 데스크톱과 동일한 카드 토글 및 상세보기 기능을 모바일에서도 제공</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>발주 기록 페이지 UI/UX 개선</strong>: 시연 기록과 동일한 패턴의 UI 향상
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li>• <strong>상세보기 버튼</strong>: 기존 화살표 버튼을 명확한 '상세보기' 버튼으로 교체</li>
+                        <li>• <strong>카드 토글 기능</strong>: 상세보기 버튼 외 카드 클릭 시 발주 기간, 창고, 주소, 담당자, 품목, 메모 등 기본 정보 표시</li>
+                        <li>• <strong>메모 정보 추가</strong>: 발주 메모를 노란색 하이라이트로 명확히 표시</li>
+                        <li>• <strong>데이터 필드 정확성</strong>: receiverAddress, manager 등 올바른 필드 경로 적용</li>
+                        <li>• <strong>모바일 UI 통합</strong>: OrderRecordTabsMobile에도 동일한 토글 및 상세보기 기능 적용</li>
+                        <li>• <strong>반응형 디자인</strong>: 데스크톱과 모바일 환경에서 일관된 사용자 경험 제공</li>
                       </ul>
                     </div>
                     <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">

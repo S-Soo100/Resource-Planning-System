@@ -9,6 +9,7 @@ interface EventItemProps {
   isCompact?: boolean;
   onClick?: (event: CalendarEvent) => void;
   className?: string;
+  isMobile?: boolean;
 }
 
 const EventItem: React.FC<EventItemProps> = ({
@@ -16,6 +17,7 @@ const EventItem: React.FC<EventItemProps> = ({
   isCompact = false,
   onClick,
   className = '',
+  isMobile = false,
 }) => {
   const { getEventColor, getEventStatusText, getEventSummary } = useCalendarEvents([event]);
   const [isHovered, setIsHovered] = useState(false);
@@ -59,7 +61,9 @@ const EventItem: React.FC<EventItemProps> = ({
       >
         <div className="flex items-center gap-1">
           {getEventIcon()}
-          <span className="font-medium truncate">{event.title}</span>
+          <span className="font-medium truncate">
+            {isMobile && `[${getEventTypeText()}] `}{event.title}
+          </span>
         </div>
         <div className="text-xs opacity-75 truncate">
           {statusText}
@@ -90,7 +94,7 @@ const EventItem: React.FC<EventItemProps> = ({
           </div>
           <div>
             <h4 className={`${colors.text} font-semibold`}>
-              {event.title}
+              {isMobile && `[${getEventTypeText()}] `}{event.title}
             </h4>
             <span className="text-xs text-gray-500">
               {getEventTypeText()} #{event.id}

@@ -139,13 +139,25 @@ export function getDayName(dayIndex: number): string {
 }
 
 /**
- * 주 제목을 생성합니다 (예: "2024년 1월 1주차")
+ * 주 제목을 생성합니다 (예: "25년 9월 16일~22일" 또는 "25년 9월 29일~10월 5일")
  * @param weekInfo 주 정보
  * @returns 주 제목 문자열
  */
 export function getWeekTitle(weekInfo: WeekInfo): string {
-  const startMonth = getMonthName(weekInfo.startDate.getMonth());
-  return `${weekInfo.year}년 ${startMonth} ${weekInfo.weekNumber}주차`;
+  const year = weekInfo.year.toString().slice(-2); // 뒤 2자리만
+  const startMonth = weekInfo.startDate.getMonth() + 1;
+  const endMonth = weekInfo.endDate.getMonth() + 1;
+  const startDate = weekInfo.startDate.getDate();
+  const endDate = weekInfo.endDate.getDate();
+
+  // 시작일과 종료일이 같은 월인 경우
+  if (startMonth === endMonth) {
+    return `${year}년 ${startMonth}월 ${startDate}일~${endDate}일`;
+  }
+  // 월이 넘어가는 경우
+  else {
+    return `${year}년 ${startMonth}월 ${startDate}일~${endMonth}월 ${endDate}일`;
+  }
 }
 
 /**

@@ -5,6 +5,7 @@ import { useCalendarData } from '@/hooks/calendar/useCalendarData';
 import { CalendarEvent, OrderEventDetails, DemoEventDetails } from '@/types/calendar/calendar';
 import CalendarNavigation from './CalendarNavigation';
 import WeekView from './WeekView';
+import MobileWeekView from './MobileWeekView';
 import WeeklyMemo from './WeeklyMemo';
 import EventItem from './EventItem';
 import { FaSpinner, FaExclamationCircle } from 'react-icons/fa';
@@ -150,24 +151,36 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
         isCurrentWeek={isCurrentWeek}
       />
 
-      {/* 색상 범례 */}
-      <div className="flex justify-center gap-8 mb-4">
+      {/* 색상 범례 - 반응형 */}
+      <div className="flex justify-center gap-4 md:gap-8 mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-blue-500 rounded"></div>
-          <span className="text-sm font-medium text-gray-700">발주 일정</span>
+          <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-500 rounded"></div>
+          <span className="text-xs md:text-sm font-medium text-gray-700">발주 일정</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-purple-500 rounded"></div>
-          <span className="text-sm font-medium text-gray-700">시연 일정</span>
+          <div className="w-3 h-3 md:w-4 md:h-4 bg-purple-500 rounded"></div>
+          <span className="text-xs md:text-sm font-medium text-gray-700">시연 일정</span>
         </div>
       </div>
 
-      {/* 주별 캘린더 뷰 */}
-      <WeekView
-        weekInfo={currentWeek}
-        events={data?.events || []}
-        onEventClick={handleEventClick}
-      />
+      {/* 주별 캘린더 뷰 - 반응형 */}
+      {/* 데스크톱 뷰 (md 이상) */}
+      <div className="hidden md:block">
+        <WeekView
+          weekInfo={currentWeek}
+          events={data?.events || []}
+          onEventClick={handleEventClick}
+        />
+      </div>
+
+      {/* 모바일 뷰 (md 미만) */}
+      <div className="block md:hidden">
+        <MobileWeekView
+          weekInfo={currentWeek}
+          events={data?.events || []}
+          onEventClick={handleEventClick}
+        />
+      </div>
 
       {/* 주별 메모 */}
       <WeeklyMemo

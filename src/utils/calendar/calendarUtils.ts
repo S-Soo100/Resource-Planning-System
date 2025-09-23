@@ -168,3 +168,47 @@ export function getWeekTitle(weekInfo: WeekInfo): string {
 export function getWeeklyMemoStorageKey(weekKey: string): string {
   return `kars-weekly-memo-${weekKey}`;
 }
+
+/**
+ * 날짜와 시간을 한국어 형식으로 포맷팅합니다
+ * @param dateString ISO 날짜 문자열 (예: "2025-10-02T00:00:00.000Z")
+ * @param timeString 시간 문자열 (예: "17:00")
+ * @param deliveryMethod 배송방법 (예: "직접 배송")
+ * @returns 한국어 형식 문자열 (예: "2025년 10월 2일 17시00분 (직접 배송)")
+ */
+export function formatDateTimeToKorean(dateString: string, timeString?: string, deliveryMethod?: string): string {
+  if (!dateString) return '';
+
+  try {
+    // ISO 날짜에서 날짜 부분만 추출 (T 이전)
+    const datePart = dateString.split('T')[0];
+    const [year, month, day] = datePart.split('-').map(Number);
+
+    let result = `${year}년 ${month}월 ${day}일`;
+
+    // 시간이 있는 경우 추가
+    if (timeString && timeString.trim()) {
+      const [hour, minute] = timeString.split(':').map(Number);
+      result += ` ${hour}시${minute.toString().padStart(2, '0')}분`;
+    }
+
+    // 배송방법이 있는 경우 괄호로 추가
+    if (deliveryMethod && deliveryMethod.trim()) {
+      result += ` (${deliveryMethod})`;
+    }
+
+    return result;
+  } catch (error) {
+    console.error('날짜 포맷팅 오류:', error);
+    return dateString;
+  }
+}
+
+/**
+ * 날짜만 한국어 형식으로 포맷팅합니다
+ * @param dateString ISO 날짜 문자열 (예: "2025-10-02T00:00:00.000Z")
+ * @returns 한국어 형식 문자열 (예: "2025년 10월 2일")
+ */
+export function formatDateToKorean(dateString: string): string {
+  return formatDateTimeToKorean(dateString);
+}

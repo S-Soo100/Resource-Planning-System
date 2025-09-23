@@ -85,6 +85,8 @@ export function useCalendarData(weekInfo: WeekInfo) {
           demoStartTime: demo.demoStartTime || '시작시간 정보 없음',
           demoEndDate: demo.demoEndDate || '종료일 정보 없음',
           demoEndTime: demo.demoEndTime || '종료시간 정보 없음',
+          demoStartDeliveryMethod: demo.demoStartDeliveryMethod || '',
+          demoEndDeliveryMethod: demo.demoEndDeliveryMethod || '',
           demoStatus: demo.demoStatus || 'unknown',
           warehouseName: demo.warehouse?.warehouseName || '창고 정보 없음',
         },

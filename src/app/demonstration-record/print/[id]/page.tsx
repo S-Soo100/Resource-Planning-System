@@ -7,6 +7,7 @@ import { DemoResponse } from "@/types/demo/demo";
 import { DemoStatus } from "@/types/demo/demo";
 import { getDisplayFileName } from "@/utils/fileUtils";
 import { formatDateForDisplayFullUTC } from "@/utils/dateUtils";
+import { formatDateTimeToKorean } from "@/utils/calendar/calendarUtils";
 
 // 로컬 formatDate 함수 제거 - dateUtils의 formatDateForDisplayFullUTC 사용
 
@@ -471,15 +472,9 @@ const DemoRecordPrint = () => {
                 </span>
               </div>
               <div className="print-info-row">
-                <span className="print-info-label">날짜:</span>
+                <span className="print-info-label">날짜 및 시간:</span>
                 <span className="print-info-value">
-                  {demo.demoStartDate ? formatDateForDisplayFullUTC(demo.demoStartDate) : "-"}
-                </span>
-              </div>
-              <div className="print-info-row">
-                <span className="print-info-label">시간:</span>
-                <span className="print-info-value">
-                  {demo.demoStartTime || "-"}
+                  {demo.demoStartDate ? formatDateTimeToKorean(demo.demoStartDate, demo.demoStartTime, demo.demoStartDeliveryMethod) : "-"}
                 </span>
               </div>
             </div>
@@ -492,15 +487,9 @@ const DemoRecordPrint = () => {
                 </span>
               </div>
               <div className="print-info-row">
-                <span className="print-info-label">날짜:</span>
+                <span className="print-info-label">날짜 및 시간:</span>
                 <span className="print-info-value">
-                  {demo.demoEndDate ? formatDateForDisplayFullUTC(demo.demoEndDate) : "-"}
-                </span>
-              </div>
-              <div className="print-info-row">
-                <span className="print-info-label">시간:</span>
-                <span className="print-info-value">
-                  {demo.demoEndTime || "-"}
+                  {demo.demoEndDate ? formatDateTimeToKorean(demo.demoEndDate, demo.demoEndTime, demo.demoEndDeliveryMethod) : "-"}
                 </span>
               </div>
             </div>

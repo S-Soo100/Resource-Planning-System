@@ -264,14 +264,17 @@ const SimpleDemonstrationForm: React.FC = () => {
       }
     }
 
-    // 날짜/시간 유효성 검사
+    // 날짜/시간 유효성 검사 (로컬 시간대 기준)
     if (formData.demoStartDate && formData.demoEndDate) {
-      const startDate = new Date(
-        `${formData.demoStartDate}T${formData.demoStartTime || "00:00"}`
-      );
-      const endDate = new Date(
-        `${formData.demoEndDate}T${formData.demoEndTime || "00:00"}`
-      );
+      // 로컬 시간대에서 안전하게 Date 객체 생성
+      const createLocalDate = (dateStr: string, timeStr: string) => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const [hour, minute] = (timeStr || "00:00").split(':').map(Number);
+        return new Date(year, month - 1, day, hour, minute);
+      };
+
+      const startDate = createLocalDate(formData.demoStartDate, formData.demoStartTime || "00:00");
+      const endDate = createLocalDate(formData.demoEndDate, formData.demoEndTime || "00:00");
 
       if (endDate < startDate) {
         toast.error("회수 일정은 상차 일정과 같거나 이후여야 합니다.");

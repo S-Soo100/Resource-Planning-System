@@ -13,6 +13,9 @@ import {
   RefreshCw,
   Search,
   Filter,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { DemoResponse } from "@/types/demo/demo";
 import { useDemo } from "@/hooks/useDemo";
@@ -74,6 +77,7 @@ const DemonstrationRecordTabs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDemo, setSelectedDemo] = useState<DemoResponse | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null);
@@ -156,7 +160,7 @@ const DemonstrationRecordTabs = () => {
     }
   }, [allDemoRecords, activeTab]);
 
-  // 검색 및 필터링 적용
+  // 검색, 필터링 및 정렬 적용
   const filteredRecords = useMemo((): DemoResponse[] => {
     let filtered = demoRecords;
 
@@ -180,8 +184,34 @@ const DemonstrationRecordTabs = () => {
       );
     }
 
+    // 시연 시작일 기준 정렬
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.demoStartDate || '');
+      const dateB = new Date(b.demoStartDate || '');
+
+      // 날짜가 유효하지 않은 경우 처리
+      const isValidDateA = !isNaN(dateA.getTime());
+      const isValidDateB = !isNaN(dateB.getTime());
+
+      // 둘 다 유효한 날짜인 경우
+      if (isValidDateA && isValidDateB) {
+        return sortOrder === "desc"
+          ? dateB.getTime() - dateA.getTime()
+          : dateA.getTime() - dateB.getTime();
+      }
+
+      // 하나만 유효한 날짜인 경우, 유효한 날짜를 앞에 배치
+      if (isValidDateA && !isValidDateB) return -1;
+      if (!isValidDateA && isValidDateB) return 1;
+
+      // 둘 다 유효하지 않은 경우, ID 기준으로 정렬
+      return sortOrder === "desc"
+        ? b.id - a.id
+        : a.id - b.id;
+    });
+
     return filtered;
-  }, [demoRecords, searchTerm, statusFilter]);
+  }, [demoRecords, searchTerm, statusFilter, sortOrder]);
 
   // 페이지네이션
   const totalPages = Math.ceil(filteredRecords.length / recordsPerPage);
@@ -195,6 +225,12 @@ const DemonstrationRecordTabs = () => {
     setCurrentPage(1);
     setSearchTerm("");
     setStatusFilter("");
+  };
+
+  // 정렬 순서 변경 핸들러
+  const handleSortOrderChange = () => {
+    setSortOrder(sortOrder === "desc" ? "asc" : "desc");
+    setCurrentPage(1);
   };
 
   // 검색 핸들러
@@ -519,6 +555,20 @@ const DemonstrationRecordTabs = () => {
             <option value="demoShipmentRejected">출고팀 반려</option>
             <option value="demoCompletedAndReturned">시연 복귀 완료</option>
           </select>
+          <button
+            onClick={handleSortOrderChange}
+            className="flex items-center px-3 py-2 space-x-2 text-sm font-medium text-gray-700 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+            title={`시연 시작일 기준 ${sortOrder === "desc" ? "최신순" : "오래된순"} 정렬`}
+          >
+            {sortOrder === "desc" ? (
+              <ArrowDown className="w-4 h-4" />
+            ) : (
+              <ArrowUp className="w-4 h-4" />
+            )}
+            <span className="hidden sm:inline">
+              {sortOrder === "desc" ? "최신순" : "오래된순"}
+            </span>
+          </button>
         </div>
       </div>
 
@@ -581,84 +631,68 @@ const DemonstrationRecordTabs = () => {
             </p>
           </div>
         ) : (
-          currentRecords.map((record: DemoResponse) => (
+          currentRecords.map((record: DemoResponse, index: number) => (
             <div
               key={record.id}
-              className="bg-white rounded-xl border border-gray-100 shadow-sm transition-shadow hover:shadow-md"
+              className="bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-all cursor-pointer"
+              onClick={() => handleRowClick(record.id)}
             >
-              {/* 상단 요약 */}
-              <div className="flex justify-between items-start px-4 py-3 border-b border-gray-100">
-                {/* 왼쪽: 타이틀 + 유/무료, 요청자 */}
-                <div className="flex-1 min-w-0">
-                  <div className="text-base font-semibold text-gray-900 truncate">
-                    {record.demoTitle || "제목 없음"}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-0.5">
-                    {record.demoPaymentType}{" "}
-                    {record.demoPrice &&
-                      `(${record.demoPrice.toLocaleString()}원)`}{" "}
-                    • {record.requester}
+              <div className="flex items-center justify-between px-4 py-3">
+                {/* 왼쪽: 인덱스 + 기본 정보 */}
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <span className="text-sm text-gray-500 font-medium w-6">
+                    {startIndex + index + 1}.
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900 truncate">
+                      {record.demoTitle || "제목 없음"}
+                    </h3>
+                    <div className="text-sm text-gray-500 mt-0.5">
+                      {record.requester} • {formatDateForDisplayUTC(record.demoStartDate)}
+                      {record.demoPaymentType === "유료" && record.demoPrice && (
+                        <span className="text-green-600 font-medium">
+                          {" "}({record.demoPrice.toLocaleString()}원)
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-                {/* 오른쪽: 날짜 + 상태 */}
-                <div className="flex flex-col gap-1 items-end ml-3">
-                  <div className="text-xs text-gray-400">
-                    {formatDateForDisplayUTC(record.demoStartDate)} ~{" "}
-                    {formatDateForDisplayUTC(record.demoEndDate)}
-                  </div>
+
+                {/* 오른쪽: 상태 */}
+                <div className="flex items-center space-x-2">
                   <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColorClass(
+                    className={`px-2 py-1 rounded text-xs font-medium ${getStatusColorClass(
                       record.demoStatus
                     )}`}
                   >
-                    {getStatusIcon(record.demoStatus)}
-                    <span className="ml-1">
-                      {getStatusText(record.demoStatus)}
-                    </span>
+                    {getStatusText(record.demoStatus)}
                   </span>
-                </div>
-              </div>
 
-              {/* 하단: 상태 변경 드롭다운 + 상세보기 버튼 */}
-              <div className="flex justify-between items-center px-4 py-3">
-                <div className="flex items-center space-x-3">
-                  {/* 상태 변경 드롭다운 (권한이 있는 경우만) */}
+                  {/* 상태 변경 (권한이 있는 경우만) */}
                   {canChangeStatus() && (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">상태 변경:</span>
-                      <select
-                        value={record.demoStatus}
-                        onChange={(e) =>
-                          handleStatusChange(
-                            record.id,
-                            e.target.value as DemoStatus
-                          )
-                        }
-                        disabled={updatingStatusId === record.id}
-                        className="px-3 py-1 text-sm bg-white rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent disabled:opacity-50"
-                      >
-                        <option value="requested">요청</option>
-                        <option value="approved">승인</option>
-                        <option value="rejected">반려</option>
-                        <option value="confirmedByShipper">출고팀 확인</option>
-                        <option value="shipmentCompleted">출고 완료</option>
-                        <option value="rejectedByShipper">출고팀 반려</option>
-                        <option value="demoCompleted">시연 완료</option>
-                      </select>
-                      {updatingStatusId === record.id && (
-                        <div className="w-4 h-4 rounded-full border-2 border-blue-500 animate-spin border-t-transparent"></div>
-                      )}
-                    </div>
+                    <select
+                      value={record.demoStatus}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleStatusChange(
+                          record.id,
+                          e.target.value as DemoStatus
+                        );
+                      }}
+                      disabled={updatingStatusId === record.id}
+                      className="text-xs bg-white border border-gray-300 rounded px-2 py-1 disabled:opacity-50"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <option value="requested">요청</option>
+                      <option value="approved">승인</option>
+                      <option value="rejected">반려</option>
+                      <option value="confirmedByShipper">출고팀 확인</option>
+                      <option value="shipmentCompleted">출고 완료</option>
+                      <option value="rejectedByShipper">출고팀 반려</option>
+                      <option value="demoCompleted">시연 완료</option>
+                    </select>
                   )}
                 </div>
-
-                {/* 상세보기 버튼 */}
-                <button
-                  onClick={() => handleRowClick(record.id)}
-                  className="px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-lg transition-colors hover:bg-blue-100 active:bg-blue-200"
-                >
-                  상세보기
-                </button>
               </div>
             </div>
           ))

@@ -1,19 +1,25 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import Calendar from "@/components/calendar/Calendar";
 import { FaArrowLeft, FaCalendarAlt } from "react-icons/fa";
 
 export default function CalendarPage() {
   const router = useRouter();
   const { user, isLoading: userLoading } = useCurrentUser();
 
-  // 권한 체크 - admin이 아닌 경우 접근 거부
-  if (!userLoading && user && user.accessLevel !== "admin") {
-    router.push("/menu");
-    return null;
-  }
+  // 권한 체크 및 리다이렉트 처리
+  useEffect(() => {
+    if (!userLoading) {
+      if (!user) {
+        router.push("/signin");
+      } else if (user.accessLevel !== "admin") {
+        router.push("/menu");
+      }
+    }
+  }, [user, userLoading, router]);
+
 
   if (userLoading) {
     return (
@@ -26,13 +32,20 @@ export default function CalendarPage() {
     );
   }
 
-  if (!user) {
-    router.push("/signin");
-    return null;
+  // 사용자가 없거나 권한이 없는 경우 로딩 표시 (리다이렉트는 useEffect에서 처리)
+  if (!userLoading && (!user || user.accessLevel !== "admin")) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+          <p className="mt-4 text-gray-600">권한을 확인하는 중...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container p-6 mx-auto max-w-6xl min-h-screen">
+    <div className="container p-6 mx-auto max-w-7xl min-h-screen">
       {/* 헤더 */}
       <div className="mb-8">
         <div className="flex justify-between items-center">
@@ -51,22 +64,12 @@ export default function CalendarPage() {
           </div>
         </div>
         <p className="mt-2 text-lg text-gray-600">
-          관리자 전용 캘린더 페이지입니다.
+          발주와 시연 일정을 주별로 관리하고 메모를 작성할 수 있습니다.
         </p>
       </div>
 
-      {/* 캘린더 컨텐츠 영역 */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="text-center py-20">
-          <FaCalendarAlt className="mx-auto text-6xl text-green-500 mb-4" />
-          <h2 className="text-2xl font-semibold text-gray-700 mb-2">
-            캘린더 기능
-          </h2>
-          <p className="text-gray-500">
-            캘린더 기능이 여기에 구현될 예정입니다.
-          </p>
-        </div>
-      </div>
+      {/* 캘린더 컴포넌트 */}
+      <Calendar />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
   FaTruck,
   FaUser,
   FaQuestionCircle,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import {
   PiNewspaperClippingFill,
@@ -285,13 +286,24 @@ const MainMenu = () => {
             <FaUser className="mr-3 text-blue-600" />
             {user.name}님, 환영합니다!
           </h1>
-          <button
-            onClick={() => router.push("/how-to-use")}
-            className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg transition-colors duration-200 hover:bg-blue-100"
-          >
-            <FaQuestionCircle className="text-lg" />
-            사용법 안내
-          </button>
+          <div className="flex gap-3 items-center">
+            {user.accessLevel === "admin" && (
+              <button
+                onClick={() => router.push("/calendar")}
+                className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg transition-colors duration-200 hover:bg-green-100"
+              >
+                <FaCalendarAlt className="text-lg" />
+                캘린더
+              </button>
+            )}
+            <button
+              onClick={() => router.push("/how-to-use")}
+              className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg transition-colors duration-200 hover:bg-blue-100"
+            >
+              <FaQuestionCircle className="text-lg" />
+              사용법 안내
+            </button>
+          </div>
         </div>
         <p className="mt-2 text-lg text-gray-600">
           팀: <span className="font-semibold">{selectedTeam.teamName}</span>

@@ -130,6 +130,7 @@ const OrderRecordTabs = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(false);
   const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<number | null>(null);
   const [userAccessLevel, setUserAccessLevel] =
@@ -505,6 +506,19 @@ const OrderRecordTabs = () => {
     const teamId = currentTeamId;
     const url = `/orderRecord/${recordId}?teamId=${teamId}`;
     window.location.href = url;
+  };
+
+  // 카드 토글 핸들러
+  const handleCardToggle = (recordId: number) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(recordId)) {
+        newSet.delete(recordId);
+      } else {
+        newSet.add(recordId);
+      }
+      return newSet;
+    });
   };
 
   // 데이터 새로고침 핸들러 수정
@@ -1220,7 +1234,7 @@ const OrderRecordTabs = () => {
                       <React.Fragment key={record.id}>
                         <tr
                           className="bg-white transition-colors cursor-pointer hover:bg-gray-50"
-                          onClick={() => handleRowClick(record.id)}
+                          onClick={() => handleCardToggle(record.id)}
                         >
                           {/* 데스크톱 UI */}
                           <td className="hidden px-1 py-2 text-xs text-gray-700 whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
@@ -1289,19 +1303,15 @@ const OrderRecordTabs = () => {
                               >
                                 {getStatusText(record.status)}
                               </span>
-                              <div className="flex justify-center items-center ml-1 w-5 h-5 bg-gray-100 rounded-full transition-colors sm:ml-2 sm:w-6 sm:h-6 hover:bg-gray-200">
-                                {expandedRowId === record.id ? (
-                                  <ChevronUp
-                                    size={14}
-                                    className="text-gray-500"
-                                  />
-                                ) : (
-                                  <ChevronDown
-                                    size={14}
-                                    className="text-gray-500"
-                                  />
-                                )}
-                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRowClick(record.id);
+                                }}
+                                className="ml-2 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:border-blue-300 transition-colors"
+                              >
+                                상세보기
+                              </button>
                             </div>
                           </td>
 
@@ -1364,23 +1374,77 @@ const OrderRecordTabs = () => {
                                     {getStatusText(record.status)}
                                   </span>
                                 </div>
-                                <div className="flex justify-center items-center w-5 h-5 bg-gray-100 rounded-full">
-                                  {expandedRowId === record.id ? (
-                                    <ChevronUp
-                                      size={14}
-                                      className="text-gray-500"
-                                    />
-                                  ) : (
-                                    <ChevronDown
-                                      size={14}
-                                      className="text-gray-500"
-                                    />
-                                  )}
-                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRowClick(record.id);
+                                  }}
+                                  className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:border-blue-300 transition-colors"
+                                >
+                                  상세보기
+                                </button>
                               </div>
                             </div>
                           </td>
                         </tr>
+
+                        {/* 확장된 정보 */}
+                        {expandedCards.has(record.id) && (
+                          <tr className="bg-gray-50">
+                            <td colSpan={6} className="px-6 py-4 border-t border-gray-200">
+                              <div className="space-y-3 text-sm">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <span className="font-medium text-gray-700">발주 기간:</span>
+                                    <span className="ml-2 text-gray-600">
+                                      {formatDateForDisplayUTC(record.createdAt)} ~ {formatDateForDisplayUTC(record.outboundDate)}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-700">발주 창고:</span>
+                                    <span className="ml-2 text-gray-600">
+                                      {record.warehouse?.warehouseName || "창고 정보 없음"}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-700">배송 주소:</span>
+                                    <span className="ml-2 text-gray-600">
+                                      {record.receiverAddress || "배송 주소 미정"}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-700">담당자:</span>
+                                    <span className="ml-2 text-gray-600">
+                                      {record.manager || "담당자 미정"}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-gray-700">발주 품목:</span>
+                                  <div className="mt-2 space-y-1">
+                                    {record.orderItems && record.orderItems.length > 0 ? (
+                                      record.orderItems.map((item, itemIndex) => (
+                                        <div key={itemIndex} className="text-gray-600 ml-2">
+                                          • {item.item?.teamItem?.itemName || "품목명 없음"} ({item.quantity || 0}개)
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="text-gray-600 ml-2">품목 정보 없음</div>
+                                    )}
+                                  </div>
+                                </div>
+                                {record.memo && (
+                                  <div>
+                                    <span className="font-medium text-gray-700">메모:</span>
+                                    <div className="mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded text-gray-600 text-sm">
+                                      {record.memo}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
                       </React.Fragment>
                     ))
                   ) : (

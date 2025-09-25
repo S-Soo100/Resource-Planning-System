@@ -9,7 +9,7 @@ import {
   isCurrentMonth
 } from '@/utils/calendar/calendarUtils';
 import EventItem, { EventDot } from './EventItem';
-import { MonthDemoSpanBars } from './DemoSpanBar';
+import { MonthDemoSpanBars, calculateMonthMaxLayers } from './DemoSpanBar';
 
 interface MonthViewProps {
   monthInfo: MonthInfo;
@@ -36,17 +36,8 @@ const MonthView: React.FC<MonthViewProps> = ({
     return demoDetails.spanInfo && demoDetails.spanInfo.totalDays > 1;
   });
 
-  // 최대 레이어 개수 계산 (높이 조정용)
-  const calculateMaxLayers = (demos: (CalendarEvent & { type: 'demo' })[]) => {
-    if (demos.length === 0) return 0;
-
-    // 간단한 추정: 겹치는 시연 개수의 최대값
-    // 실제로는 MonthDemoSpanBars와 같은 로직을 사용해야 하지만
-    // 여기서는 추정치로 계산
-    return Math.min(demos.length, 4); // 최대 4개 레이어로 제한
-  };
-
-  const maxLayers = calculateMaxLayers(multiDayDemos);
+  // 정확한 최대 레이어 개수 계산
+  const maxLayers = calculateMonthMaxLayers(multiDayDemos, monthInfo.weeks);
   const baseRowHeight = 120; // 기본 높이 (px)
   const layerHeight = 36; // 각 레이어당 추가 높이 (32px 바 + 4px 여백)
   const dynamicRowHeight = Math.max(baseRowHeight, baseRowHeight + (maxLayers * layerHeight));

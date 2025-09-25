@@ -1199,12 +1199,12 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
               {/* 시연 시작 */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-gray-700">
-                  시연품 상차 일정
+                  물품 상차 일정
                 </h3>
                 <div className="space-y-6">
                   <div>
                     <DateTimePicker
-                      label="상차 일정"
+                      label="물품 상차 일정"
                       date={formData.demoStartDate}
                       time={formData.demoStartTime}
                       onDateChange={(date) =>
@@ -1222,8 +1222,8 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                               : time,
                         }))
                       }
-                      placeholder="상차 일자와 시간을 선택하세요"
-                      helperText="시연품을 창고에서 출고하는 일정입니다"
+                      placeholder="물품 상차 일자와 시간을 선택하세요"
+                      helperText="물품을 창고에서 상차하는 시간입니다"
                       minDate={getTodayString()}
                       businessHours={{ start: "00:00", end: "23:30" }}
                     />
@@ -1268,12 +1268,12 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
               {/* 시연 종료 */}
               <div className="mt-4 space-y-4">
                 <h3 className="text-lg font-medium text-gray-700">
-                  시연품 창고 하차 일정
+                  물품 하차 일정
                 </h3>
                 <div className="space-y-6">
                   <div>
                     <DateTimePicker
-                      label="회수 일정"
+                      label="물품 하차 일정"
                       date={formData.demoEndDate}
                       time={formData.demoEndTime}
                       onDateChange={(date) =>
@@ -1288,8 +1288,8 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                               : time,
                         }))
                       }
-                      placeholder="회수 일자와 시간을 선택하세요"
-                      helperText="시연품을 창고로 반입하는 일정입니다"
+                      placeholder="물품 하차 일자와 시간을 선택하세요"
+                      helperText="물품을 창고로 하차하는 시간입니다"
                       minDate={formData.demoStartDate || getTodayString()}
                       businessHours={{ start: "00:00", end: "23:30" }}
                     />

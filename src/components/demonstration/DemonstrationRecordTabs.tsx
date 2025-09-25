@@ -730,9 +730,9 @@ const DemonstrationRecordTabs = () => {
                   <div className="px-4 pb-3 border-t border-gray-100 bg-gray-50">
                     <div className="pt-3 space-y-2 text-sm">
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-700">시연 기간:</span>
+                        <span className="font-medium text-gray-700">물품 일정:</span>
                         <span className="text-gray-600">
-                          {formatDateTimeToKorean(record.demoStartDate)} ~ {formatDateTimeToKorean(record.demoEndDate)}
+                          상차: {formatDateTimeToKorean(record.demoStartDate, record.demoStartTime)} / 하차: {formatDateTimeToKorean(record.demoEndDate, record.demoEndTime)}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">

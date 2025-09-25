@@ -1294,7 +1294,7 @@ const DemoRecordDetail = () => {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">상차 시간:</span>
+                          <span className="text-gray-600">물품 상차 시간:</span>
                           <span className="font-medium">
                             {demo.demoStartTime || "-"}
                           </span>
@@ -1325,7 +1325,7 @@ const DemoRecordDetail = () => {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">하차 시간:</span>
+                          <span className="text-gray-600">물품 하차 시간:</span>
                           <span className="font-medium">
                             {demo.demoEndTime || "-"}
                           </span>

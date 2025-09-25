@@ -250,10 +250,10 @@ const SimpleDemonstrationForm: React.FC = () => {
       { field: formData.demoPaymentType, name: "결제 유형" },
       { field: formData.demoManager, name: "현지 담당자" },
       { field: formData.demoManagerPhone, name: "현지 담당자 연락처" },
-      { field: formData.demoStartDate, name: "상차 일자" },
-      { field: formData.demoStartTime, name: "상차 시간" },
-      { field: formData.demoEndDate, name: "시연품 회수일" },
-      { field: formData.demoEndTime, name: "회수 시간" },
+      { field: formData.demoStartDate, name: "물품 상차 일자" },
+      { field: formData.demoStartTime, name: "물품 상차 시간" },
+      { field: formData.demoEndDate, name: "물품 하차일" },
+      { field: formData.demoEndTime, name: "물품 하차 시간" },
       { field: formData.demoAddress || formData.address, name: "시연 장소" },
     ];
 
@@ -277,7 +277,7 @@ const SimpleDemonstrationForm: React.FC = () => {
       const endDate = createLocalDate(formData.demoEndDate, formData.demoEndTime || "00:00");
 
       if (endDate < startDate) {
-        toast.error("회수 일정은 상차 일정과 같거나 이후여야 합니다.");
+        toast.error("물품 하차 일정은 물품 상차 일정과 같거나 이후여야 합니다.");
         return false;
       }
     }
@@ -1046,12 +1046,12 @@ const SimpleDemonstrationForm: React.FC = () => {
             {/* 시연 시작 */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-700">
-                시연품 상차 일정
+                물품 상차 일정
               </h3>
               <div className="space-y-6">
                 <div>
                   <DateTimePicker
-                    label="상차 일정"
+                    label="물품 상차 일정"
                     date={formData.demoStartDate}
                     time={formData.demoStartTime}
                     onDateChange={(date) =>
@@ -1060,8 +1060,8 @@ const SimpleDemonstrationForm: React.FC = () => {
                     onTimeChange={(time) =>
                       setFormData((prev) => ({ ...prev, demoStartTime: time }))
                     }
-                    placeholder="상차 일자와 시간을 선택하세요"
-                    helperText="시연품을 창고에서 출고하는 일정입니다"
+                    placeholder="물품 상차 일자와 시간을 선택하세요"
+                    helperText="물품을 창고에서 상차하는 시간입니다"
                     minDate={getTodayString()}
                     businessHours={{ start: "00:00", end: "23:30" }}
                   />
@@ -1106,12 +1106,12 @@ const SimpleDemonstrationForm: React.FC = () => {
             {/* 시연 종료 */}
             <div className="mt-4 space-y-4">
               <h3 className="text-lg font-medium text-gray-700">
-                시연품 창고 하차 일정
+                물품 하차 일정
               </h3>
               <div className="space-y-6">
                 <div>
                   <DateTimePicker
-                    label="회수 일정"
+                    label="물품 하차 일정"
                     date={formData.demoEndDate}
                     time={formData.demoEndTime}
                     onDateChange={(date) =>
@@ -1120,8 +1120,8 @@ const SimpleDemonstrationForm: React.FC = () => {
                     onTimeChange={(time) =>
                       setFormData((prev) => ({ ...prev, demoEndTime: time }))
                     }
-                    placeholder="회수 일자와 시간을 선택하세요"
-                    helperText="시연품을 창고로 반입하는 일정입니다"
+                    placeholder="물품 하차 일자와 시간을 선택하세요"
+                    helperText="물품을 창고로 하차하는 시간입니다"
                     minDate={formData.demoStartDate || getTodayString()}
                     businessHours={{ start: "00:00", end: "23:30" }}
                   />

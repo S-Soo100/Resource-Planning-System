@@ -2,25 +2,40 @@
 
 ## 개요
 
-KARS 시스템의 관리자 전용 캘린더 기능으로, 발주와 시연 일정을 주별로 관리하고 메모를 작성할 수 있는 통합 캘린더 시스템입니다.
+KARS 시스템의 관리자 전용 캘린더 기능으로, 발주와 시연 일정을 주간/월간으로 관리하고 메모를 작성할 수 있는 통합 캘린더 시스템입니다.
 
 ## 주요 기능
 
-### 1. 주별 캘린더 뷰
+### 1. 뷰 모드 선택
+- **주간 보기**: 7칸 그리드 형태의 주간 캘린더
+- **월간 보기**: 6주 x 7일 그리드 형태의 월간 캘린더
+- 상단 토글 버튼으로 뷰 모드 전환 가능
+
+### 2. 주별 캘린더 뷰
 - **데스크톱**: 7칸 그리드 형태의 주간 캘린더
 - **모바일**: 세로 리스트 형태의 반응형 뷰
 - 월요일~일요일 기준 주간 표시
 
-### 2. 이벤트 타입
-- **발주 일정** (파란색): 배송/설치 날짜 기준
-- **시연 일정** (보라색): 시연 시작일 기준
+### 3. 월별 캘린더 뷰 ⭐ 신규
+- **데스크톱**: 6주 x 7일 그리드 형태의 전통적인 달력 뷰
+- **모바일**: 현재 월 날짜 우선 표시하는 세로 리스트 뷰
+- 이전/다음 월 일부 날짜도 표시하여 완전한 캘린더 구현
 
-### 3. 주별 메모 기능
+### 4. 이벤트 타입 및 기간 표시 ⭐ 신규
+- **발주 일정** (파란색): 배송/설치 날짜 기준
+- **시연 일정** (보라색): 시연 시작일~종료일 기간 표시
+  - **1일짜리 시연**: 기존과 동일한 표시
+  - **여러 날 시연**: 시작일, 진행일, 종료일로 구분 표시
+    - 시작일: "📅 시연 시작 (3일간)" 형태
+    - 진행일: "🔄 시연 진행중 (2/3일차)" 형태
+    - 종료일: "✅ 시연 완료" 형태
+
+### 5. 주별 메모 기능 (주간 뷰에서만)
 - 로컬 스토리지 기반 메모 관리
 - 자동 저장 (3초 지연)
 - 주차별 독립적 메모
 
-### 4. 반응형 UI
+### 6. 반응형 UI
 - `md` 브레이크포인트(768px) 기준 분기
 - 모바일에서 [발주], [시연] 태그 표시
 - 터치 친화적 인터페이스
@@ -30,24 +45,31 @@ KARS 시스템의 관리자 전용 캘린더 기능으로, 발주와 시연 일�
 ### 컴포넌트 구조
 ```
 src/components/calendar/
-├── Calendar.tsx              # 메인 캘린더 컴포넌트
+├── Calendar.tsx              # 메인 캘린더 컴포넌트 (뷰 모드 통합)
+├── ViewModeToggle.tsx        # 🆕 주간/월간 뷰 모드 토글
 ├── CalendarNavigation.tsx    # 주간 네비게이션
-├── WeekView.tsx             # 데스크톱용 7칸 그리드 뷰
-├── MobileWeekView.tsx       # 모바일용 리스트 뷰
+├── MonthNavigation.tsx       # 🆕 월간 네비게이션
+├── WeekView.tsx             # 데스크톱용 주간 7칸 그리드 뷰
+├── MobileWeekView.tsx       # 모바일용 주간 리스트 뷰
+├── MonthView.tsx            # 🆕 데스크톱용 월간 6x7 그리드 뷰
+├── MobileMonthView.tsx      # 🆕 모바일용 월간 리스트 뷰
 ├── WeeklyMemo.tsx           # 주별 메모 컴포넌트
-└── EventItem.tsx            # 이벤트 아이템 표시
+└── EventItem.tsx            # 이벤트 아이템 표시 (시연 기간 표시 포함)
 ```
 
 ### 훅 및 유틸리티
 ```
 src/hooks/calendar/
 ├── useWeekNavigation.ts     # 주간 네비게이션 관리
-├── useCalendarData.ts       # 캘린더 데이터 조회 및 변환
+├── useMonthNavigation.ts    # 🆕 월간 네비게이션 관리
+├── useCalendarData.ts       # 주간 캘린더 데이터 조회 및 변환
+├── useMonthData.ts          # 🆕 월간 캘린더 데이터 조회 및 변환
 ├── useCalendarEvents.ts     # 이벤트 처리 및 날짜 정규화
 └── useWeeklyMemo.ts         # 주별 메모 관리
 
 src/utils/calendar/
-└── calendarUtils.ts         # 날짜 처리 및 포맷팅 유틸리티
+├── calendarUtils.ts         # 날짜 처리 및 포맷팅 유틸리티 (월간 함수 추가)
+└── demoUtils.ts             # 🆕 시연 기간 계산 및 표시 로직
 ```
 
 ### 타입 정의
@@ -62,6 +84,31 @@ export interface CalendarEvent {
   details: OrderEventDetails | DemoEventDetails;
 }
 
+// 🆕 뷰 모드 타입
+export type ViewMode = 'week' | 'month';
+
+// 🆕 월 정보 타입
+export interface MonthInfo {
+  year: number;
+  month: number; // 1-12
+  monthKey: string; // 'YYYY-MM' 형식
+  startDate: Date; // 월의 첫날
+  endDate: Date; // 월의 마지막날
+  calendarStartDate: Date; // 캘린더 표시 시작일 (이전 월 일부 포함)
+  calendarEndDate: Date; // 캘린더 표시 종료일 (다음 월 일부 포함)
+  weeks: Date[][]; // 주별로 구성된 날짜 배열 (6주 x 7일)
+}
+
+// 🆕 시연 기간 정보 타입
+export interface DemoSpanInfo {
+  totalDays: number; // 총 기간 (일수)
+  dayIndex: number; // 현재 날짜가 시연의 몇 번째 날인지 (0부터 시작)
+  isStart: boolean; // 시연 시작일 여부
+  isEnd: boolean; // 시연 종료일 여부
+  isMiddle: boolean; // 시연 진행중 여부
+}
+
+// ✏️ 시연 이벤트 세부 정보 확장
 export interface DemoEventDetails {
   id: number;
   demoTitle: string;
@@ -77,6 +124,7 @@ export interface DemoEventDetails {
   demoEndDeliveryMethod: string;   // 하차 방법
   demoStatus: string;
   warehouseName: string;
+  spanInfo?: DemoSpanInfo; // 🆕 시연 기간 정보 (동적으로 계산됨)
 }
 
 export interface WeekInfo {
@@ -304,9 +352,10 @@ useEffect(() => {
 - 실시간 이벤트 업데이트 기능
 
 ### 2. 기능 확장
-- 월별/연별 캘린더 뷰 추가
+- ~~월별/연별 캘린더 뷰 추가~~ ✅ 완료 (2025년 1월)
 - 이벤트 드래그 앤 드롭으로 일정 변경
 - 캘린더 내에서 바로 발주/시연 신청 기능
+- 월간 뷰용 메모 기능
 
 ### 3. 성능 개선
 - 가상화(virtualization)를 통한 대량 이벤트 처리
@@ -353,8 +402,36 @@ useEffect(() => {
 ### 타입 정의 (1개)
 - `src/types/calendar/calendar.ts`
 
+## 2025년 1월 업데이트 ⭐
+
+### 주요 개선사항
+1. **월간 캘린더 뷰 추가**
+   - 주간/월간 뷰 모드 토글 기능
+   - 6x7 그리드 형태의 전통적인 월간 캘린더
+   - 반응형 월간 뷰 (데스크톱/모바일 최적화)
+
+2. **시연 기간 표시 기능**
+   - 여러 날짜에 걸치는 시연 일정의 연속성 시각화
+   - 시작일, 진행일, 종료일 구분 표시
+   - 이모지와 색상을 활용한 직관적 UI
+
+3. **아키텍처 확장**
+   - MonthInfo, ViewMode, DemoSpanInfo 타입 추가
+   - 월간 관련 유틸리티 함수 및 훅 추가
+   - 시연 기간 계산 로직 모듈화
+
+### 새로 추가된 파일 (8개)
+- `ViewModeToggle.tsx` - 뷰 모드 선택 토글
+- `MonthNavigation.tsx` - 월간 네비게이션
+- `MonthView.tsx` - 데스크톱 월간 뷰
+- `MobileMonthView.tsx` - 모바일 월간 뷰
+- `useMonthNavigation.ts` - 월간 네비게이션 훅
+- `useMonthData.ts` - 월간 데이터 관리 훅
+- `demoUtils.ts` - 시연 기간 계산 유틸리티
+- (기존 파일들 대폭 수정)
+
 ---
 
 **개발 기간**: 2025년 1월
 **개발자**: Claude + 사용자 협업
-**마지막 업데이트**: 2025년 1월 (모바일 UI 최적화 및 날짜 포맷팅 개선)
+**마지막 업데이트**: 2025년 1월 (월간 캘린더 뷰 및 시연 기간 표시 기능 추가)

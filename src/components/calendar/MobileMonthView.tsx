@@ -1,26 +1,31 @@
 "use client";
 import React, { useState } from 'react';
-import { WeekInfo, CalendarEvent, DemoEventDetails } from '@/types/calendar/calendar';
+import { MonthInfo, CalendarEvent, DemoEventDetails } from '@/types/calendar/calendar';
 import { useCalendarEvents } from '@/hooks/calendar/useCalendarEvents';
-import { getDayName, isToday, isWeekend } from '@/utils/calendar/calendarUtils';
+import {
+  getDayName,
+  isToday,
+  isWeekend,
+  isCurrentMonth
+} from '@/utils/calendar/calendarUtils';
 import EventItem from './EventItem';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
-interface MobileWeekViewProps {
-  weekInfo: WeekInfo;
+interface MobileMonthViewProps {
+  monthInfo: MonthInfo;
   events: CalendarEvent[];
   onEventClick?: (event: CalendarEvent) => void;
   className?: string;
 }
 
-const MobileWeekView: React.FC<MobileWeekViewProps> = ({
-  weekInfo,
+const MobileMonthView: React.FC<MobileMonthViewProps> = ({
+  monthInfo,
   events,
   onEventClick,
   className = '',
 }) => {
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
-  const { getEventsForDate } = useCalendarEvents(events);
+  const { getEventsForDate, hasEventsOnDate } = useCalendarEvents(events);
 
   // 시연 이벤트들 추출 및 그룹화
   const demoEvents = events.filter(event => event.type === 'demo') as (CalendarEvent & { type: 'demo' })[];
@@ -53,6 +58,15 @@ const MobileWeekView: React.FC<MobileWeekViewProps> = ({
       onEventClick(event);
     }
   };
+
+  // 모든 날짜를 1차원 배열로 평평하게 만듦
+  const allDates = monthInfo.weeks.flat();
+
+  // 현재 월에 속하는 날짜만 필터링하고 이벤트가 있는 날짜를 우선 표시
+  const currentMonthDates = allDates.filter(date => isCurrentMonth(date, monthInfo));
+  const otherMonthDates = allDates.filter(date => !isCurrentMonth(date, monthInfo) && hasEventsOnDate(date));
+
+  const displayDates = [...currentMonthDates, ...otherMonthDates];
 
   return (
     <div className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`}>
@@ -122,7 +136,7 @@ const MobileWeekView: React.FC<MobileWeekViewProps> = ({
 
       {/* 개별 날짜 섹션 */}
       <div className="divide-y divide-gray-200">
-        {weekInfo.days.map((date, index) => {
+        {displayDates.map((date, index) => {
           const dayEvents = getEventsForDate(date).filter(event => {
             // 여러 날짜에 걸친 시연은 개별 날짜에서 제외 (상단에 별도 표시됨)
             if (event.type === 'demo') {
@@ -134,139 +148,139 @@ const MobileWeekView: React.FC<MobileWeekViewProps> = ({
           const hasEvents = dayEvents.length > 0;
           const isWeekendDay = isWeekend(date);
           const isTodayDate = isToday(date);
+          const isCurrentMonthDate = isCurrentMonth(date, monthInfo);
           const dateStr = date.toISOString().split('T')[0];
           const isExpanded = expandedDates.has(dateStr);
 
           return (
             <div
-              key={index}
+              key={`${date.getTime()}-${index}`}
               className={`
-                ${isWeekendDay ? 'bg-gray-25' : ''}
-                ${isTodayDate ? 'bg-blue-25' : ''}
+                p-4 border-l-4 transition-colors
+                ${isTodayDate ? 'border-l-blue-500 bg-blue-25' : hasEvents ? 'border-l-green-400' : 'border-l-gray-200'}
+                ${!isCurrentMonthDate ? 'opacity-60 bg-gray-50' : ''}
               `}
             >
               {/* 날짜 헤더 */}
               <div
-                className={`
-                  flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors
-                  ${hasEvents ? 'cursor-pointer' : 'cursor-default'}
-                `}
+                className={`flex items-center justify-between cursor-pointer ${hasEvents ? 'mb-3' : ''}`}
                 onClick={() => hasEvents && toggleDateExpansion(dateStr)}
               >
                 <div className="flex items-center gap-3">
                   <div className={`
-                    text-center
-                    ${isTodayDate ? 'text-blue-600 font-bold' : isWeekendDay ? 'text-red-600' : 'text-gray-700'}
+                    flex flex-col items-center
+                    ${!isCurrentMonthDate ? 'text-gray-400' : isTodayDate ? 'text-blue-600' : isWeekendDay ? 'text-red-600' : 'text-gray-700'}
                   `}>
-                    <div className="text-xs mb-1">{getDayName(date.getDay())}요일</div>
+                    <div className="text-xs font-medium">
+                      {getDayName(date.getDay())}
+                    </div>
                     <div className={`
-                      text-2xl
+                      text-xl font-bold
                       ${isTodayDate ? 'bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center' : ''}
                     `}>
                       {date.getDate()}
                     </div>
                   </div>
 
-                  <div className="flex-1">
-                    <div className="text-sm text-gray-600">
-                      {date.getMonth() + 1}월 {date.getDate()}일
+                  <div className="flex flex-col">
+                    <div className={`
+                      text-sm font-medium
+                      ${!isCurrentMonthDate ? 'text-gray-400' : 'text-gray-700'}
+                    `}>
+                      {date.getFullYear()}년 {date.getMonth() + 1}월 {date.getDate()}일
                     </div>
-                    {hasEvents ? (
-                      <div className="text-sm text-blue-600 font-medium">
-                        일정 {dayEvents.length}개
-                      </div>
-                    ) : (
-                      <div className="text-sm text-gray-400">
-                        일정 없음
-                      </div>
-                    )}
+                    <div className={`
+                      text-xs
+                      ${!isCurrentMonthDate ? 'text-gray-400' : 'text-gray-500'}
+                    `}>
+                      {getDayName(date.getDay())}요일
+                      {!isCurrentMonthDate && ' (다른 달)'}
+                    </div>
                   </div>
                 </div>
 
-                {/* 이벤트 요약 미리보기 */}
+                {/* 이벤트 상태 표시 */}
                 <div className="flex items-center gap-2">
-                  {/* 이벤트 도트들 */}
                   {hasEvents && (
-                    <div className="flex gap-1">
-                      {dayEvents.slice(0, 3).map((event) => (
-                        <div
-                          key={event.id}
-                          className={`
-                            w-3 h-3 rounded-full
-                            ${event.type === 'order' ? 'bg-blue-500' : 'bg-purple-500'}
-                          `}
-                        />
-                      ))}
-                      {dayEvents.length > 3 && (
-                        <div className="text-xs text-gray-500 ml-1">
-                          +{dayEvents.length - 3}
-                        </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500">
+                        {dayEvents.length}개
+                      </span>
+                      <div className="flex gap-1">
+                        {dayEvents.slice(0, 3).map((event) => (
+                          <div
+                            key={event.id}
+                            className={`
+                              w-2 h-2 rounded-full
+                              ${event.type === 'order' ? 'bg-blue-500' : 'bg-purple-500'}
+                            `}
+                          />
+                        ))}
+                        {dayEvents.length > 3 && (
+                          <div className="w-2 h-2 rounded-full bg-gray-400" />
+                        )}
+                      </div>
+                      {isExpanded ? (
+                        <FaChevronUp className="text-gray-400 text-sm" />
+                      ) : (
+                        <FaChevronDown className="text-gray-400 text-sm" />
                       )}
                     </div>
                   )}
 
-                  {/* 확장/축소 버튼 */}
-                  {hasEvents && (
-                    <div className="text-gray-400">
-                      {isExpanded ? (
-                        <FaChevronUp className="text-sm" />
-                      ) : (
-                        <FaChevronDown className="text-sm" />
-                      )}
-                    </div>
+                  {!hasEvents && (
+                    <span className="text-xs text-gray-400">일정 없음</span>
                   )}
                 </div>
               </div>
 
-              {/* 확장된 이벤트 리스트 */}
-              {hasEvents && isExpanded && (
-                <div className="px-4 pb-4 bg-gray-50">
-                  <div className="space-y-2">
-                    {dayEvents.map((event) => (
-                      <div
-                        key={event.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEventClick(event);
-                        }}
-                        className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                      >
-                        <EventItem
-                          event={event}
-                          isCompact={false}
-                          className="text-sm"
-                          isMobile={true}
-                        />
-                      </div>
-                    ))}
-                  </div>
+              {/* 이벤트 미리보기 (축소된 상태) */}
+              {hasEvents && !isExpanded && (
+                <div className="space-y-1">
+                  {dayEvents.slice(0, 2).map((event) => (
+                    <div key={event.id} className="text-xs">
+                      <EventItem
+                        event={event}
+                        isCompact
+                        onClick={handleEventClick}
+                      />
+                    </div>
+                  ))}
+                  {dayEvents.length > 2 && (
+                    <div className="text-xs text-gray-500 pl-2">
+                      +{dayEvents.length - 2}개 더 있음
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* 축소된 상태에서의 이벤트 미리보기 */}
-              {hasEvents && !isExpanded && dayEvents.length > 0 && (
-                <div className="px-4 pb-3">
-                  <div className="text-xs text-gray-600 truncate">
-                    {dayEvents.slice(0, 2).map((event, idx) => (
-                      <span key={event.id}>
-                        {idx > 0 && ', '}
-                        <span className={`
-                          ${event.type === 'order' ? 'text-blue-600' : 'text-purple-600'}
-                        `}>
-                          [{event.type === 'order' ? '발주' : '시연'}] {event.title}
-                        </span>
-                      </span>
-                    ))}
-                    {dayEvents.length > 2 && ` 외 ${dayEvents.length - 2}개`}
-                  </div>
+              {/* 이벤트 상세 (확장된 상태) */}
+              {hasEvents && isExpanded && (
+                <div className="space-y-2">
+                  {dayEvents.map((event) => (
+                    <EventItem
+                      key={event.id}
+                      event={event}
+                      onClick={handleEventClick}
+                      className="text-sm"
+                    />
+                  ))}
                 </div>
               )}
             </div>
           );
         })}
+
+        {/* 이벤트가 없는 날이 많을 경우 안내 */}
+        {displayDates.every(date => !hasEventsOnDate(date)) && (
+          <div className="p-8 text-center text-gray-500">
+            <p className="text-lg font-medium mb-2">이번 달에는 일정이 없습니다</p>
+            <p className="text-sm">발주나 시연 일정이 등록되면 여기에 표시됩니다</p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default MobileWeekView;
+export default MobileMonthView;

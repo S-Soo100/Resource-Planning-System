@@ -1,9 +1,10 @@
 "use client";
 import React, { useState } from 'react';
-import { WeekInfo, CalendarEvent } from '@/types/calendar/calendar';
+import { WeekInfo, CalendarEvent, DemoEventDetails } from '@/types/calendar/calendar';
 import { useCalendarEvents } from '@/hooks/calendar/useCalendarEvents';
 import { getDayName, isToday, isWeekend } from '@/utils/calendar/calendarUtils';
 import EventItem, { EventDot } from './EventItem';
+import { WeekDemoSpanBars } from './DemoSpanBar';
 
 interface WeekViewProps {
   weekInfo: WeekInfo;
@@ -20,6 +21,29 @@ const WeekView: React.FC<WeekViewProps> = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const { getEventsForDate, hasEventsOnDate } = useCalendarEvents(events);
+
+  // 시연 이벤트들 추출 (연결 바용)
+  const demoEvents = events.filter(event => event.type === 'demo') as (CalendarEvent & { type: 'demo' })[];
+
+  // 여러 날에 걸친 시연만 필터링 (1일짜리는 기존 방식 유지)
+  const multiDayDemos = demoEvents.filter(demo => {
+    const demoDetails = demo.details as DemoEventDetails;
+    return demoDetails.spanInfo && demoDetails.spanInfo.totalDays > 1;
+  });
+
+  // 최대 레이어 개수 계산 (높이 조정용)
+  const calculateMaxLayers = (demos: (CalendarEvent & { type: 'demo' })[]) => {
+    if (demos.length === 0) return 0;
+    return Math.min(demos.length, 4); // 최대 4개 레이어로 제한
+  };
+
+  const maxLayers = calculateMaxLayers(multiDayDemos);
+  const baseHeight = 200; // 기본 높이 (px)
+  const layerHeight = 36; // 각 레이어당 추가 높이
+  const dynamicHeight = Math.max(baseHeight, baseHeight + (maxLayers * layerHeight));
+
+  // 시연 연결 바들의 총 높이 (발주 일정 위치 조정용)
+  const demoBarsTotalHeight = maxLayers > 0 ? maxLayers * layerHeight : 0;
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(selectedDate?.getTime() === date.getTime() ? null : date);
@@ -62,7 +86,17 @@ const WeekView: React.FC<WeekViewProps> = ({
       </div>
 
       {/* 날짜별 이벤트 그리드 */}
-      <div className="grid grid-cols-7 min-h-[200px]">
+      <div
+        className="relative grid grid-cols-7"
+        style={{ minHeight: `${dynamicHeight}px` }}
+      >
+        {/* 시연 연결 바들 */}
+        <WeekDemoSpanBars
+          demos={multiDayDemos}
+          weekDays={weekInfo.days}
+          onDemoClick={handleEventClick}
+        />
+
         {weekInfo.days.map((date, index) => {
           const dayEvents = getEventsForDate(date);
           const hasEvents = hasEventsOnDate(date);
@@ -79,31 +113,56 @@ const WeekView: React.FC<WeekViewProps> = ({
                 ${isWeekendDay ? 'bg-gray-25' : ''}
                 ${isTodayDate ? 'bg-blue-25' : ''}
                 ${isSelected ? 'bg-yellow-50 ring-2 ring-yellow-300' : ''}
-                min-h-[200px]
               `}
               onClick={() => handleDateClick(date)}
             >
               {/* 이벤트 표시 */}
-              <div className="space-y-1">
-                {dayEvents.slice(0, 3).map((event) => (
-                  <div
-                    key={event.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEventClick(event);
-                    }}
-                  >
-                    <EventItem
-                      event={event}
-                      isCompact
-                    />
-                  </div>
-                ))}
+              <div
+                className="space-y-1"
+                style={{ marginTop: `${demoBarsTotalHeight}px` }}
+              >
+                {dayEvents
+                  .filter(event => {
+                    // 여러 날짜에 걸친 시연은 개별 블럭에서 제외 (연결 바로 표시됨)
+                    if (event.type === 'demo') {
+                      const demoDetails = event.details as DemoEventDetails;
+                      return !demoDetails.spanInfo || demoDetails.spanInfo.totalDays <= 1;
+                    }
+                    return true;
+                  })
+                  .slice(0, 3)
+                  .map((event) => (
+                    <div
+                      key={event.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEventClick(event);
+                      }}
+                    >
+                      <EventItem
+                        event={event}
+                        isCompact
+                      />
+                    </div>
+                  ))}
 
                 {/* 더 많은 이벤트가 있는 경우 */}
-                {dayEvents.length > 3 && (
+                {dayEvents.filter(event => {
+                  // 여러 날짜에 걸친 시연 제외한 이벤트 수 계산
+                  if (event.type === 'demo') {
+                    const demoDetails = event.details as DemoEventDetails;
+                    return !demoDetails.spanInfo || demoDetails.spanInfo.totalDays <= 1;
+                  }
+                  return true;
+                }).length > 3 && (
                   <div className="text-xs text-gray-500 p-1 text-center">
-                    +{dayEvents.length - 3}개 더
+                    +{dayEvents.filter(event => {
+                      if (event.type === 'demo') {
+                        const demoDetails = event.details as DemoEventDetails;
+                        return !demoDetails.spanInfo || demoDetails.spanInfo.totalDays <= 1;
+                      }
+                      return true;
+                    }).length - 3}개 더
                   </div>
                 )}
 

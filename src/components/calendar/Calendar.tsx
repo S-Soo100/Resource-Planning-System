@@ -1,12 +1,18 @@
 "use client";
 import React, { useState } from 'react';
 import { useWeekNavigation } from '@/hooks/calendar/useWeekNavigation';
+import { useMonthNavigation } from '@/hooks/calendar/useMonthNavigation';
 import { useCalendarData } from '@/hooks/calendar/useCalendarData';
-import { CalendarEvent, OrderEventDetails, DemoEventDetails } from '@/types/calendar/calendar';
+import { useMonthData } from '@/hooks/calendar/useMonthData';
+import { CalendarEvent, OrderEventDetails, DemoEventDetails, ViewMode } from '@/types/calendar/calendar';
 import { formatDateTimeToKorean } from '@/utils/calendar/calendarUtils';
+import ViewModeToggle from './ViewModeToggle';
 import CalendarNavigation from './CalendarNavigation';
+import MonthNavigation from './MonthNavigation';
 import WeekView from './WeekView';
 import MobileWeekView from './MobileWeekView';
+import MonthView from './MonthView';
+import MobileMonthView from './MobileMonthView';
 import WeeklyMemo from './WeeklyMemo';
 import EventItem from './EventItem';
 import { FaSpinner, FaExclamationCircle } from 'react-icons/fa';
@@ -93,18 +99,32 @@ const EventDetailModal: React.FC<{
 
 const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
 
-  // 주 네비게이션 훅
+  // 주간 네비게이션 훅
   const {
     currentWeek,
     goToPreviousWeek,
     goToNextWeek,
-    goToToday,
+    goToToday: goToTodayWeek,
     isCurrentWeek,
   } = useWeekNavigation();
 
+  // 월간 네비게이션 훅
+  const {
+    currentMonth,
+    goToPreviousMonth,
+    goToNextMonth,
+    goToToday: goToTodayMonth,
+    isCurrentMonth,
+  } = useMonthNavigation();
+
   // 캘린더 데이터 조회
-  const { data, isLoading, error } = useCalendarData(currentWeek);
+  const weekData = useCalendarData(currentWeek);
+  const monthData = useMonthData(currentMonth);
+
+  // 현재 뷰 모드에 따른 데이터 선택
+  const { data, isLoading, error } = viewMode === 'week' ? weekData : monthData;
 
   // 이벤트 클릭 핸들러
   const handleEventClick = (event: CalendarEvent) => {
@@ -114,6 +134,20 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   // 모달 닫기 핸들러
   const handleCloseModal = () => {
     setSelectedEvent(null);
+  };
+
+  // 뷰 모드 변경 핸들러
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+  };
+
+  // 오늘로 가기 핸들러 (현재 뷰 모드에 따라)
+  const handleGoToToday = () => {
+    if (viewMode === 'week') {
+      goToTodayWeek();
+    } else {
+      goToTodayMonth();
+    }
   };
 
   // 로딩 상태
@@ -143,14 +177,32 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
 
   return (
     <div className={`space-y-6 ${className}`}>
+      {/* 뷰 모드 토글 */}
+      <div className="flex justify-center">
+        <ViewModeToggle
+          viewMode={viewMode}
+          onViewModeChange={handleViewModeChange}
+        />
+      </div>
+
       {/* 네비게이션 */}
-      <CalendarNavigation
-        weekInfo={currentWeek}
-        onPreviousWeek={goToPreviousWeek}
-        onNextWeek={goToNextWeek}
-        onToday={goToToday}
-        isCurrentWeek={isCurrentWeek}
-      />
+      {viewMode === 'week' ? (
+        <CalendarNavigation
+          weekInfo={currentWeek}
+          onPreviousWeek={goToPreviousWeek}
+          onNextWeek={goToNextWeek}
+          onToday={handleGoToToday}
+          isCurrentWeek={isCurrentWeek}
+        />
+      ) : (
+        <MonthNavigation
+          monthInfo={currentMonth}
+          onPreviousMonth={goToPreviousMonth}
+          onNextMonth={goToNextMonth}
+          onToday={handleGoToToday}
+          isCurrentMonth={isCurrentMonth}
+        />
+      )}
 
       {/* 색상 범례 - 반응형 */}
       <div className="flex justify-center gap-4 md:gap-8 mb-4">
@@ -164,29 +216,55 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
         </div>
       </div>
 
-      {/* 주별 캘린더 뷰 - 반응형 */}
-      {/* 데스크톱 뷰 (md 이상) */}
-      <div className="hidden md:block">
-        <WeekView
-          weekInfo={currentWeek}
-          events={data?.events || []}
-          onEventClick={handleEventClick}
-        />
-      </div>
+      {/* 캘린더 뷰 - 뷰 모드에 따라 조건부 렌더링 */}
+      {viewMode === 'week' ? (
+        <>
+          {/* 주간 뷰 - 반응형 */}
+          {/* 데스크톱 뷰 (md 이상) */}
+          <div className="hidden md:block">
+            <WeekView
+              weekInfo={currentWeek}
+              events={data?.events || []}
+              onEventClick={handleEventClick}
+            />
+          </div>
 
-      {/* 모바일 뷰 (md 미만) */}
-      <div className="block md:hidden">
-        <MobileWeekView
-          weekInfo={currentWeek}
-          events={data?.events || []}
-          onEventClick={handleEventClick}
-        />
-      </div>
+          {/* 모바일 뷰 (md 미만) */}
+          <div className="block md:hidden">
+            <MobileWeekView
+              weekInfo={currentWeek}
+              events={data?.events || []}
+              onEventClick={handleEventClick}
+            />
+          </div>
 
-      {/* 주별 메모 */}
-      <WeeklyMemo
-        weekInfo={currentWeek}
-      />
+          {/* 주별 메모 */}
+          <WeeklyMemo
+            weekInfo={currentWeek}
+          />
+        </>
+      ) : (
+        <>
+          {/* 월간 뷰 - 반응형 */}
+          {/* 데스크톱 뷰 (md 이상) */}
+          <div className="hidden md:block">
+            <MonthView
+              monthInfo={currentMonth}
+              events={data?.events || []}
+              onEventClick={handleEventClick}
+            />
+          </div>
+
+          {/* 모바일 뷰 (md 미만) */}
+          <div className="block md:hidden">
+            <MobileMonthView
+              monthInfo={currentMonth}
+              events={data?.events || []}
+              onEventClick={handleEventClick}
+            />
+          </div>
+        </>
+      )}
 
       {/* 이벤트 상세 모달 */}
       <EventDetailModal

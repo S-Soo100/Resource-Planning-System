@@ -126,7 +126,7 @@ const EventItem: React.FC<EventItemProps> = ({
           <div>
             <p><strong>담당자:</strong> {(event.details as DemoEventDetails).demoManager}</p>
             <p><strong>시연지:</strong> {(event.details as DemoEventDetails).demoAddress}</p>
-            <p><strong>시작일:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoStartDate, (event.details as DemoEventDetails).demoStartTime, (event.details as DemoEventDetails).demoStartDeliveryMethod)}</p>
+            <p><strong>물품 상차 일시:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoStartDate, (event.details as DemoEventDetails).demoStartTime, (event.details as DemoEventDetails).demoStartDeliveryMethod)}</p>
           </div>
         )}
       </div>

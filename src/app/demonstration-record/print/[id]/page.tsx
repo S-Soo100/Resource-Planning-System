@@ -472,7 +472,7 @@ const DemoRecordPrint = () => {
                 </span>
               </div>
               <div className="print-info-row">
-                <span className="print-info-label">날짜 및 시간:</span>
+                <span className="print-info-label">물품 상차 시간:</span>
                 <span className="print-info-value">
                   {demo.demoStartDate ? formatDateTimeToKorean(demo.demoStartDate, demo.demoStartTime, demo.demoStartDeliveryMethod) : "-"}
                 </span>
@@ -487,7 +487,7 @@ const DemoRecordPrint = () => {
                 </span>
               </div>
               <div className="print-info-row">
-                <span className="print-info-label">날짜 및 시간:</span>
+                <span className="print-info-label">물품 하차 시간:</span>
                 <span className="print-info-value">
                   {demo.demoEndDate ? formatDateTimeToKorean(demo.demoEndDate, demo.demoEndTime, demo.demoEndDeliveryMethod) : "-"}
                 </span>

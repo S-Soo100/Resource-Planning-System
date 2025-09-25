@@ -23,23 +23,6 @@ export interface OrderEventDetails {
   warehouseName: string;
 }
 
-// 시연 이벤트 세부 정보
-export interface DemoEventDetails {
-  id: number;
-  demoTitle: string;
-  requester: string;
-  demoManager: string;
-  demoManagerPhone: string;
-  demoAddress: string;
-  demoStartDate: string; // 시연 시작일
-  demoStartTime: string;
-  demoEndDate: string;
-  demoEndTime: string;
-  demoStartDeliveryMethod: string; // 상차 방법
-  demoEndDeliveryMethod: string; // 하차 방법
-  demoStatus: string;
-  warehouseName: string;
-}
 
 // 이벤트 상세 정보 유니온 타입
 export type EventDetails = OrderEventDetails | DemoEventDetails;
@@ -83,6 +66,49 @@ export const EVENT_COLORS = {
     dot: 'bg-purple-500',
   },
 } as const;
+
+// 월 정보 타입
+export interface MonthInfo {
+  year: number;
+  month: number; // 1-12
+  monthKey: string; // 'YYYY-MM' 형식
+  startDate: Date; // 월의 첫날
+  endDate: Date; // 월의 마지막날
+  calendarStartDate: Date; // 캘린더 표시 시작일 (이전 월 일부 포함)
+  calendarEndDate: Date; // 캘린더 표시 종료일 (다음 월 일부 포함)
+  weeks: Date[][]; // 주별로 구성된 날짜 배열 (6주 x 7일)
+}
+
+// 뷰 모드 타입
+export type ViewMode = 'week' | 'month';
+
+// 시연 기간 정보 타입
+export interface DemoSpanInfo {
+  totalDays: number; // 총 기간 (일수)
+  dayIndex: number; // 현재 날짜가 시연의 몇 번째 날인지 (0부터 시작)
+  isStart: boolean; // 시연 시작일 여부
+  isEnd: boolean; // 시연 종료일 여부
+  isMiddle: boolean; // 시연 진행중 여부
+}
+
+// 시연 이벤트 세부 정보 확장
+export interface DemoEventDetails {
+  id: number;
+  demoTitle: string;
+  requester: string;
+  demoManager: string;
+  demoManagerPhone: string;
+  demoAddress: string;
+  demoStartDate: string; // 시연 시작일
+  demoStartTime: string;
+  demoEndDate: string;
+  demoEndTime: string;
+  demoStartDeliveryMethod: string; // 상차 방법
+  demoEndDeliveryMethod: string; // 하차 방법
+  demoStatus: string;
+  warehouseName: string;
+  spanInfo?: DemoSpanInfo; // 시연 기간 정보 (동적으로 계산됨)
+}
 
 // 이벤트 상태별 표시 텍스트
 export const EVENT_STATUS_TEXT = {

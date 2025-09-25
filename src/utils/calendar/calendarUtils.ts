@@ -1,4 +1,4 @@
-import { WeekInfo } from '@/types/calendar/calendar';
+import { WeekInfo, MonthInfo } from '@/types/calendar/calendar';
 
 /**
  * 주어진 날짜의 주 정보를 반환합니다
@@ -211,4 +211,110 @@ export function formatDateTimeToKorean(dateString: string, timeString?: string, 
  */
 export function formatDateToKorean(dateString: string): string {
   return formatDateTimeToKorean(dateString);
+}
+
+/**
+ * 주어진 날짜의 월 정보를 반환합니다
+ * @param date 기준 날짜
+ * @returns MonthInfo 객체
+ */
+export function getMonthInfo(date: Date): MonthInfo {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 0-11을 1-12로 변환
+
+  // 해당 월의 첫날과 마지막날
+  const startDate = new Date(year, date.getMonth(), 1);
+  const endDate = new Date(year, date.getMonth() + 1, 0); // 다음 달 0일 = 이번 달 마지막날
+
+  // 캘린더 표시를 위한 시작일과 종료일 (이전 월과 다음 월 일부 포함)
+  const calendarStartDate = new Date(startDate);
+  const startDayOfWeek = startDate.getDay(); // 0: 일요일, 1: 월요일, ...
+  const mondayOffset = startDayOfWeek === 0 ? -6 : 1 - startDayOfWeek; // 월요일까지의 차이
+  calendarStartDate.setDate(startDate.getDate() + mondayOffset);
+
+  const calendarEndDate = new Date(endDate);
+  const endDayOfWeek = endDate.getDay();
+  const sundayOffset = endDayOfWeek === 0 ? 0 : 7 - endDayOfWeek; // 일요일까지의 차이
+  calendarEndDate.setDate(endDate.getDate() + sundayOffset);
+
+  // 주별로 구성된 날짜 배열 생성 (6주 x 7일)
+  const weeks: Date[][] = [];
+  const currentDate = new Date(calendarStartDate);
+
+  for (let week = 0; week < 6; week++) {
+    const weekDays: Date[] = [];
+    for (let day = 0; day < 7; day++) {
+      weekDays.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    weeks.push(weekDays);
+  }
+
+  const monthKey = `${year}-${month.toString().padStart(2, '0')}`;
+
+  return {
+    year,
+    month,
+    monthKey,
+    startDate,
+    endDate,
+    calendarStartDate,
+    calendarEndDate,
+    weeks,
+  };
+}
+
+/**
+ * 이전 월의 MonthInfo를 반환합니다
+ * @param currentMonthInfo 현재 월 정보
+ * @returns 이전 월의 MonthInfo
+ */
+export function getPreviousMonth(currentMonthInfo: MonthInfo): MonthInfo {
+  const previousMonthDate = new Date(currentMonthInfo.year, currentMonthInfo.month - 2, 1);
+  return getMonthInfo(previousMonthDate);
+}
+
+/**
+ * 다음 월의 MonthInfo를 반환합니다
+ * @param currentMonthInfo 현재 월 정보
+ * @returns 다음 월의 MonthInfo
+ */
+export function getNextMonth(currentMonthInfo: MonthInfo): MonthInfo {
+  const nextMonthDate = new Date(currentMonthInfo.year, currentMonthInfo.month, 1);
+  return getMonthInfo(nextMonthDate);
+}
+
+/**
+ * 월 제목을 생성합니다 (예: "2025년 1월")
+ * @param monthInfo 월 정보
+ * @returns 월 제목 문자열
+ */
+export function getMonthTitle(monthInfo: MonthInfo): string {
+  return `${monthInfo.year}년 ${monthInfo.month}월`;
+}
+
+/**
+ * 주어진 날짜가 현재 월에 속하는지 확인합니다
+ * @param date 확인할 날짜
+ * @param monthInfo 월 정보
+ * @returns 현재 월에 속하면 true, 아니면 false
+ */
+export function isCurrentMonth(date: Date, monthInfo: MonthInfo): boolean {
+  return (
+    date.getFullYear() === monthInfo.year &&
+    date.getMonth() + 1 === monthInfo.month
+  );
+}
+
+/**
+ * 주어진 날짜가 오늘이 포함된 월인지 확인합니다
+ * @param monthInfo 월 정보
+ * @returns 오늘이 포함된 월이면 true, 아니면 false
+ */
+export function isThisMonth(monthInfo: MonthInfo): boolean {
+  const today = new Date();
+  return (
+    today.getFullYear() === monthInfo.year &&
+    today.getMonth() + 1 === monthInfo.month
+  );
 }

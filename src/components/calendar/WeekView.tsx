@@ -4,7 +4,7 @@ import { WeekInfo, CalendarEvent, DemoEventDetails } from '@/types/calendar/cale
 import { useCalendarEvents } from '@/hooks/calendar/useCalendarEvents';
 import { getDayName, isToday, isWeekend } from '@/utils/calendar/calendarUtils';
 import EventItem, { EventDot } from './EventItem';
-import { WeekDemoSpanBars } from './DemoSpanBar';
+import { WeekDemoSpanBars, calculateWeekMaxLayers } from './DemoSpanBar';
 
 interface WeekViewProps {
   weekInfo: WeekInfo;
@@ -31,13 +31,8 @@ const WeekView: React.FC<WeekViewProps> = ({
     return demoDetails.spanInfo && demoDetails.spanInfo.totalDays > 1;
   });
 
-  // 최대 레이어 개수 계산 (높이 조정용)
-  const calculateMaxLayers = (demos: (CalendarEvent & { type: 'demo' })[]) => {
-    if (demos.length === 0) return 0;
-    return Math.min(demos.length, 4); // 최대 4개 레이어로 제한
-  };
-
-  const maxLayers = calculateMaxLayers(multiDayDemos);
+  // 정확한 최대 레이어 개수 계산
+  const maxLayers = calculateWeekMaxLayers(multiDayDemos, weekInfo.days);
   const baseHeight = 200; // 기본 높이 (px)
   const layerHeight = 36; // 각 레이어당 추가 높이
   const dynamicHeight = Math.max(baseHeight, baseHeight + (maxLayers * layerHeight));

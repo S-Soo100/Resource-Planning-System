@@ -181,6 +181,88 @@ const assignLayers = (barInfos: DemoBarInfo[]): Map<number, number> => {
   return layerMap;
 };
 
+// 월간 뷰용 정확한 레이어 개수 계산 (외부에서 사용 가능)
+export const calculateMonthMaxLayers = (
+  demos: (CalendarEvent & { type: 'demo' })[],
+  monthWeeks: Date[][]
+): number => {
+  if (demos.length === 0) return 0;
+
+  const allDates = monthWeeks.flat();
+  const demoGroups = new Map<number, (CalendarEvent & { type: 'demo' })[]>();
+
+  demos.forEach(demo => {
+    const demoDetails = demo.details as DemoEventDetails;
+    if (!demoGroups.has(demoDetails.id)) {
+      demoGroups.set(demoDetails.id, []);
+    }
+    demoGroups.get(demoDetails.id)!.push(demo);
+  });
+
+  const barInfos: DemoBarInfo[] = Array.from(demoGroups.entries()).map(([demoId, demoEvents]) => {
+    const dateIndices = demoEvents.map(event => {
+      const eventDateStr = event.date.split('T')[0];
+      const eventDate = new Date(eventDateStr);
+      return allDates.findIndex(date =>
+        date.getFullYear() === eventDate.getFullYear() &&
+        date.getMonth() === eventDate.getMonth() &&
+        date.getDate() === eventDate.getDate()
+      );
+    }).filter(index => index !== -1).sort((a, b) => a - b);
+
+    if (dateIndices.length === 0) return null;
+
+    const startIndex = dateIndices[0];
+    const endIndex = dateIndices[dateIndices.length - 1];
+    const startWeek = Math.floor(startIndex / 7);
+    const startDay = startIndex % 7;
+    const endWeek = Math.floor(endIndex / 7);
+    const endDay = endIndex % 7;
+
+    const weekSpans = [];
+    if (startWeek === endWeek) {
+      weekSpans.push({
+        week: startWeek,
+        startCol: startDay + 1,
+        endCol: endDay + 1
+      });
+    } else {
+      weekSpans.push({
+        week: startWeek,
+        startCol: startDay + 1,
+        endCol: 7
+      });
+      for (let week = startWeek + 1; week < endWeek; week++) {
+        weekSpans.push({
+          week: week,
+          startCol: 1,
+          endCol: 7
+        });
+      }
+      weekSpans.push({
+        week: endWeek,
+        startCol: 1,
+        endCol: endDay + 1
+      });
+    }
+
+    return {
+      demoId,
+      demoEvents,
+      startIndex,
+      endIndex,
+      startWeek,
+      startDay,
+      endWeek,
+      endDay,
+      weekSpans
+    };
+  }).filter(Boolean) as DemoBarInfo[];
+
+  const layerMap = assignLayers(barInfos);
+  return layerMap.size > 0 ? Math.max(...layerMap.values()) + 1 : 0;
+};
+
 export const MonthDemoSpanBars: React.FC<MonthDemoSpanBarsProps> = ({
   demos,
   monthWeeks,
@@ -347,6 +429,59 @@ const assignWeekLayers = (barInfos: WeekBarInfo[]): Map<number, number> => {
   });
 
   return layerMap;
+};
+
+// 주간 뷰용 정확한 레이어 개수 계산 (외부에서 사용 가능)
+export const calculateWeekMaxLayers = (
+  demos: (CalendarEvent & { type: 'demo' })[],
+  weekDays: Date[]
+): number => {
+  if (demos.length === 0) return 0;
+
+  const demoGroups = new Map<number, (CalendarEvent & { type: 'demo' })[]>();
+
+  demos.forEach(demo => {
+    const demoDetails = demo.details as DemoEventDetails;
+    if (!demoGroups.has(demoDetails.id)) {
+      demoGroups.set(demoDetails.id, []);
+    }
+    demoGroups.get(demoDetails.id)!.push(demo);
+  });
+
+  const barInfos: WeekBarInfo[] = Array.from(demoGroups.entries()).map(([demoId, demoEvents]) => {
+    const dates = demoEvents.map(event => event.date.split('T')[0]);
+    const startDate = Math.min(...dates.map(dateStr => {
+      const targetDate = new Date(dateStr);
+      return weekDays.findIndex(day =>
+        day.getFullYear() === targetDate.getFullYear() &&
+        day.getMonth() === targetDate.getMonth() &&
+        day.getDate() === targetDate.getDate()
+      );
+    }).filter(index => index !== -1));
+
+    const endDate = Math.max(...dates.map(dateStr => {
+      const targetDate = new Date(dateStr);
+      return weekDays.findIndex(day =>
+        day.getFullYear() === targetDate.getFullYear() &&
+        day.getMonth() === targetDate.getMonth() &&
+        day.getDate() === targetDate.getDate()
+      );
+    }).filter(index => index !== -1));
+
+    if (startDate === -1 || endDate === -1) {
+      return null;
+    }
+
+    return {
+      demoId,
+      demoEvents,
+      startCol: startDate + 1,
+      endCol: endDate + 1
+    };
+  }).filter(Boolean) as WeekBarInfo[];
+
+  const layerMap = assignWeekLayers(barInfos);
+  return layerMap.size > 0 ? Math.max(...layerMap.values()) + 1 : 0;
 };
 
 export const WeekDemoSpanBars: React.FC<WeekDemoSpanBarsProps> = ({

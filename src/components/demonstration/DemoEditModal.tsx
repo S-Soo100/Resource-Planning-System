@@ -37,7 +37,6 @@ import { getDisplayFileName, formatFileSize } from "@/utils/fileUtils";
 import {
   getTodayString,
   convertToUTC9,
-  formatDateForServer,
   normalizeDateForDisplay,
   normalizeTimeForDisplay,
   isValidDateString
@@ -653,25 +652,19 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
         },
       });
 
-      // UTC 기반 날짜 처리로 시간대 변환 오류 방지
-      const formatDateForServerUTC = (dateString: string) => {
-        const serverDate = formatDateForServer(dateString);
-        return serverDate ? `${serverDate}T00:00:00.000Z` : undefined;
-      };
-
       const submitData: PatchDemoRequest = {
         ...formData,
         demoPaymentDate:
           formData.demoPaymentDate && formData.demoPaymentDate.trim() !== ""
-            ? formatDateForServerUTC(formData.demoPaymentDate)
+            ? formData.demoPaymentDate
             : undefined,
         demoStartDate:
           formData.demoStartDate && formData.demoStartDate.trim() !== ""
-            ? formatDateForServerUTC(formData.demoStartDate)
+            ? formData.demoStartDate
             : undefined,
         demoEndDate:
           formData.demoEndDate && formData.demoEndDate.trim() !== ""
-            ? formatDateForServerUTC(formData.demoEndDate)
+            ? formData.demoEndDate
             : undefined,
         demoStartTime:
           formData.demoStartTime && formData.demoStartTime.trim() !== ""

@@ -67,6 +67,90 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8 mx-auto max-w-4xl">
         <div className="space-y-8">
+          {/* v1.8.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.8.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-10-01
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 추가됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("추가됨")}
+                    <span className="ml-2">추가됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>캘린더 시연 이벤트 시각화 개선</strong>: 여러 날에 걸친 시연을 직관적으로 표시
+                      </h4>
+                      <ul className="space-y-1 text-sm text-green-800 list-disc list-inside">
+                        <li>시연 ID별 8단계 색상 팔레트 적용 (보라색 계열: purple, violet, fuchsia, indigo)</li>
+                        <li>시연 상태를 작은 뱃지로 표시 (요청, 승인, 출준, 출완, 종료, 반려)</li>
+                        <li>시연 블럭이 날짜 셀의 전체 너비를 차지하도록 개선</li>
+                        <li>여러 시연이 겹칠 때 레이어 기반 배치로 충돌 방지</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>시연 기간 표시 정확도 향상</strong>: 시연 시작일부터 종료일까지 모든 날짜에 이벤트 표시
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800 list-disc list-inside">
+                        <li>예시: 10월 2일 17시 상차 ~ 10월 5일 21시 하차 → 10월 2일~5일 (4일간) 정확 표시</li>
+                        <li>주간/월간 캘린더 모두에서 일관된 표시</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 수정됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("수정됨")}
+                    <span className="ml-2">수정됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <h4 className="mb-2 font-medium text-red-900">
+                        <strong>시연 막대 연속성 개선</strong>: 중간 블럭의 좌우 테두리 제거로 하나의 연속된 막대처럼 표시
+                      </h4>
+                      <ul className="space-y-1 text-sm text-red-800 list-disc list-inside">
+                        <li>시작일: 좌/위/아래 테두리만 표시</li>
+                        <li>중간일: 위/아래 테두리만 표시</li>
+                        <li>종료일: 우/위/아래 테두리만 표시</li>
+                        <li>주의 경계에서도 자연스럽게 연결되도록 둥근 모서리 적용</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.7.0 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +159,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.7.0
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

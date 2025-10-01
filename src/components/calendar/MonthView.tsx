@@ -112,24 +112,26 @@ const MonthView: React.FC<MonthViewProps> = ({
                   ${isTodayDate ? 'bg-blue-25' : ''}
                   ${!isCurrentMonthDate ? 'bg-gray-100 opacity-50' : ''}
                   ${isSelected ? 'bg-yellow-50 ring-2 ring-yellow-300' : ''}
-                  relative
+                  relative flex flex-col
                 `}
                 onClick={() => handleDateClick(date)}
               >
-                {/* 날짜 표시 */}
+                {/* 날짜 표시 - z-index를 높여서 항상 위에 표시 */}
                 <div className={`
-                  text-sm font-medium mb-1
+                  text-sm font-medium mb-1 relative z-20 bg-inherit px-1
                   ${!isCurrentMonthDate ? 'text-gray-400' : isWeekendDay ? 'text-red-600' : 'text-gray-700'}
                   ${isTodayDate ? 'text-blue-600 font-bold' : ''}
                 `}>
                   {date.getDate()}
                 </div>
 
+                {/* 시연 연결 바를 위한 공간 확보 */}
+                {demoBarsTotalHeight > 0 && (
+                  <div style={{ height: `${demoBarsTotalHeight}px` }} className="flex-shrink-0" />
+                )}
+
                 {/* 이벤트 표시 */}
-                <div
-                  className="space-y-1"
-                  style={{ marginTop: `${demoBarsTotalHeight}px` }}
-                >
+                <div className="space-y-1 flex-1">
                   {dayEvents
                     .filter(event => {
                       // 여러 날짜에 걸친 시연은 개별 블럭에서 제외 (연결 바로 표시됨)

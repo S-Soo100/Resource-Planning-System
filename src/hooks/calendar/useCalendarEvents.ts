@@ -12,9 +12,8 @@ export function useCalendarEvents(events: CalendarEvent[]) {
 
     events.forEach((event) => {
       // ISO 날짜를 YYYY-MM-DD 형식으로 정규화
-      // UTC 시간대를 로컬 시간대로 변환하여 정확한 날짜 추출
-      const eventDate = new Date(event.date);
-      const normalizedDate = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, '0')}-${String(eventDate.getDate()).padStart(2, '0')}`;
+      // 시간대 이슈를 피하기 위해 문자열에서 직접 날짜 부분만 추출
+      const normalizedDate = event.date.split('T')[0]; // "2025-10-17T00:00:00" → "2025-10-17"
 
       if (!grouped[normalizedDate]) {
         grouped[normalizedDate] = [];

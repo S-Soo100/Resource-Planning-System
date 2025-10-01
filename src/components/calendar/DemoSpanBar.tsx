@@ -3,6 +3,23 @@ import React from 'react';
 import { DemoEventDetails, CalendarEvent } from '@/types/calendar/calendar';
 import { FaTheaterMasks } from 'react-icons/fa';
 
+/**
+ * Date 객체를 YYYY-MM-DD 문자열로 변환
+ */
+const dateToString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * 두 날짜가 같은지 비교 (문자열 기반)
+ */
+const isSameDate = (date: Date, dateStr: string): boolean => {
+  return dateToString(date) === dateStr.split('T')[0];
+};
+
 interface DemoSpanBarProps {
   demo: CalendarEvent & { type: 'demo' };
   startColumn: number; // 그리드에서 시작 열 (1-based)
@@ -110,23 +127,10 @@ const DemoSpanBar: React.FC<DemoSpanBarProps> = ({
   );
 };
 
-// 월간 뷰용 시연 연결 바 컨테이너
-interface MonthDemoSpanBarsProps {
-  demos: (CalendarEvent & { type: 'demo' })[];
-  monthWeeks: Date[][]; // 6주 x 7일 배열
-  onDemoClick?: (demo: CalendarEvent) => void;
-}
-
 // 시연 바 정보 타입
 interface DemoBarInfo {
   demoId: number;
-  demoEvents: (CalendarEvent & { type: 'demo' })[];
-  startIndex: number;
-  endIndex: number;
-  startWeek: number;
-  startDay: number;
-  endWeek: number;
-  endDay: number;
+  demo: CalendarEvent & { type: 'demo' };
   weekSpans: Array<{
     week: number;
     startCol: number;
@@ -136,11 +140,9 @@ interface DemoBarInfo {
 
 // 두 시연 바가 겹치는지 확인
 const doBarsOverlap = (bar1: DemoBarInfo, bar2: DemoBarInfo): boolean => {
-  // 같은 주에서 겹치는지 확인
   for (const span1 of bar1.weekSpans) {
     for (const span2 of bar2.weekSpans) {
       if (span1.week === span2.week) {
-        // 같은 주에서 열이 겹치는지 확인
         if (!(span1.endCol < span2.startCol || span2.endCol < span1.startCol)) {
           return true;
         }
@@ -158,7 +160,6 @@ const assignLayers = (barInfos: DemoBarInfo[]): Map<number, number> => {
   barInfos.forEach(barInfo => {
     let layerIndex = 0;
 
-    // 기존 레이어들과 겹치지 않는 레이어 찾기
     while (layerIndex < layers.length) {
       const hasOverlap = layers[layerIndex].some(existingBar =>
         doBarsOverlap(barInfo, existingBar)
@@ -170,7 +171,6 @@ const assignLayers = (barInfos: DemoBarInfo[]): Map<number, number> => {
       layerIndex++;
     }
 
-    // 새 레이어가 필요한 경우
     if (layerIndex >= layers.length) {
       layers.push([]);
     }
@@ -182,99 +182,28 @@ const assignLayers = (barInfos: DemoBarInfo[]): Map<number, number> => {
   return layerMap;
 };
 
-// 월간 뷰용 정확한 레이어 개수 계산 (외부에서 사용 가능)
+// 월간 뷰용 시연 연결 바 컨테이너
+interface MonthDemoSpanBarsProps {
+  demos: (CalendarEvent & { type: 'demo' })[];
+  monthWeeks: Date[][]; // 6주 x 7일 배열
+  onDemoClick?: (demo: CalendarEvent) => void;
+}
+
+// 월간 뷰용 정확한 레이어 개수 계산
 export const calculateMonthMaxLayers = (
   demos: (CalendarEvent & { type: 'demo' })[],
   monthWeeks: Date[][]
 ): number => {
   if (demos.length === 0) return 0;
 
-  const allDates = monthWeeks.flat();
-  const demoGroups = new Map<number, (CalendarEvent & { type: 'demo' })[]>();
-
-  demos.forEach(demo => {
-    const demoDetails = demo.details as DemoEventDetails;
-    if (!demoGroups.has(demoDetails.id)) {
-      demoGroups.set(demoDetails.id, []);
-    }
-    demoGroups.get(demoDetails.id)!.push(demo);
+  // 날짜 → 인덱스 맵 생성 (YYYY-MM-DD → 인덱스)
+  const dateMap = new Map<string, number>();
+  monthWeeks.flat().forEach((date, index) => {
+    dateMap.set(dateToString(date), index);
   });
-
-  const barInfos: DemoBarInfo[] = Array.from(demoGroups.entries()).map(([demoId, demoEvents]) => {
-    const dateIndices = demoEvents.map(event => {
-      const eventDateStr = event.date.split('T')[0];
-      const eventDate = new Date(eventDateStr);
-      return allDates.findIndex(date =>
-        date.getFullYear() === eventDate.getFullYear() &&
-        date.getMonth() === eventDate.getMonth() &&
-        date.getDate() === eventDate.getDate()
-      );
-    }).filter(index => index !== -1).sort((a, b) => a - b);
-
-    if (dateIndices.length === 0) return null;
-
-    const startIndex = dateIndices[0];
-    const endIndex = dateIndices[dateIndices.length - 1];
-    const startWeek = Math.floor(startIndex / 7);
-    const startDay = startIndex % 7;
-    const endWeek = Math.floor(endIndex / 7);
-    const endDay = endIndex % 7;
-
-    const weekSpans = [];
-    if (startWeek === endWeek) {
-      weekSpans.push({
-        week: startWeek,
-        startCol: startDay + 1,
-        endCol: endDay + 1
-      });
-    } else {
-      weekSpans.push({
-        week: startWeek,
-        startCol: startDay + 1,
-        endCol: 7
-      });
-      for (let week = startWeek + 1; week < endWeek; week++) {
-        weekSpans.push({
-          week: week,
-          startCol: 1,
-          endCol: 7
-        });
-      }
-      weekSpans.push({
-        week: endWeek,
-        startCol: 1,
-        endCol: endDay + 1
-      });
-    }
-
-    return {
-      demoId,
-      demoEvents,
-      startIndex,
-      endIndex,
-      startWeek,
-      startDay,
-      endWeek,
-      endDay,
-      weekSpans
-    };
-  }).filter(Boolean) as DemoBarInfo[];
-
-  const layerMap = assignLayers(barInfos);
-  return layerMap.size > 0 ? Math.max(...layerMap.values()) + 1 : 0;
-};
-
-export const MonthDemoSpanBars: React.FC<MonthDemoSpanBarsProps> = ({
-  demos,
-  monthWeeks,
-  onDemoClick,
-}) => {
-  // 모든 날짜를 1차원 배열로 변환 (주 순서대로)
-  const allDates = monthWeeks.flat();
 
   // 시연들을 ID별로 그룹화
   const demoGroups = new Map<number, (CalendarEvent & { type: 'demo' })[]>();
-
   demos.forEach(demo => {
     const demoDetails = demo.details as DemoEventDetails;
     if (!demoGroups.has(demoDetails.id)) {
@@ -283,21 +212,22 @@ export const MonthDemoSpanBars: React.FC<MonthDemoSpanBarsProps> = ({
     demoGroups.get(demoDetails.id)!.push(demo);
   });
 
-  // 각 시연의 바 정보 계산
-  const barInfos: DemoBarInfo[] = Array.from(demoGroups.entries()).map(([demoId, demoEvents]) => {
-    // 시연의 모든 날짜 인덱스 찾기
-    const dateIndices = demoEvents.map(event => {
+  const barInfos: DemoBarInfo[] = [];
+
+  demoGroups.forEach((demoEvents, demoId) => {
+    // 각 시연의 날짜들을 인덱스로 변환
+    const dateIndices: number[] = [];
+    demoEvents.forEach(event => {
       const eventDateStr = event.date.split('T')[0];
-      const eventDate = new Date(eventDateStr);
-      return allDates.findIndex(date =>
-        date.getFullYear() === eventDate.getFullYear() &&
-        date.getMonth() === eventDate.getMonth() &&
-        date.getDate() === eventDate.getDate()
-      );
-    }).filter(index => index !== -1).sort((a, b) => a - b);
+      const index = dateMap.get(eventDateStr);
+      if (index !== undefined) {
+        dateIndices.push(index);
+      }
+    });
 
-    if (dateIndices.length === 0) return null;
+    if (dateIndices.length === 0) return;
 
+    dateIndices.sort((a, b) => a - b);
     const startIndex = dateIndices[0];
     const endIndex = dateIndices[dateIndices.length - 1];
 
@@ -310,20 +240,17 @@ export const MonthDemoSpanBars: React.FC<MonthDemoSpanBarsProps> = ({
     // 각 주별 스팬 정보 계산
     const weekSpans = [];
     if (startWeek === endWeek) {
-      // 같은 주
       weekSpans.push({
         week: startWeek,
         startCol: startDay + 1,
         endCol: endDay + 1
       });
     } else {
-      // 첫 번째 주
       weekSpans.push({
         week: startWeek,
         startCol: startDay + 1,
         endCol: 7
       });
-      // 중간 주들
       for (let week = startWeek + 1; week < endWeek; week++) {
         weekSpans.push({
           week: week,
@@ -331,7 +258,6 @@ export const MonthDemoSpanBars: React.FC<MonthDemoSpanBarsProps> = ({
           endCol: 7
         });
       }
-      // 마지막 주
       weekSpans.push({
         week: endWeek,
         startCol: 1,
@@ -339,18 +265,95 @@ export const MonthDemoSpanBars: React.FC<MonthDemoSpanBarsProps> = ({
       });
     }
 
-    return {
+    barInfos.push({
       demoId,
-      demoEvents,
-      startIndex,
-      endIndex,
-      startWeek,
-      startDay,
-      endWeek,
-      endDay,
+      demo: demoEvents[0],
       weekSpans
-    };
-  }).filter(Boolean) as DemoBarInfo[];
+    });
+  });
+
+  const layerMap = assignLayers(barInfos);
+  return layerMap.size > 0 ? Math.max(...layerMap.values()) + 1 : 0;
+};
+
+export const MonthDemoSpanBars: React.FC<MonthDemoSpanBarsProps> = ({
+  demos,
+  monthWeeks,
+  onDemoClick,
+}) => {
+  // 날짜 → 인덱스 맵 생성
+  const dateMap = new Map<string, number>();
+  monthWeeks.flat().forEach((date, index) => {
+    dateMap.set(dateToString(date), index);
+  });
+
+  // 시연들을 ID별로 그룹화
+  const demoGroups = new Map<number, (CalendarEvent & { type: 'demo' })[]>();
+  demos.forEach(demo => {
+    const demoDetails = demo.details as DemoEventDetails;
+    if (!demoGroups.has(demoDetails.id)) {
+      demoGroups.set(demoDetails.id, []);
+    }
+    demoGroups.get(demoDetails.id)!.push(demo);
+  });
+
+  const barInfos: DemoBarInfo[] = [];
+
+  demoGroups.forEach((demoEvents, demoId) => {
+    // 각 시연의 날짜들을 인덱스로 변환
+    const dateIndices: number[] = [];
+    demoEvents.forEach(event => {
+      const eventDateStr = event.date.split('T')[0];
+      const index = dateMap.get(eventDateStr);
+      if (index !== undefined) {
+        dateIndices.push(index);
+      }
+    });
+
+    if (dateIndices.length === 0) return;
+
+    dateIndices.sort((a, b) => a - b);
+    const startIndex = dateIndices[0];
+    const endIndex = dateIndices[dateIndices.length - 1];
+
+    const startWeek = Math.floor(startIndex / 7);
+    const startDay = startIndex % 7;
+    const endWeek = Math.floor(endIndex / 7);
+    const endDay = endIndex % 7;
+
+    const weekSpans = [];
+    if (startWeek === endWeek) {
+      weekSpans.push({
+        week: startWeek,
+        startCol: startDay + 1,
+        endCol: endDay + 1
+      });
+    } else {
+      weekSpans.push({
+        week: startWeek,
+        startCol: startDay + 1,
+        endCol: 7
+      });
+      for (let week = startWeek + 1; week < endWeek; week++) {
+        weekSpans.push({
+          week: week,
+          startCol: 1,
+          endCol: 7
+        });
+      }
+      weekSpans.push({
+        week: endWeek,
+        startCol: 1,
+        endCol: endDay + 1
+      });
+    }
+
+    barInfos.push({
+      demoId,
+      demo: demoEvents[0],
+      weekSpans
+    });
+  });
 
   // 레이어 할당
   const layerMap = assignLayers(barInfos);
@@ -359,14 +362,13 @@ export const MonthDemoSpanBars: React.FC<MonthDemoSpanBarsProps> = ({
   const spanBars = barInfos.flatMap(barInfo => {
     const layerIndex = layerMap.get(barInfo.demoId) || 0;
 
-    // 각 주별 스팬에 대해 바 생성
     return barInfo.weekSpans.map(span => (
       <DemoSpanBar
         key={`${barInfo.demoId}-week-${span.week}`}
-        demo={barInfo.demoEvents[0]}
+        demo={barInfo.demo}
         startColumn={span.startCol}
         endColumn={span.endCol}
-        rowIndex={span.week + 1} // 헤더 다음 행부터
+        rowIndex={span.week}
         layerIndex={layerIndex}
         onDemoClick={onDemoClick}
       />
@@ -380,27 +382,24 @@ export const MonthDemoSpanBars: React.FC<MonthDemoSpanBarsProps> = ({
   );
 };
 
-// 주간 뷰용 시연 연결 바 컨테이너 (기존 유지)
+// 주간 뷰용 시연 연결 바 컨테이너
 interface WeekDemoSpanBarsProps {
   demos: (CalendarEvent & { type: 'demo' })[];
   weekDays: Date[];
   onDemoClick?: (demo: CalendarEvent) => void;
 }
 
-// 주간 뷰용 바 정보 타입
 interface WeekBarInfo {
   demoId: number;
-  demoEvents: (CalendarEvent & { type: 'demo' })[];
+  demo: CalendarEvent & { type: 'demo' };
   startCol: number;
   endCol: number;
 }
 
-// 주간 뷰에서 바 겹침 확인
 const doWeekBarsOverlap = (bar1: WeekBarInfo, bar2: WeekBarInfo): boolean => {
   return !(bar1.endCol < bar2.startCol || bar2.endCol < bar1.startCol);
 };
 
-// 주간 뷰용 레이어 할당
 const assignWeekLayers = (barInfos: WeekBarInfo[]): Map<number, number> => {
   const layerMap = new Map<number, number>();
   const layers: WeekBarInfo[][] = [];
@@ -408,7 +407,6 @@ const assignWeekLayers = (barInfos: WeekBarInfo[]): Map<number, number> => {
   barInfos.forEach(barInfo => {
     let layerIndex = 0;
 
-    // 기존 레이어들과 겹치지 않는 레이어 찾기
     while (layerIndex < layers.length) {
       const hasOverlap = layers[layerIndex].some(existingBar =>
         doWeekBarsOverlap(barInfo, existingBar)
@@ -420,7 +418,6 @@ const assignWeekLayers = (barInfos: WeekBarInfo[]): Map<number, number> => {
       layerIndex++;
     }
 
-    // 새 레이어가 필요한 경우
     if (layerIndex >= layers.length) {
       layers.push([]);
     }
@@ -432,15 +429,19 @@ const assignWeekLayers = (barInfos: WeekBarInfo[]): Map<number, number> => {
   return layerMap;
 };
 
-// 주간 뷰용 정확한 레이어 개수 계산 (외부에서 사용 가능)
 export const calculateWeekMaxLayers = (
   demos: (CalendarEvent & { type: 'demo' })[],
   weekDays: Date[]
 ): number => {
   if (demos.length === 0) return 0;
 
-  const demoGroups = new Map<number, (CalendarEvent & { type: 'demo' })[]>();
+  // 날짜 → 인덱스 맵 생성
+  const dateMap = new Map<string, number>();
+  weekDays.forEach((date, index) => {
+    dateMap.set(dateToString(date), index);
+  });
 
+  const demoGroups = new Map<number, (CalendarEvent & { type: 'demo' })[]>();
   demos.forEach(demo => {
     const demoDetails = demo.details as DemoEventDetails;
     if (!demoGroups.has(demoDetails.id)) {
@@ -449,37 +450,31 @@ export const calculateWeekMaxLayers = (
     demoGroups.get(demoDetails.id)!.push(demo);
   });
 
-  const barInfos: WeekBarInfo[] = Array.from(demoGroups.entries()).map(([demoId, demoEvents]) => {
-    const dates = demoEvents.map(event => event.date.split('T')[0]);
-    const startDate = Math.min(...dates.map(dateStr => {
-      const targetDate = new Date(dateStr);
-      return weekDays.findIndex(day =>
-        day.getFullYear() === targetDate.getFullYear() &&
-        day.getMonth() === targetDate.getMonth() &&
-        day.getDate() === targetDate.getDate()
-      );
-    }).filter(index => index !== -1));
+  const barInfos: WeekBarInfo[] = [];
 
-    const endDate = Math.max(...dates.map(dateStr => {
-      const targetDate = new Date(dateStr);
-      return weekDays.findIndex(day =>
-        day.getFullYear() === targetDate.getFullYear() &&
-        day.getMonth() === targetDate.getMonth() &&
-        day.getDate() === targetDate.getDate()
-      );
-    }).filter(index => index !== -1));
+  demoGroups.forEach((demoEvents, demoId) => {
+    const dateIndices: number[] = [];
+    demoEvents.forEach(event => {
+      const eventDateStr = event.date.split('T')[0];
+      const index = dateMap.get(eventDateStr);
+      if (index !== undefined) {
+        dateIndices.push(index);
+      }
+    });
 
-    if (startDate === -1 || endDate === -1) {
-      return null;
-    }
+    if (dateIndices.length === 0) return;
 
-    return {
+    dateIndices.sort((a, b) => a - b);
+    const startCol = dateIndices[0] + 1;
+    const endCol = dateIndices[dateIndices.length - 1] + 1;
+
+    barInfos.push({
       demoId,
-      demoEvents,
-      startCol: startDate + 1,
-      endCol: endDate + 1
-    };
-  }).filter(Boolean) as WeekBarInfo[];
+      demo: demoEvents[0],
+      startCol,
+      endCol
+    });
+  });
 
   const layerMap = assignWeekLayers(barInfos);
   return layerMap.size > 0 ? Math.max(...layerMap.values()) + 1 : 0;
@@ -490,9 +485,13 @@ export const WeekDemoSpanBars: React.FC<WeekDemoSpanBarsProps> = ({
   weekDays,
   onDemoClick,
 }) => {
-  // 시연들을 기간별로 그룹화
-  const demoGroups = new Map<number, (CalendarEvent & { type: 'demo' })[]>();
+  // 날짜 → 인덱스 맵 생성
+  const dateMap = new Map<string, number>();
+  weekDays.forEach((date, index) => {
+    dateMap.set(dateToString(date), index);
+  });
 
+  const demoGroups = new Map<number, (CalendarEvent & { type: 'demo' })[]>();
   demos.forEach(demo => {
     const demoDetails = demo.details as DemoEventDetails;
     if (!demoGroups.has(demoDetails.id)) {
@@ -501,55 +500,44 @@ export const WeekDemoSpanBars: React.FC<WeekDemoSpanBarsProps> = ({
     demoGroups.get(demoDetails.id)!.push(demo);
   });
 
-  // 각 시연의 바 정보 계산
-  const barInfos: WeekBarInfo[] = Array.from(demoGroups.entries()).map(([demoId, demoEvents]) => {
-    // 이 주에서 시연의 시작/종료 열 찾기
-    const dates = demoEvents.map(event => event.date.split('T')[0]);
-    const startDate = Math.min(...dates.map(dateStr => {
-      const targetDate = new Date(dateStr);
-      return weekDays.findIndex(day =>
-        day.getFullYear() === targetDate.getFullYear() &&
-        day.getMonth() === targetDate.getMonth() &&
-        day.getDate() === targetDate.getDate()
-      );
-    }).filter(index => index !== -1));
+  const barInfos: WeekBarInfo[] = [];
 
-    const endDate = Math.max(...dates.map(dateStr => {
-      const targetDate = new Date(dateStr);
-      return weekDays.findIndex(day =>
-        day.getFullYear() === targetDate.getFullYear() &&
-        day.getMonth() === targetDate.getMonth() &&
-        day.getDate() === targetDate.getDate()
-      );
-    }).filter(index => index !== -1));
+  demoGroups.forEach((demoEvents, demoId) => {
+    const dateIndices: number[] = [];
+    demoEvents.forEach(event => {
+      const eventDateStr = event.date.split('T')[0];
+      const index = dateMap.get(eventDateStr);
+      if (index !== undefined) {
+        dateIndices.push(index);
+      }
+    });
 
-    // 이 주에 해당 시연이 없으면 스킵
-    if (startDate === -1 || endDate === -1) {
-      return null;
-    }
+    if (dateIndices.length === 0) return;
 
-    return {
+    dateIndices.sort((a, b) => a - b);
+    const startCol = dateIndices[0] + 1;
+    const endCol = dateIndices[dateIndices.length - 1] + 1;
+
+    barInfos.push({
       demoId,
-      demoEvents,
-      startCol: startDate + 1, // CSS Grid는 1-based
-      endCol: endDate + 1
-    };
-  }).filter(Boolean) as WeekBarInfo[];
+      demo: demoEvents[0],
+      startCol,
+      endCol
+    });
+  });
 
-  // 레이어 할당
   const layerMap = assignWeekLayers(barInfos);
 
-  // 실제 바 컴포넌트들 생성
   const spanBars = barInfos.map(barInfo => {
     const layerIndex = layerMap.get(barInfo.demoId) || 0;
 
     return (
       <DemoSpanBar
         key={barInfo.demoId}
-        demo={barInfo.demoEvents[0]} // 첫 번째 이벤트를 대표로 사용
+        demo={barInfo.demo}
         startColumn={barInfo.startCol}
         endColumn={barInfo.endCol}
-        rowIndex={1} // 주간 뷰는 단일 행
+        rowIndex={1}
         layerIndex={layerIndex}
         onDemoClick={onDemoClick}
       />

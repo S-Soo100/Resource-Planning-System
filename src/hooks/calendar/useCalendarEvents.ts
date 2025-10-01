@@ -12,9 +12,9 @@ export function useCalendarEvents(events: CalendarEvent[]) {
 
     events.forEach((event) => {
       // ISO 날짜를 YYYY-MM-DD 형식으로 정규화
-      const normalizedDate = event.date.split('T')[0]; // "2025-09-23T00:00:00.000Z" → "2025-09-23"
-
-      console.log(`날짜 정규화: ${event.date} → ${normalizedDate}`);
+      // UTC 시간대를 로컬 시간대로 변환하여 정확한 날짜 추출
+      const eventDate = new Date(event.date);
+      const normalizedDate = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, '0')}-${String(eventDate.getDate()).padStart(2, '0')}`;
 
       if (!grouped[normalizedDate]) {
         grouped[normalizedDate] = [];
@@ -22,16 +22,30 @@ export function useCalendarEvents(events: CalendarEvent[]) {
       grouped[normalizedDate].push(event);
     });
 
-    console.log('정규화된 eventsByDate:', grouped);
-
-    // 각 날짜의 이벤트를 시간순으로 정렬 (발주는 시간이 없으므로 타입별로 정렬)
+    // 각 날짜의 이벤트를 정렬
     Object.keys(grouped).forEach((date) => {
       grouped[date].sort((a, b) => {
-        // 타입별 우선순위: 발주 > 시연
+        // 1. 타입별 우선순위: 시연 > 발주 (시연 연결 바가 위에 오도록)
         if (a.type !== b.type) {
-          return a.type === 'order' ? -1 : 1;
+          return a.type === 'demo' ? -1 : 1;
         }
-        // 같은 타입이면 ID순으로 정렬
+
+        // 2. 시연인 경우 spanInfo 기준 정렬
+        if (a.type === 'demo' && b.type === 'demo') {
+          const aDetails = a.details as DemoEventDetails;
+          const bDetails = b.details as DemoEventDetails;
+
+          // spanInfo가 있는 경우 (여러 날 시연)
+          if (aDetails.spanInfo && bDetails.spanInfo) {
+            // 시작일 우선 > 진행중 > 종료일
+            const aOrder = aDetails.spanInfo.isStart ? 0 : aDetails.spanInfo.isMiddle ? 1 : 2;
+            const bOrder = bDetails.spanInfo.isStart ? 0 : bDetails.spanInfo.isMiddle ? 1 : 2;
+
+            if (aOrder !== bOrder) return aOrder - bOrder;
+          }
+        }
+
+        // 3. 같은 타입/상태면 ID순으로 정렬
         return a.id - b.id;
       });
     });

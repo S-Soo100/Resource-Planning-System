@@ -33,13 +33,14 @@ const DemoSpanBar: React.FC<DemoSpanBarProps> = ({
 
   // 연결 바 스타일 - 레이어별로 top 위치 조정
   const barHeight = 32; // 바 높이 (min-h-8 = 32px)
-  const layerOffset = layerIndex * (barHeight + 4); // 레이어별 간격 (4px 여백)
+  const dateHeaderHeight = 28; // 날짜 영역 높이 (text-sm + mb-1 + padding)
+  const layerOffset = dateHeaderHeight + (layerIndex * (barHeight + 4)); // 날짜 아래 + 레이어별 간격
 
   const gridColumnStyle = {
     gridColumn: `${startColumn} / ${endColumn + 1}`,
     gridRow: `${rowIndex + 1}`, // content 영역에 위치
     top: `${layerOffset}px`,
-    zIndex: 10 + layerIndex, // 레이어별로 z-index도 조정
+    zIndex: 5 + layerIndex, // 날짜(z-20)보다 낮게 설정
   };
 
   // 시연 상태에 따른 텍스트 및 아이콘

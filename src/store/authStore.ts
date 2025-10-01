@@ -10,6 +10,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  _hasHydrated: boolean; // 하이드레이션 완료 여부
 
   // Actions
   login: (user: IAuth) => void;
@@ -20,6 +21,7 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const authStore = create<AuthState>()(
@@ -31,6 +33,7 @@ export const authStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      _hasHydrated: false,
 
       // Actions
       login: (user) => {
@@ -106,6 +109,10 @@ export const authStore = create<AuthState>()(
       clearError: () => {
         set({ error: null });
       },
+
+      setHasHydrated: (state) => {
+        set({ _hasHydrated: state });
+      },
     }),
     {
       name: "auth-storage",
@@ -115,6 +122,9 @@ export const authStore = create<AuthState>()(
         selectedTeam: state.selectedTeam,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

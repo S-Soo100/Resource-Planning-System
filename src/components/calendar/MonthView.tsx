@@ -59,7 +59,7 @@ const MonthView: React.FC<MonthViewProps> = ({
   const weekDays = ['월', '화', '수', '목', '금', '토', '일'];
 
   return (
-    <div className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-lg shadow-md ${className}`}>
       {/* 요일 헤더 */}
       <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
         {weekDays.map((day, index) => {
@@ -81,7 +81,7 @@ const MonthView: React.FC<MonthViewProps> = ({
 
       {/* 날짜별 이벤트 그리드 (6주 x 7일) */}
       <div
-        className="relative grid grid-cols-7"
+        className="relative grid grid-cols-7 overflow-visible"
         style={{
           gridTemplateRows: `repeat(6, minmax(${dynamicRowHeight}px, auto))`
         }}

@@ -20,10 +20,12 @@ export function calculateDemoTotalDays(startDateString: string, endDateString: s
 
     // 시작일과 종료일의 차이를 계산 (밀리초 단위)
     const diffTime = endDate.getTime() - startDate.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
     // 시작일과 종료일을 포함한 일수 (최소 1일)
-    return Math.max(diffDays + 1, 1);
+    const totalDays = Math.max(diffDays + 1, 1);
+
+    return totalDays;
   } catch (error) {
     console.error('시연 기간 계산 오류:', error);
     return 1;
@@ -61,7 +63,7 @@ export function calculateDemoDateIndex(
 
     // 시작일로부터 몇 번째 날인지 계산
     const diffTime = currentDate.getTime() - startDate.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
     return diffDays;
   } catch (error) {
@@ -150,8 +152,9 @@ export function getDemoSpanDates(startDateString: string, endDateString: string)
 
     // 시작일부터 종료일까지 반복
     const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-      dates.push(formatDateToString(currentDate));
+    while (currentDate.getTime() <= endDate.getTime()) {
+      const dateStr = formatDateToString(currentDate);
+      dates.push(dateStr);
       currentDate.setDate(currentDate.getDate() + 1);
     }
 

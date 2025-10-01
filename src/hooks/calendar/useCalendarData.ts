@@ -5,6 +5,7 @@ import { CalendarData, CalendarEvent } from '@/types/calendar/calendar';
 import { WeekInfo } from '@/types/calendar/calendar';
 import { formatDateToString } from '@/utils/calendar/calendarUtils';
 import { useWeeklyMemo } from './useWeeklyMemo';
+import { getDemoSpanDates, calculateDemoSpanInfo } from '@/utils/calendar/demoUtils';
 
 /**
  * 캘린더에 표시할 데이터를 조회하는 훅
@@ -12,9 +13,6 @@ import { useWeeklyMemo } from './useWeeklyMemo';
 export function useCalendarData(weekInfo: WeekInfo) {
   const { team } = useCurrentTeam();
   const teamId = team?.id;
-
-  console.log('Current team:', team);
-  console.log('Team ID for queries:', teamId);
 
   // 발주 데이터 조회 - teamId가 있을 때만
   const {
@@ -32,11 +30,6 @@ export function useCalendarData(weekInfo: WeekInfo) {
 
   // 주별 메모 조회
   const { memo, isLoading: isMemoLoading } = useWeeklyMemo(weekInfo.weekKey);
-
-  // 디버깅을 위한 로그 추가
-  console.log('Orders Response:', ordersResponse);
-  console.log('Demos Response:', demosResponse);
-  console.log('Team ID:', teamId);
 
   // 발주 데이터를 캘린더 이벤트로 변환
   const orderEvents: CalendarEvent[] = Array.isArray(ordersResponse?.data)
@@ -64,53 +57,56 @@ export function useCalendarData(weekInfo: WeekInfo) {
       }))
     : [];
 
-  // 시연 데이터를 캘린더 이벤트로 변환
+  // 시연 데이터를 캘린더 이벤트로 변환 - 시작일부터 종료일까지 각 날짜에 이벤트 생성
   const demoEvents: CalendarEvent[] = Array.isArray(demosResponse?.data)
     ? demosResponse.data
-        .filter((demo) => demo.demoStartDate) // 날짜가 있는 것만 필터링
-        .map((demo) => ({
-          id: demo.id,
-          title: demo.demoTitle || `시연 #${demo.id}`,
-          date: demo.demoStartDate, // 시연 시작일 기준
-          type: 'demo' as const,
-          status: demo.demoStatus || 'unknown',
-        details: {
-          id: demo.id,
-          demoTitle: demo.demoTitle || `시연 #${demo.id}`,
-          requester: demo.requester || '신청자 정보 없음',
-          demoManager: demo.demoManager || '담당자 정보 없음',
-          demoManagerPhone: demo.demoManagerPhone || '연락처 정보 없음',
-          demoAddress: demo.demoAddress || '시연 장소 정보 없음',
-          demoStartDate: demo.demoStartDate || '시작일 정보 없음',
-          demoStartTime: demo.demoStartTime || '물품 상차 시간 정보 없음',
-          demoEndDate: demo.demoEndDate || '종료일 정보 없음',
-          demoEndTime: demo.demoEndTime || '물품 하차 시간 정보 없음',
-          demoStartDeliveryMethod: demo.demoStartDeliveryMethod || '',
-          demoEndDeliveryMethod: demo.demoEndDeliveryMethod || '',
-          demoStatus: demo.demoStatus || 'unknown',
-          warehouseName: demo.warehouse?.warehouseName || '창고 정보 없음',
-        },
-      }))
+        .filter((demo) => demo.demoStartDate && demo.demoEndDate) // 시작일과 종료일이 있는 것만 필터링
+        .flatMap((demo) => {
+          // 시연이 진행되는 모든 날짜 가져오기
+          const spanDates = getDemoSpanDates(demo.demoStartDate, demo.demoEndDate);
+
+          // 각 날짜마다 이벤트 생성
+          return spanDates.map((dateStr) => {
+            const spanInfo = calculateDemoSpanInfo(dateStr, demo.demoStartDate, demo.demoEndDate);
+
+            return {
+              id: demo.id,
+              title: demo.demoTitle || `시연 #${demo.id}`,
+              date: dateStr, // 각 날짜에 이벤트 생성
+              type: 'demo' as const,
+              status: demo.demoStatus || 'unknown',
+              details: {
+                id: demo.id,
+                demoTitle: demo.demoTitle || `시연 #${demo.id}`,
+                requester: demo.requester || '신청자 정보 없음',
+                demoManager: demo.demoManager || '담당자 정보 없음',
+                demoManagerPhone: demo.demoManagerPhone || '연락처 정보 없음',
+                demoAddress: demo.demoAddress || '시연 장소 정보 없음',
+                demoStartDate: demo.demoStartDate || '시작일 정보 없음',
+                demoStartTime: demo.demoStartTime || '물품 상차 시간 정보 없음',
+                demoEndDate: demo.demoEndDate || '종료일 정보 없음',
+                demoEndTime: demo.demoEndTime || '물품 하차 시간 정보 없음',
+                demoStartDeliveryMethod: demo.demoStartDeliveryMethod || '',
+                demoEndDeliveryMethod: demo.demoEndDeliveryMethod || '',
+                demoStatus: demo.demoStatus || 'unknown',
+                warehouseName: demo.warehouse?.warehouseName || '창고 정보 없음',
+                spanInfo: spanInfo || undefined, // null을 undefined로 변환
+              },
+            };
+          });
+        })
     : [];
 
   // 모든 이벤트 합치기
   const allEvents = [...orderEvents, ...demoEvents];
 
-  console.log('Order Events:', orderEvents);
-  console.log('Demo Events:', demoEvents);
-  console.log('All Events:', allEvents);
-
   // 현재 주에 해당하는 이벤트만 필터링
   const weekStartStr = formatDateToString(weekInfo.startDate);
   const weekEndStr = formatDateToString(weekInfo.endDate);
 
-  console.log('Week range:', weekStartStr, 'to', weekEndStr);
-
   const weekEvents = allEvents.filter((event) => {
     return event.date >= weekStartStr && event.date <= weekEndStr;
   });
-
-  console.log('Week Events:', weekEvents);
 
   // 날짜별로 정렬
   weekEvents.sort((a, b) => a.date.localeCompare(b.date));

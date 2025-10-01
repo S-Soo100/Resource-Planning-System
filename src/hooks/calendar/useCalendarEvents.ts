@@ -68,8 +68,6 @@ export function useCalendarEvents(events: CalendarEvent[]) {
     const dateStr = formatDateToString(date);
     const events = eventsByDate[dateStr] || [];
 
-    console.log(`날짜 ${dateStr} 이벤트 검색 결과:`, events);
-
     return events;
   };
 

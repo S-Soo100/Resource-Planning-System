@@ -123,18 +123,11 @@ const MobileWeekView: React.FC<MobileWeekViewProps> = ({
       {/* 개별 날짜 섹션 */}
       <div className="divide-y divide-gray-200">
         {weekInfo.days.map((date, index) => {
-          const dayEvents = getEventsForDate(date).filter(event => {
-            // 여러 날짜에 걸친 시연은 개별 날짜에서 제외 (상단에 별도 표시됨)
-            if (event.type === 'demo') {
-              const demoDetails = event.details as DemoEventDetails;
-              return !demoDetails.spanInfo || demoDetails.spanInfo.totalDays <= 1;
-            }
-            return true;
-          });
+          const dateStr = date.toISOString().split('T')[0];
+          const dayEvents = getEventsForDate(date);
           const hasEvents = dayEvents.length > 0;
           const isWeekendDay = isWeekend(date);
           const isTodayDate = isToday(date);
-          const dateStr = date.toISOString().split('T')[0];
           const isExpanded = expandedDates.has(dateStr);
 
           return (

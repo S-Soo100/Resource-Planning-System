@@ -17,13 +17,13 @@ interface UseCurrentUserReturn {
 export const useCurrentUser = (): UseCurrentUserReturn => {
   // const auth = getAuthCookie();
   const auth = authStore((state) => state.user);
+  const hasHydrated = authStore((state) => state._hasHydrated);
   const router = useRouter();
   const pathname = usePathname();
 
   // /signin 페이지에서만 API 호출하지 않음 (team-select에서는 사용자 정보가 필요)
-  const shouldFetchUser = pathname !== "/signin" && !!auth?.id;
-
-  // console.log("API 호출 여부:", shouldFetchUser);
+  // 하이드레이션이 완료된 후에만 판단
+  const shouldFetchUser = hasHydrated && pathname !== "/signin" && !!auth?.id;
 
   const {
     data: userData,
@@ -99,9 +99,12 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
     }
   }, [error]);
 
+  // 하이드레이션이 완료되지 않았으면 로딩 상태 유지
+  const finalIsLoading = !hasHydrated || isLoading;
+
   return {
     user: userData?.data || undefined,
-    isLoading,
+    isLoading: finalIsLoading,
     error,
   };
 };

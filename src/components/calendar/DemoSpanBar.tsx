@@ -60,6 +60,7 @@ const DemoSpanBar: React.FC<DemoSpanBarProps> = ({
     zIndex: 5 + layerIndex, // 날짜(z-20)보다 낮게 설정
   };
 
+
   // 시연 상태에 따른 텍스트 및 아이콘
   const getBarContent = () => {
     if (!spanInfo || spanInfo.totalDays === 1) {
@@ -284,7 +285,8 @@ export const MonthDemoSpanBars: React.FC<MonthDemoSpanBarsProps> = ({
   // 날짜 → 인덱스 맵 생성
   const dateMap = new Map<string, number>();
   monthWeeks.flat().forEach((date, index) => {
-    dateMap.set(dateToString(date), index);
+    const dateStr = dateToString(date);
+    dateMap.set(dateStr, index);
   });
 
   // 시연들을 ID별로 그룹화

@@ -21,24 +21,13 @@ export default function CalendarPage() {
   }, [user, userLoading, router]);
 
 
-  if (userLoading) {
+  // 로딩 중이거나 권한 확인 중
+  if (userLoading || (!user || user.accessLevel === "supplier")) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-blue-500 animate-spin"></div>
-          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 사용자가 없거나 권한이 없는 경우 로딩 표시 (리다이렉트는 useEffect에서 처리)
-  if (!userLoading && (!user || user.accessLevel === "supplier")) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-blue-500 animate-spin"></div>
-          <p className="mt-4 text-gray-600">권한을 확인하는 중...</p>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
         </div>
       </div>
     );

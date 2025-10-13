@@ -25,6 +25,7 @@ export type OrderItemWithDetails = {
   quantity: number;
   stockAvailable?: boolean;
   stockQuantity?: number;
+  memo?: string; // 품목별 개별 메모
 };
 
 export interface OrderRequestFormProps {

@@ -396,7 +396,7 @@ export default function WheelchairOrderForm() {
           .map((item) => ({
             itemId: item.warehouseItemId,
             quantity: item.quantity,
-            memo: formData.notes,
+            memo: item.teamItem.memo || "",
           })),
       };
 

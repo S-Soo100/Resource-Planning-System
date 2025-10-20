@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { getOrder } from "@/api/order-api";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
-import { ArrowLeft, Package, Truck, Printer } from "lucide-react";
+import { ArrowLeft, Package, Truck, Printer, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useUpdateOrderStatus } from "@/hooks/(useOrder)/useOrderMutations";
+import { useUpdateOrderStatus, useDeleteOrder } from "@/hooks/(useOrder)/useOrderMutations";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 // useWarehouseItems 훅 제거 - 발주 상세 페이지에서는 불필요
@@ -376,6 +376,7 @@ const OrderRecordDetail = () => {
   const { user: auth } = useCurrentUser();
   const queryClient = useQueryClient();
   const updateOrderStatusMutation = useUpdateOrderStatus();
+  const deleteOrderMutation = useDeleteOrder();
 
   // authStore에서 직접 로그인 상태 확인
   const isAuthenticated = authStore.getState().isAuthenticated;
@@ -654,6 +655,41 @@ const OrderRecordDetail = () => {
     return [];
   };
 
+  // 삭제 권한 확인 (Admin만 가능)
+  const canDeleteOrder = () => {
+    return auth?.accessLevel === "admin";
+  };
+
+  // 발주 삭제 핸들러
+  const handleDeleteOrder = async () => {
+    if (!order) return;
+
+    const confirmMessage = `발주를 삭제하시겠습니까?\n\n발주자: ${order.requester}\n수령자: ${order.receiver}\n상태: ${getStatusText(order.status)}\n\n이 작업은 되돌릴 수 없습니다.`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      await deleteOrderMutation.mutateAsync(orderId);
+      toast.success("발주가 삭제되었습니다.", {
+        duration: 3000,
+        position: "top-center",
+      });
+
+      // 삭제 후 발주 목록으로 이동
+      setTimeout(() => {
+        router.push("/orderRecord");
+      }, 1000);
+    } catch (error) {
+      console.error("발주 삭제 오류:", error);
+      toast.error("발주 삭제에 실패했습니다.", {
+        duration: 3000,
+        position: "top-center",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-4 min-h-screen bg-gray-50">
@@ -719,6 +755,17 @@ const OrderRecordDetail = () => {
                       <Printer size={16} />
                       <span>인쇄</span>
                     </button>
+                    {/* Admin 전용 삭제 버튼 */}
+                    {canDeleteOrder() && (
+                      <button
+                        onClick={handleDeleteOrder}
+                        className="flex gap-2 items-center px-4 py-2 text-white bg-red-500 rounded-lg transition-colors hover:bg-red-600"
+                        title="발주 삭제 (관리자 전용)"
+                      >
+                        <Trash2 size={16} />
+                        <span>삭제</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 

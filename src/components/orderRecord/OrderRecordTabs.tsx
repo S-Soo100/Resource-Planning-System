@@ -362,6 +362,7 @@ const OrderRecordTabs = () => {
       const isShipmentPending = [
         OrderStatus.requested,
         OrderStatus.approved,
+        OrderStatus.rejected,
         OrderStatus.confirmedByShipper,
         OrderStatus.rejectedByShipper,
         "주문 접수", // 서버 응답 호환성

@@ -702,13 +702,37 @@ const DemonstrationRecordTabs = () => {
                         className="text-xs bg-white border border-gray-300 rounded px-2 py-1 disabled:opacity-50"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <option value="requested">요청</option>
-                        <option value="approved">승인</option>
-                        <option value="rejected">반려</option>
-                        <option value="confirmedByShipper">출고팀 확인</option>
-                        <option value="shipmentCompleted">출고 완료</option>
-                        <option value="rejectedByShipper">출고팀 반려</option>
-                        <option value="demoCompleted">시연 완료</option>
+                        {/* 권한에 따라 다른 선택지 표시 */}
+                        {authStore.getState().user?.accessLevel === "moderator" ? (
+                          // Moderator: 초기 승인 단계만 가능
+                          <>
+                            <option value="requested">요청</option>
+                            <option value="approved">승인</option>
+                            <option value="rejected">반려</option>
+                          </>
+                        ) : authStore.getState().user?.accessLevel === "admin" ? (
+                          // Admin: 모든 상태 변경 가능
+                          <>
+                            <option value="requested">요청</option>
+                            <option value="approved">승인</option>
+                            <option value="rejected">반려</option>
+                            <option value="confirmedByShipper">출고팀 확인</option>
+                            <option value="shipmentCompleted">출고 완료</option>
+                            <option value="rejectedByShipper">출고팀 반려</option>
+                            <option value="demoCompleted">시연 완료</option>
+                          </>
+                        ) : (
+                          // 기본값 (권한이 없는 경우)
+                          <>
+                            <option value="requested">요청</option>
+                            <option value="approved">승인</option>
+                            <option value="rejected">반려</option>
+                            <option value="confirmedByShipper">출고팀 확인</option>
+                            <option value="shipmentCompleted">출고 완료</option>
+                            <option value="rejectedByShipper">출고팀 반려</option>
+                            <option value="demoCompleted">시연 완료</option>
+                          </>
+                        )}
                       </select>
                     )}
 

@@ -731,23 +731,9 @@ const DemoRecordDetail = () => {
       return canChange;
     }
 
-    // Admin 권한 체크
+    // Admin 권한 체크 - 모든 상태 변경 가능
     if (auth.accessLevel === "admin") {
-      // Admin은 approved, confirmedByShipper, shipmentCompleted, rejectedByShipper 상태일 때만 변경 가능
-      const allowedStatuses = [
-        DemoStatus.approved,
-        DemoStatus.confirmedByShipper,
-        DemoStatus.shipmentCompleted,
-        DemoStatus.rejectedByShipper,
-        DemoStatus.demoCompleted,
-      ];
-      const canChange = allowedStatuses.includes(currentStatus as DemoStatus);
-      // console.log("📋 Admin 권한 체크:", {
-      //   allowedStatuses,
-      //   currentStatus,
-      //   canChange,
-      // });
-      return canChange;
+      return true;
     }
 
     console.log("❌ 권한 없음 - accessLevel:", auth.accessLevel);
@@ -776,8 +762,11 @@ const DemoRecordDetail = () => {
     }
 
     if (auth.accessLevel === "admin") {
-      // Admin은 출고 단계만 담당
+      // Admin은 모든 상태 변경 가능
       return [
+        { value: DemoStatus.requested, label: "요청" },
+        { value: DemoStatus.approved, label: "승인" },
+        { value: DemoStatus.rejected, label: "반려" },
         { value: DemoStatus.confirmedByShipper, label: "출고팀 확인" },
         { value: DemoStatus.shipmentCompleted, label: "출고 완료" },
         { value: DemoStatus.rejectedByShipper, label: "출고 보류" },
@@ -1128,7 +1117,7 @@ const DemoRecordDetail = () => {
                           {auth?.accessLevel === "moderator"
                             ? "1차승인권자는 초기 승인 단계만 담당합니다."
                             : auth?.accessLevel === "admin"
-                            ? "관리자는 출고 단계를 담당합니다."
+                            ? "관리자는 모든 상태를 변경할 수 있습니다."
                             : "상태 변경 권한이 없습니다."}
                         </div>
                       </div>

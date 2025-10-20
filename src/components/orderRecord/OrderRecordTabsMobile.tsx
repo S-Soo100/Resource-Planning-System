@@ -399,15 +399,15 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
       );
     }
 
-    // 출고 완료 상태인 경우 상태만 표시하고 변경 불가
-    if (record.status === OrderStatus.shipmentCompleted) {
+    // 출고 완료 상태는 Admin만 변경 가능
+    if (record.status === OrderStatus.shipmentCompleted && userAccessLevel !== "admin") {
       return (
         <div className="flex gap-2 items-center">
           <div
             className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
               record.status
             )} cursor-not-allowed`}
-            title="출고 완료된 주문은 상태를 변경할 수 없습니다"
+            title="출고 완료된 주문은 관리자만 상태를 변경할 수 있습니다"
           >
             {getStatusText(record.status)}
           </div>
@@ -415,29 +415,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
       );
     }
 
-    // admin 권한 사용자의 경우 특정 상태일 때만 드롭다운 표시
-    if (userAccessLevel === "admin") {
-      const allowedStatusesForAdmin = [
-        OrderStatus.approved,
-        OrderStatus.confirmedByShipper,
-        OrderStatus.shipmentCompleted,
-        OrderStatus.rejectedByShipper,
-      ];
-
-      if (!allowedStatusesForAdmin.includes(record.status as OrderStatus)) {
-        return (
-          <div className="flex gap-2 items-center">
-            <div
-              className={`px-3 py-1.5 rounded-md text-sm font-medium ${getStatusColorClass(
-                record.status
-              )}`}
-            >
-              {getStatusText(record.status)}
-            </div>
-          </div>
-        );
-      }
-    }
+    // admin 권한 사용자는 모든 상태에서 드롭다운 표시 가능
 
     // 권한이 있는 경우 드롭다운과 현재 상태 표시
     return (
@@ -485,8 +463,11 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                 </option>
               </>
             ) : userAccessLevel === "admin" ? (
-              // Admin: 출고팀 확인, 출고 완료, 출고 보류만 가능
+              // Admin: 모든 상태 변경 가능
               <>
+                <option value={OrderStatus.requested}>요청</option>
+                <option value={OrderStatus.approved}>승인</option>
+                <option value={OrderStatus.rejected}>반려</option>
                 <option value={OrderStatus.confirmedByShipper}>
                   출고팀 확인
                 </option>

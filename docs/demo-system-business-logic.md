@@ -65,12 +65,27 @@ graph TD
 
 #### 권한별 상태 변경 가능 범위
 
-- **Moderator**: 초기 승인 단계만 담당
-  - `requested` → `approved`/`rejected`
-- **Admin**: 전체 시연 프로세스 관리
-  - `approved` → `confirmedByShipper`/`demoShipmentCompleted`/`rejected`
-  - `confirmedByShipper` → `demoShipmentCompleted`/`demoShipmentRejected`
-  - `demoShipmentCompleted` → `demoCompletedAndReturned`
+**Admin:**
+- **모든 상태** 변경 가능 (requested, approved, rejected, confirmedByShipper, shipmentCompleted, rejectedByShipper, demoCompleted)
+- 모든 시연 건의 상태를 변경할 수 있음
+- 시연 완료(demoCompleted) 상태도 변경 가능
+
+**Moderator:**
+- **초기 승인 단계**만 변경 가능 (requested, approved, rejected)
+- 본인이 작성한 시연은 승인/반려 불가 (이해 충돌 방지)
+- 출고 단계 상태는 변경 불가
+
+**User/Supplier:**
+- 상태 변경 권한 없음 (조회만 가능)
+
+#### 상태 변경 매트릭스
+
+| 권한 | requested | approved | rejected | confirmedByShipper | shipmentCompleted | rejectedByShipper | demoCompleted |
+|------|-----------|----------|----------|--------------------|-------------------|-------------------|---------------|
+| **Admin** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Moderator** | ✅ | ✅ (본인 시연 제외) | ✅ (본인 시연 제외) | ❌ | ❌ | ❌ | ❌ |
+| **User** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Supplier** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ## 3. 권한 시스템 적용
 

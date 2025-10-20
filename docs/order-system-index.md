@@ -279,10 +279,36 @@ type OrderRequestFormData = {
 
 ### 권한별 기능 제한
 
+#### 발주 상태 변경 권한
+
+**Admin:**
+- **모든 상태** 변경 가능 (requested, approved, rejected, confirmedByShipper, shipmentCompleted, rejectedByShipper)
+- 모든 발주 건의 상태를 변경할 수 있음
+- 출고 완료(shipmentCompleted) 상태의 발주도 변경 가능
+
+**Moderator:**
+- **초기 승인 단계**만 변경 가능 (requested, approved, rejected)
+- 본인이 작성한 발주는 승인/반려 불가 (이해 충돌 방지)
+- 출고 단계 상태는 변경 불가
+
+**User/Supplier:**
+- 상태 변경 권한 없음 (조회만 가능)
+
+#### 발주 수정/삭제 권한
+
 - **User**: 발주 요청, 자신의 발주 조회, 자신의 requested 상태 발주 수정/삭제
 - **Moderator**: 발주 승인/반려, 전체 발주 조회, 자신의 requested 상태 발주 수정/삭제
-- **Admin**: 모든 발주 관리, 상태 변경, 모든 발주 수정/삭제 (상태 무관)
+- **Admin**: 모든 발주 관리, 모든 상태 변경 가능, 모든 발주 수정/삭제 (상태 무관)
 - **Supplier**: 관련 발주 조회만 가능
+
+#### 상태 변경 매트릭스
+
+| 권한 | requested | approved | rejected | confirmedByShipper | shipmentCompleted | rejectedByShipper |
+|------|-----------|----------|----------|--------------------|-------------------|-------------------|
+| **Admin** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Moderator** | ✅ | ✅ (본인 발주 제외) | ✅ (본인 발주 제외) | ❌ | ❌ | ❌ |
+| **User** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Supplier** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ### 재고 확인 로직
 

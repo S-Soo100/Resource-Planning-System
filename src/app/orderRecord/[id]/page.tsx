@@ -599,14 +599,6 @@ const OrderRecordDetail = () => {
   const canChangeStatus = (currentStatus: string) => {
     if (!auth) return false;
 
-    // console.log("🔍 권한 디버깅:", {
-    //   userAccessLevel: auth.accessLevel,
-    //   currentStatus: currentStatus,
-    //   isAdmin: auth.isAdmin,
-    //   userId: auth.id,
-    //   orderUserId: order?.userId,
-    // });
-
     // Moderator 권한 체크
     if (auth.accessLevel === "moderator") {
       // Moderator는 requested, approved, rejected 상태만 변경 가능
@@ -615,37 +607,14 @@ const OrderRecordDetail = () => {
         OrderStatus.approved,
         OrderStatus.rejected,
       ].includes(currentStatus as OrderStatus);
-      // console.log("📋 Moderator 권한 체크:", {
-      //   allowedStatuses: [
-      //     OrderStatus.requested,
-      //     OrderStatus.approved,
-      //     OrderStatus.rejected,
-      //   ],
-      //   currentStatus,
-      //   canChange,
-      // });
       return canChange;
     }
 
-    // Admin 권한 체크
+    // Admin 권한 체크 - 모든 상태 변경 가능
     if (auth.accessLevel === "admin") {
-      // Admin은 approved, confirmedByShipper, shipmentCompleted, rejectedByShipper 상태일 때만 변경 가능
-      const allowedStatuses = [
-        OrderStatus.approved,
-        OrderStatus.confirmedByShipper,
-        OrderStatus.shipmentCompleted,
-        OrderStatus.rejectedByShipper,
-      ];
-      const canChange = allowedStatuses.includes(currentStatus as OrderStatus);
-      // console.log("📋 Admin 권한 체크:", {
-      //   allowedStatuses,
-      //   currentStatus,
-      //   canChange,
-      // });
-      return canChange;
+      return true;
     }
 
-    // console.log("❌ 권한 없음 - accessLevel:", auth.accessLevel);
     return false;
   };
 
@@ -671,9 +640,11 @@ const OrderRecordDetail = () => {
     }
 
     if (auth.accessLevel === "admin") {
-      // Admin은 출고 단계만 담당
+      // Admin은 모든 상태 변경 가능
       return [
+        { value: OrderStatus.requested, label: "요청" },
         { value: OrderStatus.approved, label: "승인" },
+        { value: OrderStatus.rejected, label: "반려" },
         { value: OrderStatus.confirmedByShipper, label: "출고팀 확인" },
         { value: OrderStatus.shipmentCompleted, label: "출고 완료" },
         { value: OrderStatus.rejectedByShipper, label: "출고 보류" },
@@ -894,7 +865,7 @@ const OrderRecordDetail = () => {
                       {auth?.accessLevel === "moderator"
                         ? "1차승인권자는 초기 승인 단계만 담당합니다."
                         : auth?.accessLevel === "admin"
-                        ? "관리자는 출고 단계를 담당합니다."
+                        ? "관리자는 모든 상태를 변경할 수 있습니다."
                         : "상태 변경 권한이 없습니다."}
                     </div>
                   </div>

@@ -362,14 +362,15 @@ const OrderRecordTabs = () => {
       const isShipmentPending = [
         OrderStatus.requested,
         OrderStatus.approved,
-        OrderStatus.rejected,
         OrderStatus.confirmedByShipper,
-        OrderStatus.rejectedByShipper,
         "주문 접수", // 서버 응답 호환성
       ].includes(order.status as OrderStatus);
 
-      const isShipmentCompleted =
-        order.status === OrderStatus.shipmentCompleted;
+      const isShipmentCompleted = [
+        OrderStatus.shipmentCompleted,
+        OrderStatus.rejected,
+        OrderStatus.rejectedByShipper,
+      ].includes(order.status as OrderStatus);
 
       // 현재 선택된 출고 탭에 따라 필터링
       if (shipmentTab === "pending" && !isShipmentPending) {

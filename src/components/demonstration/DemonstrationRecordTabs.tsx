@@ -146,18 +146,24 @@ const DemonstrationRecordTabs = () => {
     if (activeTab === "ongoing") {
       // '진행중' 탭인 경우 진행 중인 시연만 필터링
       return allDemoRecords.filter((record: DemoResponse) => {
-        // 시연이 완료되지 않은 상태들
-        return !["demoCompleted", "demoCompletedAndReturned"].includes(
-          record.demoStatus
-        );
+        // 시연이 완료되지 않은 상태들 (rejected와 rejectedByShipper 제외)
+        return ![
+          "demoCompleted",
+          "demoCompletedAndReturned",
+          "rejected",
+          "rejectedByShipper",
+        ].includes(record.demoStatus);
       });
     } else {
       // '시연종료' 탭인 경우 완료된 시연만 필터링
       return allDemoRecords.filter((record: DemoResponse) => {
-        // 시연이 완료된 상태들
-        return ["demoCompleted", "demoCompletedAndReturned"].includes(
-          record.demoStatus
-        );
+        // 시연이 완료된 상태들 (rejected와 rejectedByShipper 포함)
+        return [
+          "demoCompleted",
+          "demoCompletedAndReturned",
+          "rejected",
+          "rejectedByShipper",
+        ].includes(record.demoStatus);
       });
     }
   }, [allDemoRecords, activeTab]);

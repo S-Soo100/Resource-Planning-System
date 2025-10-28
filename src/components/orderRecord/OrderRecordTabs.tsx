@@ -412,7 +412,7 @@ const OrderRecordTabs = () => {
   }, [orderRecords, searchTerm, statusFilter, currentUser, shipmentTab]);
 
   // 페이지네이션 계산 (useMemo로 최적화)
-  const { totalPages, currentRecords } = useMemo(() => {
+  const { totalPages, currentRecords, startIndex } = useMemo(() => {
     const total = Math.ceil(filteredOrders.length / recordsPerPage);
     const indexOfLastRecord = currentPage * recordsPerPage;
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
@@ -425,6 +425,7 @@ const OrderRecordTabs = () => {
     return {
       totalPages: total,
       currentRecords: records,
+      startIndex: indexOfFirstRecord,
     };
   }, [filteredOrders, currentPage, recordsPerPage]);
 
@@ -1178,7 +1179,7 @@ const OrderRecordTabs = () => {
           )}
         </div>
 
-        {/* 데이터 테이블 */}
+        {/* 카드형 리스트 */}
         {isLoading() ? (
           <div className="flex flex-col justify-center items-center py-12">
             <div className="mb-4 w-12 h-12 rounded-full border-4 border-gray-200 animate-spin border-t-blue-500"></div>
@@ -1209,47 +1210,29 @@ const OrderRecordTabs = () => {
           />
         ) : (
           <>
-            <div className="overflow-x-auto -mx-1 sm:mx-0">
-              <table className="overflow-hidden mx-1 my-2 w-full bg-white rounded-2xl shadow-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[15%] sm:w-2/12">
-                      생성일
-                    </th>
-                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[25%] sm:w-3/12">
-                      제목
-                    </th>
-                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[15%] sm:w-2/12">
-                      발주자
-                    </th>
-                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[20%] sm:w-2/12">
-                      출고예정일
-                    </th>
-                    <th className="px-1 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-medium text-gray-500 tracking-wider w-[15%] sm:w-2/12">
-                      상태
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {currentRecords.length > 0 ? (
-                    currentRecords.map((record: IOrderRecord) => (
-                      <React.Fragment key={record.id}>
-                        <tr
-                          className="bg-white transition-colors cursor-pointer hover:bg-gray-50"
-                          onClick={() => handleCardToggle(record.id)}
-                        >
-                          {/* 데스크톱 UI */}
-                          <td className="hidden px-1 py-2 text-xs text-gray-700 whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
-                            <Calendar
-                              size={14}
-                              className="inline-block mr-1 text-gray-500"
-                            />
-                            {formatDateForDisplayUTC(record.createdAt)}
-                          </td>
-                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-gray-700 truncate max-w-[120px] sm:max-w-[200px]">
-                            <div className="truncate" title={record.title}>
+            {/* 카드형 리스트 */}
+            <div className="space-y-4">
+              {currentRecords.length > 0 ? (
+                currentRecords.map((record: IOrderRecord, index: number) => {
+                  const isExpanded = expandedCards.has(record.id);
+                  return (
+                    <div
+                      key={record.id}
+                      className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all"
+                    >
+                      <div
+                        className="flex items-center justify-between px-4 py-3 cursor-pointer"
+                        onClick={() => handleCardToggle(record.id)}
+                      >
+                        {/* 왼쪽: 인덱스 + 기본 정보 */}
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <span className="text-sm text-gray-500 font-medium w-6">
+                            {startIndex + index + 1}.
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
                               <span
-                                className={`mr-1 px-1 py-0.5 text-xs font-medium rounded ${
+                                className={`px-2 py-0.5 text-xs font-medium rounded ${
                                   record.packageId && record.packageId > 0
                                     ? "bg-purple-100 text-purple-700"
                                     : "bg-blue-100 text-blue-700"
@@ -1259,214 +1242,132 @@ const OrderRecordTabs = () => {
                                   ? "패키지"
                                   : "개별"}
                               </span>
-                              {record.title ||
-                                `${
-                                  record.warehouse?.warehouseName ||
-                                  "알 수 없는 창고"
-                                }에서 ${
-                                  record.orderItems &&
-                                  record.orderItems.length > 0
-                                    ? record.orderItems.length > 1
-                                      ? `${
-                                          record.orderItems[0]?.item?.teamItem
-                                            ?.itemName || "품목"
-                                        } 등 ${record.orderItems.length}개 품목`
-                                      : `${
-                                          record.orderItems[0]?.item?.teamItem
-                                            ?.itemName || "품목"
-                                        }`
-                                    : "품목"
-                                } 출고`}
+                              <h3 className="font-medium text-gray-900 truncate">
+                                {record.title ||
+                                  `${
+                                    record.warehouse?.warehouseName ||
+                                    "알 수 없는 창고"
+                                  }에서 ${
+                                    record.orderItems &&
+                                    record.orderItems.length > 0
+                                      ? record.orderItems.length > 1
+                                        ? `${
+                                            record.orderItems[0]?.item?.teamItem
+                                              ?.itemName || "품목"
+                                          } 등 ${record.orderItems.length}개 품목`
+                                        : `${
+                                            record.orderItems[0]?.item?.teamItem
+                                              ?.itemName || "품목"
+                                          }`
+                                      : "품목"
+                                  } 출고`}
+                                {record.status === OrderStatus.shipmentCompleted && record.outboundDate && (
+                                  <span className="ml-1 text-sm text-gray-500">
+                                    (완료:{formatDateForDisplayUTC(record.outboundDate)})
+                                  </span>
+                                )}
+                              </h3>
                             </div>
-                          </td>
-                          <td className="hidden sm:table-cell px-1 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-700 truncate max-w-[80px] sm:max-w-none">
-                            {record.requester}
-                          </td>
-                          <td className="hidden px-1 py-2 text-xs text-gray-700 whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
-                            {record.packageId && record.packageId > 0 ? (
-                              <Package
-                                size={14}
-                                className="inline-block mr-1 text-purple-500"
-                              />
-                            ) : (
-                              <Package
-                                size={14}
-                                className="inline-block mr-1 text-blue-500"
-                              />
-                            )}
-                            {formatDateForDisplayUTC(record.outboundDate)}
-                          </td>
-                          <td className="hidden px-1 py-2 text-xs text-gray-700 whitespace-nowrap sm:table-cell sm:px-6 sm:py-4 sm:text-sm">
-                            <div className="flex justify-between items-center">
-                              <span
-                                className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-xs rounded-full ${getStatusColorClass(
-                                  record.status
-                                )}`}
-                              >
-                                {getStatusText(record.status)}
+                            <div className="text-sm text-gray-500 mt-0.5">
+                              {record.requester} • 생성일: {formatDateForDisplayUTC(record.createdAt)} • 출고예정일: {formatDateForDisplayUTC(record.outboundDate)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 오른쪽: 상태 + 상세보기 버튼 */}
+                        <div className="flex items-center space-x-3">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${getStatusColorClass(
+                              record.status
+                            )}`}
+                          >
+                            {getStatusText(record.status)}
+                          </span>
+
+                          {/* 상세보기 버튼 */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRowClick(record.id);
+                            }}
+                            className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 active:bg-blue-200 transition-colors"
+                          >
+                            상세보기
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 확장된 정보 */}
+                      {isExpanded && (
+                        <div className="px-4 pb-3 border-t border-gray-100 bg-gray-50">
+                          <div className="pt-3 space-y-2 text-sm">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-700">발주 창고:</span>
+                              <span className="text-gray-600">
+                                {record.warehouse?.warehouseName || "창고 정보 없음"}
                               </span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRowClick(record.id);
-                                }}
-                                className="ml-2 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:border-blue-300 transition-colors"
-                              >
-                                상세보기
-                              </button>
                             </div>
-                          </td>
-
-                          {/* 모바일 UI */}
-                          <td className="px-3 py-3 sm:hidden">
-                            <div className="flex flex-col gap-2">
-                              {/* 첫 번째 줄: 생성일, 제목 */}
-                              <div className="flex gap-2 items-center">
-                                <div className="flex items-center text-gray-500">
-                                  <Calendar size={14} className="mr-1" />
-                                  <span className="text-xs">
-                                    {formatDateForDisplayUTC(record.createdAt)}
-                                  </span>
-                                </div>
-                                <div className="flex-1 text-xs font-medium text-gray-700 truncate">
-                                  <span
-                                    className={`mr-1 px-1 py-0.5 text-xs font-medium rounded ${
-                                      record.packageId && record.packageId > 0
-                                        ? "bg-purple-100 text-purple-700"
-                                        : "bg-blue-100 text-blue-700"
-                                    }`}
-                                  >
-                                    {record.packageId && record.packageId > 0
-                                      ? "패키지"
-                                      : "개별"}
-                                  </span>
-                                  {record.title || "제목 없음"}
-                                </div>
-                              </div>
-                              {/* 두 번째 줄: 발주자, 출고예정일 */}
-                              <div className="flex gap-2 items-center">
-                                <div className="text-xs text-gray-600">
-                                  {record.requester}
-                                </div>
-                                <div className="flex items-center text-gray-500">
-                                  {record.packageId && record.packageId > 0 ? (
-                                    <Package
-                                      size={14}
-                                      className="mr-1 text-purple-500"
-                                    />
-                                  ) : (
-                                    <Package
-                                      size={14}
-                                      className="mr-1 text-blue-500"
-                                    />
-                                  )}
-                                  <span className="text-xs">
-                                    {formatDateForDisplayUTC(record.outboundDate)}
-                                  </span>
-                                </div>
-                              </div>
-                              {/* 세 번째 줄: 상태 */}
-                              <div className="flex justify-between items-center">
-                                <div className="flex gap-1 items-center">
-                                  <span
-                                    className={`px-2 py-0.5 text-xs rounded-full ${getStatusColorClass(
-                                      record.status
-                                    )}`}
-                                  >
-                                    {getStatusText(record.status)}
-                                  </span>
-                                </div>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRowClick(record.id);
-                                  }}
-                                  className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:border-blue-300 transition-colors"
-                                >
-                                  상세보기
-                                </button>
-                              </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-700">수령자:</span>
+                              <span className="text-gray-600">
+                                {record.receiver || "수령자 미정"} {record.receiverPhone && `(${record.receiverPhone})`}
+                              </span>
                             </div>
-                          </td>
-                        </tr>
-
-                        {/* 확장된 정보 */}
-                        {expandedCards.has(record.id) && (
-                          <tr className="bg-gray-50">
-                            <td colSpan={6} className="px-6 py-4 border-t border-gray-200">
-                              <div className="space-y-3 text-sm">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                    <span className="font-medium text-gray-700">발주 기간:</span>
-                                    <span className="ml-2 text-gray-600">
-                                      {formatDateForDisplayUTC(record.createdAt)} ~ {formatDateForDisplayUTC(record.outboundDate)}
-                                    </span>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-700">배송 주소:</span>
+                              <span className="text-gray-600">
+                                {record.receiverAddress || "배송 주소 미정"}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium text-gray-700">담당자:</span>
+                              <span className="text-gray-600">
+                                {record.manager || "담당자 미정"}
+                              </span>
+                            </div>
+                            <div className="flex items-start space-x-2">
+                              <span className="font-medium text-gray-700 flex-shrink-0">발주 품목:</span>
+                              <div className="text-gray-600">
+                                {record.orderItems && record.orderItems.length > 0 ? (
+                                  <div className="space-y-1">
+                                    {record.orderItems.map((item, itemIndex) => (
+                                      <div key={itemIndex} className="text-sm">
+                                        {item.item?.teamItem?.itemName || "품목명 없음"} ({item.quantity || 0}개)
+                                      </div>
+                                    ))}
                                   </div>
-                                  <div>
-                                    <span className="font-medium text-gray-700">발주 창고:</span>
-                                    <span className="ml-2 text-gray-600">
-                                      {record.warehouse?.warehouseName || "창고 정보 없음"}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-700">배송 주소:</span>
-                                    <span className="ml-2 text-gray-600">
-                                      {record.receiverAddress || "배송 주소 미정"}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-700">담당자:</span>
-                                    <span className="ml-2 text-gray-600">
-                                      {record.manager || "담당자 미정"}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div>
-                                  <span className="font-medium text-gray-700">발주 품목:</span>
-                                  <div className="mt-2 space-y-1">
-                                    {record.orderItems && record.orderItems.length > 0 ? (
-                                      record.orderItems.map((item, itemIndex) => (
-                                        <div key={itemIndex} className="text-gray-600 ml-2">
-                                          • {item.item?.teamItem?.itemName || "품목명 없음"} ({item.quantity || 0}개)
-                                        </div>
-                                      ))
-                                    ) : (
-                                      <div className="text-gray-600 ml-2">품목 정보 없음</div>
-                                    )}
-                                  </div>
-                                </div>
-                                {record.memo && (
-                                  <div>
-                                    <span className="font-medium text-gray-700">메모:</span>
-                                    <div className="mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded text-gray-600 text-sm">
-                                      {record.memo}
-                                    </div>
-                                  </div>
+                                ) : (
+                                  "품목 정보 없음"
                                 )}
                               </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="py-8 text-center text-gray-500"
-                      >
-                        <div className="flex flex-col items-center">
-                          <Package size={40} className="mb-2 text-gray-300" />
-                          <p>표시할 데이터가 없습니다.</p>
-                          <p className="mt-1 text-sm text-gray-400">
-                            다른 검색어나 필터를 시도해보세요.
-                          </p>
+                            </div>
+                            {record.memo && (
+                              <div className="flex items-start space-x-2">
+                                <span className="font-medium text-gray-700 flex-shrink-0">메모:</span>
+                                <div className="p-2 bg-yellow-50 border border-yellow-200 rounded text-gray-600 text-sm">
+                                  {record.memo}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="py-16 text-center bg-white rounded-2xl shadow-sm">
+                  <Package className="mx-auto w-12 h-12 text-gray-300" />
+                  <h3 className="mt-2 text-lg font-semibold text-gray-900">
+                    발주 기록이 없습니다
+                  </h3>
+                  <p className="mt-1 text-base text-gray-500">
+                    {searchTerm || statusFilter
+                      ? "검색 조건을 변경해보세요."
+                      : "아직 발주 요청이 없습니다."}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* 페이지네이션 */}

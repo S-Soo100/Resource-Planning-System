@@ -150,17 +150,24 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
     const eventType = searchParams.get('eventType');
     const eventId = searchParams.get('eventId');
 
-    if (eventType && eventId && data?.events) {
-      const event = data.events.find(
-        (e) => e.type === eventType && e.id === Number(eventId)
-      );
-      if (event) {
-        setSelectedEvent(event);
+    if (eventType && eventId) {
+      // 쿼리 파라미터가 있을 때
+      if (data?.events) {
+        const event = data.events.find(
+          (e) => e.type === eventType && e.id === Number(eventId)
+        );
+        // 현재 선택된 이벤트와 다를 때만 업데이트
+        if (event && (!selectedEvent || selectedEvent.id !== event.id || selectedEvent.type !== event.type)) {
+          setSelectedEvent(event);
+        }
       }
     } else {
-      setSelectedEvent(null);
+      // 쿼리 파라미터가 없을 때
+      if (selectedEvent !== null) {
+        setSelectedEvent(null);
+      }
     }
-  }, [searchParams, data?.events]);
+  }, [searchParams, data?.events, selectedEvent]);
 
   // 이벤트 클릭 핸들러 - URL에 쿼리 추가
   const handleEventClick = (event: CalendarEvent) => {

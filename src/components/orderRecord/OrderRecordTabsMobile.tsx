@@ -499,7 +499,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col divide-y">
+    <div className="flex flex-col divide-y mb-8">
       {records.map((record) => (
         <div key={record.id}>
           {/* 클릭 가능한 헤더 영역 */}
@@ -507,40 +507,49 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
             className="px-2 py-3 cursor-pointer hover:bg-gray-50"
             onClick={() => handleInternalCardToggle(record.id)}
           >
-            {/* 1번째 줄 */}
-            <div className="flex gap-2 items-center">
-              <span className="flex items-center text-xs text-gray-500">
-                <Calendar size={14} className="mr-1" />
-                {formatDateForDisplayUTC(record.createdAt)}
-              </span>
-              <span className="flex-1 text-xs text-gray-700 truncate">
-                {record.package?.packageName &&
-                record.package.packageName !== "개별 품목"
-                  ? record.package.packageName
-                  : record.orderItems && record.orderItems.length > 0
-                  ? record.orderItems
-                      .slice(0, 1)
-                      .map(
-                        (item) =>
-                          `${
-                            item.item?.teamItem?.itemName || "알 수 없는 품목"
-                          }${item.quantity}개`
-                      )
-                      .join(", ") + (record.orderItems.length > 1 ? " 외" : "")
-                  : "품목 없음"}
-              </span>
+            {/* 1번째 줄: 패키지/개별 뱃지 + 제목 */}
+            <div className="flex gap-2 items-start mb-1">
               <span
-                className="text-xs text-gray-700 truncate max-w-[60px]"
-                title={record.receiver}
+                className={`px-2 py-0.5 text-xs font-medium rounded flex-shrink-0 ${
+                  record.packageId && record.packageId > 0
+                    ? "bg-purple-100 text-purple-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}
               >
-                {record.receiver.length > 6
-                  ? `${record.receiver.slice(0, 6)}...`
-                  : record.receiver}
+                {record.packageId && record.packageId > 0 ? "패키지" : "개별"}
               </span>
+              <h3 className="flex-1 text-sm font-medium text-gray-900 line-clamp-2">
+                {record.title ||
+                  `${
+                    record.warehouse?.warehouseName || "알 수 없는 창고"
+                  }에서 ${
+                    record.orderItems && record.orderItems.length > 0
+                      ? record.orderItems.length > 1
+                        ? `${
+                            record.orderItems[0]?.item?.teamItem?.itemName ||
+                            "품목"
+                          } 등 ${record.orderItems.length}개 품목`
+                        : `${
+                            record.orderItems[0]?.item?.teamItem?.itemName ||
+                            "품목"
+                          }`
+                      : "품목"
+                  } 출고`}
+              </h3>
             </div>
-            {/* 2번째 줄 */}
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-xs text-gray-600">{record.requester}</span>
+            {/* 2번째 줄: 발주자 + 날짜 정보 */}
+            <div className="flex gap-1 items-center text-xs text-gray-500 mb-2">
+              <span className="font-medium text-gray-700">{record.requester}</span>
+              <span>•</span>
+              <span>생성: {formatDateForDisplayUTC(record.createdAt)}</span>
+              <span>•</span>
+              <span>출고예정: {formatDateForDisplayUTC(record.outboundDate)}</span>
+            </div>
+            {/* 3번째 줄: 수령자 + 상태 + 상세보기 버튼 */}
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-gray-600">
+                수령자: {record.receiver}
+              </span>
               <span className="flex gap-2 items-center">
                 <span
                   className={`px-2 py-0.5 text-xs rounded-full ${getStatusColorClass(

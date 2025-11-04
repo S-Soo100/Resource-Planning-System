@@ -1,9 +1,11 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useWeekNavigation } from '@/hooks/calendar/useWeekNavigation';
 import { useMonthNavigation } from '@/hooks/calendar/useMonthNavigation';
 import { useCalendarData } from '@/hooks/calendar/useCalendarData';
 import { useMonthData } from '@/hooks/calendar/useMonthData';
+import { useCurrentTeam } from '@/hooks/useCurrentTeam';
 import { CalendarEvent, OrderEventDetails, DemoEventDetails, ViewMode } from '@/types/calendar/calendar';
 import { formatDateTimeToKorean } from '@/utils/calendar/calendarUtils';
 import ViewModeToggle from './ViewModeToggle';
@@ -25,8 +27,17 @@ interface CalendarProps {
 const EventDetailModal: React.FC<{
   event: CalendarEvent | null;
   onClose: () => void;
-}> = ({ event, onClose }) => {
+  teamId?: number;
+}> = ({ event, onClose, teamId }) => {
   if (!event) return null;
+
+  const handleEventItemClick = () => {
+    // demo면 demoRecord/[id]?teamId=[teamId], order면 orderRecord/[id]?teamId=[teamId]로 이동
+    const path = event.type === 'demo'
+      ? `/demoRecord/${event.id}?teamId=${teamId}`
+      : `/orderRecord/${event.id}?teamId=${teamId}`;
+    window.location.href = path;
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -50,6 +61,7 @@ const EventDetailModal: React.FC<{
             event={event}
             isCompact={false}
             className="mb-4"
+            onClick={handleEventItemClick}
           />
 
           {/* 추가 상세 정보 */}
@@ -101,6 +113,13 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('week');
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 현재 팀 정보 조회
+  const { team } = useCurrentTeam();
+  const teamId = team?.id;
+
   // 주간 네비게이션 훅
   const {
     currentWeek,
@@ -126,14 +145,37 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   // 현재 뷰 모드에 따른 데이터 선택
   const { data, isLoading, error } = viewMode === 'week' ? weekData : monthData;
 
-  // 이벤트 클릭 핸들러
+  // URL 쿼리 파라미터에서 모달 정보 읽기
+  useEffect(() => {
+    const eventType = searchParams.get('eventType');
+    const eventId = searchParams.get('eventId');
+
+    if (eventType && eventId && data?.events) {
+      const event = data.events.find(
+        (e) => e.type === eventType && e.id === Number(eventId)
+      );
+      if (event) {
+        setSelectedEvent(event);
+      }
+    } else {
+      setSelectedEvent(null);
+    }
+  }, [searchParams, data?.events]);
+
+  // 이벤트 클릭 핸들러 - URL에 쿼리 추가
   const handleEventClick = (event: CalendarEvent) => {
-    setSelectedEvent(event);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('eventType', event.type);
+    params.set('eventId', event.id.toString());
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  // 모달 닫기 핸들러
+  // 모달 닫기 핸들러 - URL 쿼리 제거
   const handleCloseModal = () => {
-    setSelectedEvent(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('eventType');
+    params.delete('eventId');
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   // 뷰 모드 변경 핸들러
@@ -270,6 +312,7 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
       <EventDetailModal
         event={selectedEvent}
         onClose={handleCloseModal}
+        teamId={teamId}
       />
     </div>
   );

@@ -401,7 +401,10 @@ const OrderRecordTabs = () => {
         order.package?.packageName
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        order.receiver?.toLowerCase().includes(searchTerm.toLowerCase());
+        order.receiver?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.manager?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.receiverAddress?.toLowerCase().includes(searchTerm.toLowerCase());
 
       // 상태 필터링
       const matchesStatus =

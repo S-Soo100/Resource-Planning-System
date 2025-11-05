@@ -126,6 +126,16 @@ export default function UpdatePage() {
                   <div className="space-y-4">
                     <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                       <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>발주 기록 모바일 UI 개선</strong>: 모바일 환경에서 발주 기록 가독성 향상
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800 list-disc list-inside">
+                        <li>모바일 화면에서 발주 카드 레이아웃 최적화</li>
+                        <li>탭 인터페이스 반응형 개선</li>
+                        <li>터치 인터랙션 향상</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
                         <strong>발주 검색 기능 확장</strong>: 발주 기록 페이지 검색 범위 확대
                       </h4>
                       <ul className="space-y-1 text-sm text-orange-800 list-disc list-inside">

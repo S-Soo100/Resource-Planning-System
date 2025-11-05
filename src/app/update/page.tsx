@@ -87,6 +87,36 @@ export default function UpdatePage() {
             </div>
             <div className="p-6">
               <div className="space-y-6">
+                {/* 추가됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("추가됨")}
+                    <span className="ml-2">추가됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>캘린더 모달 URL 관리 기능</strong>: 뒤로가기로 모달 상태 유지
+                      </h4>
+                      <ul className="space-y-1 text-sm text-green-800 list-disc list-inside">
+                        <li>모달 열림 상태를 URL 쿼리 파라미터로 관리 (eventType, eventId)</li>
+                        <li>브라우저 뒤로가기 시 모달 상태 자동 복원</li>
+                        <li>URL 공유 시 특정 이벤트 모달 직접 열기 가능</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>캘린더 모달에서 상세 페이지 이동</strong>: 빠른 상세 정보 접근
+                      </h4>
+                      <ul className="space-y-1 text-sm text-green-800 list-disc list-inside">
+                        <li>모달 내 이벤트 클릭 시 해당 상세 페이지로 이동</li>
+                        <li>시연: /demoRecord/[id]?teamId=[teamId]</li>
+                        <li>발주: /orderRecord/[id]?teamId=[teamId]</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
                 {/* 개선됨 */}
                 <div>
                   <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
@@ -102,6 +132,25 @@ export default function UpdatePage() {
                         <li>기존: 발주자, 패키지명, 수령자만 검색 가능</li>
                         <li>추가: 발주 제목, 담당자, 배송 주소로도 검색 가능</li>
                         <li>총 6개 필드에서 검색 지원으로 발주 기록 찾기 용이성 향상</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 수정됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("수정됨")}
+                    <span className="ml-2">수정됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h4 className="mb-2 font-medium text-blue-900">
+                        <strong>캘린더 모달 무한 루프 수정</strong>: useEffect 최적화
+                      </h4>
+                      <ul className="space-y-1 text-sm text-blue-800 list-disc list-inside">
+                        <li>selectedEvent 상태 변경 조건 추가로 불필요한 업데이트 방지</li>
+                        <li>Maximum update depth exceeded 에러 해결</li>
                       </ul>
                     </div>
                   </div>

@@ -738,7 +738,7 @@ const SimpleDemonstrationForm: React.FC = () => {
         message={loadingState.message}
         progress={loadingState.progress}
       />
-      <div className="p-6 space-y-8">
+      <div className="p-6 mx-auto max-w-4xl space-y-8">
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-3xl font-bold text-gray-800">
             제품 시연 신청

@@ -45,7 +45,7 @@ export default function DemonstrationPage() {
   }
 
   return (
-    <div className="mx-auto py-6 max-w-[1800px]">
+    <div className="py-6">
       <SimpleDemonstrationForm />
     </div>
   );

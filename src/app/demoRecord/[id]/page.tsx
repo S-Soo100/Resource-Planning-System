@@ -785,7 +785,7 @@ const DemoRecordDetail = () => {
   if (isLoading) {
     return (
       <div className="p-4 min-h-screen bg-gray-50">
-        <div className="mx-auto max-w-[1800px]">
+        <div className="mx-auto max-w-5xl">
           <div className="space-y-6 animate-pulse">
             {/* 헤더 스켈레톤 */}
             <div className="flex gap-4 items-center">
@@ -882,7 +882,7 @@ const DemoRecordDetail = () => {
           {/* 기존 demo 상세 UI는 그대로 유지 */}
           {demo && (
             <div className="p-4 min-h-screen bg-gray-50">
-              <div className="mx-auto max-w-[1800px]">
+              <div className="mx-auto max-w-5xl">
                 {/* 헤더 */}
                 <div className="flex justify-between items-center mb-6">
                   <div className="flex gap-4 items-center">

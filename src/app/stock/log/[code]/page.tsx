@@ -87,7 +87,7 @@ export default function ItemLogPage() {
   }
 
   return (
-    <div className="max-w-[1800px] p-8 mx-auto">
+    <div className="p-8 mx-auto">
       <h1 className="mb-4 text-2xl font-bold text-center">
         물품 {code} 입/출고 로그
       </h1>

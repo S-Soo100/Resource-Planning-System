@@ -41,7 +41,7 @@ export default function UpdatePage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm">
-        <div className="px-4 py-4 mx-auto max-w-[1800px]">
+        <div className="px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <button
@@ -65,7 +65,7 @@ export default function UpdatePage() {
       </div>
 
       {/* Content */}
-      <div className="px-4 py-8 mx-auto max-w-[1800px]">
+      <div className="px-4 py-8">
         <div className="space-y-8">
           {/* v1.8.1 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">

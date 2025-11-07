@@ -696,8 +696,9 @@ const DemonstrationRecordTabs = () => {
                     </div>
                   </div>
 
-                  {/* 오른쪽: 상태 + 상세보기 버튼 */}
-                  <div className="flex items-center space-x-3">
+                  {/* 오른쪽: 상태 표시 + 상태 변경 + 상세보기 버튼 */}
+                  <div className="flex items-center space-x-2">
+                    {/* 현재 상태 색상 표시 */}
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium ${getStatusColorClass(
                         record.demoStatus
@@ -718,7 +719,7 @@ const DemonstrationRecordTabs = () => {
                           );
                         }}
                         disabled={updatingStatusId === record.id}
-                        className="text-xs bg-white border border-gray-300 rounded px-2 py-1 disabled:opacity-50"
+                        className="text-xs bg-white border border-gray-300 rounded px-2 py-1 disabled:opacity-50 min-w-[100px]"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {/* 권한에 따라 다른 선택지 표시 */}
@@ -753,6 +754,10 @@ const DemonstrationRecordTabs = () => {
                           </>
                         )}
                       </select>
+                    )}
+
+                    {updatingStatusId === record.id && (
+                      <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
                     )}
 
                     {/* 상세보기 버튼 */}

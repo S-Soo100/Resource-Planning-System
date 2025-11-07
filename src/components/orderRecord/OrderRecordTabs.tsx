@@ -1276,8 +1276,9 @@ const OrderRecordTabs = () => {
                         </div>
                       </div>
 
-                      {/* 오른쪽: 상태 + 상세보기 버튼 */}
-                      <div className="flex items-center space-x-3">
+                      {/* 오른쪽: 상태 표시 + 상태 변경 + 상세보기 버튼 */}
+                      <div className="flex items-center space-x-2">
+                        {/* 현재 상태 색상 표시 */}
                         <span
                           className={`px-2 py-1 rounded text-xs font-medium ${getStatusColorClass(
                             record.status
@@ -1285,6 +1286,47 @@ const OrderRecordTabs = () => {
                         >
                           {getStatusText(record.status)}
                         </span>
+
+                        {/* 상태 변경 드롭다운 (권한이 있는 경우만) */}
+                        {hasPermissionToChangeStatus() && (
+                          <select
+                            value={record.status}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(record.id, e.target.value as OrderStatus);
+                            }}
+                            disabled={isUpdatingStatus === record.id}
+                            className="text-xs bg-white border border-gray-300 rounded px-2 py-1 disabled:opacity-50 min-w-[100px]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {userAccessLevel === "moderator" ? (
+                              // Moderator: 초기 승인 단계만 가능
+                              <>
+                                <option value={OrderStatus.requested}>요청</option>
+                                <option value={OrderStatus.approved} disabled={record.userId === auth?.id}>
+                                  승인{record.userId === auth?.id ? " (본인)" : ""}
+                                </option>
+                                <option value={OrderStatus.rejected} disabled={record.userId === auth?.id}>
+                                  반려{record.userId === auth?.id ? " (본인)" : ""}
+                                </option>
+                              </>
+                            ) : userAccessLevel === "admin" ? (
+                              // Admin: 모든 상태 변경 가능
+                              <>
+                                <option value={OrderStatus.requested}>요청</option>
+                                <option value={OrderStatus.approved}>승인</option>
+                                <option value={OrderStatus.rejected}>반려</option>
+                                <option value={OrderStatus.confirmedByShipper}>출고팀 확인</option>
+                                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+                                <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
+                              </>
+                            ) : null}
+                          </select>
+                        )}
+
+                        {isUpdatingStatus === record.id && (
+                          <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
+                        )}
 
                         {/* 상세보기 버튼 */}
                         <button

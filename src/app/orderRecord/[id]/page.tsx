@@ -735,7 +735,7 @@ const OrderRecordDetail = () => {
             <div className="p-4 min-h-screen bg-gray-50">
               <div className="mx-auto max-w-5xl">
                 {/* 헤더 */}
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center mb-4">
                   <div className="flex gap-4 items-center">
                     <button
                       onClick={() => router.push("/orderRecord")}
@@ -766,6 +766,26 @@ const OrderRecordDetail = () => {
                         <span>삭제</span>
                       </button>
                     )}
+                  </div>
+                </div>
+
+                {/* 생성일 정보 */}
+                <div className="mb-6 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-4 h-4 text-gray-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="font-medium">생성일:</span>
+                    <span>{formatDateForDisplayUTC(order.createdAt)}</span>
                   </div>
                 </div>
 
@@ -933,16 +953,6 @@ const OrderRecordDetail = () => {
                           {order.title || "제목 없음"}
                         </span>
                       </div>
-                      {/* <div className="flex justify-between">
-                        <span className="text-gray-600">발주 ID:</span>
-                        <span className="font-medium">#{order.id}</span>
-                      </div> */}
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">생성일:</span>
-                        <span className="font-medium">
-                          {formatDateForDisplayUTC(order.createdAt)}
-                        </span>
-                      </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">발주자:</span>
                         <span className="font-medium">{order.requester}</span>
@@ -979,14 +989,14 @@ const OrderRecordDetail = () => {
                           {formatPhoneNumber(order.receiverPhone)}
                         </span>
                       </div>
-                      <div className="flex justify-between">
+                      {/* <div className="flex justify-between">
                         <span className="text-gray-600">구매일:</span>
                         <span className="font-medium">
                           {order.purchaseDate
                             ? formatDateForDisplayUTC(order.purchaseDate)
                             : "-"}
                         </span>
-                      </div>
+                      </div> */}
                       <div className="flex justify-between">
                         <span className="text-gray-600">출고예정일:</span>
                         <span className="font-medium">
@@ -1114,12 +1124,8 @@ const OrderRecordDetail = () => {
                           </div>
                           <button
                             onClick={() => {
-                              const link = document.createElement("a");
-                              link.href = file.fileUrl;
-                              link.download = getDisplayFileName(file.fileName);
-                              document.body.appendChild(link);
-                              link.click();
-                              document.body.removeChild(link);
+                              // 새 탭에서 파일 열기
+                              window.open(file.fileUrl, "_blank");
                             }}
                             className="px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
                           >

@@ -677,14 +677,14 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                       {formatDateForDisplayUTC(record.createdAt)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                  {/* <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">구매일:</span>
                     <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.purchaseDate
                         ? formatDateForDisplayUTC(record.purchaseDate)
                         : "-"}
                     </span>
-                  </div>
+                  </div> */}
                   <div className="flex justify-between items-center py-1 border-b border-gray-100">
                     <span className="font-medium text-gray-600">
                       출고예정일:

@@ -884,7 +884,7 @@ const DemoRecordDetail = () => {
             <div className="p-4 min-h-screen bg-gray-50">
               <div className="mx-auto max-w-5xl">
                 {/* 헤더 */}
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center mb-4">
                   <div className="flex gap-4 items-center">
                     <button
                       onClick={() => router.push("/demonstration-record")}
@@ -910,6 +910,26 @@ const DemoRecordDetail = () => {
                       <Printer size={16} />
                       <span>인쇄</span>
                     </button>
+                  </div>
+                </div>
+
+                {/* 생성일 정보 */}
+                <div className="mb-6 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-4 h-4 text-gray-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="font-medium">생성일:</span>
+                    <span>{formatDateForDisplayUTC(demo.createdAt)}</span>
                   </div>
                 </div>
 
@@ -1165,16 +1185,6 @@ const DemoRecordDetail = () => {
                       기본 정보
                     </h2>
                     <div className="space-y-3">
-                      {/* <div className="flex justify-between">
-                        <span className="text-gray-600">시연 ID:</span>
-                        <span className="font-medium">#{demo.id}</span>
-                      </div> */}
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">생성일:</span>
-                        <span className="font-medium">
-                          {formatDateForDisplayUTC(demo.createdAt)}
-                        </span>
-                      </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">요청자:</span>
                         <span className="font-medium">{demo.requester}</span>
@@ -1450,12 +1460,8 @@ const DemoRecordDetail = () => {
                           </div>
                           <button
                             onClick={() => {
-                              const link = document.createElement("a");
-                              link.href = file.fileUrl;
-                              link.download = getDisplayFileName(file.fileName);
-                              document.body.appendChild(link);
-                              link.click();
-                              document.body.removeChild(link);
+                              // 새 탭에서 파일 열기
+                              window.open(file.fileUrl, "_blank");
                             }}
                             className="px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
                           >

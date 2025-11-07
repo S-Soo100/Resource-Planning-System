@@ -65,7 +65,7 @@ export default function MenuPage() {
 
         {/* Footer */}
         <div className="fixed bottom-0 w-full px-4 py-3 bg-white shadow-inner max-h-20">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-[1800px] mx-auto">
             <div className="flex flex-col items-center justify-center text-center">
               <Link
                 href="/update"
@@ -93,7 +93,7 @@ export default function MenuPage() {
 
       {/* Footer */}
       <div className="fixed bottom-0 left-0 right-0 w-full px-4 py-3 bg-white shadow-inner max-h-20">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-[1800px] mx-auto">
           <div className="flex flex-col items-center justify-center text-center">
             <Link
               href="/update"

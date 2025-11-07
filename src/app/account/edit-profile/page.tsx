@@ -104,7 +104,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="max-w-[1800px] mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* 헤더 */}
         <div className="mb-8">
           <button

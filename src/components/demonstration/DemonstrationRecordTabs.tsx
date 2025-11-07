@@ -522,7 +522,7 @@ const DemonstrationRecordTabs = () => {
   };
 
   return (
-    <div className="relative px-4 py-6 mx-auto max-w-3xl">
+    <div className="relative px-4 py-6 mx-auto max-w-[1800px]">
       {/* 로딩 오버레이 */}
       {updateDemoStatusMutation.isPending && (
         <div className="flex absolute inset-0 z-10 justify-center items-center rounded-2xl backdrop-blur-sm bg-gray-900/30">

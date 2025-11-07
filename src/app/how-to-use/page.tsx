@@ -194,7 +194,7 @@ const HowToUsePage = () => {
   };
 
   return (
-    <div className="container p-6 mx-auto max-w-6xl">
+    <div className="container p-6 mx-auto max-w-[1800px]">
       {/* 헤더 */}
       <div className="mb-8">
         <div className="flex gap-4 items-center mb-4">
@@ -308,7 +308,7 @@ const HowToUsePage = () => {
             <div className="text-gray-400">↓</div>
 
             {/* 창고 레벨 */}
-            <div className="grid grid-cols-1 gap-4 w-full max-w-4xl md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 w-full max-w-[1800px] md:grid-cols-3">
               <div className="p-4 text-center bg-green-100 rounded-lg">
                 <div className="text-lg font-semibold text-green-800">
                   📦 창고 A
@@ -337,7 +337,7 @@ const HowToUsePage = () => {
             <div className="text-gray-400">↓</div>
 
             {/* 카테고리 레벨 */}
-            <div className="grid grid-cols-1 gap-4 w-full max-w-6xl md:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 w-full max-w-[1800px] md:grid-cols-4">
               <div className="p-3 text-center bg-yellow-100 rounded-lg">
                 <div className="text-sm font-semibold text-yellow-800">
                   🔧 하드웨어 생산품
@@ -364,7 +364,7 @@ const HowToUsePage = () => {
             <div className="text-gray-400">↓</div>
 
             {/* 물품 레벨 */}
-            <div className="grid grid-cols-1 gap-2 w-full max-w-6xl md:grid-cols-6">
+            <div className="grid grid-cols-1 gap-2 w-full max-w-[1800px] md:grid-cols-6">
               <div className="p-2 text-center bg-white rounded border border-gray-300">
                 <div className="text-xs font-medium text-gray-700">
                   트레드밀

@@ -693,7 +693,7 @@ const OrderRecordDetail = () => {
   if (isLoading) {
     return (
       <div className="p-4 min-h-screen bg-gray-50">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-[1800px]">
           <div className="animate-pulse">
             <div className="mb-4 h-8 bg-gray-200 rounded"></div>
             <div className="h-64 bg-gray-200 rounded"></div>
@@ -733,7 +733,7 @@ const OrderRecordDetail = () => {
           {/* 기존 order 상세 UI는 그대로 유지 */}
           {order && (
             <div className="p-4 min-h-screen bg-gray-50">
-              <div className="mx-auto max-w-4xl">
+              <div className="mx-auto max-w-[1800px]">
                 {/* 헤더 */}
                 <div className="flex justify-between items-center mb-6">
                   <div className="flex gap-4 items-center">

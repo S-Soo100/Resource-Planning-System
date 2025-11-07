@@ -551,7 +551,7 @@ export default function WheelchairOrderForm() {
   };
 
   return (
-    <div className="container p-4 mx-auto max-w-2xl">
+    <div className="p-4 mx-auto max-w-[1800px]">
       <div className="p-2 mb-6 text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg">
         <h1 className="mb-2 text-2xl font-bold text-center">
           휠체어 발주 요청

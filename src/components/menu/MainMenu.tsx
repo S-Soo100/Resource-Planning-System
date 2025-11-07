@@ -279,7 +279,7 @@ const MainMenu = () => {
   const currentTab = tabs.find((tab) => tab.id === activeTab) || tabs[0];
 
   return (
-    <div className="container p-6 mx-auto max-w-6xl">
+    <div className="p-6 mx-auto max-w-[1800px]">
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <h1 className="flex items-center text-3xl font-bold text-gray-900">

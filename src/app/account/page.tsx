@@ -209,7 +209,7 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="px-4 py-8 mx-auto max-w-4xl sm:px-6 lg:px-8 sm:py-12">
+      <div className="px-4 py-8 mx-auto max-w-[1800px] sm:px-6 lg:px-8 sm:py-12">
         <div className="mb-8 sm:mb-12">
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
             내 계정

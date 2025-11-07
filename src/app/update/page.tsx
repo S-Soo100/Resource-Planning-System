@@ -67,6 +67,70 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8">
         <div className="space-y-8">
+          {/* v1.8.2 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.8.2
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-11-07
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>발주/시연 목록 상태 관리 강화</strong>: 카드에서 직접 상태 변경 가능
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800 list-disc list-inside">
+                        <li>카드 확장 없이 상태 배지와 드롭다운으로 즉시 상태 변경</li>
+                        <li>권한별 상태 변경 옵션 자동 제한 (Moderator: 승인/반려, Admin: 모든 상태)</li>
+                        <li>본인 발주에 대한 Moderator 자가 승인 방지 기능 유지</li>
+                        <li>상태 변경 중 로딩 스피너로 피드백 제공</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>상세 페이지 UI 개선</strong>: 생성일 정보 배치 최적화
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800 list-disc list-inside">
+                        <li>생성일을 메인 콘텐츠에서 분리하여 상단 별도 섹션으로 이동</li>
+                        <li>캘린더 아이콘과 함께 눈에 띄지 않는 회색 배경으로 표시</li>
+                        <li>기본 정보 섹션에서 생성일 중복 제거로 UI 간소화</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>첨부파일 다운로드 UX 개선</strong>: 새 탭에서 파일 열기
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800 list-disc list-inside">
+                        <li>다운로드 버튼 클릭 시 새 탭에서 파일 표시</li>
+                        <li>이미지/PDF 파일 보기로 인한 현재 페이지 대체 문제 해결</li>
+                        <li>발주/시연 상세 페이지에서 파일 확인 후 돌아가기 편의성 향상</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.8.1 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +139,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.8.1
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

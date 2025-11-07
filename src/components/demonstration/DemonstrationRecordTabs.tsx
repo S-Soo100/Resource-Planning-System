@@ -114,9 +114,28 @@ const DemonstrationRecordTabs = () => {
   // 현재 로그인한 사용자의 accessLevel 가져오기
   useEffect(() => {
     const user = authStore.getState().user;
-    if (user && user.accessLevel) {
-      setUserAccessLevel(user.accessLevel);
-      console.log("시연 기록 - 사용자 접근 레벨:", user.accessLevel);
+    if (user && user.id) {
+      console.log("시연 기록 - 현재 사용자 ID:", user.id.toString());
+
+      // 사용자 접근 레벨 가져오기
+      const fetchUserInfo = async () => {
+        try {
+          const { userApi } = await import("@/api/user-api");
+          const response = await userApi.getUser(user.id.toString());
+          if (response.success && response.data) {
+            setUserAccessLevel(response.data.accessLevel);
+            console.log("시연 기록 - 사용자 접근 레벨:", response.data.accessLevel);
+          } else {
+            // 기본값: 관리자인 경우 admin, 아닌 경우 user
+            setUserAccessLevel(user.isAdmin ? "admin" : "user");
+          }
+        } catch (error) {
+          console.error("시연 기록 - 사용자 정보 가져오기 실패:", error);
+          setUserAccessLevel(user.isAdmin ? "admin" : "user");
+        }
+      };
+
+      fetchUserInfo();
     }
   }, []);
 
@@ -447,7 +466,9 @@ const DemonstrationRecordTabs = () => {
 
   // 상태 변경 권한 확인
   const canChangeStatus = () => {
-    return userAccessLevel === "admin" || userAccessLevel === "moderator";
+    const hasPermission = userAccessLevel === "admin" || userAccessLevel === "moderator";
+    console.log("시연 기록 - canChangeStatus 체크:", { userAccessLevel, hasPermission });
+    return hasPermission;
   };
 
   // 상태 색상 클래스

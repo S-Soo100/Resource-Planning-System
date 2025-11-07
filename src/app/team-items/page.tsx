@@ -172,7 +172,7 @@ export default function TeamItemsPage() {
 
   if (isLoading || isUserLoading || isCategoryLoading) {
     return (
-      <div className="p-4 mx-auto max-w-6xl">
+      <div className="p-4 mx-auto max-w-[1800px]">
         <div className="animate-pulse">
           <div className="mb-6 w-1/3 h-8 bg-gray-300 rounded"></div>
           <div className="space-y-4">
@@ -253,7 +253,7 @@ export default function TeamItemsPage() {
   }
 
   return (
-    <div className="p-4 mx-auto max-w-5xl">
+    <div className="p-4 mx-auto max-w-[1800px]">
       <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-800">
           팀 카테고리, 품목 관리

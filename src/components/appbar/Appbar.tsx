@@ -191,8 +191,10 @@ const Appbar = () => {
 
   return (
     <div className="flex sticky top-0 z-50 justify-between items-center px-4 py-3 text-gray-800 bg-white border-b border-gray-100 shadow-sm">
-      {renderLeftContent()}
-      {renderRightContent()}
+      <div className="flex justify-between items-center w-full max-w-[1800px] mx-auto">
+        {renderLeftContent()}
+        {renderRightContent()}
+      </div>
     </div>
   );
 };

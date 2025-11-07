@@ -203,7 +203,7 @@ export default function TeamSelectPage() {
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
         {/* 로그아웃 버튼 추가 */}
         <div className="sticky top-0 z-10 p-3 w-full bg-white shadow-sm">
-          <div className="flex justify-between items-center mx-auto max-w-5xl">
+          <div className="flex justify-between items-center mx-auto max-w-[1800px]">
             <h1 className="text-xl font-bold text-gray-800">팀 선택</h1>
             <button
               onClick={handleLogout}
@@ -215,7 +215,7 @@ export default function TeamSelectPage() {
           </div>
         </div>
 
-        <div className="p-6 mx-auto max-w-5xl">
+        <div className="p-6 mx-auto max-w-[1800px]">
           {/* 헤더 및 환영 메시지 */}
           <div className="p-6 mb-8 bg-white rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-4">

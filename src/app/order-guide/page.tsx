@@ -817,7 +817,7 @@ export default function OrderGuidePage() {
 
   return (
     <div className="py-8 min-h-screen bg-gray-50">
-      <div className="container px-4 mx-auto max-w-4xl">
+      <div className="container px-4 mx-auto max-w-[1800px]">
         {/* 헤더 */}
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-3xl font-bold text-gray-900">

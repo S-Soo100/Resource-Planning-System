@@ -34,7 +34,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="container p-4 md:p-6 mx-auto max-w-7xl min-h-screen">
+    <div className="p-4 md:p-6 mx-auto max-w-[1800px] min-h-screen">
       {/* 헤더 - 반응형 */}
       <div className="mb-6 md:mb-8">
         <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">

@@ -368,12 +368,12 @@ const OrderRecordPrint = () => {
               {order.receiverAddress}
             </span>
           </div>
-          <div className="print-info-row">
+          {/* <div className="print-info-row">
             <span className="print-info-label">구매일:</span>
             <span className="print-info-value">
               {order.purchaseDate ? formatDateForDisplayFullUTC(order.purchaseDate) : "-"}
             </span>
-          </div>
+          </div> */}
           <div className="print-info-row">
             <span className="print-info-label">출고예정일:</span>
             <span className="print-info-value">

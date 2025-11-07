@@ -67,6 +67,74 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8">
         <div className="space-y-8">
+          {/* v1.8.3 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.8.3
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-11-07
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>발주 안내 페이지 UI/UX 개선</strong>: 사용자 친화적인 레이아웃과 디자인 강화
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>빠른 이동 버튼을 헤더 바로 아래로 배치하여 접근성 향상</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>카드형 디자인으로 각 발주 유형 강조 (패키지, 휠체어, 개별 품목)</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>그라데이션 배경과 인터랙티브 애니메이션 효과 추가</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>호버 시 카드 확대, 아이콘 크기 변화, 화살표 슬라이드 효과</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>페이지 레이아웃 순서 최적화: 빠른 이동 → 진행률 → 안내 콘텐츠</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>각 발주 유형별 색상 구분 (파란색: 패키지, 보라색: 휠체어, 녹색: 개별)</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>&quot;바로 발주하기&quot; 섹션으로 명확한 행동 유도</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.8.2 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +143,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.8.2
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

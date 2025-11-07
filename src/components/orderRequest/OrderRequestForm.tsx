@@ -847,7 +847,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         message={loadingState.message}
         progress={loadingState.progress}
       />
-      <div className="container p-4 mx-auto">
+      <div className="p-4 mx-auto max-w-4xl">
         <h1 className="mb-4 text-2xl font-bold text-center">{title}</h1>
 
         {/* 테스트 모드 표시 */}

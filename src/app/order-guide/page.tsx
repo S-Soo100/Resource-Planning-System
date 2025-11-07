@@ -39,8 +39,8 @@ export default function OrderGuidePage() {
   const steps = [
     {
       id: 0,
-      title: "발주 유형 선택",
-      description: "어떤 방식으로 발주하시겠습니까?",
+      title: "발주 기능 안내",
+      description: "설명이 필요한 발주 형식을 선택하고 다음 버튼을 눌러주세요",
       content: (
         <div
           className={`grid grid-cols-1 gap-4 sm:gap-6 ${
@@ -828,6 +828,101 @@ export default function OrderGuidePage() {
           </p>
         </div>
 
+        {/* 빠른 이동 버튼 */}
+        <div className="mb-8">
+          <div className="p-6 bg-gradient-to-br from-blue-50 via-purple-50 to-green-50 rounded-2xl border-2 border-blue-200 shadow-lg">
+            <div className="flex gap-2 items-center mb-4">
+              <div className="flex justify-center items-center w-8 h-8 bg-blue-600 rounded-full shadow-md">
+                <ArrowRight className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">
+                바로 발주하기
+              </h3>
+            </div>
+            <div
+              className={`grid gap-4 ${
+                hasWheelchairWarehouses
+                  ? "grid-cols-1 sm:grid-cols-3"
+                  : "grid-cols-1 sm:grid-cols-2"
+              }`}
+            >
+              {/* 패키지 발주 */}
+              <button
+                onClick={() => router.push("/packageOrder")}
+                className="group relative overflow-hidden p-6 text-left bg-white rounded-xl border-2 border-blue-300 shadow-md transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-blue-500"
+              >
+                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-100 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-32 group-hover:h-32"></div>
+                <div className="relative">
+                  <div className="flex justify-center items-center mb-3 w-12 h-12 bg-blue-100 rounded-lg transition-all duration-300 group-hover:bg-blue-200 group-hover:scale-110">
+                    <Package className="w-7 h-7 text-blue-600" />
+                  </div>
+                  <h4 className="mb-2 text-base font-bold text-gray-900">
+                    패키지 발주
+                  </h4>
+                  <p className="mb-3 text-sm text-gray-600">
+                    미리 구성된 패키지로 빠르게 발주
+                  </p>
+                  <div className="flex gap-2 items-center text-sm font-semibold text-blue-600">
+                    <span>시작하기</span>
+                    <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </button>
+
+              {/* 휠체어 발주 */}
+              {hasWheelchairWarehouses && (
+                <button
+                  onClick={() => router.push("/orderWheelchair")}
+                  className="group relative overflow-hidden p-6 text-left bg-white rounded-xl border-2 border-purple-300 shadow-md transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-purple-500"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-purple-100 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-32 group-hover:h-32"></div>
+                  <div className="absolute top-2 right-2 px-2 py-1 text-xs font-bold text-white bg-purple-600 rounded-full shadow-md">
+                    추천
+                  </div>
+                  <div className="relative">
+                    <div className="flex justify-center items-center mb-3 w-12 h-12 bg-purple-100 rounded-lg transition-all duration-300 group-hover:bg-purple-200 group-hover:scale-110">
+                      <Accessibility className="w-7 h-7 text-purple-600" />
+                    </div>
+                    <h4 className="mb-2 text-base font-bold text-gray-900">
+                      휠체어 발주
+                    </h4>
+                    <p className="mb-3 text-sm text-gray-600">
+                      휠체어 전용 품목을 빠르게 선택
+                    </p>
+                    <div className="flex gap-2 items-center text-sm font-semibold text-purple-600">
+                      <span>시작하기</span>
+                      <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </div>
+                  </div>
+                </button>
+              )}
+
+              {/* 개별 품목 발주 */}
+              <button
+                onClick={() => router.push("/orderRequest")}
+                className="group relative overflow-hidden p-6 text-left bg-white rounded-xl border-2 border-green-300 shadow-md transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-green-500"
+              >
+                <div className="absolute top-0 right-0 w-20 h-20 bg-green-100 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-32 group-hover:h-32"></div>
+                <div className="relative">
+                  <div className="flex justify-center items-center mb-3 w-12 h-12 bg-green-100 rounded-lg transition-all duration-300 group-hover:bg-green-200 group-hover:scale-110">
+                    <ShoppingCart className="w-7 h-7 text-green-600" />
+                  </div>
+                  <h4 className="mb-2 text-base font-bold text-gray-900">
+                    개별 품목 발주
+                  </h4>
+                  <p className="mb-3 text-sm text-gray-600">
+                    원하는 품목을 자유롭게 선택
+                  </p>
+                  <div className="flex gap-2 items-center text-sm font-semibold text-green-600">
+                    <span>시작하기</span>
+                    <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* 진행률 표시 */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
@@ -846,8 +941,8 @@ export default function OrderGuidePage() {
           </div>
         </div>
 
-        {/* 메인 콘텐츠 */}
-        <Card className="p-8 mb-8">
+        {/* 발주 안내 콘텐츠 */}
+        <Card className="p-8">
           <div className="mb-6 text-center">
             <h2 className="mb-2 text-2xl font-bold text-gray-900">
               {currentStepData.title}
@@ -891,46 +986,6 @@ export default function OrderGuidePage() {
             </div>
           </div>
         </Card>
-
-        {/* 빠른 이동 버튼 */}
-        <div className="w-full">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Button
-              variant="outline"
-              onClick={() => router.push("/packageOrder")}
-              className="flex gap-2 justify-center items-center px-4 py-3 text-sm font-medium text-blue-700 whitespace-nowrap border-blue-200 transition-all duration-200 hover:bg-blue-50 hover:border-blue-300"
-            >
-              <Package className="flex-shrink-0 w-4 h-4" />
-              <span className="truncate">패키지 발주 바로가기</span>
-            </Button>
-            {hasWheelchairWarehouses && (
-              <Button
-                variant="outline"
-                onClick={() => router.push("/orderWheelchair")}
-                className="flex gap-2 justify-center items-center px-4 py-3 text-sm font-medium text-purple-700 whitespace-nowrap border-purple-200 transition-all duration-200 hover:bg-purple-50 hover:border-purple-300"
-              >
-                <Accessibility className="flex-shrink-0 w-4 h-4" />
-                <span className="truncate">휠체어 발주 바로가기</span>
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              onClick={() => router.push("/orderRequest")}
-              className="flex gap-2 justify-center items-center px-4 py-3 text-sm font-medium text-green-700 whitespace-nowrap border-green-200 transition-all duration-200 hover:bg-green-50 hover:border-green-300"
-            >
-              <ShoppingCart className="flex-shrink-0 w-4 h-4" />
-              <span className="truncate">개별 품목 발주 바로가기</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => router.push("/orderRecord")}
-              className="flex gap-2 justify-center items-center px-4 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300"
-            >
-              <FileText className="flex-shrink-0 w-4 h-4" />
-              <span className="truncate">발주 기록 보기</span>
-            </Button>
-          </div>
-        </div>
       </div>
     </div>
   );

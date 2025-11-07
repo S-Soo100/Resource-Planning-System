@@ -1066,7 +1066,7 @@ const OrderRecordTabs = () => {
   const isMobile = useMediaQuery("(max-width: 759px)");
 
   return (
-    <div className="px-0 mx-auto max-w-[1800px] sm:px-2">
+    <div className="px-0 sm:px-2">
       <div className="p-1 mb-4 bg-white rounded-lg shadow-md sm:p-4 sm:mb-8">
         <div className="flex flex-col justify-between items-start mb-4 md:flex-row md:items-center sm:mb-6">
           <div className="flex gap-1 items-center sm:gap-4">

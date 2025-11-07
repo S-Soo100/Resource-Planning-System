@@ -194,7 +194,7 @@ const HowToUsePage = () => {
   };
 
   return (
-    <div className="container p-6 mx-auto max-w-[1800px]">
+    <div className="container p-6">
       {/* 헤더 */}
       <div className="mb-8">
         <div className="flex gap-4 items-center mb-4">

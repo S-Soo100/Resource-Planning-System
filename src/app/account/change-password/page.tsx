@@ -148,7 +148,7 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="px-4 py-8 mx-auto max-w-[1800px] sm:px-6 lg:px-8">
+      <div className="px-4 py-8 mx-auto max-w-2xl sm:px-6 lg:px-8">
         {/* 헤더 */}
         <div className="mb-8">
           <button

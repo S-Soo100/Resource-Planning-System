@@ -44,7 +44,7 @@ export default function ItemDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-[1800px] mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* 품목 기본 정보 */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h1 className="text-2xl font-bold mb-6">품목 상세 정보</h1>

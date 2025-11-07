@@ -98,6 +98,7 @@ const DemonstrationRecordTabs = () => {
   const recordsPerPage = 10;
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [userAccessLevel, setUserAccessLevel] = useState<string>("");
 
   const { useDemosByTeam, useUpdateDemoStatus } = useDemo();
   const { team: currentTeam } = useCurrentTeam();
@@ -110,13 +111,14 @@ const DemonstrationRecordTabs = () => {
   // 삭제 훅 - 제거됨 (확장 기능과 함께 사용됨)
   // const deleteDemoMutation = useDeleteDemo();
 
-  // 현재 로그인한 사용자 ID 가져오기 (사용하지 않음)
-  // useEffect(() => {
-  //   const user = authStore.getState().user;
-  //   if (user && user.id) {
-  //     console.log("현재 사용자 ID:", user.id.toString());
-  //   }
-  // }, []);
+  // 현재 로그인한 사용자의 accessLevel 가져오기
+  useEffect(() => {
+    const user = authStore.getState().user;
+    if (user && user.accessLevel) {
+      setUserAccessLevel(user.accessLevel);
+      console.log("시연 기록 - 사용자 접근 레벨:", user.accessLevel);
+    }
+  }, []);
 
   // 시연 데이터 조회 - 팀별 시연 목록
   const {
@@ -445,8 +447,7 @@ const DemonstrationRecordTabs = () => {
 
   // 상태 변경 권한 확인
   const canChangeStatus = () => {
-    const user = authStore.getState().user;
-    return user?.accessLevel === "admin" || user?.accessLevel === "moderator";
+    return userAccessLevel === "admin" || userAccessLevel === "moderator";
   };
 
   // 상태 색상 클래스
@@ -723,14 +724,14 @@ const DemonstrationRecordTabs = () => {
                         onClick={(e) => e.stopPropagation()}
                       >
                         {/* 권한에 따라 다른 선택지 표시 */}
-                        {authStore.getState().user?.accessLevel === "moderator" ? (
+                        {userAccessLevel === "moderator" ? (
                           // Moderator: 초기 승인 단계만 가능
                           <>
                             <option value="requested">요청</option>
                             <option value="approved">승인</option>
                             <option value="rejected">반려</option>
                           </>
-                        ) : authStore.getState().user?.accessLevel === "admin" ? (
+                        ) : userAccessLevel === "admin" ? (
                           // Admin: 모든 상태 변경 가능
                           <>
                             <option value="requested">요청</option>
@@ -741,18 +742,7 @@ const DemonstrationRecordTabs = () => {
                             <option value="rejectedByShipper">출고팀 반려</option>
                             <option value="demoCompleted">시연 완료</option>
                           </>
-                        ) : (
-                          // 기본값 (권한이 없는 경우)
-                          <>
-                            <option value="requested">요청</option>
-                            <option value="approved">승인</option>
-                            <option value="rejected">반려</option>
-                            <option value="confirmedByShipper">출고팀 확인</option>
-                            <option value="shipmentCompleted">출고 완료</option>
-                            <option value="rejectedByShipper">출고팀 반려</option>
-                            <option value="demoCompleted">시연 완료</option>
-                          </>
-                        )}
+                        ) : null}
                       </select>
                     )}
 

@@ -146,8 +146,9 @@ export default function ItemSelectionModal({
 
   return (
     <div className="flex fixed inset-0 z-50 justify-center items-center p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
-        <div className="flex justify-between items-center p-6 border-b">
+      <div className="flex overflow-hidden flex-col bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[85vh] md:max-h-[90vh]">
+        {/* 헤더 - 고정 */}
+        <div className="flex shrink-0 justify-between items-center p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
           <button
             onClick={handleClose}
@@ -157,7 +158,8 @@ export default function ItemSelectionModal({
           </button>
         </div>
 
-        <div className="overflow-y-auto p-6">
+        {/* 본문 - 스크롤 가능 */}
+        <div className="overflow-y-auto flex-1 p-6 min-h-0">
           {/* 카테고리 선택 (카테고리가 있는 경우) */}
           {displayCategories.length > 0 && (
             <div className="mb-6">
@@ -199,7 +201,7 @@ export default function ItemSelectionModal({
                   : "해당 조건의 품목이 없습니다."}
               </p>
             ) : (
-              <div className="grid overflow-y-auto gap-2 max-h-96">
+              <div className="grid gap-2">
                 {displayItems.map((item) => {
                   // itemCode가 중복되는 경우를 대비하여 warehouseItemId로 중복 체크
                   const isAlreadyAdded = orderItems.some(

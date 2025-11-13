@@ -197,9 +197,14 @@ export default function TeamItemsPage() {
     setCurrentPage(1);
   };
 
-  // 카테고리 카드 클릭 핸들러
+  // 카테고리 카드 클릭 핸들러 (토글 기능)
   const handleCategoryCardClick = (categoryId: number | "none") => {
-    setSelectedCategoryId(categoryId);
+    // 이미 선택된 카테고리를 다시 클릭하면 선택 취소
+    if (selectedCategoryId === categoryId) {
+      setSelectedCategoryId(null);
+    } else {
+      setSelectedCategoryId(categoryId);
+    }
     setCurrentPage(1);
   };
 
@@ -329,16 +334,30 @@ export default function TeamItemsPage() {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-700">팀 카테고리</h2>
-          {!isReadOnly && (
-            <Button
-              variant="success"
-              onClick={handleOpenCategoryModal}
-              icon={<Plus className="w-4 h-4" />}
-              iconPosition="left"
-            >
-              카테고리 추가
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {selectedCategoryId && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSelectedCategoryId(null);
+                  setCurrentPage(1);
+                }}
+                size="md"
+              >
+                선택 초기화
+              </Button>
+            )}
+            {!isReadOnly && (
+              <Button
+                variant="success"
+                onClick={handleOpenCategoryModal}
+                icon={<Plus className="w-4 h-4" />}
+                iconPosition="left"
+              >
+                카테고리 추가
+              </Button>
+            )}
+          </div>
         </div>
         {categories.length > 0 ? (
           <>

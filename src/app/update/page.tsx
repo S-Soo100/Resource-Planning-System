@@ -67,6 +67,136 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8">
         <div className="space-y-8">
+          {/* v1.9.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.9.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-11-14
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>팀 품목/카테고리 관리 페이지 대폭 개선</strong>: 보라색 테마와 직관적인 UI로 전면 리뉴얼
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>카테고리를 카드 그리드 형식으로 표시 (PC 4열, 태블릿 2열, 모바일 1열)</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>각 카테고리 카드에 품목 개수 표시 및 클릭으로 필터링</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>선택된 카테고리 재클릭 시 선택 취소 (토글 기능)</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>&quot;선택 초기화&quot; 버튼으로 카테고리 필터 해제</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>8개 이상 카테고리 시 접기/펼치기 기능</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>실시간 검색 기능 (품목 코드, 품목명, 메모)</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>페이지네이션 추가 (20개/페이지)</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>검색 결과 개수 표시 및 선택된 필터 칩 표시</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>레이아웃 중앙 정렬 (max-w-7xl)로 시선 집중</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>창고별 품목 관리 페이지 UI 통일</strong>: team-items와 동일한 보라색 테마 적용
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>창고 카드 스타일 개선 (보라색 테두리, 호버 효과)</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>검색 Input 개선 (보라색 포커스 링)</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>테이블 헤더 보라색 배경 적용</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>카테고리 배지를 보라색 라운드 칩으로 표시</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>모달 디자인 통일 (보라색 테두리 및 버튼)</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>관리자 페이지 디자인 통일</strong>: 전체 admin 페이지 보라색 테마로 일관성 확보
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>대시보드 카드 보라색 테두리 적용</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>MenuCard 컴포넌트 보라색 호버/활성화 상태</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>팀 멤버 카드 보라색 아바타 및 배지</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>창고 관리 카드 보라색 배경 및 테두리</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>로딩 스피너 보라색 통일</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.8.3 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +205,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.8.3
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

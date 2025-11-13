@@ -80,9 +80,9 @@ export default function TeamMembers({
 
   if (isLoading) {
     return (
-      <div className="p-5 bg-white rounded-lg shadow-sm">
+      <div className="p-5 bg-white rounded-lg border-2 border-purple-200 shadow-md">
         <div className="py-10 text-center">
-          <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+          <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-purple-500 animate-spin"></div>
           <p className="mt-2 text-gray-600">팀 멤버 정보를 불러오는 중...</p>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function TeamMembers({
 
   if (error) {
     return (
-      <div className="p-5 bg-white rounded-lg shadow-sm">
+      <div className="p-5 bg-white rounded-lg border-2 border-purple-200 shadow-md">
         <div className="py-10 text-center">
           <p className="text-red-600">
             오류가 발생했습니다: {error.toString()}
@@ -102,12 +102,12 @@ export default function TeamMembers({
   }
 
   return (
-    <div className="p-5 bg-white rounded-lg shadow-sm">
+    <div className="p-5 bg-white rounded-lg border-2 border-purple-200 shadow-md">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">팀 멤버 관리</h2>
+        <h2 className="text-xl font-bold text-gray-800">팀 멤버 관리</h2>
         <div className="flex items-center space-x-2">
           {isReadOnly && (
-            <div className="px-4 py-2 text-sm text-yellow-700 bg-yellow-50 rounded-md">
+            <div className="px-4 py-2 text-sm text-yellow-700 bg-yellow-50 rounded-md border border-yellow-200">
               읽기 전용 모드
             </div>
           )}
@@ -123,7 +123,7 @@ export default function TeamMembers({
         </div>
       </div>
 
-      <div className="pb-4 mb-4 border-b">
+      <div className="pb-4 mb-4 border-b border-purple-200">
         <p className="text-gray-600">
           팀원을 추가하거나 제거하고, 권한을 관리할 수 있습니다.
         </p>
@@ -135,13 +135,13 @@ export default function TeamMembers({
           teamUsers.map((member: IMappingUser) => (
             <div
               key={member.id}
-              className="flex justify-between items-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50"
+              className="flex justify-between items-center p-4 rounded-lg border-2 border-purple-200 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200"
             >
               <div className="flex-1">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0">
-                    <div className="flex justify-center items-center w-10 h-10 bg-blue-100 rounded-full">
-                      <span className="font-medium text-blue-600">
+                    <div className="flex justify-center items-center w-10 h-10 bg-purple-100 rounded-full">
+                      <span className="font-medium text-purple-600">
                         {member.user.name.charAt(0)}
                       </span>
                     </div>
@@ -155,7 +155,7 @@ export default function TeamMembers({
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                   {(() => {
                     const accessLevel =
                       (member.user as { accessLevel?: string }).accessLevel ||
@@ -201,7 +201,7 @@ export default function TeamMembers({
             </div>
           ))
         ) : (
-          <div className="py-10 text-center">
+          <div className="py-10 text-center bg-purple-50 rounded-lg border-2 border-purple-200">
             <p className="text-gray-500">등록된 팀 멤버가 없습니다.</p>
           </div>
         )}

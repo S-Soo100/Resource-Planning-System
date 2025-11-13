@@ -31,7 +31,7 @@ const MenuCard: React.FC<MenuCardProps> = ({
   };
 
   const baseStyles =
-    "cursor-pointer rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20";
+    "cursor-pointer rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 shadow-sm hover:shadow-md";
 
   const variantStyles = {
     default: "p-5",
@@ -39,10 +39,10 @@ const MenuCard: React.FC<MenuCardProps> = ({
   };
 
   const stateStyles = isActive
-    ? "border-blue-500 bg-blue-50"
+    ? "border-purple-500 bg-purple-50"
     : disabled
     ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
-    : "border-gray-200 hover:border-blue-300 hover:bg-gray-50";
+    : "border-purple-200 hover:border-purple-400 hover:bg-purple-50/50";
 
   return (
     <div
@@ -63,7 +63,7 @@ const MenuCard: React.FC<MenuCardProps> = ({
             className={cn(
               "mr-3 text-2xl",
               variant === "compact" && "text-xl mr-2",
-              isActive ? "text-blue-600" : "text-gray-600"
+              isActive ? "text-purple-600" : "text-gray-600"
             )}
           >
             {icon}
@@ -73,7 +73,7 @@ const MenuCard: React.FC<MenuCardProps> = ({
           className={cn(
             "font-semibold",
             variant === "default" ? "text-lg" : "text-base",
-            isActive ? "text-blue-900" : "text-gray-900"
+            isActive ? "text-purple-900" : "text-gray-900"
           )}
         >
           {title}
@@ -85,7 +85,7 @@ const MenuCard: React.FC<MenuCardProps> = ({
           className={cn(
             "text-sm",
             variant === "compact" && "text-xs",
-            isActive ? "text-blue-700" : "text-gray-600"
+            isActive ? "text-purple-700" : "text-gray-600"
           )}
         >
           {description}

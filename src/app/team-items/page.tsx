@@ -9,6 +9,8 @@ import {
   AlertCircle,
   Plus,
   Package,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTeamItems } from "@/hooks/useTeamItems";
@@ -55,6 +57,16 @@ export default function TeamItemsPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<
     number | string | null
   >(null);
+
+  // 검색 상태
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // 카테고리 접기/펼치기 상태
+  const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
+
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   // 뷰 모드 상태 (데스크톱: table, 모바일: card)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -147,37 +159,84 @@ export default function TeamItemsPage() {
     }
   };
 
-  // 카테고리별 필터링된 팀 아이템
-  const filteredTeamItems = selectedCategoryId
-    ? selectedCategoryId === "none"
-      ? teamItems.filter((item) => !item.category || item.category === null)
-      : teamItems.filter(
-          (item) =>
-            item.category?.id === parseInt(selectedCategoryId.toString(), 10)
-        )
-    : teamItems;
+  // 카테고리별 필터링 + 검색 필터링된 팀 아이템
+  const filteredTeamItems = teamItems
+    .filter((item) => {
+      // 카테고리 필터
+      if (!selectedCategoryId) return true;
+      if (selectedCategoryId === "none")
+        return !item.category || item.category === null;
+      return item.category?.id === parseInt(selectedCategoryId.toString(), 10);
+    })
+    .filter((item) => {
+      // 검색 필터
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        item.itemName.toLowerCase().includes(query) ||
+        item.itemCode.toLowerCase().includes(query) ||
+        item.memo?.toLowerCase().includes(query)
+      );
+    });
+
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(filteredTeamItems.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedItems = filteredTeamItems.slice(startIndex, endIndex);
+
+  // 카테고리별 아이템 개수 계산
+  const getCategoryItemCount = (categoryId: number) => {
+    return teamItems.filter((item) => item.category?.id === categoryId).length;
+  };
 
   // 필터 초기화
   const handleClearFilter = () => {
     setSelectedCategoryId(null);
+    setSearchQuery("");
+    setCurrentPage(1);
   };
 
-  // 카테고리 필터 변경
-  const handleCategoryFilterChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const value = e.target.value;
-    setSelectedCategoryId(value === "all" ? null : value);
+  // 카테고리 카드 클릭 핸들러
+  const handleCategoryCardClick = (categoryId: number | "none") => {
+    setSelectedCategoryId(categoryId);
+    setCurrentPage(1);
+  };
+
+  // 검색 입력 핸들러
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (isLoading || isUserLoading || isCategoryLoading) {
     return (
       <div className="p-4">
-        <div className="animate-pulse">
-          <div className="mb-6 w-1/3 h-8 bg-gray-300 rounded"></div>
-          <div className="space-y-4">
-            <div className="h-32 bg-gray-300 rounded"></div>
-            <div className="h-64 bg-gray-300 rounded"></div>
+        <div className="mx-auto max-w-7xl animate-pulse">
+          {/* 헤더 스켈레톤 */}
+          <div className="mb-6 w-1/3 h-8 bg-purple-200 rounded"></div>
+
+          {/* 카테고리 그리드 스켈레톤 */}
+          <div className="mb-8">
+            <div className="mb-4 w-32 h-6 bg-purple-200 rounded"></div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-4 h-24 bg-purple-100 rounded-lg"></div>
+              ))}
+            </div>
+          </div>
+
+          {/* 아이템 목록 스켈레톤 */}
+          <div>
+            <div className="mb-4 w-32 h-6 bg-purple-200 rounded"></div>
+            <div className="p-4 mb-4 h-16 bg-purple-100 rounded-lg"></div>
+            <div className="h-64 bg-purple-50 rounded-lg"></div>
           </div>
         </div>
       </div>
@@ -254,18 +313,19 @@ export default function TeamItemsPage() {
 
   return (
     <div className="p-4">
-      <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">
-          팀 카테고리, 품목 관리
-        </h1>
-        {isReadOnly && (
-          <div className="px-4 py-2 text-sm text-yellow-700 bg-yellow-50 rounded-md">
-            1차 승인권자 권한으로는 조회만 가능합니다
-          </div>
-        )}
-      </div>
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl font-bold text-gray-800">
+            팀 카테고리, 품목 관리
+          </h1>
+          {isReadOnly && (
+            <div className="px-4 py-2 text-sm text-yellow-700 bg-yellow-50 rounded-md">
+              1차 승인권자 권한으로는 조회만 가능합니다
+            </div>
+          )}
+        </div>
 
-      {/* 팀 카테고리 테이블 */}
+      {/* 팀 카테고리 카드 그리드 */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-700">팀 카테고리</h2>
@@ -281,117 +341,159 @@ export default function TeamItemsPage() {
           )}
         </div>
         {categories.length > 0 ? (
-          <div className="overflow-hidden bg-white rounded-lg border border-gray-200 shadow-md">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 w-20 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                      순서
-                    </th>
-                    <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                      카테고리명
-                    </th>
-                    {!isReadOnly && (
-                      <th className="px-4 py-3 w-20 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
-                        관리
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {[...categories]
-                    .sort((a, b) => a.priority - b.priority)
-                    .map((category) => (
-                      <tr
-                        key={category.id}
-                        className="transition-colors hover:bg-gray-50"
-                      >
-                        <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                          {category.priority}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
+          <>
+            <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[...categories]
+                .sort((a, b) => a.priority - b.priority)
+                .slice(0, isCategoryExpanded ? categories.length : 8)
+                .map((category) => {
+                  const itemCount = getCategoryItemCount(category.id);
+                  const isSelected = selectedCategoryId === category.id;
+                  return (
+                    <div
+                      key={category.id}
+                      onClick={() => handleCategoryCardClick(category.id)}
+                      className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${
+                        isSelected
+                          ? "border-purple-500 bg-purple-50 shadow-md"
+                          : "border-purple-200 bg-white hover:border-purple-300"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-semibold text-gray-800">
                           {category.name}
-                        </td>
+                        </h3>
                         {!isReadOnly && (
-                          <td className="px-4 py-3 text-sm text-center whitespace-nowrap">
-                            <div className="flex justify-center items-center">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  handleEditCategoryModal(category)
-                                }
-                                icon={<Edit className="w-4 h-4" />}
-                              />
-                            </div>
-                          </td>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditCategoryModal(category);
+                            }}
+                            className="p-1 text-gray-400 transition-colors rounded hover:text-purple-600 hover:bg-purple-100"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
                         )}
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-500">
+                          순서: {category.priority}
+                        </span>
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            isSelected
+                              ? "bg-purple-200 text-purple-800"
+                              : "bg-purple-100 text-purple-600"
+                          }`}
+                        >
+                          {itemCount}개 품목
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
-          </div>
+            {categories.length > 8 && (
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCategoryExpanded(!isCategoryExpanded)}
+                  icon={
+                    isCategoryExpanded ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )
+                  }
+                  iconPosition="right"
+                >
+                  {isCategoryExpanded
+                    ? "카테고리 접기"
+                    : `${categories.length - 8}개 더 보기`}
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
-          <div className="p-8 text-center bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
-            <Package className="mx-auto mb-4 w-12 h-12 text-gray-400" />
+          <div className="p-8 text-center bg-purple-50 rounded-lg border-2 border-purple-200 shadow-sm">
+            <Package className="mx-auto mb-4 w-12 h-12 text-purple-400" />
             <p className="text-gray-500">등록된 팀 카테고리가 없습니다.</p>
           </div>
         )}
       </div>
 
       {/* 팀 아이템 섹션 */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-700">팀 아이템 목록</h2>
-        {!isReadOnly && (
-          <Button
-            variant="primary"
-            onClick={() => handleOpenTeamItemModal()}
-            icon={<Plus className="w-4 h-4" />}
-            iconPosition="left"
-          >
-            아이템 추가
-          </Button>
-        )}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-bold text-gray-700">팀 아이템 목록</h2>
+          {!isReadOnly && (
+            <Button
+              variant="primary"
+              onClick={() => handleOpenTeamItemModal()}
+              icon={<Plus className="w-4 h-4" />}
+              iconPosition="left"
+            >
+              아이템 추가
+            </Button>
+          )}
+        </div>
+        <p className="text-sm text-gray-500">
+          위 카테고리 카드를 클릭하면 해당 카테고리의 아이템만 조회할 수 있습니다.
+        </p>
       </div>
 
-      {/* 카테고리 필터 */}
+      {/* 검색 및 필터 바 */}
       {teamItems.length > 0 && (
-        <div className="flex flex-col gap-4 p-4 mb-4 bg-gray-50 rounded-lg sm:flex-row sm:items-center">
-          <div className="flex gap-2 items-center">
-            <label
-              htmlFor="category-filter"
-              className="text-sm font-medium text-gray-700"
-            >
-              카테고리 필터:
-            </label>
-            <select
-              id="category-filter"
-              value={selectedCategoryId || "all"}
-              onChange={handleCategoryFilterChange}
-              className="px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">전체 카테고리</option>
-              {categories
-                .sort((a, b) => a.priority - b.priority)
-                .map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              <option value="none">없음</option>
-            </select>
-          </div>
-
-          {selectedCategoryId && (
+        <div className="p-4 mb-4 space-y-4 bg-purple-50 rounded-lg border border-purple-200">
+          {/* 검색 Input */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="품목 코드, 품목명, 메모로 검색..."
+                className="w-full px-4 py-2 text-sm border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              />
+            </div>
             <div className="flex gap-2 items-center">
-              <span className="text-sm text-gray-600">
+              <span className="text-sm font-medium text-gray-700">
                 {filteredTeamItems.length}개 아이템 표시 중
               </span>
-              <Button variant="outline" size="sm" onClick={handleClearFilter}>
-                필터 초기화
-              </Button>
+              {(selectedCategoryId || searchQuery) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearFilter}
+                >
+                  전체 초기화
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* 선택된 필터 칩 */}
+          {selectedCategoryId && (
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm font-medium text-gray-600">
+                필터:
+              </span>
+              <button
+                onClick={() => {
+                  setSelectedCategoryId(null);
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-1 text-sm font-medium text-purple-700 bg-purple-200 rounded-full transition-colors hover:bg-purple-300"
+              >
+                {selectedCategoryId === "none"
+                  ? "카테고리 없음"
+                  : categories.find(
+                      (c) =>
+                        c.id === parseInt(selectedCategoryId.toString(), 10)
+                    )?.name}{" "}
+                ✕
+              </button>
             </div>
           )}
         </div>
@@ -423,7 +525,7 @@ export default function TeamItemsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredTeamItems.map((item) => (
+                  {paginatedItems.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-medium whitespace-nowrap">
                         {item.itemCode || "-"}
@@ -486,29 +588,89 @@ export default function TeamItemsPage() {
             </div>
           </div>
 
+          {/* 페이지네이션 */}
+          {filteredTeamItems.length > 0 && totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                이전
+              </Button>
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => {
+                    // 현재 페이지 주변만 표시
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 2 && page <= currentPage + 2)
+                    ) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                            currentPage === page
+                              ? "bg-purple-600 text-white"
+                              : "bg-white text-gray-700 border border-gray-300 hover:bg-purple-50"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (
+                      page === currentPage - 3 ||
+                      page === currentPage + 3
+                    ) {
+                      return (
+                        <span key={page} className="px-2 text-gray-400">
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  }
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                다음
+              </Button>
+            </div>
+          )}
+
           {/* 필터링된 결과가 없을 때 */}
-          {filteredTeamItems.length === 0 && selectedCategoryId && (
-            <div className="p-8 text-center bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
-              <Package className="mx-auto mb-4 w-12 h-12 text-gray-400" />
+          {filteredTeamItems.length === 0 && (selectedCategoryId || searchQuery) && (
+            <div className="p-8 text-center bg-purple-50 rounded-lg border-2 border-purple-200 shadow-sm">
+              <Package className="mx-auto mb-4 w-12 h-12 text-purple-400" />
               <p className="mb-2 text-gray-500">
-                {selectedCategoryId === "none"
+                {searchQuery
+                  ? `'${searchQuery}'에 대한 검색 결과가 없습니다.`
+                  : selectedCategoryId === "none"
                   ? "카테고리가 설정되지 않은 아이템이 없습니다."
                   : "선택한 카테고리에 해당하는 아이템이 없습니다."}
               </p>
               <p className="mb-4 text-sm text-gray-400">
-                {selectedCategoryId === "none"
-                  ? "다른 카테고리를 선택하거나 필터를 초기화해보세요."
+                {searchQuery
+                  ? "다른 검색어를 입력하거나 필터를 초기화해보세요."
                   : "다른 카테고리를 선택하거나 필터를 초기화해보세요."}
               </p>
               <Button variant="outline" size="sm" onClick={handleClearFilter}>
-                필터 초기화
+                전체 초기화
               </Button>
             </div>
           )}
         </>
       ) : (
-        <div className="p-12 text-center bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
-          <Package className="mx-auto mb-4 w-16 h-16 text-gray-400" />
+        <div className="p-12 text-center bg-purple-50 rounded-lg border-2 border-purple-200 shadow-sm">
+          <Package className="mx-auto mb-4 w-16 h-16 text-purple-400" />
           <p className="mb-2 text-gray-500">등록된 팀 아이템이 없습니다.</p>
           <p className="mb-6 text-sm text-gray-400">
             아이템을 추가하여 팀의 품목을 관리해보세요.
@@ -548,6 +710,7 @@ export default function TeamItemsPage() {
         categories={categories}
         editItem={editingTeamItem}
       />
+      </div>
     </div>
   );
 }

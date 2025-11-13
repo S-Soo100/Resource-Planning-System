@@ -31,7 +31,7 @@ export default function AdminPage() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-purple-500 animate-spin"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -89,16 +89,16 @@ export default function AdminPage() {
   return (
     <Suspense>
       <div className="flex flex-col p-6 min-h-full">
-        <div className="space-y-6">
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <h1 className="mb-2 text-2xl font-bold">관리자 대시보드</h1>
+        <div className="mx-auto max-w-7xl w-full space-y-6">
+          <div className="p-6 bg-white rounded-lg border-2 border-purple-200 shadow-md">
+            <h1 className="mb-2 text-2xl font-bold text-gray-800">관리자 대시보드</h1>
             <p className="text-gray-600">
               환영합니다,{" "}
               {user.accessLevel === "admin" ? "관리자" : "1차 승인권자"}{" "}
               {zustandAuth?.name} 님
             </p>
             {isReadOnly && (
-              <div className="p-2 mt-2 text-sm text-yellow-700 bg-yellow-50 rounded-md">
+              <div className="p-3 mt-3 text-sm text-yellow-700 bg-yellow-50 rounded-md border border-yellow-200">
                 1차 승인권자 권한으로는 조회만 가능하며, 수정은 불가능합니다.
               </div>
             )}
@@ -135,7 +135,7 @@ export default function AdminPage() {
             {activeTab === "warehouse" && isWarehousesLoading ? (
               <div className="flex justify-center items-center p-10">
                 <div className="text-center">
-                  <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+                  <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-purple-500 animate-spin"></div>
                   <p className="mt-2 text-gray-600">
                     창고 정보를 불러오는 중...
                   </p>

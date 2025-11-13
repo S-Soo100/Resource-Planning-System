@@ -234,31 +234,34 @@ export default function CustomItemTable({
     <>
       <div className="space-y-4">
         {warehouses.map((warehouse) => (
-          <div key={warehouse.id} className="bg-white rounded-lg shadow">
+          <div
+            key={warehouse.id}
+            className="bg-white rounded-lg border-2 border-purple-200 shadow-md hover:shadow-lg transition-all duration-200"
+          >
             <div
-              className="p-4 flex justify-between items-center cursor-pointer"
+              className="p-5 flex justify-between items-center cursor-pointer hover:bg-purple-50 transition-colors rounded-t-lg"
               onClick={() => toggleWarehouse(warehouse.id)}
             >
               <div>
-                <h3 className="text-lg font-medium">
+                <h3 className="text-lg font-semibold text-gray-800">
                   {warehouse.warehouseName}
                 </h3>
-                <p className="text-sm text-gray-500">ID: {warehouse.id}</p>
+                <p className="text-sm text-gray-500">창고 ID: {warehouse.id}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {!isReadOnly && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenModal(warehouse.id);
                     }}
-                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
                   >
                     아이템 추가
                   </button>
                 )}
                 <svg
-                  className={`w-5 h-5 transform transition-transform ${
+                  className={`w-5 h-5 text-purple-600 transform transition-transform ${
                     expandedWarehouses.includes(warehouse.id)
                       ? "rotate-180"
                       : ""
@@ -278,33 +281,43 @@ export default function CustomItemTable({
             </div>
 
             {expandedWarehouses.includes(warehouse.id) && (
-              <div className="p-4 border-t">
+              <div className="p-5 border-t border-purple-100 bg-purple-50/30">
                 <div className="mb-4">
                   <input
                     type="text"
-                    placeholder="아이템 검색..."
+                    placeholder="품목 코드나 품목명으로 검색..."
                     value={searchQueries[warehouse.id] || ""}
                     onChange={(e) =>
                       handleSearchChange(warehouse.id, e.target.value)
                     }
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   />
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
+                <div className="overflow-x-auto bg-white rounded-lg border border-purple-200">
+                  <table className="min-w-full divide-y divide-purple-200">
+                    <thead className="bg-purple-50">
                       <tr>
-                        <th className="px-4 py-2 text-left">품목 코드</th>
-                        <th className="px-4 py-2 text-left">품목명</th>
-                        <th className="px-4 py-2 text-left">카테고리</th>
-                        <th className="px-4 py-2 text-right">수량</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          품목 코드
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          품목명
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          카테고리
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          수량
+                        </th>
                         {!isReadOnly && (
-                          <th className="px-4 py-2 text-right">관리</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            관리
+                          </th>
                         )}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-200">
                       {Array.isArray(items) &&
                         items
                           .filter(
@@ -339,21 +352,23 @@ export default function CustomItemTable({
                             );
                           })
                           .map((item) => (
-                            <tr key={item.id}>
-                              <td className="px-4 py-2">
+                            <tr key={item.id} className="hover:bg-purple-50 transition-colors">
+                              <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                 {item.teamItem.itemCode}
                               </td>
-                              <td className="px-4 py-2">
+                              <td className="px-4 py-3 text-sm text-gray-700">
                                 {item.teamItem.itemName}
                               </td>
-                              <td className="px-4 py-2">
-                                {getCategoryNameById(item.teamItem.categoryId)}
+                              <td className="px-4 py-3 text-sm text-gray-600">
+                                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                                  {getCategoryNameById(item.teamItem.categoryId)}
+                                </span>
                               </td>
-                              <td className="px-4 py-2 text-right">
+                              <td className="px-4 py-3 text-sm text-gray-900 text-right font-semibold">
                                 {item.itemQuantity}
                               </td>
                               {!isReadOnly && (
-                                <td className="px-4 py-2 text-right">
+                                <td className="px-4 py-3 text-right">
                                   <button
                                     onClick={() =>
                                       handleDeleteItem(
@@ -361,7 +376,7 @@ export default function CustomItemTable({
                                         item.warehouseId
                                       )
                                     }
-                                    className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                                    className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-xs font-medium"
                                   >
                                     삭제
                                   </button>
@@ -382,17 +397,17 @@ export default function CustomItemTable({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div
             ref={modalRef}
-            className="bg-white rounded-xl p-6 w-full max-w-md"
+            className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl border-2 border-purple-200"
           >
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">아이템 추가</h2>
+              <h2 className="text-xl font-bold text-gray-800">아이템 추가</h2>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  팀 아이템 선택
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  팀 아이템 선택 <span className="text-red-500">*</span>
                 </label>
                 <select
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   value={formValues.teamItemId}
                   onChange={(e) => handleTeamItemSelect(e.target.value)}
                 >
@@ -415,9 +430,11 @@ export default function CustomItemTable({
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">수량</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  수량
+                </label>
                 <input
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                   type="number"
                   min={0}
                   value={formValues.itemQuantity}
@@ -430,20 +447,20 @@ export default function CustomItemTable({
                 />
               </div>
 
-              <div className="flex justify-end gap-2 mt-6">
+              <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                 >
                   취소
                 </button>
                 <button
                   onClick={handleFormSubmit}
                   disabled={formValues.teamItemId === 0}
-                  className={`px-4 py-2 rounded-lg ${
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     formValues.teamItemId === 0
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-500 hover:bg-blue-600 text-white"
+                      : "bg-purple-600 hover:bg-purple-700 text-white"
                   }`}
                 >
                   추가

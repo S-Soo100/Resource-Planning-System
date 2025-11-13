@@ -15,7 +15,7 @@ export default function ItemsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -53,18 +53,20 @@ export default function ItemsPage() {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h1 className="text-2xl font-bold">품목 관리</h1>
-          <p className="text-sm text-gray-500">창고 ID: {user.restrictedWhs}</p>
-        </div>
-        {isReadOnly && (
-          <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
-            1차 승인권자 권한으로는 조회만 가능합니다
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">창고별 품목 관리</h1>
+            <p className="text-sm text-gray-500">창고 ID: {user.restrictedWhs}</p>
           </div>
-        )}
+          {isReadOnly && (
+            <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+              1차 승인권자 권한으로는 조회만 가능합니다
+            </div>
+          )}
+        </div>
+        <CustomItemTable isReadOnly={isReadOnly} />
       </div>
-      <CustomItemTable isReadOnly={isReadOnly} />
     </div>
   );
 }

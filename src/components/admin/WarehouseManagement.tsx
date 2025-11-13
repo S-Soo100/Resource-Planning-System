@@ -167,10 +167,10 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
           {warehouses.map((warehouse) => (
             <div
               key={warehouse.id}
-              className="flex flex-col p-4 text-left transition-colors duration-200 border border-blue-200 rounded-lg shadow-sm bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="flex flex-col p-4 text-left transition-colors duration-200 border-2 border-purple-200 rounded-lg shadow-md bg-purple-50 hover:bg-purple-100 hover:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-300"
             >
               <div className="flex-grow">
-                <h3 className="font-semibold text-blue-800">
+                <h3 className="font-semibold text-purple-800">
                   {warehouse.warehouseName}
                 </h3>
                 <div className="mt-2 text-sm text-gray-600">
@@ -185,7 +185,7 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
                 </div>
               </div>
               {!isReadOnly && (
-                <div className="flex justify-end pt-3 mt-4 space-x-2 border-t border-blue-200">
+                <div className="flex justify-end pt-3 mt-4 space-x-2 border-t border-purple-200">
                   <Button
                     variant="outline"
                     size="sm"

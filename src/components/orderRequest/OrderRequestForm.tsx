@@ -247,24 +247,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWarehouseItems, formData.warehouseId]); // orderItems는 무한 루프 방지를 위해 의존성에서 제외
 
-  // 초기 날짜 설정 및 로컬스토리지 복원
-  useEffect(() => {
-    // 로컬스토리지에서 데이터 복원 시도
-    const restored = restoreFormDataFromLocalStorage();
-
-    // 복원 실패 시 초기 날짜 설정
-    if (!restored) {
-      const formattedDate = getTodayString();
-      setRequestDate(formattedDate);
-      setSetupDate(formattedDate);
-
-      setFormData((prev) => ({
-        ...prev,
-        requestDate: formattedDate,
-        setupDate: formattedDate,
-      }));
-    }
-  }, [restoreFormDataFromLocalStorage]);
+  // 패키지 수량 상태 (로컬스토리지 함수보다 먼저 선언)
+  const [packageQuantity, setPackageQuantity] = useState(1);
 
   // 로컬스토리지 키
   const FORM_DATA_KEY = `orderForm_${isPackageOrder ? 'package' : 'regular'}_${currentTeam?.id || 'default'}`;
@@ -322,7 +306,24 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     }
   }, [FORM_DATA_KEY]);
 
-  const [packageQuantity, setPackageQuantity] = useState(1);
+  // 초기 날짜 설정 및 로컬스토리지 복원
+  useEffect(() => {
+    // 로컬스토리지에서 데이터 복원 시도
+    const restored = restoreFormDataFromLocalStorage();
+
+    // 복원 실패 시 초기 날짜 설정
+    if (!restored) {
+      const formattedDate = getTodayString();
+      setRequestDate(formattedDate);
+      setSetupDate(formattedDate);
+
+      setFormData((prev) => ({
+        ...prev,
+        requestDate: formattedDate,
+        setupDate: formattedDate,
+      }));
+    }
+  }, [restoreFormDataFromLocalStorage]);
 
   // 패키지 수량 변경 핸들러
   const handlePackageQuantityChange = (increment: boolean) => {

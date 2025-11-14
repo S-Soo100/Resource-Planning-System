@@ -46,7 +46,7 @@ const WeekView: React.FC<WeekViewProps> = ({
 
   // 최대 레이어 개수
   const maxLayers = demoLayerMap.size > 0 ? Math.max(...demoLayerMap.values()) + 1 : 0;
-  const layerHeight = 36;
+  const layerHeight = 52; // h-12 막대 + 여백
   const demoBarsTotalHeight = maxLayers * layerHeight;
   const baseHeight = 200;
   const dynamicHeight = Math.max(baseHeight, baseHeight + demoBarsTotalHeight);

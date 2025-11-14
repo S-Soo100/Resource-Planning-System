@@ -762,6 +762,13 @@ const OrderRecordDetail = () => {
     }
   };
 
+  // 이미지 파일 여부 확인
+  const isImageFile = (fileName: string): boolean => {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+    const lowerFileName = fileName.toLowerCase();
+    return imageExtensions.some(ext => lowerFileName.endsWith(ext));
+  };
+
   if (isLoading) {
     return (
       <div className="p-4 min-h-screen bg-gray-50">
@@ -1193,50 +1200,71 @@ const OrderRecordDetail = () => {
 
                   {order.files && order.files.length > 0 ? (
                     <div className="space-y-3">
-                      {order.files.map((file) => (
-                        <div
-                          key={file.id}
-                          className="flex justify-between items-center px-4 py-3 bg-gray-50 rounded-lg border border-gray-200"
-                        >
-                          <div className="flex gap-3 items-center">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-5 h-5 text-gray-400"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {getDisplayFileName(file.fileName)}
+                      {order.files.map((file) => {
+                        const isImage = isImageFile(file.fileName);
+                        return (
+                          <div
+                            key={file.id}
+                            className="flex justify-between items-center px-4 py-3 bg-gray-50 rounded-lg border border-gray-200"
+                          >
+                            <div className="flex gap-3 items-center flex-1 min-w-0">
+                              {isImage ? (
+                                // 이미지 미리보기
+                                <div className="relative flex-shrink-0 w-16 h-16 overflow-hidden bg-white rounded border border-gray-200">
+                                  <img
+                                    src={file.fileUrl}
+                                    alt={getDisplayFileName(file.fileName)}
+                                    className="object-cover w-full h-full cursor-pointer transition-transform hover:scale-110"
+                                    onClick={() => window.open(file.fileUrl, "_blank")}
+                                  />
+                                </div>
+                              ) : (
+                                // 일반 파일 아이콘
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="flex-shrink-0 w-5 h-5 text-gray-400"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium text-gray-900 truncate">
+                                  {getDisplayFileName(file.fileName)}
+                                </div>
+                                {isImage && (
+                                  <div className="text-xs text-gray-500">
+                                    클릭하여 원본 보기
+                                  </div>
+                                )}
                               </div>
                             </div>
+                            <div className="flex gap-2 flex-shrink-0 ml-3">
+                              <button
+                                onClick={() => {
+                                  // 새 탭에서 파일 열기
+                                  window.open(file.fileUrl, "_blank");
+                                }}
+                                className="px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
+                              >
+                                {isImage ? "원본" : "다운로드"}
+                              </button>
+                              <button
+                                onClick={() => handleFileDelete(file.id)}
+                                disabled={isDeletingFile === file.id}
+                                className="px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded-md transition-colors hover:bg-red-100 disabled:opacity-50"
+                              >
+                                {isDeletingFile === file.id ? "삭제 중..." : "삭제"}
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => {
-                                // 새 탭에서 파일 열기
-                                window.open(file.fileUrl, "_blank");
-                              }}
-                              className="px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
-                            >
-                              다운로드
-                            </button>
-                            <button
-                              onClick={() => handleFileDelete(file.id)}
-                              disabled={isDeletingFile === file.id}
-                              className="px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded-md transition-colors hover:bg-red-100 disabled:opacity-50"
-                            >
-                              {isDeletingFile === file.id ? "삭제 중..." : "삭제"}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="py-8 text-sm text-center text-gray-500">

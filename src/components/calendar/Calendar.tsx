@@ -116,9 +116,9 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('week');
 
-  // 필터 상태 (초기값: 모든 상태 선택)
-  const [selectedDemoStatuses, setSelectedDemoStatuses] = useState<string[]>(Object.values(DemoStatus));
-  const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<string[]>(Object.values(OrderStatus));
+  // 필터 상태 (초기값: 빈 배열 - 아무것도 선택 안 됨)
+  const [selectedDemoStatuses, setSelectedDemoStatuses] = useState<string[]>([]);
+  const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<string[]>([]);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -156,11 +156,15 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   const filteredEvents = useMemo(() => {
     if (!data?.events) return [];
 
+    // 아무것도 선택 안 됐을 때는 모든 이벤트 표시
+    const noDemoFilter = selectedDemoStatuses.length === 0;
+    const noOrderFilter = selectedOrderStatuses.length === 0;
+
     return data.events.filter(event => {
       if (event.type === 'demo') {
-        return selectedDemoStatuses.includes(event.status);
+        return noDemoFilter || selectedDemoStatuses.includes(event.status);
       } else if (event.type === 'order') {
-        return selectedOrderStatuses.includes(event.status);
+        return noOrderFilter || selectedOrderStatuses.includes(event.status);
       }
       return true;
     });

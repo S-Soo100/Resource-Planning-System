@@ -348,7 +348,7 @@ export default function UserManagementModal({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="user">일반 사용자</option>
-                <option value="supplier">거래처</option>
+                <option value="supplier">납품처</option>
                 <option value="moderator">1차승인권자</option>
               </select>
             </div>

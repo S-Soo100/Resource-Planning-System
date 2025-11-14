@@ -122,7 +122,7 @@ export default function WheelchairOrderForm() {
     }
   }, [warehouses, formData.warehouseId]);
 
-  // 거래처 목록 설정
+  // 납품처 목록 설정
   useEffect(() => {
     if (suppliersResponse) {
       if (
@@ -706,7 +706,7 @@ export default function WheelchairOrderForm() {
           focusRingColor="purple"
         />
 
-        {/* 거래처 선택 */}
+        {/* 납품처 선택 */}
         {user?.accessLevel !== "supplier" && (
           <SupplierSection
             suppliers={suppliers}

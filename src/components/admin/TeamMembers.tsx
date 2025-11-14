@@ -165,7 +165,7 @@ export default function TeamMembers({
                       : accessLevel === "moderator"
                       ? "1차승인권자"
                       : accessLevel === "supplier"
-                      ? "거래처"
+                      ? "납품처"
                       : "일반 사용자";
                   })()}
                 </span>

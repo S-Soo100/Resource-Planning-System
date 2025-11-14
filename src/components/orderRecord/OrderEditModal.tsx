@@ -266,7 +266,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     }
   }, [orderRecord?.warehouseId, warehouseItems, handleWarehouseChange]);
 
-  // 거래처 변경 핸들러
+  // 납품처 변경 핸들러
   const handleSupplierChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const supplierId = parseInt(e.target.value) || null;
@@ -1207,10 +1207,10 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               />
             </div>
 
-            {/* 거래처 선택 */}
+            {/* 납품처 선택 */}
             <div className="space-y-2">
               <label className="flex flex-row gap-3 text-sm font-medium text-gray-700">
-                거래처 선택
+                납품처 선택
                 <p className="text-xs text-red-500">
                   *등록 업체일 경우에만 선택, 이외에는 모두 별도 기재
                 </p>
@@ -1220,7 +1220,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 onChange={handleSupplierChange}
                 className="px-3 py-2 w-full rounded-md border"
               >
-                <option value="0">거래처 선택</option>
+                <option value="0">납품처 선택</option>
                 {Array.isArray(suppliers) && suppliers?.length > 0 ? (
                   suppliers.map((supplier: Supplier) => (
                     <option key={supplier.id} value={supplier.id}>
@@ -1229,7 +1229,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                   ))
                 ) : (
                   <option value="" disabled>
-                    거래처 목록을 불러올 수 없습니다
+                    납품처 목록을 불러올 수 없습니다
                   </option>
                 )}
               </select>

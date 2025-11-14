@@ -3,6 +3,7 @@ import React from 'react';
 import { Warehouse } from '@/types/warehouse';
 import { Item } from '@/types/(item)/item';
 import { FaWarehouse, FaBoxes, FaListUl, FaMapMarkerAlt } from 'react-icons/fa';
+import { useCategory } from '@/hooks/useCategory';
 
 interface WarehouseSummaryProps {
   warehouse: Warehouse;
@@ -10,12 +11,21 @@ interface WarehouseSummaryProps {
 }
 
 const WarehouseSummary: React.FC<WarehouseSummaryProps> = ({ warehouse, items }) => {
+  const { categories } = useCategory(warehouse.teamId);
+
+  // 카테고리 ID로 카테고리 이름 찾기
+  const getCategoryNameById = (categoryId?: number | null): string => {
+    if (!categoryId) return '미분류';
+    const category = categories.find(cat => cat.id === categoryId);
+    return category?.name || '미분류';
+  };
+
   // 카테고리별 그룹화
   const getCategoryGroups = () => {
     const categoryMap = new Map<string, { name: string; count: number; totalQuantity: number }>();
 
     items.forEach(item => {
-      const categoryName = item.teamItem?.category?.name || '미분류';
+      const categoryName = getCategoryNameById(item.teamItem?.categoryId);
       const existing = categoryMap.get(categoryName);
 
       if (existing) {
@@ -38,7 +48,7 @@ const WarehouseSummary: React.FC<WarehouseSummaryProps> = ({ warehouse, items })
     return items.reduce((sum, item) => sum + item.itemQuantity, 0);
   };
 
-  const categories = getCategoryGroups();
+  const categoryGroups = getCategoryGroups();
   const totalQuantity = getTotalQuantity();
 
   return (
@@ -92,18 +102,18 @@ const WarehouseSummary: React.FC<WarehouseSummaryProps> = ({ warehouse, items })
             <FaListUl className="text-xl text-purple-600" />
             <div>
               <p className="text-xs text-gray-600">관리 카테고리</p>
-              <p className="text-xl font-bold text-gray-900">{categories.length}개</p>
+              <p className="text-xl font-bold text-gray-900">{categoryGroups.length}개</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* 카테고리별 상세 정보 */}
-      {categories.length > 0 && (
+      {categoryGroups.length > 0 && (
         <div>
           <h3 className="text-base font-semibold text-gray-900 mb-2">카테고리별 현황</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-            {categories.map(category => (
+            {categoryGroups.map(category => (
               <div
                 key={category.name}
                 className="border border-gray-200 rounded-lg p-2 hover:bg-gray-50 transition-colors"

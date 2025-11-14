@@ -11,6 +11,7 @@ import {
 } from '@/utils/calendar/calendarUtils';
 import EventItem, { EventDot } from './EventItem';
 import DemoDayBarInline from './DemoDayBarInline';
+import DemoTitleOverlay from './DemoTitleOverlay';
 import { calculateDemoLayers, shouldShowTitle } from '@/utils/calendar/demoBarUtils';
 
 interface MonthViewProps {
@@ -93,9 +94,10 @@ const MonthView: React.FC<MonthViewProps> = ({
 
       {/* 날짜별 이벤트 그리드 (6주 x 7일) */}
       <div
-        className="grid grid-cols-7 overflow-visible"
+        className="grid grid-cols-7 relative"
         style={{
-          gridTemplateRows: `repeat(6, minmax(${dynamicRowHeight}px, auto))`
+          gridTemplateRows: `repeat(6, minmax(${dynamicRowHeight}px, auto))`,
+          overflow: 'visible'
         }}
       >
         {monthInfo.weeks.map((week, weekIndex) =>
@@ -119,7 +121,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                 key={`${weekIndex}-${dayIndex}`}
                 className={`
                   relative border-r border-gray-200 last:border-r-0 border-b border-gray-200
-                  p-2 cursor-pointer hover:bg-gray-50 transition-colors flex flex-col
+                  p-2 cursor-pointer hover:bg-gray-50 transition-colors flex flex-col overflow-visible
                   ${isWeekendDay ? 'bg-gray-25' : ''}
                   ${isTodayDate ? 'bg-blue-25' : ''}
                   ${!isCurrentMonthDate ? 'bg-gray-100 opacity-50' : ''}
@@ -202,6 +204,41 @@ const MonthView: React.FC<MonthViewProps> = ({
             );
           })
         )}
+
+        {/* 시연 제목 오버레이 레이어 */}
+        {demoEvents.map(demo => {
+          const demoId = (demo.details as DemoEventDetails).id;
+          const layerIndex = demoLayerMap.get(demoId) || 0;
+          const spanInfo = (demo.details as DemoEventDetails).spanInfo;
+
+          // 날짜 찾기 (주 인덱스와 열 인덱스)
+          const dateStr = demo.date.split('T')[0];
+          let columnIndex = -1;
+          let rowIndex = -1;
+          monthInfo.weeks.forEach((week, wIdx) => {
+            week.forEach((date, dIdx) => {
+              if (formatDateToString(date) === dateStr) {
+                columnIndex = dIdx;
+                rowIndex = wIdx;
+              }
+            });
+          });
+
+          // 시작일 또는 월요일에만 제목 표시
+          if (shouldShowTitle(spanInfo, columnIndex) && columnIndex !== -1 && rowIndex !== -1) {
+            return (
+              <DemoTitleOverlay
+                key={`title-${demoId}-${dateStr}`}
+                demo={demo}
+                columnIndex={columnIndex}
+                layerIndex={layerIndex}
+                rowIndex={rowIndex}
+                onDemoClick={handleEventClick}
+              />
+            );
+          }
+          return null;
+        })}
       </div>
 
       {/* 선택된 날짜의 상세 이벤트 */}

@@ -5,6 +5,7 @@ import { useCalendarEvents } from '@/hooks/calendar/useCalendarEvents';
 import { getDayName, isToday, isWeekend, formatDateToString } from '@/utils/calendar/calendarUtils';
 import EventItem, { EventDot } from './EventItem';
 import DemoDayBarInline from './DemoDayBarInline';
+import DemoTitleOverlay from './DemoTitleOverlay';
 import { calculateDemoLayers, shouldShowTitle } from '@/utils/calendar/demoBarUtils';
 
 interface WeekViewProps {
@@ -93,7 +94,7 @@ const WeekView: React.FC<WeekViewProps> = ({
 
       {/* 날짜별 이벤트 그리드 */}
       <div
-        className="grid grid-cols-7"
+        className="grid grid-cols-7 overflow-visible relative"
         style={{ minHeight: `${dynamicHeight}px` }}
       >
         {weekInfo.days.map((date, columnIndex) => {
@@ -112,7 +113,7 @@ const WeekView: React.FC<WeekViewProps> = ({
               key={columnIndex}
               className={`
                 relative border-r border-gray-200 last:border-r-0 border-b border-gray-200
-                p-2 cursor-pointer hover:bg-gray-50 transition-colors
+                p-2 cursor-pointer hover:bg-gray-50 transition-colors overflow-visible
                 ${isWeekendDay ? 'bg-gray-25' : ''}
                 ${isTodayDate ? 'bg-blue-25' : ''}
                 ${isSelected ? 'bg-yellow-50 ring-2 ring-yellow-300' : ''}
@@ -191,6 +192,29 @@ const WeekView: React.FC<WeekViewProps> = ({
               )}
             </div>
           );
+        })}
+
+        {/* 시연 제목 오버레이 레이어 */}
+        {demoEvents.map(demo => {
+          const demoId = (demo.details as DemoEventDetails).id;
+          const layerIndex = demoLayerMap.get(demoId) || 0;
+          const spanInfo = (demo.details as DemoEventDetails).spanInfo;
+          const dateStr = demo.date.split('T')[0];
+          const columnIndex = weekInfo.days.findIndex(d => formatDateToString(d) === dateStr);
+
+          // 시작일 또는 월요일에만 제목 표시
+          if (shouldShowTitle(spanInfo, columnIndex) && columnIndex !== -1) {
+            return (
+              <DemoTitleOverlay
+                key={`title-${demoId}-${dateStr}`}
+                demo={demo}
+                columnIndex={columnIndex}
+                layerIndex={layerIndex}
+                onDemoClick={handleEventClick}
+              />
+            );
+          }
+          return null;
         })}
       </div>
 

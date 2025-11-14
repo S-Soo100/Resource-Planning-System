@@ -135,25 +135,13 @@ const DemoDayBarInline: React.FC<DemoDayBarInlineProps> = ({
   const demoDetails = demo.details as DemoEventDetails;
   const colors = getColorByDemoId(demoId);
 
-  // 날짜 범위 표시 여부 (여러 날짜에 걸친 시연만)
-  const showDateRange = spanInfo && spanInfo.totalDays > 1;
-
-  // 날짜를 MM/DD 포맷으로 변환
-  const formatShortDate = (dateString: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    return `${month}/${day}`;
-  };
-
   return (
     <div
       className={`
         absolute left-0 right-0 h-12
         ${colors.bg} ${getBorderClass(spanInfo, columnIndex)} ${colors.border} ${colors.text}
         cursor-pointer hover:shadow-md
-        transition-all duration-200 flex flex-col justify-center
+        transition-all duration-200
         ${getRoundedClass(spanInfo, columnIndex)}
       `}
       style={{
@@ -162,20 +150,7 @@ const DemoDayBarInline: React.FC<DemoDayBarInlineProps> = ({
       }}
       onClick={() => onDemoClick?.(demo)}
       title={`${demo.title} (${spanInfo?.totalDays || 1}일간)`}
-    >
-      {showTitle && (
-        <div className="px-2 w-full">
-          <div className="font-medium truncate text-sm leading-tight">
-            {demo.title}
-          </div>
-          {showDateRange && (
-            <div className="text-[10px] opacity-75 truncate leading-tight mt-0.5">
-              {getDemoStatusShortText(demo.status)} · {formatShortDate(demoDetails.demoStartDate)} ~ {formatShortDate(demoDetails.demoEndDate)}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    />
   );
 };
 

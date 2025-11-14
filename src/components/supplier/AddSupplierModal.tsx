@@ -170,7 +170,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
           {/* 사업자 번호 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              사업자 번호
+              사업자 번호 <span className="text-gray-400 text-xs">(선택)</span>
             </label>
             <input
               type="text"

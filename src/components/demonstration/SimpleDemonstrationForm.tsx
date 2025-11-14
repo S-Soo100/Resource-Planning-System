@@ -277,7 +277,7 @@ const SimpleDemonstrationForm: React.FC = () => {
       const endDate = createLocalDate(formData.demoEndDate, formData.demoEndTime || "00:00");
 
       if (endDate < startDate) {
-        toast.error("물품 하차 일정은 물품 상차 일정과 같거나 이후여야 합니다.");
+        toast.error("물품 하차 일정은 물품 출고 일정과 같거나 이후여야 합니다.");
         return false;
       }
     }
@@ -1046,12 +1046,12 @@ const SimpleDemonstrationForm: React.FC = () => {
             {/* 시연 시작 */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-700">
-                물품 상차 일정
+                물품 출고 일정
               </h3>
               <div className="space-y-6">
                 <div>
                   <DateTimePicker
-                    label="물품 상차 일정"
+                    label="물품 출고 일정"
                     date={formData.demoStartDate}
                     time={formData.demoStartTime}
                     onDateChange={(date) =>

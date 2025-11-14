@@ -228,14 +228,14 @@ const OrderRecordTabs = () => {
     }
   }, []);
 
-  // 거래처 목록 조회 훅 사용
+  // 납품처 목록 조회 훅 사용
   const { suppliers: suppliersResponse, isLoading: suppliersLoading } =
     useGetSuppliers();
 
-  // 거래처 목록 가져오기 (지연 로딩 적용)
+  // 납품처 목록 가져오기 (지연 로딩 적용)
   useEffect(() => {
     if (activeTab === "supplier") {
-      // 거래처 탭으로 변경될 때 0.5초 후 로딩 시작
+      // 납품처 탭으로 변경될 때 0.5초 후 로딩 시작
       const timer = setTimeout(() => {
         setIsLoadingSuppliers(true);
       }, 500);
@@ -244,7 +244,7 @@ const OrderRecordTabs = () => {
     }
   }, [activeTab]);
 
-  // 거래처 목록 설정
+  // 납품처 목록 설정
   useEffect(() => {
     if (suppliersResponse && !suppliersLoading && isLoadingSuppliers) {
       // API 응답 데이터 구조에 맞게 처리
@@ -260,7 +260,7 @@ const OrderRecordTabs = () => {
     }
   }, [suppliersResponse, suppliersLoading, isLoadingSuppliers]);
 
-  // 전체 주문 데이터와 거래처별 주문 데이터만 API에서 가져오기
+  // 전체 주문 데이터와 납품처별 주문 데이터만 API에서 가져오기
   const currentTeamId =
     Number(authStore((state) => state.selectedTeam?.id)) || 1;
   const { data: allOrders, isLoading: allLoading } =
@@ -462,7 +462,7 @@ const OrderRecordTabs = () => {
 
   const handleSupplierChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSupplierId(e.target.value);
-    console.log(`거래처 변경: ${e.target.value}`);
+    console.log(`납품처 변경: ${e.target.value}`);
   };
 
   // 페이지네이션 핸들러
@@ -997,7 +997,7 @@ const OrderRecordTabs = () => {
           }`}
         >
           <Truck size={16} className="mr-2" />
-          거래처별
+          납품처별
         </button>
       </div>
     );
@@ -1155,7 +1155,7 @@ const OrderRecordTabs = () => {
             </div>
           )}
 
-          {/* 거래처 선택 */}
+          {/* 납품처 선택 */}
           {activeTab === "supplier" && (
             <div className="flex gap-2 items-center">
               <Truck size={16} className="text-gray-500" />
@@ -1170,7 +1170,7 @@ const OrderRecordTabs = () => {
                   onChange={handleSupplierChange}
                   className="px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm min-w-[150px]"
                 >
-                  <option value="">거래처 선택</option>
+                  <option value="">납품처 선택</option>
                   {suppliers.map((supplier) => (
                     <option key={supplier.id} value={supplier.id.toString()}>
                       {supplier.supplierName}

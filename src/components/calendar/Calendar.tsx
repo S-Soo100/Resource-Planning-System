@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useWeekNavigation } from '@/hooks/calendar/useWeekNavigation';
 import { useMonthNavigation } from '@/hooks/calendar/useMonthNavigation';
@@ -8,6 +8,8 @@ import { useMonthData } from '@/hooks/calendar/useMonthData';
 import { useCurrentTeam } from '@/hooks/useCurrentTeam';
 import { CalendarEvent, OrderEventDetails, DemoEventDetails, ViewMode } from '@/types/calendar/calendar';
 import { formatDateTimeToKorean } from '@/utils/calendar/calendarUtils';
+import { DemoStatus } from '@/types/demo/demo';
+import { OrderStatus } from '@/types/(order)/order';
 import ViewModeToggle from './ViewModeToggle';
 import CalendarNavigation from './CalendarNavigation';
 import MonthNavigation from './MonthNavigation';
@@ -17,6 +19,7 @@ import MonthView from './MonthView';
 import MobileMonthView from './MobileMonthView';
 import WeeklyMemo from './WeeklyMemo';
 import EventItem from './EventItem';
+import EventFilter from './EventFilter';
 import { FaSpinner, FaExclamationCircle } from 'react-icons/fa';
 
 interface CalendarProps {
@@ -113,6 +116,10 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('week');
 
+  // 필터 상태 (초기값: 모든 상태 선택)
+  const [selectedDemoStatuses, setSelectedDemoStatuses] = useState<string[]>(Object.values(DemoStatus));
+  const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<string[]>(Object.values(OrderStatus));
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -144,6 +151,20 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
 
   // 현재 뷰 모드에 따른 데이터 선택
   const { data, isLoading, error } = viewMode === 'week' ? weekData : monthData;
+
+  // 이벤트 필터링
+  const filteredEvents = useMemo(() => {
+    if (!data?.events) return [];
+
+    return data.events.filter(event => {
+      if (event.type === 'demo') {
+        return selectedDemoStatuses.includes(event.status);
+      } else if (event.type === 'order') {
+        return selectedOrderStatuses.includes(event.status);
+      }
+      return true;
+    });
+  }, [data?.events, selectedDemoStatuses, selectedOrderStatuses]);
 
   // URL 쿼리 파라미터에서 모달 정보 읽기
   useEffect(() => {
@@ -234,6 +255,14 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
         />
       </div>
 
+      {/* 이벤트 필터 */}
+      <EventFilter
+        selectedDemoStatuses={selectedDemoStatuses}
+        selectedOrderStatuses={selectedOrderStatuses}
+        onDemoStatusChange={setSelectedDemoStatuses}
+        onOrderStatusChange={setSelectedOrderStatuses}
+      />
+
       {/* 네비게이션 */}
       {viewMode === 'week' ? (
         <CalendarNavigation
@@ -273,7 +302,7 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
           <div className="hidden md:block">
             <WeekView
               weekInfo={currentWeek}
-              events={data?.events || []}
+              events={filteredEvents}
               onEventClick={handleEventClick}
             />
           </div>
@@ -282,7 +311,7 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
           <div className="block md:hidden">
             <MobileWeekView
               weekInfo={currentWeek}
-              events={data?.events || []}
+              events={filteredEvents}
               onEventClick={handleEventClick}
             />
           </div>
@@ -299,7 +328,7 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
           <div className="hidden md:block">
             <MonthView
               monthInfo={currentMonth}
-              events={data?.events || []}
+              events={filteredEvents}
               onEventClick={handleEventClick}
             />
           </div>
@@ -308,7 +337,7 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
           <div className="block md:hidden">
             <MobileMonthView
               monthInfo={currentMonth}
-              events={data?.events || []}
+              events={filteredEvents}
               onEventClick={handleEventClick}
             />
           </div>

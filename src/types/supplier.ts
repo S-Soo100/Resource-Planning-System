@@ -22,12 +22,12 @@ export interface Supplier {
 
 export interface CreateSupplierRequest {
   supplierName: string;
-  email: string;
-  supplierAddress: string;
-  supplierPhoneNumber: string;
-  registrationNumber: string;
+  email?: string;
+  supplierAddress?: string;
+  supplierPhoneNumber?: string;
+  registrationNumber?: string;
   memo?: string;
-  teamId: number;
+  teamId?: number;
 }
 
 export interface UpdateSupplierRequest {

@@ -21,6 +21,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
     supplierPhone: "",
     supplierEmail: "",
     supplierAddress: "",
+    registrationNumber: "",
     supplierNote: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,10 +47,11 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
     try {
       const response = await supplierApi.createSupplier({
         supplierName: formData.supplierName.trim(),
-        supplierPhone: formData.supplierPhone.trim() || undefined,
-        supplierEmail: formData.supplierEmail.trim() || undefined,
+        supplierPhoneNumber: formData.supplierPhone.trim() || undefined,
+        email: formData.supplierEmail.trim() || undefined,
         supplierAddress: formData.supplierAddress.trim() || undefined,
-        supplierNote: formData.supplierNote.trim() || undefined,
+        registrationNumber: formData.registrationNumber.trim() || undefined,
+        memo: formData.supplierNote.trim() || undefined,
       });
 
       if (response.success) {
@@ -75,6 +77,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
       supplierPhone: "",
       supplierEmail: "",
       supplierAddress: "",
+      registrationNumber: "",
       supplierNote: "",
     });
     onClose();
@@ -160,6 +163,22 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="주소를 입력하세요"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {/* 사업자 번호 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              사업자 번호
+            </label>
+            <input
+              type="text"
+              name="registrationNumber"
+              value={formData.registrationNumber}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="사업자 번호를 입력하세요 (예: 123-45-67890)"
               disabled={isSubmitting}
             />
           </div>

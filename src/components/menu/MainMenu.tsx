@@ -395,11 +395,11 @@ const MainMenu = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{
-                  duration: 0.4,
-                  delay: index * 0.1,
+                  duration: 0.13,
+                  delay: index * 0.033,
                   type: "spring",
-                  stiffness: 260,
-                  damping: 20,
+                  stiffness: 300,
+                  damping: 25,
                 }}
                 whileHover={{
                   scale: 1.05,

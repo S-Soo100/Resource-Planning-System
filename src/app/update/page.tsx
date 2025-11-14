@@ -117,6 +117,17 @@ export default function UpdatePage() {
                         <li>• 선택된 날짜와 구분하여 표시</li>
                       </ul>
                     </div>
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>재고 관리 페이지 창고 요약 정보</strong>: 선택된 창고의 상세 통계 정보 표시
+                      </h4>
+                      <ul className="space-y-1 text-sm text-green-800">
+                        <li>• 창고 기본 정보 (이름, 주소, 설명)</li>
+                        <li>• 총 품목 수, 총 재고 수량, 관리 카테고리 수 통계</li>
+                        <li>• 카테고리별 품목 수 및 수량 현황 카드</li>
+                        <li>• 색상별 구분 (파란색: 품목 수, 초록색: 재고 수량, 보라색: 카테고리)</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
 
@@ -127,6 +138,16 @@ export default function UpdatePage() {
                     <span className="ml-2">개선됨</span>
                   </h3>
                   <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>재고 관리 페이지 창고 선택 UI 개선</strong>: 카드 그리드에서 드롭다운 방식으로 변경
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li>• 깔끔한 드롭다운 선택 방식으로 공간 효율성 향상</li>
+                        <li>• 각 옵션에 품목 개수 표시 (예: 창고명 (15개 품목))</li>
+                        <li>• 반응형 디자인 (모바일: 전체 너비, 데스크톱: 고정 너비)</li>
+                      </ul>
+                    </div>
                     <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                       <h4 className="mb-2 font-medium text-orange-900">
                         <strong>팀 품목/카테고리 관리 페이지 대폭 개선</strong>: 보라색 테마와 직관적인 UI로 전면 리뉴얼

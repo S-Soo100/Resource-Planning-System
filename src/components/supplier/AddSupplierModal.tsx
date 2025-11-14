@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, Search } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { supplierApi } from "@/api/supplier-api";
+import SearchAddressModal from "../SearchAddressModal";
+import { Address } from "react-daum-postcode";
 
 interface AddSupplierModalProps {
   isOpen: boolean;
@@ -20,11 +22,13 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
     supplierName: "",
     supplierPhone: "",
     supplierEmail: "",
-    supplierAddress: "",
+    address: "",
+    detailAddress: "",
     registrationNumber: "",
     supplierNote: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -33,6 +37,15 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddressChange = (data: Address) => {
+    setFormData((prev) => ({ ...prev, address: data.address }));
+    setIsAddressOpen(false);
+  };
+
+  const handleToggleAddressModal = () => {
+    setIsAddressOpen(!isAddressOpen);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,11 +58,14 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
 
     setIsSubmitting(true);
     try {
+      // 주소와 상세주소를 합쳐서 전송
+      const fullAddress = `${formData.address} ${formData.detailAddress}`.trim();
+
       const response = await supplierApi.createSupplier({
         supplierName: formData.supplierName.trim(),
         supplierPhoneNumber: formData.supplierPhone.trim() || undefined,
         email: formData.supplierEmail.trim() || undefined,
-        supplierAddress: formData.supplierAddress.trim() || undefined,
+        supplierAddress: fullAddress || undefined,
         registrationNumber: formData.registrationNumber.trim() || undefined,
         memo: formData.supplierNote.trim() || undefined,
       });
@@ -76,10 +92,12 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
       supplierName: "",
       supplierPhone: "",
       supplierEmail: "",
-      supplierAddress: "",
+      address: "",
+      detailAddress: "",
       registrationNumber: "",
       supplierNote: "",
     });
+    setIsAddressOpen(false);
     onClose();
   };
 
@@ -156,13 +174,33 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               주소
             </label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="주소를 입력하세요"
+                disabled={isSubmitting}
+              />
+              <button
+                type="button"
+                onClick={handleToggleAddressModal}
+                className="px-3 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSubmitting}
+              >
+                <Search className="w-4 h-4 md:hidden" />
+                <span className="hidden md:inline">주소 검색</span>
+              </button>
+            </div>
             <input
               type="text"
-              name="supplierAddress"
-              value={formData.supplierAddress}
+              name="detailAddress"
+              value={formData.detailAddress}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="주소를 입력하세요"
+              placeholder="상세 주소"
               disabled={isSubmitting}
             />
           </div>
@@ -219,6 +257,14 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
           </div>
         </form>
       </div>
+
+      {/* 주소 검색 모달 */}
+      {isAddressOpen && (
+        <SearchAddressModal
+          onCompletePost={handleAddressChange}
+          onClose={() => setIsAddressOpen(false)}
+        />
+      )}
     </div>
   );
 };

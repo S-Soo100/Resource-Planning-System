@@ -206,6 +206,9 @@ const DemonstrationRecordTabs = () => {
           record.demoManagerPhone
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
+          record.receiverPhone
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
           record.demoAddress?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           record.demoNationType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           record.memo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -589,7 +592,7 @@ const DemonstrationRecordTabs = () => {
           <Search className="absolute left-3 top-1/2 w-5 h-5 text-gray-400 transform -translate-y-1/2" />
           <input
             type="text"
-            placeholder="제목, 요청자, 담당자, 주소, 품목명 등으로 검색..."
+            placeholder="제목, 요청자, 담당자, 전화번호, 주소, 품목명 등으로 검색..."
             value={searchTerm}
             onChange={handleSearch}
             className="py-2 pr-4 pl-11 w-full text-base bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent"

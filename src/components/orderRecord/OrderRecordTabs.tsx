@@ -402,6 +402,7 @@ const OrderRecordTabs = () => {
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
         order.receiver?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.receiverPhone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.manager?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.receiverAddress?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -1113,7 +1114,7 @@ const OrderRecordTabs = () => {
             />
             <input
               type="text"
-              placeholder="검색어 입력..."
+              placeholder="제목, 요청자, 수령인, 전화번호, 주소 등으로 검색..."
               value={searchTerm}
               onChange={handleSearch}
               className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"

@@ -5,6 +5,7 @@ import { authStore } from "@/store/authStore";
 import { menuTabStore } from "@/store/menuTabStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaBox,
   FaClipboardList,
@@ -280,79 +281,180 @@ const MainMenu = () => {
 
   return (
     <div className="p-6">
-      <div className="mb-8">
+      {/* 헤더 애니메이션 */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mb-8"
+      >
         <div className="flex justify-between items-center">
-          <h1 className="flex items-center text-3xl font-bold text-gray-900">
-            <FaUser className="mr-3 text-blue-600" />
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="flex items-center text-3xl font-bold text-gray-900"
+          >
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              <FaUser className="mr-3 text-blue-600" />
+            </motion.div>
             {user.name}님, 환영합니다!
-          </h1>
-          <div className="flex gap-3 items-center">
+          </motion.h1>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex gap-3 items-center"
+          >
             {user.accessLevel !== "supplier" && (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => router.push("/calendar")}
-                className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg transition-colors duration-200 hover:bg-green-100"
+                className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg transition-colors duration-200 hover:bg-green-100 shadow-sm hover:shadow-md"
               >
                 <FaCalendarAlt className="text-lg" />
                 캘린더
-              </button>
+              </motion.button>
             )}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/how-to-use")}
-              className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg transition-colors duration-200 hover:bg-blue-100"
+              className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg transition-colors duration-200 hover:bg-blue-100 shadow-sm hover:shadow-md"
             >
               <FaQuestionCircle className="text-lg" />
               사용법 안내
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
-        <p className="mt-2 text-lg text-gray-600">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-2 text-lg text-gray-600"
+        >
           팀: <span className="font-semibold">{selectedTeam.teamName}</span>
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
 
-      {/* 탭 네비게이션 */}
-      <div className="flex p-1 mb-6 bg-gray-100 rounded-lg">
-        {tabs.map((tab) => (
-          <button
+      {/* 탭 네비게이션 애니메이션 */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="flex p-1 mb-6 bg-gray-100 rounded-lg"
+      >
+        {tabs.map((tab, index) => (
+          <motion.button
             key={tab.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-3 px-4 rounded-md font-medium transition-all duration-200 ${
+            className={`flex-1 py-3 px-4 rounded-md font-medium transition-all duration-200 relative overflow-hidden ${
               activeTab === tab.id
                 ? `${tab.bgColor} ${tab.textColor} shadow-sm`
                 : "text-gray-600 hover:text-gray-800 hover:bg-white"
             }`}
           >
-            {tab.title}
-          </button>
+            {activeTab === tab.id && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 rounded-md -z-10"
+                style={{ backgroundColor: tab.bgColor.replace('bg-', '') }}
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+              />
+            )}
+            <span className="relative z-10">{tab.title}</span>
+          </motion.button>
         ))}
-      </div>
+      </motion.div>
 
-      {/* 메뉴 아이템 그리드 */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
-        {currentTab.items
-          .filter((item) => item.accessLevel.includes(user.accessLevel))
-          .map((item, index) => (
-            <div
-              key={index}
-              onClick={item.onClick}
-              className={`cursor-pointer rounded-xl border-2 p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-lg ${currentTab.hoverBg} ${currentTab.hoverBorder} border-gray-200`}
-            >
-              <div className="flex items-center mb-4">
-                <div
-                  className={`p-3 rounded-lg ${currentTab.iconBg} text-white mr-4`}
+      {/* 메뉴 아이템 그리드 애니메이션 */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2"
+        >
+          {currentTab.items
+            .filter((item) => item.accessLevel.includes(user.accessLevel))
+            .map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{
+                  duration: 0.4,
+                  delay: index * 0.1,
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 20,
+                }}
+                whileHover={{
+                  scale: 1.05,
+                  rotate: [0, 1, -1, 0],
+                  transition: { duration: 0.3 }
+                }}
+                whileTap={{ scale: 0.95 }}
+                onClick={item.onClick}
+                className={`cursor-pointer rounded-xl border-2 p-6 transition-all duration-300 hover:shadow-2xl ${currentTab.hoverBg} ${currentTab.hoverBorder} border-gray-200 relative overflow-hidden group`}
+              >
+                {/* 배경 그라데이션 효과 */}
+                <motion.div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300"
+                  style={{
+                    background: `radial-gradient(circle at top left, ${currentTab.bgColor.replace('bg-', '')}, transparent)`,
+                  }}
+                />
+
+                <div className="flex items-center mb-4 relative z-10">
+                  <motion.div
+                    whileHover={{ rotate: 360, scale: 1.1 }}
+                    transition={{ duration: 0.6 }}
+                    className={`p-3 rounded-lg ${currentTab.iconBg} text-white mr-4 shadow-lg`}
+                  >
+                    {item.icon}
+                  </motion.div>
+                  <div>
+                    <motion.h3
+                      className="text-xl font-semibold text-gray-800"
+                      whileHover={{ x: 5 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {item.title}
+                    </motion.h3>
+                  </div>
+                </div>
+                <motion.p
+                  className="leading-relaxed text-gray-600 relative z-10"
+                  initial={{ opacity: 0.8 }}
+                  whileHover={{ opacity: 1 }}
                 >
-                  {item.icon}
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-800">
-                    {item.title}
-                  </h3>
-                </div>
-              </div>
-              <p className="leading-relaxed text-gray-600">{item.subtitle}</p>
-            </div>
-          ))}
-      </div>
+                  {item.subtitle}
+                </motion.p>
+
+                {/* 호버 시 빛나는 효과 */}
+                <motion.div
+                  className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    backgroundImage: `linear-gradient(to right, ${currentTab.iconBg.replace('bg-', '')}, transparent)`,
+                  }}
+                />
+              </motion.div>
+            ))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

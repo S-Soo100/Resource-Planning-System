@@ -427,3 +427,113 @@ const { mutate: deleteComment } = useDeleteComment();
 - 파일 크기 제한 (50MB)
 - 파일명 안전화 (한글 인코딩 문제 해결)
 - 파일 타입 검증
+
+### 발주 상세 페이지 첨부파일 관리 (v1.9.1)
+
+발주 상세 페이지(`/orderRecord/[id]`)에서 첨부파일 관리 기능이 개선되었습니다.
+
+#### 주요 개선사항
+
+1. **첨부파일 섹션 항상 표시**
+   - 기존: 첨부파일이 있을 때만 섹션 표시
+   - 개선: 첨부파일 0개일 때도 섹션 표시
+   - 이유: 파일 추가 버튼에 항상 접근 가능하도록 개선
+
+2. **발주 수정 없이 파일 추가/삭제 가능**
+   - 기존: 발주 수정 모달을 통해서만 파일 관리 가능
+   - 개선: 발주 상세 페이지에서 직접 파일 추가/삭제
+   - 권한: 모든 사용자가 접근한 발주에 대해 파일 추가 가능
+   - 삭제: 업로드된 모든 파일에 대해 삭제 버튼 제공
+
+#### 첨부파일 섹션 UI 구조
+
+```
+┌─────────────────────────────────────────────────────┐
+│ 📎 첨부파일 (2)                     [+ 파일 추가]   │
+├─────────────────────────────────────────────────────┤
+│ 📄 견적서.pdf                [다운로드] [삭제]      │
+│ 📄 계약서.pdf                [다운로드] [삭제]      │
+└─────────────────────────────────────────────────────┘
+
+또는 (파일이 없을 때)
+
+┌─────────────────────────────────────────────────────┐
+│ 📎 첨부파일 (0)                     [+ 파일 추가]   │
+├─────────────────────────────────────────────────────┤
+│  첨부된 파일이 없습니다.                            │
+│  위의 '파일 추가' 버튼을 눌러 파일을 업로드하세요.  │
+└─────────────────────────────────────────────────────┘
+```
+
+#### 파일 관리 API
+
+```typescript
+// 파일 업로드
+const handleFileUpload = async (files: FileList | null) => {
+  const response = await uploadMultipleOrderFileById(orderId, fileArray);
+  // 성공 시 페이지 새로고침하여 업데이트된 파일 목록 표시
+};
+
+// 파일 삭제
+const handleFileDelete = async (fileId: number) => {
+  const response = await deleteOrderFile(orderId, fileId);
+  // 성공 시 페이지 새로고침하여 업데이트된 파일 목록 표시
+};
+```
+
+#### 사용자 경험 개선
+
+- **즉각적인 피드백**: 파일 업로드/삭제 시 토스트 메시지 표시
+- **로딩 상태**: 업로드 중 "업로드 중...", 삭제 중 "삭제 중..." 표시
+- **확인 다이얼로그**: 파일 삭제 전 확인 요청
+- **자동 새로고침**: 파일 추가/삭제 후 자동으로 페이지 새로고침하여 최신 상태 반영
+
+#### 기술적 구현
+
+```typescript
+// 상태 관리
+const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+const [isDeletingFile, setIsDeletingFile] = useState<number | null>(null);
+
+// 파일 업로드 핸들러
+const handleFileUpload = async (files: FileList | null) => {
+  if (!files || files.length === 0 || !order) return;
+
+  setIsUploadingFiles(true);
+  try {
+    const fileArray = Array.from(files);
+    const response = await uploadMultipleOrderFileById(order.id, fileArray);
+
+    if (response.success) {
+      toast.success(`${fileArray.length}개 파일이 업로드되었습니다.`);
+      window.location.reload();
+    }
+  } finally {
+    setIsUploadingFiles(false);
+  }
+};
+
+// 파일 삭제 핸들러
+const handleFileDelete = async (fileId: number) => {
+  if (!window.confirm("이 파일을 삭제하시겠습니까?")) return;
+
+  setIsDeletingFile(fileId);
+  try {
+    const response = await deleteOrderFile(order.id, fileId);
+
+    if (response.success) {
+      toast.success("파일이 삭제되었습니다.");
+      window.location.reload();
+    }
+  } finally {
+    setIsDeletingFile(null);
+  }
+};
+```
+
+#### 주의사항
+
+- 파일 업로드/삭제는 발주 수정 권한과 무관하게 동작
+- 파일 추가 시 기존 발주 정보는 변경되지 않음
+- 대용량 파일 업로드 시 네트워크 상태에 따라 시간이 소요될 수 있음
+- 파일 삭제는 즉시 반영되며 복구 불가능

@@ -389,7 +389,7 @@ const MainMenu = () => {
           {currentTab.items
             .filter((item) => item.accessLevel.includes(user.accessLevel))
             .map((item, index) => (
-              <motion.div
+              <motion.button
                 key={index}
                 initial={{ opacity: 0, y: 20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -403,55 +403,49 @@ const MainMenu = () => {
                 }}
                 whileHover={{
                   scale: 1.05,
-                  rotate: [0, 1, -1, 0],
+                  y: -4,
                   transition: { duration: 0.3 }
                 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={item.onClick}
-                className={`cursor-pointer rounded-xl border-2 p-6 transition-all duration-300 hover:shadow-2xl ${currentTab.hoverBg} ${currentTab.hoverBorder} border-gray-200 relative overflow-hidden group`}
+                className={`group relative overflow-hidden p-6 text-left bg-white rounded-xl border-2 shadow-md transition-all duration-300 hover:shadow-2xl ${currentTab.hoverBorder} border-gray-200`}
               >
-                {/* 배경 그라데이션 효과 */}
-                <motion.div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300"
-                  style={{
-                    background: `radial-gradient(circle at top left, ${currentTab.bgColor.replace('bg-', '')}, transparent)`,
-                  }}
-                />
+                {/* 배경 장식 원 */}
+                <div
+                  className={`absolute top-0 right-0 w-20 h-20 ${currentTab.bgColor} rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-32 group-hover:h-32`}
+                ></div>
 
-                <div className="flex items-center mb-4 relative z-10">
+                <div className="relative">
                   <motion.div
-                    whileHover={{ rotate: 360, scale: 1.1 }}
-                    transition={{ duration: 0.6 }}
-                    className={`p-3 rounded-lg ${currentTab.iconBg} text-white mr-4 shadow-lg`}
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.3 }}
+                    className={`flex justify-center items-center mb-3 w-12 h-12 ${currentTab.bgColor} rounded-lg transition-all duration-300`}
                   >
-                    {item.icon}
+                    <div className="text-3xl">
+                      {item.icon}
+                    </div>
                   </motion.div>
-                  <div>
-                    <motion.h3
-                      className="text-xl font-semibold text-gray-800"
-                      whileHover={{ x: 5 }}
-                      transition={{ duration: 0.2 }}
+                  <h4 className="mb-2 text-base font-bold text-gray-900">
+                    {item.title}
+                  </h4>
+                  <p className="mb-3 text-sm text-gray-600">
+                    {item.subtitle}
+                  </p>
+                  <div className={`flex gap-2 items-center text-sm font-semibold ${currentTab.textColor}`}>
+                    <span>시작하기</span>
+                    <motion.svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                     >
-                      {item.title}
-                    </motion.h3>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </motion.svg>
                   </div>
                 </div>
-                <motion.p
-                  className="leading-relaxed text-gray-600 relative z-10"
-                  initial={{ opacity: 0.8 }}
-                  whileHover={{ opacity: 1 }}
-                >
-                  {item.subtitle}
-                </motion.p>
-
-                {/* 호버 시 빛나는 효과 */}
-                <motion.div
-                  className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{
-                    backgroundImage: `linear-gradient(to right, ${currentTab.iconBg.replace('bg-', '')}, transparent)`,
-                  }}
-                />
-              </motion.div>
+              </motion.button>
             ))}
         </motion.div>
       </AnimatePresence>

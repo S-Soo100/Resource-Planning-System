@@ -1,16 +1,19 @@
 import React from "react";
 import { Supplier } from "@/types/supplier";
+import { Plus } from "lucide-react";
 
 interface SupplierSectionProps {
   suppliers: Supplier[];
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   focusRingColor?: string;
+  onAddSupplier?: () => void;
 }
 
 const SupplierSection: React.FC<SupplierSectionProps> = ({
   suppliers,
   onChange,
   focusRingColor = "blue",
+  onAddSupplier,
 }) => {
   const focusRingClass =
     focusRingColor === "purple"
@@ -19,9 +22,21 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
 
   return (
     <div className="p-4 bg-white rounded-lg border shadow-sm">
-      <label className="block mb-2 text-sm font-medium text-gray-700">
-        납품처 선택(미리 등록한 경우만)
-      </label>
+      <div className="flex items-center justify-between mb-2">
+        <label className="block text-sm font-medium text-gray-700">
+          납품처 선택(미리 등록한 경우만)
+        </label>
+        {onAddSupplier && (
+          <button
+            type="button"
+            onClick={onAddSupplier}
+            className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+          >
+            <Plus className="w-3 h-3" />
+            납품처 추가
+          </button>
+        )}
+      </div>
       <p className="mb-2 text-xs text-red-500">
         * 미리 등록한 업체 정보가 있는 경우에만 선택
       </p>

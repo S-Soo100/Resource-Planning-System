@@ -42,6 +42,7 @@ import {
 } from "../common";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
+import AddSupplierModal from "../supplier/AddSupplierModal";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -69,6 +70,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const fileUpload = useFileUpload();
   const addressSearch = useAddressSearch();
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
   const auth = authStore((state) => state.user);
   const { user } = useCurrentUser();
   const { team: currentTeam } = useCurrentTeam();
@@ -245,19 +247,80 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentWarehouseItems, formData.warehouseId]); // orderItems는 무한 루프 방지를 위해 의존성에서 제외
 
-  // 초기 날짜 설정
+  // 초기 날짜 설정 및 로컬스토리지 복원
   useEffect(() => {
-    // 현재 날짜를 로컬 시간대 기준으로 설정
-    const formattedDate = getTodayString();
-    setRequestDate(formattedDate);
-    setSetupDate(formattedDate);
+    // 로컬스토리지에서 데이터 복원 시도
+    const restored = restoreFormDataFromLocalStorage();
 
-    setFormData((prev) => ({
-      ...prev,
-      requestDate: formattedDate,
-      setupDate: formattedDate,
-    }));
-  }, []);
+    // 복원 실패 시 초기 날짜 설정
+    if (!restored) {
+      const formattedDate = getTodayString();
+      setRequestDate(formattedDate);
+      setSetupDate(formattedDate);
+
+      setFormData((prev) => ({
+        ...prev,
+        requestDate: formattedDate,
+        setupDate: formattedDate,
+      }));
+    }
+  }, [restoreFormDataFromLocalStorage]);
+
+  // 로컬스토리지 키
+  const FORM_DATA_KEY = `orderForm_${isPackageOrder ? 'package' : 'regular'}_${currentTeam?.id || 'default'}`;
+
+  // 폼 데이터 로컬스토리지에 저장
+  const saveFormDataToLocalStorage = useCallback(() => {
+    try {
+      const dataToSave = {
+        formData,
+        orderItems,
+        packageQuantity,
+        requestDate,
+        setupDate,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem(FORM_DATA_KEY, JSON.stringify(dataToSave));
+    } catch (error) {
+      console.error("폼 데이터 저장 실패:", error);
+    }
+  }, [formData, orderItems, packageQuantity, requestDate, setupDate, FORM_DATA_KEY]);
+
+  // 로컬스토리지에서 폼 데이터 복원
+  const restoreFormDataFromLocalStorage = useCallback(() => {
+    try {
+      const savedData = localStorage.getItem(FORM_DATA_KEY);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        // 24시간 이내 데이터만 복원
+        const savedTime = new Date(parsed.timestamp).getTime();
+        const now = new Date().getTime();
+        if (now - savedTime < 24 * 60 * 60 * 1000) {
+          setFormData(parsed.formData);
+          setOrderItems(parsed.orderItems || []);
+          setPackageQuantity(parsed.packageQuantity || 1);
+          setRequestDate(parsed.requestDate || getTodayString());
+          setSetupDate(parsed.setupDate || getTodayString());
+          return true;
+        } else {
+          // 24시간 지난 데이터는 삭제
+          localStorage.removeItem(FORM_DATA_KEY);
+        }
+      }
+    } catch (error) {
+      console.error("폼 데이터 복원 실패:", error);
+    }
+    return false;
+  }, [FORM_DATA_KEY]);
+
+  // 로컬스토리지 데이터 삭제
+  const clearFormDataFromLocalStorage = useCallback(() => {
+    try {
+      localStorage.removeItem(FORM_DATA_KEY);
+    } catch (error) {
+      console.error("폼 데이터 삭제 실패:", error);
+    }
+  }, [FORM_DATA_KEY]);
 
   const [packageQuantity, setPackageQuantity] = useState(1);
 
@@ -426,6 +489,18 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         address: selectedSupplier.supplierAddress,
       });
     }
+  };
+
+  // 납품처 추가 성공 핸들러
+  const handleAddSupplierSuccess = async () => {
+    // 폼 데이터 저장
+    saveFormDataToLocalStorage();
+
+    // 납품처 목록 새로고침
+    await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+
+    // 페이지 새로고침하여 업데이트된 납품처 목록 가져오기
+    window.location.reload();
   };
 
   // 창고 선택 핸들러
@@ -765,6 +840,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                     message: "",
                     progress: 0,
                   });
+                  // 로컬스토리지 데이터 삭제
+                  clearFormDataFromLocalStorage();
                   // 페이지 이동
                   router.replace("/orderRecord");
                 }, 1500);
@@ -1111,6 +1188,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               suppliers={suppliers}
               onChange={handleSupplierChange}
               focusRingColor="blue"
+              onAddSupplier={() => setIsAddSupplierModalOpen(true)}
             />
           )}
 
@@ -1170,6 +1248,13 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           currentWarehouseItems={currentWarehouseItems}
           orderItems={orderItems}
           title="품목 추가"
+        />
+
+        {/* 납품처 추가 모달 */}
+        <AddSupplierModal
+          isOpen={isAddSupplierModalOpen}
+          onClose={() => setIsAddSupplierModalOpen(false)}
+          onSuccess={handleAddSupplierSuccess}
         />
       </div>
     </>

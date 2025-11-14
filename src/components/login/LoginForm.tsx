@@ -30,6 +30,8 @@ export default function LoginForm({
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
@@ -144,74 +146,173 @@ export default function LoginForm({
 
           <motion.div
             initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.4 }}
+            animate={{
+              opacity: 1,
+              x: 0,
+              scale: isEmailFocused ? 1.02 : 1,
+            }}
+            transition={{
+              opacity: { delay: 0.5, duration: 0.4 },
+              x: { delay: 0.5, duration: 0.4 },
+              scale: { duration: 0.2 }
+            }}
           >
-            <Input
-              id="email"
-              type="email"
-              label="이메일"
-              value={auth.email}
-              onChange={(e) =>
-                setAuth({ email: e.target.value, password: auth.password })
-              }
-              leftIcon={<Mail className="w-5 h-5" />}
-              placeholder="name@example.com"
-              required
-            />
+            <div className="relative">
+              {isEmailFocused && (
+                <motion.div
+                  layoutId="input-glow"
+                  className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg blur opacity-30"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.3 }}
+                  exit={{ opacity: 0 }}
+                />
+              )}
+              <div className="relative">
+                <Input
+                  id="email"
+                  type="email"
+                  label="이메일"
+                  value={auth.email}
+                  onChange={(e) =>
+                    setAuth({ email: e.target.value, password: auth.password })
+                  }
+                  onFocus={() => setIsEmailFocused(true)}
+                  onBlur={() => setIsEmailFocused(false)}
+                  leftIcon={
+                    <motion.div
+                      animate={{
+                        scale: isEmailFocused ? [1, 1.2, 1] : 1,
+                        rotate: isEmailFocused ? [0, -10, 10, 0] : 0
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Mail className="w-5 h-5" />
+                    </motion.div>
+                  }
+                  placeholder="name@example.com"
+                  required
+                />
+              </div>
+            </div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.4 }}
+            animate={{
+              opacity: 1,
+              x: 0,
+              scale: isPasswordFocused ? 1.02 : 1,
+            }}
+            transition={{
+              opacity: { delay: 0.6, duration: 0.4 },
+              x: { delay: 0.6, duration: 0.4 },
+              scale: { duration: 0.2 }
+            }}
           >
-            <Input
-              id="password"
-              type={isPasswordVisible ? "text" : "password"}
-              label="비밀번호"
-              value={auth.password}
-              onChange={(e) =>
-                setAuth({ email: auth.email, password: e.target.value })
-              }
-              leftIcon={<Lock className="w-5 h-5" />}
-              rightIcon={
-                <motion.button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="text-gray-600 hover:text-gray-800"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {isPasswordVisible ? (
-                    <FaEye className="w-4 h-4" />
-                  ) : (
-                    <FaRegEyeSlash className="w-4 h-4" />
-                  )}
-                </motion.button>
-              }
-              placeholder="••••••••"
-              required
-            />
+            <div className="relative">
+              {isPasswordFocused && (
+                <motion.div
+                  layoutId="input-glow"
+                  className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg blur opacity-30"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.3 }}
+                  exit={{ opacity: 0 }}
+                />
+              )}
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={isPasswordVisible ? "text" : "password"}
+                  label="비밀번호"
+                  value={auth.password}
+                  onChange={(e) =>
+                    setAuth({ email: auth.email, password: e.target.value })
+                  }
+                  onFocus={() => setIsPasswordFocused(true)}
+                  onBlur={() => setIsPasswordFocused(false)}
+                  leftIcon={
+                    <motion.div
+                      animate={{
+                        scale: isPasswordFocused ? [1, 1.2, 1] : 1,
+                        rotate: isPasswordFocused ? [0, 5, -5, 0] : 0
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Lock className="w-5 h-5" />
+                    </motion.div>
+                  }
+                  rightIcon={
+                    <motion.button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="text-gray-600 hover:text-gray-800"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {isPasswordVisible ? (
+                        <FaEye className="w-4 h-4" />
+                      ) : (
+                        <FaRegEyeSlash className="w-4 h-4" />
+                      )}
+                    </motion.button>
+                  }
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+            </div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.4 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              scale: isLoading ? 1 : [1, 1.01, 1],
+            }}
+            transition={{
+              opacity: { delay: 0.7, duration: 0.4 },
+              y: { delay: 0.7, duration: 0.4 },
+              scale: {
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }
+            }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              loading={isLoading}
-              disabled={isLoading}
-              className="w-full"
+            <motion.div
+              className="relative"
+              animate={{
+                boxShadow: isLoading
+                  ? "0 0 0px rgba(59, 130, 246, 0)"
+                  : [
+                      "0 0 0px rgba(59, 130, 246, 0.5)",
+                      "0 0 20px rgba(59, 130, 246, 0.3)",
+                      "0 0 0px rgba(59, 130, 246, 0.5)"
+                    ]
+              }}
+              transition={{
+                boxShadow: {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }
+              }}
+              style={{ borderRadius: "0.5rem" }}
             >
-              로그인
-            </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                loading={isLoading}
+                disabled={isLoading}
+                className="w-full"
+              >
+                로그인
+              </Button>
+            </motion.div>
           </motion.div>
         </form>
 

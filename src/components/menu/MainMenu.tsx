@@ -33,6 +33,23 @@ const MainMenu = () => {
   // 새로운 useCategory 훅 사용
   const { isLoading: categoriesLoading } = useCategory(selectedTeam?.id);
 
+  // 3D 기울이기 효과를 위한 상태
+  const [hoveredCard, setHoveredCard] = React.useState<number | null>(null);
+  const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+
+  // 마우스 이동 핸들러
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>, cardIndex: number) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setHoveredCard(cardIndex);
+    setMousePosition({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredCard(null);
+  };
+
   // 사용자 권한에 따른 탭 설정 (최초 로드 시에만)
   useEffect(() => {
     if (user?.accessLevel) {
@@ -392,23 +409,30 @@ const MainMenu = () => {
               <motion.button
                 key={index}
                 initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: hoveredCard === index ? 1.05 : 1,
+                  rotateX: hoveredCard === index ? (mousePosition.y - 0.5) * -15 : 0,
+                  rotateY: hoveredCard === index ? (mousePosition.x - 0.5) * 15 : 0,
+                }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{
-                  duration: 0.13,
-                  delay: index * 0.033,
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 25,
-                }}
-                whileHover={{
-                  scale: 1.05,
-                  y: -4,
-                  transition: { duration: 0.3 }
+                  opacity: { duration: 0.13, delay: index * 0.033 },
+                  y: { duration: 0.13, delay: index * 0.033, type: "spring", stiffness: 300, damping: 25 },
+                  scale: { duration: 0.2 },
+                  rotateX: { duration: 0.15, ease: "easeOut" },
+                  rotateY: { duration: 0.15, ease: "easeOut" },
                 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={item.onClick}
-                className={`group relative overflow-hidden p-6 text-left bg-white rounded-xl border-2 shadow-md transition-all duration-300 hover:shadow-2xl ${currentTab.hoverBorder} border-gray-200`}
+                onMouseMove={(e) => handleMouseMove(e, index)}
+                onMouseLeave={handleMouseLeave}
+                style={{
+                  transformStyle: "preserve-3d",
+                  perspective: "1000px",
+                }}
+                className={`group relative overflow-hidden p-6 text-left bg-white rounded-xl border-2 shadow-md transition-shadow duration-300 ${hoveredCard === index ? 'shadow-2xl' : ''} ${currentTab.hoverBorder} border-gray-200`}
               >
                 {/* 배경 장식 원 */}
                 <div

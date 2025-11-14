@@ -2,7 +2,7 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getDemoById } from "@/api/demo-api";
+import { getDemoById, uploadMultipleDemoFileById, deleteDemoFile } from "@/api/demo-api";
 import { DemoResponse } from "@/types/demo/demo";
 import { DemoStatus } from "@/types/demo/demo";
 import {
@@ -402,6 +402,8 @@ const DemoRecordDetail = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
+  const [isDeletingFile, setIsDeletingFile] = useState<number | null>(null);
 
   // 선택된 상태 관리 추가
   const [selectedStatus, setSelectedStatus] = useState<DemoStatus | null>(null);
@@ -494,6 +496,61 @@ const DemoRecordDetail = () => {
         window.location.reload();
       }, 1000);
     }
+  };
+
+  // 파일 업로드 핸들러
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0 || !demo) return;
+
+    setIsUploadingFiles(true);
+    try {
+      const fileArray = Array.from(files);
+      const response = await uploadMultipleDemoFileById(demo.id, fileArray);
+
+      if (response.success) {
+        toast.success(`${fileArray.length}개 파일이 업로드되었습니다.`, {
+          duration: 3000,
+          position: "top-center",
+        });
+        window.location.reload();
+      } else {
+        throw new Error(response.error || "파일 업로드에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("파일 업로드 오류:", error);
+      toast.error(
+        error instanceof Error ? error.message : "파일 업로드에 실패했습니다.",
+        { duration: 3000, position: "top-center" }
+      );
+    } finally {
+      setIsUploadingFiles(false);
+    }
+  };
+
+  // 파일 삭제 핸들러
+  const handleFileDelete = async (fileId: number) => {
+    if (!demo) return;
+    if (!window.confirm("이 파일을 삭제하시겠습니까?")) return;
+
+    setIsDeletingFile(fileId);
+    try {
+      const response = await deleteDemoFile(demo.id, fileId);
+      if (response.success) {
+        toast.success("파일이 삭제되었습니다.");
+        window.location.reload();
+      } else {
+        throw new Error(response.error || "파일 삭제에 실패했습니다.");
+      }
+    } finally {
+      setIsDeletingFile(null);
+    }
+  };
+
+  // 이미지 파일 체크 함수
+  const isImageFile = (fileName: string): boolean => {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+    const lowerFileName = fileName.toLowerCase();
+    return imageExtensions.some(ext => lowerFileName.endsWith(ext));
   };
 
   // 시연 삭제 핸들러
@@ -1413,9 +1470,9 @@ const DemoRecordDetail = () => {
                 )}
 
                 {/* 첨부파일 */}
-                {demo.files && demo.files.length > 0 && (
-                  <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-                    <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
+                <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <h2 className="flex gap-2 items-center justify-between mb-4 text-lg font-semibold text-gray-900">
+                    <div className="flex gap-2 items-center">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="w-5 h-5 text-gray-500"
@@ -1428,50 +1485,85 @@ const DemoRecordDetail = () => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      첨부파일
-                    </h2>
+                      첨부파일 ({demo.files?.length || 0})
+                    </div>
+                    {/* 파일 추가 버튼 - 항상 표시 */}
+                    <label className="flex gap-2 items-center px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors cursor-pointer hover:bg-blue-100">
+                      {isUploadingFiles ? "업로드 중..." : "파일 추가"}
+                      <input
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e.target.files)}
+                        disabled={isUploadingFiles}
+                      />
+                    </label>
+                  </h2>
+                  {demo.files && demo.files.length > 0 ? (
                     <div className="space-y-3">
-                      {demo.files.map((file) => (
-                        <div
-                          key={file.id}
-                          className="flex justify-between items-center px-4 py-3 bg-gray-50 rounded-lg border border-gray-200"
-                        >
-                          <div className="flex gap-3 items-center">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-5 h-5 text-gray-400"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {getDisplayFileName(file.fileName)}
+                      {demo.files.map((file) => {
+                        const isImage = isImageFile(file.fileName);
+                        return (
+                          <div
+                            key={file.id}
+                            className="flex justify-between items-center px-4 py-3 bg-gray-50 rounded-lg border border-gray-200"
+                          >
+                            <div className="flex gap-3 items-center flex-1 min-w-0">
+                              {isImage ? (
+                                <div className="relative flex-shrink-0 w-16 h-16 overflow-hidden bg-white rounded border border-gray-200">
+                                  <img
+                                    src={file.fileUrl}
+                                    alt={getDisplayFileName(file.fileName)}
+                                    className="object-cover w-full h-full cursor-pointer transition-transform hover:scale-110"
+                                    onClick={() => window.open(file.fileUrl, "_blank")}
+                                  />
+                                </div>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="w-5 h-5 text-gray-400 flex-shrink-0"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium text-gray-900 truncate">
+                                  {getDisplayFileName(file.fileName)}
+                                </div>
+                                {isImage && (
+                                  <div className="text-xs text-gray-500">클릭하여 원본 보기</div>
+                                )}
                               </div>
-                              {/* <div className="text-sm text-gray-500">
-                                업로드: {formatDateForDisplayUTC(demo.createdAt)}
-                              </div> */}
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0 ml-3">
+                              <button
+                                onClick={() => window.open(file.fileUrl, "_blank")}
+                                className="px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
+                              >
+                                {isImage ? "원본" : "다운로드"}
+                              </button>
+                              <button
+                                onClick={() => handleFileDelete(file.id)}
+                                disabled={isDeletingFile === file.id}
+                                className="px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded-md transition-colors hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {isDeletingFile === file.id ? "삭제 중..." : "삭제"}
+                              </button>
                             </div>
                           </div>
-                          <button
-                            onClick={() => {
-                              // 새 탭에서 파일 열기
-                              window.open(file.fileUrl, "_blank");
-                            }}
-                            className="px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
-                          >
-                            다운로드
-                          </button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">첨부파일이 없습니다.</p>
+                  )}
+                </div>
 
                 {/* 수정 모달 */}
                 {isEditModalOpen && demo && (

@@ -414,7 +414,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       { field: formData.demoStartTime, name: "상차 시간" },
       { field: formData.demoEndDate, name: "시연품 회수일" },
       { field: formData.demoEndTime, name: "회수 시간" },
-      { field: formData.demoAddress, name: "시연 장소" },
+      { field: formData.demoAddress, name: "시연품 배송장소" },
     ];
 
     for (const { field, name } of requiredFields) {
@@ -1234,16 +1234,16 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                       }
                       type="delivery"
                       placeholder="상차 시 배송 방법을 선택하세요"
-                      helperText="시연품을 시연 장소로 운송하는 방법입니다"
+                      helperText="시연품을 시연품 배송장소로 운송하는 방법입니다"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* 시연 장소 */}
+              {/* 시연품 배송장소 */}
               <div className="mt-8">
                 <h3 className="mb-4 text-lg font-medium text-gray-700">
-                  시연 장소
+                  시연품 배송장소
                 </h3>
                 <AddressSection
                   address={formData.demoAddress || ""}
@@ -1254,7 +1254,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                   onToggleAddressModal={handleToggleAddressModal}
                   onCloseAddressModal={handleCloseAddressModal}
                   focusRingColor="blue"
-                  label="시연 장소"
+                  label="시연품 배송장소"
                 />
               </div>
 

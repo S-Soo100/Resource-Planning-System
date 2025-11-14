@@ -86,7 +86,7 @@ const EventDetailModal: React.FC<{
                 <div><strong>신청자:</strong> {(event.details as DemoEventDetails).requester}</div>
                 <div><strong>현지 담당자:</strong> {(event.details as DemoEventDetails).demoManager}</div>
                 <div><strong>담당자 연락처:</strong> {(event.details as DemoEventDetails).demoManagerPhone}</div>
-                <div><strong>시연 장소:</strong> {(event.details as DemoEventDetails).demoAddress}</div>
+                <div><strong>시연품 배송장소:</strong> {(event.details as DemoEventDetails).demoAddress}</div>
                 <div><strong>물품 상차 일시:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoStartDate, (event.details as DemoEventDetails).demoStartTime, (event.details as DemoEventDetails).demoStartDeliveryMethod)}</div>
                 <div><strong>물품 하차 일시:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoEndDate, (event.details as DemoEventDetails).demoEndTime, (event.details as DemoEventDetails).demoEndDeliveryMethod)}</div>
                 <div><strong>창고:</strong> {(event.details as DemoEventDetails).warehouseName}</div>

@@ -795,7 +795,7 @@ const DemonstrationRecordTabs = () => {
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-700">시연 장소:</span>
+                        <span className="font-medium text-gray-700">시연품 배송장소:</span>
                         <span className="text-gray-600">
                           {record.demoAddress || "미정"}
                           {(record.demoStartDeliveryMethod || record.demoEndDeliveryMethod) && (

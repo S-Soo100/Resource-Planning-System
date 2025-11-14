@@ -34,6 +34,7 @@ import {
 } from "../common";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
+import AddSupplierModal from "../supplier/AddSupplierModal";
 
 // 휠체어 전용 창고명
 const WHEELCHAIR_WAREHOUSE_NAME = "캥스터즈 안산 연구소/휠체어";
@@ -50,6 +51,7 @@ export default function WheelchairOrderForm() {
   const fileUpload = useFileUpload();
   const addressSearch = useAddressSearch();
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
   const auth = authStore((state) => state.user);
 
   // 아이템 관련 상태
@@ -712,6 +714,7 @@ export default function WheelchairOrderForm() {
             suppliers={suppliers}
             onChange={handleSupplierChange}
             focusRingColor="purple"
+            onAddSupplier={() => setIsAddSupplierModalOpen(true)}
           />
         )}
 
@@ -768,6 +771,16 @@ export default function WheelchairOrderForm() {
         currentWarehouseItems={currentWarehouseItems}
         orderItems={orderItems}
         title="휠체어 품목 추가"
+      />
+
+      {/* 납품처 추가 모달 */}
+      <AddSupplierModal
+        isOpen={isAddSupplierModalOpen}
+        onClose={() => setIsAddSupplierModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+          window.location.reload();
+        }}
       />
 
       {/* 하단 여백 */}

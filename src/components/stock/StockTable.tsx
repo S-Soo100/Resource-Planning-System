@@ -13,6 +13,7 @@ import StockTableHeader from "./components/StockTableHeader";
 import StockTableDesktop from "./components/StockTableDesktop";
 import StockItemCard from "./components/StockItemCard";
 import StockTableEmpty from "./components/StockTableEmpty";
+import WarehouseSummary from "./components/WarehouseSummary";
 import { useQueryClient } from "@tanstack/react-query";
 import { filterAccessibleWarehouses } from "@/utils/warehousePermissions";
 
@@ -226,24 +227,41 @@ export default function StockTable() {
   return (
     <>
       <div key="warehouse-container" className="relative overflow-x-auto">
-        {/* 창고 선택 카드 목록 */}
+        {/* 창고 선택 드롭다운 */}
         <div className="px-4 mb-6">
-          <h2 className="mb-4 text-xl font-bold">창고 선택</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {accessibleWarehouses.map((warehouse) => (
-              <WarehouseCard
-                key={`warehouse-card-${warehouse.id}`}
-                warehouse={warehouse}
-                isSelected={selectedWarehouseId === Number(warehouse.id)}
-                itemCount={getWarehouseItems(Number(warehouse.id)).length}
-                onClick={handleWarehouseSelect}
-              />
-            ))}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              창고 선택
+            </label>
+            <select
+              value={selectedWarehouseId || ''}
+              onChange={(e) => handleWarehouseSelect(Number(e.target.value))}
+              className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">창고를 선택하세요</option>
+              {accessibleWarehouses.map((warehouse) => (
+                <option key={`warehouse-option-${warehouse.id}`} value={warehouse.id}>
+                  {warehouse.warehouseName} ({getWarehouseItems(Number(warehouse.id)).length}개 품목)
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
         {selectedWarehouseId && (
           <>
+            {/* 창고 요약 정보 */}
+            <div className="px-4">
+              <WarehouseSummary
+                warehouse={
+                  accessibleWarehouses.find(
+                    (w) => Number(w.id) === selectedWarehouseId
+                  )!
+                }
+                items={getWarehouseItems(selectedWarehouseId)}
+              />
+            </div>
+
             <StockTableHeader
               searchText={searchText}
               onSearch={handleSearch}
@@ -258,15 +276,6 @@ export default function StockTable() {
               onOutboundClick={() => {}}
               showButtons={false}
             />
-
-            {/* 창고 주소 표시 */}
-            <div className="px-4 mb-4">
-              <p className="text-sm text-gray-500">
-                {accessibleWarehouses.find(
-                  (w) => Number(w.id) === selectedWarehouseId
-                )?.warehouseAddress || "주소 정보가 없습니다."}
-              </p>
-            </div>
 
             {/* 선택된 창고의 재고 테이블 */}
             <div className="hidden md:block">

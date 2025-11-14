@@ -175,7 +175,14 @@ export default function PacakgePage() {
     packageName: string,
     itemlist: string
   ) => {
-    const itemCodes = itemlist ? itemlist.split(", ") : [];
+    // itemlist 파싱 정규화: 공백 처리, 중복 제거, 빈 값 제거
+    const itemCodes = itemlist
+      ? itemlist
+          .split(/,\s*/) // 쉼표 + 선택적 공백으로 split
+          .map((code) => code.trim())
+          .filter((code) => code.length > 0)
+          .filter((code, index, self) => self.indexOf(code) === index) // 중복 제거
+      : [];
     setEditMode(true);
     setEditingPackageId(packageId.toString());
     setEditPackageName(packageName);
@@ -254,7 +261,13 @@ export default function PacakgePage() {
   }) => {
     if (!pkg.itemlist) return <p className="text-gray-500">아이템 없음</p>;
 
-    const itemCodes = pkg.itemlist.split(", ");
+    // itemlist 파싱 정규화: 공백 처리, 중복 제거, 빈 값 제거
+    const itemCodes = pkg.itemlist
+      .split(/,\s*/) // 쉼표 + 선택적 공백으로 split
+      .map((code) => code.trim())
+      .filter((code) => code.length > 0)
+      .filter((code, index, self) => self.indexOf(code) === index); // 중복 제거
+
     const isExpanded = expandedPackages[pkg.id] || false;
     const displayCount = isExpanded
       ? itemCodes.length
@@ -264,18 +277,19 @@ export default function PacakgePage() {
     return (
       <div>
         <div className="flex flex-wrap gap-2 mt-2">
-          {itemCodes.slice(0, displayCount).map((code: string) => {
-            const item = findItemByCode(code);
-            return (
+          {itemCodes
+            .slice(0, displayCount)
+            .map((code: string) => findItemByCode(code))
+            .filter((item) => item !== undefined) // 미등록 아이템 제외
+            .map((item) => (
               <span
-                key={code}
+                key={item.itemCode}
                 className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-                title={item ? `${item.itemName} (${code})` : code}
+                title={`${item.itemName} (${item.itemCode})`}
               >
-                {item ? item.itemName : code}
+                {item.itemName}
               </span>
-            );
-          })}
+            ))}
         </div>
 
         {hasMore && (
@@ -397,17 +411,17 @@ export default function PacakgePage() {
           <div className="mt-2 text-sm">
             <p className="font-semibold">선택된 아이템:</p>
             <div className="flex flex-wrap gap-2 mt-1">
-              {selectedItems.map((itemCode) => {
-                const item = findItemByCode(itemCode);
-                return (
+              {selectedItems
+                .map((itemCode) => findItemByCode(itemCode))
+                .filter((item) => item !== undefined) // 미등록 아이템 제외
+                .map((item) => (
                   <span
-                    key={itemCode}
+                    key={item.itemCode}
                     className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
                   >
-                    {item ? item.itemName : itemCode}
+                    {item.itemName}
                   </span>
-                );
-              })}
+                ))}
             </div>
           </div>
         )}
@@ -515,17 +529,17 @@ export default function PacakgePage() {
                 <div className="mt-2 text-sm">
                   <p className="font-semibold">선택된 아이템:</p>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {editSelectedItems.map((itemCode) => {
-                      const item = findItemByCode(itemCode);
-                      return (
+                    {editSelectedItems
+                      .map((itemCode) => findItemByCode(itemCode))
+                      .filter((item) => item !== undefined) // 미등록 아이템 제외
+                      .map((item) => (
                         <span
-                          key={itemCode}
+                          key={item.itemCode}
                           className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
                         >
-                          {item ? item.itemName : itemCode}
+                          {item.itemName}
                         </span>
-                      );
-                    })}
+                      ))}
                   </div>
                 </div>
               )}

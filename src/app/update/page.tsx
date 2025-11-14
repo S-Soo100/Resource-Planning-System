@@ -87,6 +87,39 @@ export default function UpdatePage() {
             </div>
             <div className="p-6">
               <div className="space-y-6">
+                {/* 추가됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("추가됨")}
+                    <span className="ml-2">추가됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>캘린더 시연 일정 제목 표시 개선</strong>: 여러 날짜에 걸친 시연 이벤트의 제목이 전체적으로 표시되도록 대폭 개선
+                      </h4>
+                      <ul className="space-y-1 text-sm text-green-800">
+                        <li>• 시연 막대와 제목을 별도 레이어로 분리하여 렌더링</li>
+                        <li>• 제목이 여러 셀 너비만큼 확장되어 끊김 없이 표시</li>
+                        <li>• 시연 ID별 고유 색상 적용 (보라색 계열)</li>
+                        <li>• 상태와 날짜 정보를 제목 아래 작은 글씨로 표시 (예: 승인 · 11/11 ~ 11/12)</li>
+                        <li>• 텍스트 오버플로우 처리로 자연스러운 말줄임표 표시</li>
+                        <li>• 주간/월간 뷰 모두 지원</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>캘린더 오늘 날짜 강조</strong>: 오늘 날짜를 노란색 배경으로 시각적 강조
+                      </h4>
+                      <ul className="space-y-1 text-sm text-green-800">
+                        <li>• 주간/월간 뷰 모두 노란색 배경 적용</li>
+                        <li>• 모바일 뷰에서도 노란색 강조 표시</li>
+                        <li>• 선택된 날짜와 구분하여 표시</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
                 {/* 개선됨 */}
                 <div>
                   <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">

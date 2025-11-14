@@ -135,7 +135,7 @@ const MobileWeekView: React.FC<MobileWeekViewProps> = ({
               key={index}
               className={`
                 ${isWeekendDay ? 'bg-gray-25' : ''}
-                ${isTodayDate ? 'bg-blue-25' : ''}
+                ${isTodayDate ? 'bg-yellow-50' : ''}
               `}
             >
               {/* 날짜 헤더 */}

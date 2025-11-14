@@ -123,9 +123,9 @@ const MonthView: React.FC<MonthViewProps> = ({
                   relative border-r border-gray-200 last:border-r-0 border-b border-gray-200
                   p-2 cursor-pointer hover:bg-gray-50 transition-colors flex flex-col overflow-visible
                   ${isWeekendDay ? 'bg-gray-25' : ''}
-                  ${isTodayDate ? 'bg-blue-25' : ''}
+                  ${isTodayDate ? 'bg-yellow-50' : ''}
                   ${!isCurrentMonthDate ? 'bg-gray-100 opacity-50' : ''}
-                  ${isSelected ? 'bg-yellow-50 ring-2 ring-yellow-300' : ''}
+                  ${isSelected ? 'bg-yellow-100 ring-2 ring-yellow-400' : ''}
                 `}
                 onClick={() => handleDateClick(date)}
               >

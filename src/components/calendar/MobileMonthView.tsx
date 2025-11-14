@@ -157,7 +157,7 @@ const MobileMonthView: React.FC<MobileMonthViewProps> = ({
               key={`${date.getTime()}-${index}`}
               className={`
                 p-4 border-l-4 transition-colors
-                ${isTodayDate ? 'border-l-blue-500 bg-blue-25' : hasEvents ? 'border-l-green-400' : 'border-l-gray-200'}
+                ${isTodayDate ? 'border-l-yellow-500 bg-yellow-50' : hasEvents ? 'border-l-green-400' : 'border-l-gray-200'}
                 ${!isCurrentMonthDate ? 'opacity-60 bg-gray-50' : ''}
               `}
             >

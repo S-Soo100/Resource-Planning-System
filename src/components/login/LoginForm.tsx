@@ -10,6 +10,7 @@ import { APP_VERSION } from "@/constants/version";
 import Link from "next/link";
 import { IAuth } from "@/types/(auth)/auth";
 import { authStore } from "@/store/authStore";
+import { motion } from "framer-motion";
 
 interface LoginFormProps {
   onLoginSuccess?: (userData: IAuth) => void;
@@ -71,82 +72,164 @@ export default function LoginForm({
 
   return (
     <div className="relative flex items-center justify-center w-full min-h-screen bg-gray-50 min-w-96">
-      <div className="w-full max-w-md p-8 mx-4 bg-white shadow-lg rounded-xl">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md p-8 mx-4 bg-white shadow-lg rounded-xl"
+      >
         {notice}
         <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <User className="w-12 h-12 text-blue-600" />
-          </div>
-          <h1 className="mb-2 text-2xl font-bold text-gray-900">KARS</h1>
-          <p className="mb-8 text-gray-600">캥스터즈 자동 재고관리 시스템</p>
+          <motion.div
+            className="flex justify-center mb-6"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 20,
+              delay: 0.2
+            }}
+          >
+            <motion.div
+              animate={{
+                rotate: [0, -10, 10, -10, 10, 0],
+              }}
+              transition={{
+                duration: 0.5,
+                delay: 0.8,
+                ease: "easeInOut"
+              }}
+            >
+              <User className="w-12 h-12 text-blue-600" />
+            </motion.div>
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+            className="mb-2 text-2xl font-bold text-gray-900"
+          >
+            KARS
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+            className="mb-8 text-gray-600"
+          >
+            캥스터즈 자동 재고관리 시스템
+          </motion.p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {loginError && (
-            <div className="p-3 text-sm text-red-700 bg-red-100 rounded-lg">
+            <motion.div
+              initial={{ opacity: 0, y: -10, x: -5 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                x: [0, -5, 5, -5, 5, 0]
+              }}
+              transition={{
+                opacity: { duration: 0.2 },
+                y: { duration: 0.2 },
+                x: { duration: 0.4, delay: 0.2 }
+              }}
+              className="p-3 text-sm text-red-700 bg-red-100 rounded-lg"
+            >
               {loginError}
-            </div>
+            </motion.div>
           )}
 
-          <Input
-            id="email"
-            type="email"
-            label="이메일"
-            value={auth.email}
-            onChange={(e) =>
-              setAuth({ email: e.target.value, password: auth.password })
-            }
-            leftIcon={<Mail className="w-5 h-5" />}
-            placeholder="name@example.com"
-            required
-          />
-
-          <Input
-            id="password"
-            type={isPasswordVisible ? "text" : "password"}
-            label="비밀번호"
-            value={auth.password}
-            onChange={(e) =>
-              setAuth({ email: auth.email, password: e.target.value })
-            }
-            leftIcon={<Lock className="w-5 h-5" />}
-            rightIcon={
-              <button
-                type="button"
-                onClick={togglePasswordVisibility}
-                className="text-gray-600 hover:text-gray-800"
-              >
-                {isPasswordVisible ? (
-                  <FaEye className="w-4 h-4" />
-                ) : (
-                  <FaRegEyeSlash className="w-4 h-4" />
-                )}
-              </button>
-            }
-            placeholder="••••••••"
-            required
-          />
-
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            loading={isLoading}
-            disabled={isLoading}
-            className="w-full"
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
           >
-            로그인
-          </Button>
+            <Input
+              id="email"
+              type="email"
+              label="이메일"
+              value={auth.email}
+              onChange={(e) =>
+                setAuth({ email: e.target.value, password: auth.password })
+              }
+              leftIcon={<Mail className="w-5 h-5" />}
+              placeholder="name@example.com"
+              required
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6, duration: 0.4 }}
+          >
+            <Input
+              id="password"
+              type={isPasswordVisible ? "text" : "password"}
+              label="비밀번호"
+              value={auth.password}
+              onChange={(e) =>
+                setAuth({ email: auth.email, password: e.target.value })
+              }
+              leftIcon={<Lock className="w-5 h-5" />}
+              rightIcon={
+                <motion.button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="text-gray-600 hover:text-gray-800"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isPasswordVisible ? (
+                    <FaEye className="w-4 h-4" />
+                  ) : (
+                    <FaRegEyeSlash className="w-4 h-4" />
+                  )}
+                </motion.button>
+              }
+              placeholder="••••••••"
+              required
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.4 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              loading={isLoading}
+              disabled={isLoading}
+              className="w-full"
+            >
+              로그인
+            </Button>
+          </motion.div>
         </form>
 
-        <div className="mt-6 space-y-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9, duration: 0.5 }}
+          className="mt-6 space-y-4"
+        >
           <div className="text-center">
-            <a
+            <motion.a
               href="#"
               className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               비밀번호를 잊으셨나요?
-            </a>
+            </motion.a>
           </div>
           <div className="text-center">
             <Link
@@ -156,16 +239,40 @@ export default function LoginForm({
               v{APP_VERSION}
             </Link>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* 로딩 오버레이 */}
       {isLoading && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50">
-          <div className="p-5 bg-white rounded-full">
-            <Loader className="w-8 h-8 text-blue-600 animate-spin" />
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-50"
+        >
+          <motion.div
+            initial={{ scale: 0.8, rotate: 0 }}
+            animate={{
+              scale: [0.8, 1, 0.9, 1],
+              rotate: [0, 180, 360],
+            }}
+            transition={{
+              scale: {
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              },
+              rotate: {
+                duration: 2,
+                repeat: Infinity,
+                ease: "linear"
+              }
+            }}
+            className="p-5 bg-white rounded-full"
+          >
+            <Loader className="w-8 h-8 text-blue-600" />
+          </motion.div>
+        </motion.div>
       )}
     </div>
   );

@@ -206,9 +206,6 @@ const DemonstrationRecordTabs = () => {
           record.demoManagerPhone
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          record.receiverPhone
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
           record.demoAddress?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           record.demoNationType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           record.memo?.toLowerCase().includes(searchTerm.toLowerCase()) ||

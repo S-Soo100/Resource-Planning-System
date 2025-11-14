@@ -707,16 +707,18 @@ const DemonstrationRecordTabs = () => {
                       <h3 className="font-medium text-gray-900 truncate">
                         {record.demoTitle || "제목 없음"}
                       </h3>
-                      <div className="text-sm text-gray-500 mt-0.5">
-                        {record.requester} • {formatDateTimeToKorean(record.demoStartDate)}
-                        {record.demoPaymentType === "유료" && record.demoPrice && (
-                          <span className="text-green-600 font-medium">
-                            {" "}({record.demoPrice.toLocaleString()}원)
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-400 mt-0.5">
-                        생성일: {formatDateForDisplayUTC(record.createdAt)}
+                      <div className="text-sm text-gray-500 mt-0.5 flex items-center gap-2">
+                        <span>
+                          {record.requester} • {formatDateTimeToKorean(record.demoStartDate)}
+                          {record.demoPaymentType === "유료" && record.demoPrice && (
+                            <span className="text-green-600 font-medium">
+                              {" "}({record.demoPrice.toLocaleString()}원)
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          생성일: {formatDateForDisplayUTC(record.createdAt)}
+                        </span>
                       </div>
                     </div>
                   </div>

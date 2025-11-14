@@ -715,6 +715,9 @@ const DemonstrationRecordTabs = () => {
                           </span>
                         )}
                       </div>
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        생성일: {formatDateForDisplayUTC(record.createdAt)}
+                      </div>
                     </div>
                   </div>
 

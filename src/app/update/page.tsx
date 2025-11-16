@@ -67,6 +67,72 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8">
         <div className="space-y-8">
+          {/* v1.11.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.11.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-11-17
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 추가됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("추가됨")}
+                    <span className="ml-2">추가됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>재고 관리 테이블 정렬 기능</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-green-800 list-disc">
+                        <li>카테고리, 품목명, 품목코드, 재고수량 정렬 가능</li>
+                        <li>3단계 토글: 오름차순 → 내림차순 → 정렬 해제</li>
+                        <li>정렬 상태를 시각적으로 표시 (화살표 아이콘)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>재고 관리 테이블 UI 전면 개편</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>카테고리별 색상 시스템 도입 (전동휠체어: 보라색, 수동휠체어: 파란색 등)</li>
+                        <li>카테고리 그룹핑 제거 → 단순한 플랫 테이블 구조</li>
+                        <li>품목 이미지 썸네일 표시 (8x8)</li>
+                        <li>카테고리 색상 태그로 시각화</li>
+                        <li>컬럼 순서 최적화: 아이콘 → 카테고리 → 품목명 → 품목코드 → 재고수량</li>
+                        <li>행 클릭으로 상세 페이지 이동</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.10.0 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +141,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.10.0
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

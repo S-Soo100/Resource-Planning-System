@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Plus, Minus, X, AlertCircle } from "lucide-react";
+import { Plus, Minus, X, AlertCircle, Package } from "lucide-react";
 import {
   OrderRequestFormData,
   OrderItemWithDetails,
@@ -150,6 +150,20 @@ const DemoItemSection: React.FC<DemoItemSectionProps> = ({
                 key={item.id}
                 className="flex justify-between items-center p-3 bg-gray-50 rounded-md"
               >
+                {/* 이미지 썸네일 */}
+                <div className="mr-3 flex-shrink-0">
+                  {item.teamItem.imageUrl ? (
+                    <img
+                      src={item.teamItem.imageUrl}
+                      alt={item.teamItem.itemName}
+                      className="w-16 h-16 object-cover rounded-md border border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-gray-100 rounded-md flex items-center justify-center">
+                      <Package className="w-8 h-8 text-gray-400" />
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1">
                   <div className="font-medium text-gray-800">
                     {item.teamItem.itemName}

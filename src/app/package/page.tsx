@@ -14,6 +14,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft, Package, Calendar, Edit2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { navigateByAuthStatus } from "@/utils/navigation";
+import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 
 // 모달 컴포넌트
 interface ModalProps {
@@ -77,6 +78,9 @@ export default function PacakgePage() {
   const teamItems = getTeamItems.teamItems || [];
   const isTeamItemsLoading = getTeamItems.isLoading;
 
+  // useWarehouseItems 훅 추가 (itemCode -> itemId 매핑용)
+  const { items: warehouseItems, isLoading: isWarehouseItemsLoading } = useWarehouseItems();
+
   const selectedTeamId = authStore((state) => state.selectedTeam?.id);
 
   // 모달 상태 관리
@@ -84,7 +88,7 @@ export default function PacakgePage() {
 
   // 새 패키지 상태 관리
   const [newPackageName, setNewPackageName] = useState("");
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]); // itemCode 배열
 
   // 수정 모드 상태 관리
   const [editMode, setEditMode] = useState(false);
@@ -140,6 +144,18 @@ export default function PacakgePage() {
     setIsAddModalOpen(false);
   };
 
+  // itemCode를 itemId로 변환하는 헬퍼 함수
+  const convertItemCodesToIds = (itemCodes: string[]): number[] => {
+    return itemCodes
+      .map((code) => {
+        const item = warehouseItems.find(
+          (item) => item.teamItem.itemCode === code
+        );
+        return item?.id; // Item의 PK
+      })
+      .filter((id): id is number => id !== undefined);
+  };
+
   // 패키지 추가 핸들러
   const handleAddPackage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,10 +170,18 @@ export default function PacakgePage() {
       return;
     }
 
+    // itemCode 배열을 itemId 배열로 변환
+    const itemIds = convertItemCodesToIds(selectedItems);
+
+    if (itemIds.length === 0) {
+      alert("선택된 아이템을 찾을 수 없습니다.");
+      return;
+    }
+
     const packageData: CreateIPackageDto = {
       packageName: newPackageName,
       teamId: Number(selectedTeamId),
-      itemlist: selectedItems,
+      itemIds: itemIds, // itemIds 사용
     };
 
     const success = await createPackageMutation.createPackageAsync(packageData);
@@ -169,23 +193,16 @@ export default function PacakgePage() {
     }
   };
 
-  // 수정 모드 시작 핸들러
-  const handleStartEdit = (
-    packageId: number,
-    packageName: string,
-    itemlist: string
-  ) => {
-    // itemlist 파싱 정규화: 공백 처리, 중복 제거, 빈 값 제거
-    const itemCodes = itemlist
-      ? itemlist
-          .split(/,\s*/) // 쉼표 + 선택적 공백으로 split
-          .map((code) => code.trim())
-          .filter((code) => code.length > 0)
-          .filter((code, index, self) => self.indexOf(code) === index) // 중복 제거
-      : [];
+  // 수정 모드 시작 핸들러 - packageItems에서 itemCode 추출
+  const handleStartEdit = (pkg: PackageApi) => {
+    // packageItems에서 itemCode 추출
+    const itemCodes = pkg.packageItems
+      .map((pkgItem) => pkgItem.item.teamItem.itemCode)
+      .filter((code, index, self) => self.indexOf(code) === index); // 중복 제거
+
     setEditMode(true);
-    setEditingPackageId(packageId.toString());
-    setEditPackageName(packageName);
+    setEditingPackageId(pkg.id.toString());
+    setEditPackageName(pkg.packageName);
     setEditSelectedItems(itemCodes);
   };
 
@@ -198,9 +215,17 @@ export default function PacakgePage() {
       return;
     }
 
+    // itemCode 배열을 itemId 배열로 변환
+    const itemIds = convertItemCodesToIds(editSelectedItems);
+
+    if (itemIds.length === 0) {
+      alert("선택된 아이템을 찾을 수 없습니다.");
+      return;
+    }
+
     const packageData: UpdatePackageDto = {
       packageName: editPackageName,
-      itemlist: editSelectedItems.join(", "),
+      itemIds: itemIds, // itemIds 사용
     };
 
     const success = await updatePackageMutation.updatePackageAsync({
@@ -253,58 +278,88 @@ export default function PacakgePage() {
     return teamItems.find((item) => item.itemCode === itemCode);
   };
 
-  // 패키지의 아이템 목록을 배지 형태로 표시
-  const renderPackageItems = (pkg: {
-    id: number;
-    itemlist: string;
-    createdAt?: string | null;
-  }) => {
-    if (!pkg.itemlist) return <p className="text-gray-500">아이템 없음</p>;
+  // 패키지의 아이템 목록을 배지 형태로 표시 (packageItems에서 데이터 추출)
+  const renderPackageItems = (pkg: PackageApi) => {
+    // API 2.0: packageItems가 있으면 사용
+    if (pkg.packageItems && pkg.packageItems.length > 0) {
+      const packageItems = pkg.packageItems;
+      const isExpanded = expandedPackages[pkg.id] || false;
+      const displayCount = isExpanded
+        ? packageItems.length
+        : Math.min(5, packageItems.length);
+      const hasMore = packageItems.length > 5;
 
-    // itemlist 파싱 정규화: 공백 처리, 중복 제거, 빈 값 제거
-    const itemCodes = pkg.itemlist
-      .split(/,\s*/) // 쉼표 + 선택적 공백으로 split
-      .map((code) => code.trim())
-      .filter((code) => code.length > 0)
-      .filter((code, index, self) => self.indexOf(code) === index); // 중복 제거
+      return (
+        <div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {packageItems
+              .slice(0, displayCount)
+              .filter((pkgItem) => pkgItem.deletedAt === null) // 삭제되지 않은 아이템만
+              .map((pkgItem) => (
+                <span
+                  key={pkgItem.id}
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                  title={`${pkgItem.item.teamItem.itemName} (${pkgItem.item.teamItem.itemCode})`}
+                >
+                  {pkgItem.item.teamItem.itemName}
+                </span>
+              ))}
+          </div>
 
-    const isExpanded = expandedPackages[pkg.id] || false;
-    const displayCount = isExpanded
-      ? itemCodes.length
-      : Math.min(5, itemCodes.length);
-    const hasMore = itemCodes.length > 5;
-
-    return (
-      <div>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {itemCodes
-            .slice(0, displayCount)
-            .map((code: string) => findItemByCode(code))
-            .filter((item) => item !== undefined) // 미등록 아이템 제외
-            .map((item) => (
-              <span
-                key={item.itemCode}
-                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-                title={`${item.itemName} (${item.itemCode})`}
-              >
-                {item.itemName}
-              </span>
-            ))}
+          {hasMore && (
+            <button
+              onClick={() => togglePackageExpand(pkg.id)}
+              className="mt-2 text-sm text-gray-600 hover:text-gray-800 focus:outline-none font-medium"
+            >
+              {isExpanded ? "접기" : `+ ${packageItems.length - 5}개 더 보기`}
+            </button>
+          )}
         </div>
+      );
+    }
 
-        {hasMore && (
-          <button
-            onClick={() => togglePackageExpand(pkg.id)}
-            className="mt-2 text-sm text-purple-600 hover:text-purple-800 focus:outline-none"
-          >
-            {isExpanded ? "접기" : `+ ${itemCodes.length - 5}개 더 보기`}
-          </button>
-        )}
-      </div>
-    );
+    // Fallback: 구버전 itemlist 문자열 파싱
+    if (pkg.itemlist) {
+      const itemCodes = pkg.itemlist.split(',').map(code => code.trim()).filter(code => code);
+      const isExpanded = expandedPackages[pkg.id] || false;
+      const displayCount = isExpanded
+        ? itemCodes.length
+        : Math.min(5, itemCodes.length);
+      const hasMore = itemCodes.length > 5;
+
+      return (
+        <div>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {itemCodes.slice(0, displayCount).map((itemCode, index) => {
+              const teamItem = teamItems.find(item => item.itemCode === itemCode);
+              return (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                  title={teamItem ? `${teamItem.itemName} (${itemCode})` : itemCode}
+                >
+                  {teamItem ? teamItem.itemName : itemCode}
+                </span>
+              );
+            })}
+          </div>
+
+          {hasMore && (
+            <button
+              onClick={() => togglePackageExpand(pkg.id)}
+              className="mt-2 text-sm text-gray-600 hover:text-gray-800 focus:outline-none font-medium"
+            >
+              {isExpanded ? "접기" : `+ ${itemCodes.length - 5}개 더 보기`}
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    return <p className="text-gray-500">아이템 없음</p>;
   };
 
-  if (isUserLoading || isLoading || isTeamItemsLoading) {
+  if (isUserLoading || isLoading || isTeamItemsLoading || isWarehouseItemsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -417,7 +472,7 @@ export default function PacakgePage() {
                 .map((item) => (
                   <span
                     key={item.itemCode}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
                   >
                     {item.itemName}
                   </span>
@@ -436,7 +491,7 @@ export default function PacakgePage() {
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+          className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 disabled:bg-gray-400 disabled:cursor-not-allowed"
           disabled={selectedItems.length === 0}
         >
           패키지 추가
@@ -451,7 +506,7 @@ export default function PacakgePage() {
         <h1 className="text-2xl font-bold">패키지 관리</h1>
         <button
           onClick={openAddModal}
-          className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 flex items-center"
+          className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 flex items-center"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -535,7 +590,7 @@ export default function PacakgePage() {
                       .map((item) => (
                         <span
                           key={item.itemCode}
-                          className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                          className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
                         >
                           {item.itemName}
                         </span>
@@ -547,7 +602,7 @@ export default function PacakgePage() {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 disabled={editSelectedItems.length === 0}
               >
                 수정 완료
@@ -555,7 +610,7 @@ export default function PacakgePage() {
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
               >
                 취소
               </button>
@@ -567,7 +622,7 @@ export default function PacakgePage() {
       {/* 패키지 목록 */}
       <div>
         <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-          <Package className="text-purple-500" size={24} />
+          <Package className="text-gray-700" size={24} />
           패키지 목록
           <span className="text-sm font-normal text-gray-500 ml-2">
             ({packages.length}개)
@@ -594,16 +649,16 @@ export default function PacakgePage() {
                 }`}
               >
                 {/* 카드 헤더 */}
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-4">
+                <div className="bg-gray-800 p-4">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0 pr-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <Package className="text-white" size={20} />
+                        <Package className="text-white flex-shrink-0" size={20} />
                         <h3 className="font-bold text-lg text-white truncate">
                           {pkg.packageName}
                         </h3>
                       </div>
-                      <div className="flex items-center gap-1 text-purple-100 text-xs">
+                      <div className="flex items-center gap-1 text-gray-300 text-xs">
                         <Calendar size={14} />
                         <span>
                           {new Date(pkg.createdAt as string).toLocaleDateString(
@@ -611,6 +666,23 @@ export default function PacakgePage() {
                           )}
                         </span>
                       </div>
+                    </div>
+                    {/* 아이콘 버튼들 */}
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleStartEdit(pkg)}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                        title="수정"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePackage(pkg.id)}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                        title="삭제"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -623,26 +695,6 @@ export default function PacakgePage() {
                     </p>
                     {renderPackageItems(pkg)}
                   </div>
-                </div>
-
-                {/* 카드 푸터 */}
-                <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex gap-2">
-                  <button
-                    onClick={() =>
-                      handleStartEdit(pkg.id, pkg.packageName, pkg.itemlist)
-                    }
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 hover:border-purple-400 transition-colors text-sm font-medium"
-                  >
-                    <Edit2 size={16} />
-                    수정
-                  </button>
-                  <button
-                    onClick={() => handleDeletePackage(pkg.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 hover:border-red-400 transition-colors text-sm font-medium"
-                  >
-                    <Trash2 size={16} />
-                    삭제
-                  </button>
                 </div>
               </div>
             ))}

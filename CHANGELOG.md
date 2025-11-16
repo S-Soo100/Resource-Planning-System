@@ -5,6 +5,45 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## v1.10.0 (2025-11-17)
+
+### 추가됨 (Added)
+
+- **TeamItem 이미지 업로드/삭제 기능**: 품목에 이미지를 업로드하고 관리할 수 있는 기능 추가
+  - 이미지 업로드 (최대 5MB, JPG/PNG/GIF/WebP)
+  - 이미지 삭제 기능
+  - 이미지 미리보기 및 클라이언트 측 유효성 검사
+  - Google Cloud Storage 연동
+  - TeamItemModal에 이미지 업로드 UI 추가
+
+- **품목 이미지 썸네일 표시**: 5개 페이지에 품목 이미지 썸네일 추가
+  - team-items 목록: 12x12 썸네일
+  - item 상세 페이지: 48x48 큰 이미지
+  - warehouse-items 테이블: 12x12 썸네일
+  - demonstration 시연품 선택: 16x16 썸네일
+  - demoRecord 시연품 목록: 16x16 썸네일
+  - 이미지 없을 시 Package 아이콘 대체 표시
+
+### 개선됨 (Improved)
+
+- **Package API 2.0 마이그레이션**: 백엔드 API 2.0 스펙에 맞춰 전면 업데이트
+  - `itemlist: string`에서 `itemIds: number[]` + `packageItems: PackageItem[]`로 변경
+  - itemCode → itemId 변환 로직 추가
+  - 레거시 데이터 호환성을 위한 fallback 로직 구현
+  - PackageItem 인터페이스에 중첩 item/teamItem 구조 추가
+
+- **패키지 관리 페이지 디자인 개선**: 보라색에서 모노톤으로 전면 리디자인
+  - 카드 헤더: 회색 배경 (gray-800)으로 깔끔하게 변경
+  - 아이템 태그: 회색 배경 + 테두리로 통일
+  - 수정/삭제 버튼을 카드 헤더 우측 상단으로 이동
+  - 원형 아이콘 버튼으로 변경 (Edit2, Trash2)
+  - 모든 버튼 회색 계열로 통일
+
+### 수정됨 (Fixed)
+
+- **DemoResponse 타입 정의 개선**: demoItems 내 teamItem에 imageUrl 필드 추가
+- **패키지 목록 표시 오류 수정**: packageItems가 비어있을 때 itemlist fallback 로직 추가
+
 ## v1.9.0 (2025-11-14)
 
 ### 추가됨 (Added)

@@ -124,10 +124,67 @@ export function useTeamItems() {
     };
   };
 
+  // 이미지 업로드 뮤테이션
+  const useUploadImage = () => {
+    const mutation = useMutation({
+      mutationFn: ({ id, file }: { id: number; file: File }) =>
+        teamItemsApi.uploadTeamItemImage(id, file),
+      onSuccess: (response) => {
+        if (response.success) {
+          // 캐시 무효화하여 imageUrl 업데이트
+          queryClient.invalidateQueries({
+            queryKey: ["teamItems", selectedTeamId],
+          });
+          toast.success("이미지가 업로드되었습니다.");
+        } else {
+          toast.error(response.error || "이미지 업로드에 실패했습니다.");
+        }
+      },
+      onError: () => {
+        toast.error("이미지 업로드 중 오류가 발생했습니다.");
+      },
+    });
+
+    return {
+      uploadImage: mutation.mutate,
+      uploadImageAsync: mutation.mutateAsync,
+      ...mutation,
+    };
+  };
+
+  // 이미지 삭제 뮤테이션
+  const useDeleteImage = () => {
+    const mutation = useMutation({
+      mutationFn: (id: number) => teamItemsApi.deleteTeamItemImage(id),
+      onSuccess: (response) => {
+        if (response.success) {
+          // 캐시 무효화하여 imageUrl 제거
+          queryClient.invalidateQueries({
+            queryKey: ["teamItems", selectedTeamId],
+          });
+          toast.success("이미지가 삭제되었습니다.");
+        } else {
+          toast.error(response.error || "이미지 삭제에 실패했습니다.");
+        }
+      },
+      onError: () => {
+        toast.error("이미지 삭제 중 오류가 발생했습니다.");
+      },
+    });
+
+    return {
+      deleteImage: mutation.mutate,
+      deleteImageAsync: mutation.mutateAsync,
+      ...mutation,
+    };
+  };
+
   return {
     useGetTeamItems,
     useCreateTeamItem,
     useUpdateTeamItem,
     useDeleteTeamItem,
+    useUploadImage,
+    useDeleteImage,
   };
 }

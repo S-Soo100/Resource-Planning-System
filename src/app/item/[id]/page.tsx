@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Item } from "@/types/(item)/item";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+import { Package } from "lucide-react";
 
 export default function ItemDetailPage() {
   const params = useParams();
@@ -48,6 +49,17 @@ export default function ItemDetailPage() {
         {/* 품목 기본 정보 */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h1 className="text-2xl font-bold mb-6">품목 상세 정보</h1>
+
+          {/* 이미지 섹션 */}
+          {item.teamItem.imageUrl && (
+            <div className="mb-6 flex justify-center">
+              <img
+                src={item.teamItem.imageUrl}
+                alt={item.teamItem.itemName}
+                className="w-48 h-48 object-cover rounded-lg border-2 border-gray-200 shadow-sm"
+              />
+            </div>
+          )}
 
           {/* 창고 정보 */}
           <div className="bg-white rounded-lg shadow-sm py-6 mb-6">

@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { AlertCircle } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { AlertCircle, Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button, Input, Modal } from "@/components/ui";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { useToast } from "@/hooks/useToast";
@@ -17,6 +17,7 @@ interface TeamItem {
   itemCode: string;
   itemName: string;
   memo?: string;
+  imageUrl?: string | null;
   category?: Category;
 }
 
@@ -50,13 +51,20 @@ export default function TeamItemModal({
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { useCreateTeamItem, useUpdateTeamItem } = useTeamItems();
-  const { createTeamItem, isPending: createLoading } = useCreateTeamItem();
+  // 이미지 관련 상태
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { useCreateTeamItem, useUpdateTeamItem, useUploadImage, useDeleteImage } = useTeamItems();
+  const { createTeamItemAsync, isPending: createLoading } = useCreateTeamItem();
   const { updateTeamItem, isPending: updateLoading } = useUpdateTeamItem();
+  const { uploadImageAsync, isPending: uploadLoading } = useUploadImage();
+  const { deleteImageAsync, isPending: deleteLoading } = useDeleteImage();
   const toast = useToast();
 
   const isEditMode = !!editItem;
-  const submitLoading = createLoading || updateLoading;
+  const submitLoading = createLoading || updateLoading || uploadLoading || deleteLoading;
 
   // 초기 데이터 설정
   useEffect(() => {
@@ -69,6 +77,9 @@ export default function TeamItemModal({
           memo: editItem.memo || "",
           categoryId: editItem.category?.id || null,
         });
+        // 기존 이미지 미리보기
+        setImagePreview(editItem.imageUrl || null);
+        setSelectedImage(null);
       } else {
         // 추가 모드 - 첫 번째 카테고리가 있으면 선택
         const defaultCategoryId =
@@ -79,6 +90,8 @@ export default function TeamItemModal({
           memo: "",
           categoryId: defaultCategoryId,
         });
+        setImagePreview(null);
+        setSelectedImage(null);
       }
       setSubmitError(null);
     }
@@ -106,6 +119,67 @@ export default function TeamItemModal({
     }
   };
 
+  // 이미지 파일 검증
+  const validateImageFile = (file: File): string | null => {
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+
+    if (file.size > MAX_SIZE) {
+      return "파일 크기는 5MB 이하여야 합니다.";
+    }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return "JPG, PNG, GIF, WebP 형식만 지원됩니다.";
+    }
+
+    return null;
+  };
+
+  // 이미지 파일 선택 핸들러
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const error = validateImageFile(file);
+    if (error) {
+      toast.error("이미지 검증 실패", error);
+      return;
+    }
+
+    setSelectedImage(file);
+
+    // 미리보기 생성
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // 이미지 제거 핸들러 (새로 선택한 이미지)
+  const handleRemoveSelectedImage = () => {
+    setSelectedImage(null);
+    setImagePreview(editItem?.imageUrl || null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // 기존 이미지 삭제 핸들러 (서버에서 삭제)
+  const handleDeleteExistingImage = async () => {
+    if (!editItem?.id || !editItem.imageUrl) return;
+
+    if (!window.confirm("이미지를 삭제하시겠습니까?")) return;
+
+    try {
+      await deleteImageAsync(editItem.id);
+      setImagePreview(null);
+      setSelectedImage(null);
+    } catch (error) {
+      console.error("이미지 삭제 오류:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -127,16 +201,32 @@ export default function TeamItemModal({
         teamId: teamId,
       };
 
+      let itemId: number;
+
       if (isEditMode && editItem) {
         // 수정 모드
         await updateTeamItem({ id: editItem.id, teamItemDto });
+        itemId = editItem.id;
+
+        // 새 이미지가 선택된 경우 업로드
+        if (selectedImage) {
+          await uploadImageAsync({ id: itemId, file: selectedImage });
+        }
+
         toast.success(
           "아이템 수정 완료",
           `'${formData.itemName}' 아이템이 성공적으로 수정되었습니다.`
         );
       } else {
         // 추가 모드
-        await createTeamItem(teamItemDto);
+        const response = await createTeamItemAsync(teamItemDto);
+
+        // 생성된 아이템의 ID를 가져와서 이미지 업로드
+        if (response.success && response.data && selectedImage) {
+          itemId = response.data.id;
+          await uploadImageAsync({ id: itemId, file: selectedImage });
+        }
+
         toast.success(
           "아이템 추가 완료",
           `'${formData.itemName}' 아이템이 성공적으로 추가되었습니다.`
@@ -229,6 +319,56 @@ export default function TeamItemModal({
             placeholder="예: 신형 모델"
             className="w-full h-24 px-3 py-2 transition-colors border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
+        </div>
+
+        {/* 이미지 업로드 섹션 */}
+        <div>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            품목 이미지
+          </label>
+          <div className="space-y-3">
+            {/* 이미지 미리보기 */}
+            {imagePreview && (
+              <div className="relative inline-block">
+                <img
+                  src={imagePreview}
+                  alt="미리보기"
+                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={selectedImage ? handleRemoveSelectedImage : handleDeleteExistingImage}
+                  className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                  title={selectedImage ? "선택 취소" : "이미지 삭제"}
+                  disabled={deleteLoading}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+
+            {/* 파일 선택 버튼 */}
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                onChange={handleImageSelect}
+                className="hidden"
+                id="team-item-image"
+              />
+              <label
+                htmlFor="team-item-image"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+              >
+                {imagePreview ? <ImageIcon size={18} /> : <Upload size={18} />}
+                {imagePreview ? "이미지 변경" : "이미지 선택"}
+              </label>
+              <p className="mt-2 text-xs text-gray-500">
+                JPG, PNG, GIF, WebP (최대 5MB)
+              </p>
+            </div>
+          </div>
         </div>
 
         {submitError && (

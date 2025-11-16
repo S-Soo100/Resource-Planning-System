@@ -375,9 +375,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     );
     if (!selectedPackage) return;
 
-    const itemCodes = selectedPackage.itemlist.split(", ");
-    const newItems = itemCodes
-      .map((itemCode) => {
+    // packageItems에서 itemCode 추출하여 처리
+    const newItems = selectedPackage.packageItems
+      .filter((pkgItem) => pkgItem.deletedAt === null) // 삭제되지 않은 아이템만
+      .map((pkgItem) => {
+        const itemCode = pkgItem.item.teamItem.itemCode;
         const warehouseItem = currentWarehouseItems.find(
           (item) => item.teamItem.itemCode === itemCode
         );

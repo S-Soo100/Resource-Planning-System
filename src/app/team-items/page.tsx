@@ -526,6 +526,9 @@ export default function TeamItemsPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-4 py-3 w-20 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
+                      이미지
+                    </th>
                     <th className="px-4 py-3 w-28 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       아이템 코드
                     </th>
@@ -546,6 +549,19 @@ export default function TeamItemsPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedItems.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-center">
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.itemName}
+                            className="w-12 h-12 object-cover rounded-md border border-gray-200 mx-auto"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center mx-auto">
+                            <Package className="w-6 h-6 text-gray-400" />
+                          </div>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-sm font-medium whitespace-nowrap">
                         {item.itemCode || "-"}
                       </td>

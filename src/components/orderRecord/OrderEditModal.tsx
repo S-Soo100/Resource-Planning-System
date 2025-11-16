@@ -130,10 +130,12 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         (pkg: PackageApi) => pkg.id === formData.packageId
       );
 
-      if (selectedPackage) {
-        const itemCodes = selectedPackage.itemlist.split(", ");
-        const newPackageItems = itemCodes
-          .map((itemCode) => {
+      if (selectedPackage && selectedPackage.packageItems) {
+        // packageItems에서 itemCode 추출하여 처리
+        const newPackageItems = selectedPackage.packageItems
+          .filter((pkgItem) => pkgItem.deletedAt === null) // 삭제되지 않은 아이템만
+          .map((pkgItem) => {
+            const itemCode = pkgItem.item.teamItem.itemCode;
             const warehouseItem = currentWarehouseItems.find(
               (item: Item) => item.teamItem.itemCode === itemCode
             );
@@ -289,10 +291,12 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           const selectedPackage = packages.find(
             (pkg: PackageApi) => pkg.id === formData.packageId
           );
-          if (selectedPackage) {
-            const itemCodes = selectedPackage.itemlist.split(", ");
-            const updatedPackageItems = itemCodes
-              .map((itemCode) => {
+          if (selectedPackage && selectedPackage.packageItems) {
+            // packageItems에서 itemCode 추출하여 처리
+            const updatedPackageItems = selectedPackage.packageItems
+              .filter((pkgItem) => pkgItem.deletedAt === null)
+              .map((pkgItem) => {
+                const itemCode = pkgItem.item.teamItem.itemCode;
                 const warehouseItem = currentWarehouseItems.find(
                   (item: Item) => item.teamItem.itemCode === itemCode
                 );

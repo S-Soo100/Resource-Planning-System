@@ -8,6 +8,7 @@ import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { CreateItemApiRequest } from "@/types/(item)/item";
 import { useCategory } from "@/hooks/useCategory";
+import { Package } from "lucide-react";
 
 interface CustomItemTableProps {
   isReadOnly?: boolean;
@@ -298,6 +299,9 @@ export default function CustomItemTable({
                   <table className="min-w-full divide-y divide-purple-200">
                     <thead className="bg-purple-50">
                       <tr>
+                        <th className="px-4 py-3 w-20 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                          이미지
+                        </th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                           품목 코드
                         </th>
@@ -353,6 +357,19 @@ export default function CustomItemTable({
                           })
                           .map((item) => (
                             <tr key={item.id} className="hover:bg-purple-50 transition-colors">
+                              <td className="px-4 py-3 text-center">
+                                {item.teamItem.imageUrl ? (
+                                  <img
+                                    src={item.teamItem.imageUrl}
+                                    alt={item.teamItem.itemName}
+                                    className="w-12 h-12 object-cover rounded-md border border-gray-200 mx-auto"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center mx-auto">
+                                    <Package className="w-6 h-6 text-gray-400" />
+                                  </div>
+                                )}
+                              </td>
                               <td className="px-4 py-3 text-sm font-medium text-gray-900">
                                 {item.teamItem.itemCode}
                               </td>

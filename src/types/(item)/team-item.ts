@@ -6,6 +6,7 @@ export interface TeamItem {
   itemName: string;
   teamId: number;
   memo: string;
+  imageUrl?: string | null; // 품목 이미지 URL (Google Cloud Storage)
   category: Category;
   categoryId?: number;
   createdAt?: string | null;

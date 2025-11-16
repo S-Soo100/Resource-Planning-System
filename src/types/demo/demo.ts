@@ -131,6 +131,7 @@ export interface DemoResponse {
         itemCode: string;
         itemName: string;
         memo: string;
+        imageUrl?: string | null;
       };
     };
   }>;

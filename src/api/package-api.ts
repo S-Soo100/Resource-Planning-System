@@ -1,7 +1,6 @@
 import { api } from "./api";
 import { ApiResponse } from "../types/common";
 import {
-  // Package,
   CreatePackageDto,
   CreateIPackageDto,
   UpdatePackageDto,
@@ -12,11 +11,11 @@ import {
 const createPackage = async (
   data: CreateIPackageDto
 ): Promise<PackageResponse> => {
-  // CreateIPackageDto를 CreatePackageDto로 변환
+  // itemIds를 그대로 전송 (문자열 변환 제거)
   const packageData: CreatePackageDto = {
     packageName: data.packageName,
     teamId: data.teamId,
-    itemlist: data.itemlist.join(", "), // 배열을 쉼표로 구분된 문자열로 변환
+    itemIds: data.itemIds, // number[] 배열 그대로 전송
   };
 
   try {

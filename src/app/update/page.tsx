@@ -67,6 +67,111 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8">
         <div className="space-y-8">
+          {/* v1.10.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.10.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-11-17
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 추가됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("추가됨")}
+                    <span className="ml-2">추가됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>TeamItem 이미지 업로드/삭제 기능</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-green-800 list-disc">
+                        <li>품목에 이미지 업로드 기능 추가 (최대 5MB, JPG/PNG/GIF/WebP)</li>
+                        <li>이미지 삭제 및 교체 기능</li>
+                        <li>이미지 미리보기 및 클라이언트 측 유효성 검사</li>
+                        <li>Google Cloud Storage 연동</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>품목 이미지 썸네일 표시</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-green-800 list-disc">
+                        <li>team-items 목록: 12x12 썸네일</li>
+                        <li>item 상세 페이지: 48x48 큰 이미지</li>
+                        <li>warehouse-items 테이블: 12x12 썸네일</li>
+                        <li>demonstration 시연품 선택: 16x16 썸네일</li>
+                        <li>demoRecord 시연품 목록: 16x16 썸네일</li>
+                        <li>이미지 없을 시 Package 아이콘 대체 표시</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>Package API 2.0 마이그레이션</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>itemlist: string에서 itemIds: number[] + packageItems로 변경</li>
+                        <li>itemCode → itemId 변환 로직 추가</li>
+                        <li>레거시 데이터 호환성을 위한 fallback 로직 구현</li>
+                        <li>PackageItem 인터페이스에 중첩 구조 추가</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>패키지 관리 페이지 디자인 개선</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>보라색에서 모노톤으로 전면 리디자인</li>
+                        <li>카드 헤더: 회색 배경으로 깔끔하게 변경</li>
+                        <li>수정/삭제 버튼을 카드 헤더 우측 상단 원형 아이콘으로 변경</li>
+                        <li>아이템 태그와 모든 버튼 회색 계열로 통일</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 수정됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("수정됨")}
+                    <span className="ml-2">수정됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <ul className="ml-5 space-y-1 text-sm text-red-800 list-disc">
+                        <li>DemoResponse 타입에 imageUrl 필드 추가</li>
+                        <li>패키지 목록 표시 오류 수정 (packageItems가 비어있을 때 itemlist fallback)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.9.0 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +180,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.9.0
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

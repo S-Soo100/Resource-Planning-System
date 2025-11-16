@@ -315,6 +315,9 @@ export default function StockTable() {
           onUpdateQuantity={handleUpdateQuantity}
         />
         {/* 입고/출고 모달은 ioHistory 페이지로 이동됨 */}
+
+        {/* 페이지 하단 공백 */}
+        <div className="h-[200px]"></div>
       </div>
     </>
   );

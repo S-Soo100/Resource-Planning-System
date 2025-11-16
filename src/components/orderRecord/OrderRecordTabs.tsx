@@ -32,6 +32,7 @@ import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import OrderEditModal from "./OrderEditModal";
 import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
+import OrderRecordTable from "./OrderRecordTable";
 
 // 사용자 접근 레벨 타입 추가
 type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
@@ -1213,207 +1214,20 @@ const OrderRecordTabs = () => {
             auth={currentUser}
           />
         ) : (
-          /* 카드형 리스트 */
-          <div className="space-y-4">
-            {currentRecords.length > 0 ? (
-              currentRecords.map((record: IOrderRecord, index: number) => {
-                const isExpanded = expandedCards.has(record.id);
-                return (
-                  <div
-                    key={record.id}
-                    className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all"
-                  >
-                    <div
-                      className="flex items-center justify-between px-4 py-3 cursor-pointer"
-                      onClick={() => handleCardToggle(record.id)}
-                    >
-                      {/* 왼쪽: 인덱스 + 기본 정보 */}
-                      <div className="flex items-center space-x-3 flex-1 min-w-0">
-                        <span className="text-sm text-gray-500 font-medium w-6">
-                          {startIndex + index + 1}.
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`px-2 py-0.5 text-xs font-medium rounded ${
-                                record.packageId && record.packageId > 0
-                                  ? "bg-purple-100 text-purple-700"
-                                  : "bg-blue-100 text-blue-700"
-                              }`}
-                            >
-                              {record.packageId && record.packageId > 0
-                                ? "패키지"
-                                : "개별"}
-                            </span>
-                            <h3 className="font-medium text-gray-900 truncate">
-                              {record.title ||
-                                `${
-                                  record.warehouse?.warehouseName ||
-                                  "알 수 없는 창고"
-                                }에서 ${
-                                  record.orderItems &&
-                                  record.orderItems.length > 0
-                                    ? record.orderItems.length > 1
-                                      ? `${
-                                          record.orderItems[0]?.item?.teamItem
-                                            ?.itemName || "품목"
-                                        } 등 ${record.orderItems.length}개 품목`
-                                      : `${
-                                          record.orderItems[0]?.item?.teamItem
-                                            ?.itemName || "품목"
-                                        }`
-                                    : "품목"
-                                } 출고`}
-                              {record.status === OrderStatus.shipmentCompleted && record.outboundDate && (
-                                <span className="ml-1 text-sm text-gray-500">
-                                  (완료:{formatDateForDisplayUTC(record.outboundDate)})
-                                </span>
-                              )}
-                            </h3>
-                          </div>
-                          <div className="text-sm text-gray-500 mt-0.5">
-                            {record.requester} • 생성일: {formatDateForDisplayUTC(record.createdAt)} • 출고예정일: {formatDateForDisplayUTC(record.outboundDate)}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 오른쪽: 상태 표시 + 상태 변경 + 상세보기 버튼 */}
-                      <div className="flex items-center space-x-2">
-                        {/* 현재 상태 색상 표시 */}
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${getStatusColorClass(
-                            record.status
-                          )}`}
-                        >
-                          {getStatusText(record.status)}
-                        </span>
-
-                        {/* 상태 변경 드롭다운 (권한이 있는 경우만) */}
-                        {hasPermissionToChangeStatus() && (
-                          <select
-                            value={record.status}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              handleStatusChange(record.id, e.target.value as OrderStatus);
-                            }}
-                            disabled={isUpdatingStatus === record.id}
-                            className="text-xs bg-white border border-gray-300 rounded px-2 py-1 disabled:opacity-50 min-w-[100px]"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {userAccessLevel === "moderator" ? (
-                              // Moderator: 초기 승인 단계만 가능
-                              <>
-                                <option value={OrderStatus.requested}>요청</option>
-                                <option value={OrderStatus.approved} disabled={record.userId === auth?.id}>
-                                  승인{record.userId === auth?.id ? " (본인)" : ""}
-                                </option>
-                                <option value={OrderStatus.rejected} disabled={record.userId === auth?.id}>
-                                  반려{record.userId === auth?.id ? " (본인)" : ""}
-                                </option>
-                              </>
-                            ) : userAccessLevel === "admin" ? (
-                              // Admin: 모든 상태 변경 가능
-                              <>
-                                <option value={OrderStatus.requested}>요청</option>
-                                <option value={OrderStatus.approved}>승인</option>
-                                <option value={OrderStatus.rejected}>반려</option>
-                                <option value={OrderStatus.confirmedByShipper}>출고팀 확인</option>
-                                <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
-                                <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
-                              </>
-                            ) : null}
-                          </select>
-                        )}
-
-                        {isUpdatingStatus === record.id && (
-                          <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
-                        )}
-
-                        {/* 상세보기 버튼 */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRowClick(record.id);
-                          }}
-                          className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 active:bg-blue-200 transition-colors"
-                        >
-                          상세보기
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 확장된 정보 */}
-                    {isExpanded && (
-                      <div className="px-4 pb-3 border-t border-gray-100 bg-gray-50">
-                        <div className="pt-3 space-y-2 text-sm">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium text-gray-700">발주 창고:</span>
-                            <span className="text-gray-600">
-                              {record.warehouse?.warehouseName || "창고 정보 없음"}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium text-gray-700">수령자:</span>
-                            <span className="text-gray-600">
-                              {record.receiver || "수령자 미정"} {record.receiverPhone && `(${record.receiverPhone})`}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium text-gray-700">배송 주소:</span>
-                            <span className="text-gray-600">
-                              {record.receiverAddress || "배송 주소 미정"}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium text-gray-700">담당자:</span>
-                            <span className="text-gray-600">
-                              {record.manager || "담당자 미정"}
-                            </span>
-                          </div>
-                          <div className="flex items-start space-x-2">
-                            <span className="font-medium text-gray-700 flex-shrink-0">발주 품목:</span>
-                            <div className="text-gray-600">
-                              {record.orderItems && record.orderItems.length > 0 ? (
-                                <div className="space-y-1">
-                                  {record.orderItems.map((item, itemIndex) => (
-                                    <div key={itemIndex} className="text-sm">
-                                      {item.item?.teamItem?.itemName || "품목명 없음"} ({item.quantity || 0}개)
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                "품목 정보 없음"
-                              )}
-                            </div>
-                          </div>
-                          {record.memo && (
-                            <div className="flex items-start space-x-2">
-                              <span className="font-medium text-gray-700 flex-shrink-0">메모:</span>
-                              <div className="p-2 bg-yellow-50 border border-yellow-200 rounded text-gray-600 text-sm">
-                                {record.memo}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            ) : (
-              <div className="py-16 text-center bg-white rounded-2xl shadow-sm">
-                <Package className="mx-auto w-12 h-12 text-gray-300" />
-                <h3 className="mt-2 text-lg font-semibold text-gray-900">
-                  발주 기록이 없습니다
-                </h3>
-                <p className="mt-1 text-base text-gray-500">
-                  {searchTerm || statusFilter
-                    ? "검색 조건을 변경해보세요."
-                    : "아직 발주 요청이 없습니다."}
-                </p>
-              </div>
-            )}
-          </div>
+          /* 테이블형 리스트 */
+          <OrderRecordTable
+            records={currentRecords}
+            getStatusText={getStatusText}
+            getStatusColorClass={getStatusColorClass}
+            hasPermissionToChangeStatus={hasPermissionToChangeStatus}
+            handleStatusChange={handleStatusChange}
+            isUpdatingStatus={isUpdatingStatus}
+            userAccessLevel={userAccessLevel}
+            auth={currentUser}
+            onDetailClick={(record) => {
+              handleRowClick(record.id);
+            }}
+          />
         )}
 
         {/* 페이지네이션 */}

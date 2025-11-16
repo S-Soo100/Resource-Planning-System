@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { Item } from "@/types/(item)/item";
-import { useCategory } from "@/hooks/useCategory";
-import { authStore } from "@/store/authStore";
+import { Package } from "lucide-react";
 
 interface StockTableDesktopProps {
   items: Item[];
@@ -10,286 +9,144 @@ interface StockTableDesktopProps {
   showEditButton?: boolean;
 }
 
+// 카테고리별 색상 매핑
+const getCategoryColor = (categoryName: string): string => {
+  const colorMap: { [key: string]: string } = {
+    "전동휠체어": "bg-purple-500",
+    "수동휠체어": "bg-blue-500",
+    "액세서리": "bg-green-500",
+    "부품": "bg-orange-500",
+    "기타": "bg-gray-500",
+  };
+
+  return colorMap[categoryName] || "bg-indigo-500";
+};
+
+// 카테고리 태그 색상
+const getCategoryTagColor = (categoryName: string): string => {
+  const colorMap: { [key: string]: string } = {
+    "전동휠체어": "bg-purple-100 text-purple-700",
+    "수동휠체어": "bg-blue-100 text-blue-700",
+    "액세서리": "bg-green-100 text-green-700",
+    "부품": "bg-orange-100 text-orange-700",
+    "기타": "bg-gray-100 text-gray-700",
+  };
+
+  return colorMap[categoryName] || "bg-indigo-100 text-indigo-700";
+};
+
 export default function StockTableDesktop({
   items,
   onEditQuantity,
   showEditButton = true,
 }: StockTableDesktopProps) {
   const router = useRouter();
-  const selectedTeam = authStore((state) => state.selectedTeam);
-  const { categories } = useCategory(selectedTeam?.id);
-  const [openCategories, setOpenCategories] = useState<{
-    [key: string]: boolean;
-  }>({
-    none: true, // 카테고리 없는 항목들은 기본적으로 열어둠
-  });
-
-  // 카테고리가 로드되면 모든 카테고리를 열린 상태로 설정
-  useEffect(() => {
-    if (categories.length > 0) {
-      const initial: { [key: string]: boolean } = { none: true };
-      categories.forEach((cat) => {
-        initial[cat.id] = true; // 모든 카테고리를 기본적으로 열어둠
-      });
-      setOpenCategories(initial);
-    }
-  }, [categories]);
-
-  const handleToggle = (catId: string) => {
-    setOpenCategories((prev) => ({
-      ...prev,
-      [catId]: !prev[catId],
-    }));
-  };
 
   if (items.length === 0) {
     return (
       <tr>
-        <td colSpan={showEditButton ? 7 : 6} className="px-6 py-8 text-center">
-          <div className="py-6">
-            <p className="text-lg text-gray-500 mb-4">창고가 비었습니다.</p>
-          </div>
+        <td colSpan={5} className="px-6 py-12 text-center">
+          <p className="text-gray-400">창고가 비었습니다.</p>
         </td>
       </tr>
     );
   }
 
-  // 메모 텍스트를 최대 길이로 제한하는 함수
-  const truncateMemo = (memo: string | null, maxLength = 30) => {
-    if (!memo) return "-";
-    return memo.length > maxLength
-      ? `${memo.substring(0, maxLength)}...`
-      : memo;
-  };
-
-  // 카테고리별로 아이템 그룹핑 함수
-  const groupItemsByCategory = (
-    items: Item[],
-    categories: { id: number; name: string }[]
-  ) => {
-    const grouped: { [key: string]: Item[] } = {};
-    categories.forEach((cat) => {
-      grouped[cat.id] = [];
-    });
-    grouped["none"] = [];
-    items.forEach((item) => {
-      const catId = item.teamItem?.category?.id ?? item.teamItem?.categoryId;
-      if (catId) {
-        if (!grouped[catId]) grouped[catId] = [];
-        grouped[catId].push(item);
-      } else {
-        grouped["none"].push(item);
-      }
-    });
-    return grouped;
-  };
-
-  const grouped = groupItemsByCategory(items, categories);
-
-  // 카테고리별 총 재고 계산 함수
-  const calculateTotalQuantity = (items: Item[]) => {
-    return items.reduce((total, item) => total + item.itemQuantity, 0);
-  };
-
   return (
     <>
-      {categories.map(
-        (cat) =>
-          grouped[cat.id].length > 0 && (
-            <React.Fragment key={cat.id}>
-              <tr
-                onClick={() => handleToggle(String(cat.id))}
-                className="cursor-pointer select-none border-b-2 border-gray-400"
-              >
-                <td
-                  colSpan={showEditButton ? 7 : 6}
-                  className="bg-gray-200 font-semibold px-4 py-3 text-left text-sm text-gray-800"
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="uppercase tracking-wide">
-                      {openCategories[String(cat.id)] ? "▼" : "▶"} {cat.name}
-                    </span>
-                    <span className="text-xs text-gray-600 font-normal">
-                      {grouped[cat.id].length}개 품목 / 총{" "}
-                      {calculateTotalQuantity(grouped[cat.id])}개
-                    </span>
-                  </div>
-                </td>
-              </tr>
-              {openCategories[String(cat.id)] && (
-                <>
-                  <tr>
-                    <td colSpan={3} className="align-top pb-0">
-                      <div className="bg-gray-50 border-b border-gray-300 px-4 py-2 flex flex-row items-center w-full">
-                        <div className="w-1/3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                          품목명
-                        </div>
-                        <div className="w-1/3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                          품목코드
-                        </div>
-                        <div className="w-1/3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                          재고수량
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  {grouped[cat.id].length > 0 ? (
-                    grouped[cat.id].map((item, itemIndex) => (
-                      <tr
-                        key={`item-${item.id}-${itemIndex}`}
-                        className="border-b border-gray-200 hover:bg-gray-50"
-                      >
-                        <td colSpan={3} className="align-top py-0">
-                          <div className="bg-white px-4 py-3 flex flex-col">
-                            <div className="flex flex-row items-center w-full">
-                              <div className="w-1/3">
-                                <a
-                                  className="text-gray-900 hover:text-black hover:underline font-medium cursor-pointer"
-                                  onClick={() =>
-                                    router.push(`/item/${item.id}`)
-                                  }
-                                >
-                                  {item.teamItem.itemName}
-                                </a>
-                              </div>
-                              <div className="w-1/3 text-left text-sm text-gray-600 font-mono">
-                                {item.teamItem.itemCode}
-                              </div>
-                              <div className="w-1/3 text-right">
-                                {showEditButton ? (
-                                  <button
-                                    className="text-gray-900 font-semibold text-base px-2 py-1 hover:bg-gray-100 border border-gray-300 hover:border-gray-400"
-                                    onClick={() => onEditQuantity(item)}
-                                  >
-                                    {item.itemQuantity}
-                                  </button>
-                                ) : (
-                                  <span className="text-gray-900 font-semibold text-base">
-                                    {item.itemQuantity}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex flex-row items-center w-full mt-2 pt-2 border-t border-gray-100">
-                              <div className="w-1/2 text-xs text-gray-500">
-                                최종수정:{" "}
-                                {new Date(item.updatedAt).toLocaleDateString(
-                                  "ko-KR"
-                                )}
-                              </div>
-                              <div className="w-1/2 text-xs text-gray-500 text-right">
-                                메모: {truncateMemo(item.teamItem.memo)}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-4 py-4 text-gray-400 text-sm border-b border-gray-200"
-                      >
-                        해당 카테고리 품목 없음
-                      </td>
-                    </tr>
-                  )}
-                </>
-              )}
-            </React.Fragment>
-          )
-      )}
-      {/* 카테고리 없는 아이템 */}
-      {grouped["none"].length > 0 && (
-        <>
+      {/* 테이블 헤더 */}
+      <tr className="border-b border-gray-200 bg-gray-50">
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          카테고리
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          품목명
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          품목코드
+        </th>
+        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+          재고수량
+        </th>
+      </tr>
+
+      {/* 테이블 본문 */}
+      {items.map((item, index) => {
+        const categoryName = item.teamItem?.category?.name || "기타";
+        const colorClass = getCategoryColor(categoryName);
+        const tagColorClass = getCategoryTagColor(categoryName);
+
+        return (
           <tr
-            onClick={() => handleToggle("none")}
-            className="cursor-pointer select-none border-b-2 border-gray-400"
+            key={`item-${item.id}-${index}`}
+            className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+            onClick={() => router.push(`/item/${item.id}`)}
           >
-            <td
-              colSpan={showEditButton ? 7 : 6}
-              className="bg-gray-200 font-semibold px-4 py-3 text-left text-sm text-gray-800"
-            >
-              <div className="flex justify-between items-center">
-                <span className="uppercase tracking-wide">
-                  {openCategories["none"] ? "▼" : "▶"} 카테고리 없음
-                </span>
-                <span className="text-xs text-gray-600 font-normal">
-                  {grouped["none"].length}개 품목 / 총{" "}
-                  {calculateTotalQuantity(grouped["none"])}개
-                </span>
+            {/* 색상 아이콘 */}
+            <td className="px-6 py-4">
+              <div className="flex items-center justify-center">
+                {item.teamItem?.imageUrl ? (
+                  <img
+                    src={item.teamItem.imageUrl}
+                    alt={item.teamItem.itemName}
+                    className="w-8 h-8 rounded-md object-cover border border-gray-200"
+                  />
+                ) : (
+                  <div className={`w-8 h-8 rounded-md ${colorClass} flex items-center justify-center`}>
+                    <Package className="w-5 h-5 text-white" />
+                  </div>
+                )}
               </div>
             </td>
-          </tr>
-          {openCategories["none"] && (
-            <>
-              <tr>
-                <td colSpan={3} className="align-top pb-0">
-                  <div className="bg-gray-50 border-b border-gray-300 px-4 py-2 flex flex-row items-center w-full">
-                    <div className="w-1/3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                      품목명
-                    </div>
-                    <div className="w-1/3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                      품목코드
-                    </div>
-                    <div className="w-1/3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                      재고수량
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              {grouped["none"].map((item, itemIndex) => (
-                <tr
-                  key={`item-none-${item.id}-${itemIndex}`}
-                  className="border-b border-gray-200 hover:bg-gray-50"
+
+            {/* 카테고리 태그 */}
+            <td className="px-6 py-4">
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tagColorClass}`}>
+                {categoryName}
+              </span>
+            </td>
+
+            {/* 품목명 */}
+            <td className="px-6 py-4">
+              <div className="text-sm font-medium text-gray-900">
+                {item.teamItem.itemName}
+              </div>
+              {item.teamItem.memo && (
+                <div className="text-xs text-gray-500 mt-1 truncate max-w-xs">
+                  {item.teamItem.memo}
+                </div>
+              )}
+            </td>
+
+            {/* 품목코드 */}
+            <td className="px-6 py-4">
+              <div className="text-sm text-blue-600 font-mono">
+                {item.teamItem.itemCode}
+              </div>
+            </td>
+
+            {/* 재고수량 */}
+            <td className="px-6 py-4 text-right">
+              {showEditButton ? (
+                <button
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditQuantity(item);
+                  }}
                 >
-                  <td colSpan={3} className="align-top py-0">
-                    <div className="bg-white px-4 py-3 flex flex-col">
-                      <div className="flex flex-row items-center w-full">
-                        <div className="w-1/3">
-                          <a
-                            className="text-gray-900 hover:text-black hover:underline font-medium cursor-pointer"
-                            onClick={() => router.push(`/item/${item.id}`)}
-                          >
-                            {item.teamItem.itemName}
-                          </a>
-                        </div>
-                        <div className="w-1/3 text-left text-sm text-gray-600 font-mono">
-                          {item.teamItem.itemCode}
-                        </div>
-                        <div className="w-1/3 text-right">
-                          {showEditButton ? (
-                            <button
-                              className="text-gray-900 font-semibold text-base px-2 py-1 hover:bg-gray-100 border border-gray-300 hover:border-gray-400"
-                              onClick={() => onEditQuantity(item)}
-                            >
-                              {item.itemQuantity}
-                            </button>
-                          ) : (
-                            <span className="text-gray-900 font-semibold text-base">
-                              {item.itemQuantity}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex flex-row items-center w-full mt-2 pt-2 border-t border-gray-100">
-                        <div className="w-1/2 text-xs text-gray-500">
-                          최종수정:{" "}
-                          {new Date(item.updatedAt).toLocaleDateString("ko-KR")}
-                        </div>
-                        <div className="w-1/2 text-xs text-gray-500 text-right">
-                          메모: {truncateMemo(item.teamItem.memo)}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </>
-          )}
-        </>
-      )}
+                  {item.itemQuantity}
+                </button>
+              ) : (
+                <span className="text-sm font-semibold text-gray-900">
+                  {item.itemQuantity}
+                </span>
+              )}
+            </td>
+          </tr>
+        );
+      })}
     </>
   );
 }

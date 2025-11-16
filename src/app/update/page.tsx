@@ -67,6 +67,91 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8">
         <div className="space-y-8">
+          {/* v1.12.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.12.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-11-17
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 추가됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("추가됨")}
+                    <span className="ml-2">추가됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>발주/시연 기록 테이블 정렬 기능</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-green-800 list-disc">
+                        <li>발주 기록: 생성일, 출고예정일, 제목, 상태별 정렬</li>
+                        <li>시연 기록: 생성일, 시작일, 제목, 상태별 정렬</li>
+                        <li>3단계 토글: null → 오름차순 → 내림차순 → null</li>
+                        <li>정렬 상태를 시각적으로 표시 (화살표 아이콘)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>발주 기록 페이지 UI 전면 개편</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>카드형에서 테이블형 레이아웃으로 변경</li>
+                        <li>깔끔한 테이블 구조로 데이터 가독성 향상</li>
+                        <li>패키지/개별 유형 색상 태그로 구분</li>
+                        <li>기존 기능 모두 유지 (상태 표시/변경, 상세보기)</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>시연 기록 페이지 UI 전면 개편</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>카드형에서 테이블형 레이아웃으로 변경</li>
+                        <li>깔끔한 테이블 구조로 데이터 가독성 향상</li>
+                        <li>국내/해외 유형 색상 태그로 구분</li>
+                        <li>기존 기능 모두 유지 (상태 표시/변경, 상세보기)</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>코드 품질 개선</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>미사용 상태 변수 및 함수 제거</li>
+                        <li>컴포넌트 간 책임 분리로 유지보수성 향상</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.11.0 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +160,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.11.0
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

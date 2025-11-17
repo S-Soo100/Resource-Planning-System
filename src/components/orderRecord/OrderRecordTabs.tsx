@@ -418,10 +418,17 @@ const OrderRecordTabs = () => {
 
   // 페이지네이션 계산 (useMemo로 최적화)
   const { totalPages, currentRecords, startIndex } = useMemo(() => {
-    const total = Math.ceil(filteredOrders.length / recordsPerPage);
+    // createdAt 기준으로 내림차순 정렬 (최신순)
+    const sortedOrders = [...filteredOrders].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA; // 내림차순 (최신순)
+    });
+
+    const total = Math.ceil(sortedOrders.length / recordsPerPage);
     const indexOfLastRecord = currentPage * recordsPerPage;
     const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    const records = filteredOrders.slice(indexOfFirstRecord, indexOfLastRecord);
+    const records = sortedOrders.slice(indexOfFirstRecord, indexOfLastRecord);
 
     console.log(
       `페이지네이션: ${currentPage}/${total} 페이지, ${records.length}개 표시`

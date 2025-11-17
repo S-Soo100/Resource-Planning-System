@@ -814,10 +814,10 @@ export default function OrderGuidePage() {
                   <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
                     <Package className="w-9 h-9 text-white" />
                   </div>
-                  <h4 className="mb-3 text-xl font-bold text-white">
+                  <h4 className="mb-3 text-2xl md:text-3xl font-bold text-white">
                     패키지 발주
                   </h4>
-                  <p className="mb-4 text-sm text-blue-100">
+                  <p className="mb-4 text-base md:text-lg text-blue-100">
                     미리 구성된 패키지로 빠르게 발주
                   </p>
                   <div className="flex gap-2 items-center text-base font-bold text-white">
@@ -844,10 +844,10 @@ export default function OrderGuidePage() {
                     <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
                       <Accessibility className="w-9 h-9 text-white" />
                     </div>
-                    <h4 className="mb-3 text-xl font-bold text-white">
+                    <h4 className="mb-3 text-2xl md:text-3xl font-bold text-white">
                       휠체어 발주
                     </h4>
-                    <p className="mb-4 text-sm text-purple-100">
+                    <p className="mb-4 text-base md:text-lg text-purple-100">
                       휠체어 전용 품목을 빠르게 선택
                     </p>
                     <div className="flex gap-2 items-center text-base font-bold text-white">
@@ -871,10 +871,10 @@ export default function OrderGuidePage() {
                   <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
                     <ShoppingCart className="w-9 h-9 text-white" />
                   </div>
-                  <h4 className="mb-3 text-xl font-bold text-white">
+                  <h4 className="mb-3 text-2xl md:text-3xl font-bold text-white">
                     개별 품목 발주
                   </h4>
-                  <p className="mb-4 text-sm text-green-100">
+                  <p className="mb-4 text-base md:text-lg text-green-100">
                     원하는 품목을 자유롭게 선택
                   </p>
                   <div className="flex gap-2 items-center text-base font-bold text-white">

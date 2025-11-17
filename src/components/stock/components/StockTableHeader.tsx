@@ -42,6 +42,9 @@ export default function StockTableHeader({
                 rightIcon={<SearchOutlined className="text-gray-400" />}
                 className="border-0 bg-gray-50 rounded-2xl"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                품목코드, 품목명, 카테고리, 메모로 검색 가능
+              </p>
             </div>
 
             <div className="flex items-center">

@@ -2,6 +2,8 @@ import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Item } from "@/types/(item)/item";
 import { Package, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { useCategory } from "@/hooks/useCategory";
+import { authStore } from "@/store/authStore";
 
 interface StockTableDesktopProps {
   items: Item[];
@@ -44,8 +46,17 @@ export default function StockTableDesktop({
   showEditButton = true,
 }: StockTableDesktopProps) {
   const router = useRouter();
+  const selectedTeam = authStore((state) => state.selectedTeam);
+  const { categories } = useCategory(selectedTeam?.id);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>(null);
+
+  // 카테고리 ID로 카테고리 이름 찾기
+  const getCategoryName = (categoryId?: number | null): string => {
+    if (!categoryId) return "기타";
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category?.name || "기타";
+  };
 
   // 정렬 핸들러
   const handleSort = (field: SortField) => {
@@ -90,8 +101,8 @@ export default function StockTableDesktop({
 
       switch (sortField) {
         case "category":
-          aValue = a.teamItem?.category?.name || "기타";
-          bValue = b.teamItem?.category?.name || "기타";
+          aValue = getCategoryName(a.teamItem?.category?.id ?? a.teamItem?.categoryId);
+          bValue = getCategoryName(b.teamItem?.category?.id ?? b.teamItem?.categoryId);
           break;
         case "itemName":
           aValue = a.teamItem.itemName;
@@ -180,7 +191,7 @@ export default function StockTableDesktop({
 
       {/* 테이블 본문 */}
       {sortedItems.map((item, index) => {
-        const categoryName = item.teamItem?.category?.name || "기타";
+        const categoryName = getCategoryName(item.teamItem?.category?.id ?? item.teamItem?.categoryId);
         const colorClass = getCategoryColor(categoryName);
         const tagColorClass = getCategoryTagColor(categoryName);
 

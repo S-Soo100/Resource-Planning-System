@@ -16,6 +16,8 @@ import StockTableEmpty from "./components/StockTableEmpty";
 import WarehouseSummary from "./components/WarehouseSummary";
 import { useQueryClient } from "@tanstack/react-query";
 import { filterAccessibleWarehouses } from "@/utils/warehousePermissions";
+import { useCategory } from "@/hooks/useCategory";
+import { authStore } from "@/store/authStore";
 
 export interface StockTableFormValues {
   itemId?: number;
@@ -176,6 +178,17 @@ export default function StockTable() {
     return items.filter((item) => item.warehouseId === warehouseId);
   };
 
+  // 카테고리 데이터 가져오기
+  const selectedTeamId = authStore((state) => state.selectedTeam?.id);
+  const { categories } = useCategory(selectedTeamId);
+
+  // 카테고리 ID로 카테고리 이름 찾기
+  const getCategoryNameById = (categoryId?: number | null): string => {
+    if (!categoryId) return "";
+    const category = categories.find((cat) => cat.id === categoryId);
+    return category?.name || "";
+  };
+
   // 검색 기능
   const getFilteredItems = (warehouseItems: any[]) => {
     return warehouseItems.filter((item) => {
@@ -183,7 +196,10 @@ export default function StockTable() {
       const itemCode = item.teamItem?.itemCode || "";
       const itemName = item.teamItem?.itemName || "";
       const memo = item.teamItem?.memo || "";
-      const categoryName = item.teamItem?.category?.name || "";
+      // category 객체가 없을 수 있으므로 categoryId로 이름 찾기
+      const categoryName = getCategoryNameById(
+        item.teamItem?.category?.id ?? item.teamItem?.categoryId
+      );
 
       // 검색어를 소문자로 변환
       const searchLower = searchText.toLowerCase();

@@ -126,6 +126,8 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
     demoEndDate: "",
     demoEndTime: "",
     demoEndDeliveryMethod: "",
+    eventStartDate: "",
+    eventEndDate: "",
     warehouseId: 0,
     demoItems: [],
   });
@@ -258,6 +260,8 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
           demoEndDate: normalizeDateForDisplay(demo.demoEndDate || ""),
           demoEndTime: normalizeTimeForDisplay(demo.demoEndTime || ""),
           demoEndDeliveryMethod: demo.demoEndDeliveryMethod || "",
+          eventStartDate: normalizeDateForDisplay(demo.eventStartDate || ""),
+          eventEndDate: normalizeDateForDisplay(demo.eventEndDate || ""),
           warehouseId: demo.warehouseId || 0,
           demoItems: existingItems.map((item) => ({
             itemId: item.itemId,
@@ -301,6 +305,8 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
         demoEndDate: "",
         demoEndTime: "",
         demoEndDeliveryMethod: "",
+        eventStartDate: "",
+        eventEndDate: "",
         warehouseId: 0,
         demoItems: [],
       });
@@ -674,6 +680,14 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
           formData.demoEndTime && formData.demoEndTime.trim() !== ""
             ? convertToUTC9(formData.demoEndTime)
             : formData.demoEndTime,
+        eventStartDate:
+          formData.eventStartDate && formData.eventStartDate.trim() !== ""
+            ? formData.eventStartDate
+            : undefined,
+        eventEndDate:
+          formData.eventEndDate && formData.eventEndDate.trim() !== ""
+            ? formData.eventEndDate
+            : undefined,
         demoItems: selectedItems.map((item) => ({
           itemId: item.itemId,
           quantity: item.quantity,
@@ -1301,6 +1315,43 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                       type="pickup"
                       placeholder="회수 시 운송 방법을 선택하세요"
                       helperText="시연품을 창고로 반입하는 방법입니다"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 이벤트 날짜 (선택 사항) */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-lg font-medium text-gray-700 mb-4">
+                  이벤트 날짜 (선택 사항)
+                </h3>
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
+                  <p className="text-sm text-gray-600">
+                    💡 시연품 배송 일정과 별도로 <strong>실제 이벤트 개최 기간</strong>을 기록할 수 있습니다.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <DatePicker
+                      label="이벤트 시작일"
+                      date={formData.eventStartDate || ""}
+                      onDateChange={(date) =>
+                        setFormData((prev) => ({ ...prev, eventStartDate: date }))
+                      }
+                      placeholder="이벤트 시작 날짜를 선택하세요"
+                      helperText="실제 이벤트가 시작되는 날짜"
+                    />
+                  </div>
+                  <div>
+                    <DatePicker
+                      label="이벤트 종료일"
+                      date={formData.eventEndDate || ""}
+                      onDateChange={(date) =>
+                        setFormData((prev) => ({ ...prev, eventEndDate: date }))
+                      }
+                      placeholder="이벤트 종료 날짜를 선택하세요"
+                      helperText="실제 이벤트가 종료되는 날짜"
+                      minDate={formData.eventStartDate || undefined}
                     />
                   </div>
                 </div>

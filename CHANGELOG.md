@@ -5,6 +5,30 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## v1.14.0 (2025-11-17)
+
+### 추가됨 (Added)
+
+- **시연 이벤트 날짜 필드**: 백엔드 API 2.0 업데이트에 따른 새로운 필드 추가
+  - `eventStartDate`: 실제 이벤트 시작 날짜 (선택 사항)
+  - `eventEndDate`: 실제 이벤트 종료 날짜 (선택 사항)
+  - 시연품 배송 일정(`demoStartDate`/`demoEndDate`)과 실제 이벤트 개최 일정을 구분 가능
+  - 시연 생성 폼, 수정 모달에 날짜 선택 UI 추가
+  - 시연 상세 페이지에 이벤트 기간 표시 (녹색 카드)
+  - 시연 인쇄 페이지에 이벤트 기간 정보 포함
+
+### 개선됨 (Improved)
+
+- **시연 생성/수정 폼 UX 개선**: 이벤트 날짜 입력 영역 추가
+  - 파란색 안내 메시지로 배송 일정과 이벤트 기간 차이 명확히 설명
+  - 날짜 유효성 검증 (종료일 ≥ 시작일)
+  - 빈 값은 `undefined`로 처리하여 기존 데이터와 호환성 유지
+  - 테스트 데이터 자동 채우기 기능에도 이벤트 날짜 포함
+
+- **타입 안정성 강화**: Demo 관련 모든 TypeScript 인터페이스 업데이트
+  - `DemoResponse`, `CreateDemoRequest`, `PatchDemoRequest`, `DemonstrationFormData`에 이벤트 날짜 필드 추가
+  - null/undefined 안전 처리
+
 ## v1.13.0 (2025-11-17)
 
 ### 추가됨 (Added)

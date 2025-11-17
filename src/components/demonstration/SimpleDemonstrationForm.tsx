@@ -105,6 +105,8 @@ const SimpleDemonstrationForm: React.FC = () => {
     demoEndDate: "",
     demoEndTime: "",
     demoEndDeliveryMethod: "",
+    eventStartDate: "",
+    eventEndDate: "",
     userId: user?.id || 0,
     warehouseId: 0,
     address: "",
@@ -282,6 +284,17 @@ const SimpleDemonstrationForm: React.FC = () => {
       }
     }
 
+    // 이벤트 날짜 유효성 검사
+    if (formData.eventStartDate && formData.eventEndDate) {
+      const eventStart = new Date(formData.eventStartDate);
+      const eventEnd = new Date(formData.eventEndDate);
+
+      if (eventEnd < eventStart) {
+        toast.error("이벤트 종료일은 시작일과 같거나 이후여야 합니다.");
+        return false;
+      }
+    }
+
     if (selectedItems.length === 0) {
       toast.error("시연 아이템을 선택해주세요.");
       return false;
@@ -329,6 +342,8 @@ const SimpleDemonstrationForm: React.FC = () => {
       demoEndDate: formatDate(dayAfterTomorrow),
       demoEndTime: "18:00",
       demoEndDeliveryMethod: "용차",
+      eventStartDate: formatDate(dayAfterTomorrow),
+      eventEndDate: formatDate(nextWeek),
       userId: user?.id || 0,
       warehouseId: formData.warehouseId || 0,
       address: "서울특별시 강남구 테헤란로 123",
@@ -519,6 +534,14 @@ const SimpleDemonstrationForm: React.FC = () => {
         demoEndDate: formData.demoEndDate,
         demoEndTime: formData.demoEndTime,
         demoEndDeliveryMethod: formData.demoEndDeliveryMethod,
+        eventStartDate:
+          formData.eventStartDate && formData.eventStartDate.trim() !== ""
+            ? formData.eventStartDate
+            : undefined,
+        eventEndDate:
+          formData.eventEndDate && formData.eventEndDate.trim() !== ""
+            ? formData.eventEndDate
+            : undefined,
         userId: user?.id || 0,
         warehouseId: formData.warehouseId || 0,
         demoItems: selectedItems.map((item) => ({
@@ -644,6 +667,8 @@ const SimpleDemonstrationForm: React.FC = () => {
           demoEndDate: "",
           demoEndTime: "",
           demoEndDeliveryMethod: "",
+          eventStartDate: "",
+          eventEndDate: "",
           userId: user?.id || 0,
           warehouseId: 0,
           address: "",
@@ -1140,6 +1165,43 @@ const SimpleDemonstrationForm: React.FC = () => {
                     type="pickup"
                     placeholder="회수 시 운송 방법을 선택하세요"
                     helperText="시연품을 창고로 반입하는 방법입니다"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 이벤트 날짜 (선택 사항) */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-medium text-gray-700 mb-4">
+                이벤트 날짜 (선택 사항)
+              </h3>
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
+                <p className="text-sm text-gray-600">
+                  💡 시연품 배송 일정과 별도로 <strong>실제 이벤트 개최 기간</strong>을 기록할 수 있습니다.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <DatePicker
+                    label="이벤트 시작일"
+                    date={formData.eventStartDate || ""}
+                    onDateChange={(date) =>
+                      setFormData((prev) => ({ ...prev, eventStartDate: date }))
+                    }
+                    placeholder="이벤트 시작 날짜를 선택하세요"
+                    helperText="실제 이벤트가 시작되는 날짜"
+                  />
+                </div>
+                <div>
+                  <DatePicker
+                    label="이벤트 종료일"
+                    date={formData.eventEndDate || ""}
+                    onDateChange={(date) =>
+                      setFormData((prev) => ({ ...prev, eventEndDate: date }))
+                    }
+                    placeholder="이벤트 종료 날짜를 선택하세요"
+                    helperText="실제 이벤트가 종료되는 날짜"
+                    minDate={formData.eventStartDate || undefined}
                   />
                 </div>
               </div>

@@ -88,6 +88,8 @@ export interface DemoResponse {
   demoEndTime: string;
   demoStartDeliveryMethod: string;
   demoEndDeliveryMethod: string;
+  eventStartDate?: string | null; // 이벤트 시작 날짜 (선택)
+  eventEndDate?: string | null; // 이벤트 종료 날짜 (선택)
   userId: number;
   warehouseId: number;
   createdAt: string;
@@ -211,6 +213,8 @@ export interface CreateDemoRequest {
   demoEndDate: string;
   demoEndTime: string;
   demoEndDeliveryMethod: string;
+  eventStartDate?: string; // 이벤트 시작 날짜 (선택)
+  eventEndDate?: string; // 이벤트 종료 날짜 (선택)
   userId: number;
   warehouseId: number;
   demoItems: Array<{
@@ -240,6 +244,8 @@ export interface DemonstrationFormData {
   demoEndDate: string; // 시연품 회수일
   demoEndTime: string; // 시연품 회수 시간
   demoEndDeliveryMethod: string; // 회수 방법 (직접회수, 택배, 용차 등)
+  eventStartDate?: string; // 이벤트 시작 날짜 (선택)
+  eventEndDate?: string; // 이벤트 종료 날짜 (선택)
   userId: number; // 신청자 ID (현재 로그인한 사용자 ID)
   warehouseId: number; // 시연품 창고 ID
   // 주소 관련 필드 (기존 호환성을 위해 유지)
@@ -265,6 +271,8 @@ export interface PatchDemoRequest {
   demoEndTime?: string;
   demoStartDeliveryMethod?: string;
   demoEndDeliveryMethod?: string;
+  eventStartDate?: string; // 이벤트 시작 날짜 (선택)
+  eventEndDate?: string; // 이벤트 종료 날짜 (선택)
   warehouseId?: number;
   demoItems?: Array<{
     itemId: number;

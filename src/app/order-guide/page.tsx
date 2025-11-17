@@ -837,9 +837,6 @@ export default function OrderGuidePage() {
                   }}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
-                  <div className="absolute top-3 right-3 px-3 py-1.5 text-sm font-bold text-purple-600 bg-white rounded-full shadow-lg animate-pulse">
-                    추천!
-                  </div>
                   <div className="relative">
                     <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
                       <Accessibility className="w-9 h-9 text-white" />

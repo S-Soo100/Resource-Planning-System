@@ -226,10 +226,19 @@ const DemonstrationRecordTabs = () => {
   }, [demoRecords, searchTerm, statusFilter]);
 
   // 페이지네이션
-  const totalPages = Math.ceil(filteredRecords.length / recordsPerPage);
+  // createdAt 기준으로 내림차순 정렬 (최신순)
+  const sortedRecords = useMemo(() => {
+    return [...filteredRecords].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA; // 내림차순 (최신순)
+    });
+  }, [filteredRecords]);
+
+  const totalPages = Math.ceil(sortedRecords.length / recordsPerPage);
   const startIndex = (currentPage - 1) * recordsPerPage;
   const endIndex = startIndex + recordsPerPage;
-  const currentRecords = filteredRecords.slice(startIndex, endIndex);
+  const currentRecords = sortedRecords.slice(startIndex, endIndex);
 
   // 탭 변경 핸들러
   const handleTabChange = (tab: TabType) => {
@@ -651,8 +660,8 @@ const DemonstrationRecordTabs = () => {
       {totalPages > 1 && (
         <div className="flex justify-between items-center mt-6">
           <div className="text-sm text-gray-500">
-            {startIndex + 1}-{Math.min(endIndex, filteredRecords.length)} /{" "}
-            {filteredRecords.length}개
+            {startIndex + 1}-{Math.min(endIndex, sortedRecords.length)} /{" "}
+            {sortedRecords.length}개
           </div>
           <div className="flex space-x-2">
             <button

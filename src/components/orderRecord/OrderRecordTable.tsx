@@ -1,8 +1,21 @@
 import React, { useState, useMemo } from "react";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
-import { ArrowUpDown, ArrowUp, ArrowDown, Package } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Package, Sparkles } from "lucide-react";
 import { formatDateForDisplayUTC } from "@/utils/dateUtils";
+
+// 새로운 기록인지 확인하는 함수
+const isNewRecord = (createdAt: string, status: string): boolean => {
+  const createdDate = new Date(createdAt);
+  const now = new Date();
+  const hoursDiff = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60);
+
+  // 72시간 이내이고, 완료 상태가 아닌 경우
+  const isWithin72Hours = hoursDiff <= 72;
+  const isNotCompleted = !["shipmentCompleted", "rejected", "rejectedByShipper"].includes(status);
+
+  return isWithin72Hours && isNotCompleted;
+};
 
 interface OrderRecordTableProps {
   records: IOrderRecord[];
@@ -209,25 +222,33 @@ export default function OrderRecordTable({
 
               {/* 제목 */}
               <td className="px-6 py-4">
-                <div className="text-sm font-medium text-gray-900">
-                  {record.title ||
-                    `${
-                      record.warehouse?.warehouseName ||
-                      "알 수 없는 창고"
-                    }에서 ${
-                      record.orderItems &&
-                      record.orderItems.length > 0
-                        ? record.orderItems.length > 1
-                          ? `${
-                              record.orderItems[0]?.item?.teamItem
-                                ?.itemName || "품목"
-                            } 등 ${record.orderItems.length}개 품목`
-                          : `${
-                              record.orderItems[0]?.item?.teamItem
-                                ?.itemName || "품목"
-                            }`
-                        : "품목"
-                    } 출고`}
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-medium text-gray-900">
+                    {record.title ||
+                      `${
+                        record.warehouse?.warehouseName ||
+                        "알 수 없는 창고"
+                      }에서 ${
+                        record.orderItems &&
+                        record.orderItems.length > 0
+                          ? record.orderItems.length > 1
+                            ? `${
+                                record.orderItems[0]?.item?.teamItem
+                                  ?.itemName || "품목"
+                              } 등 ${record.orderItems.length}개 품목`
+                            : `${
+                                record.orderItems[0]?.item?.teamItem
+                                  ?.itemName || "품목"
+                              }`
+                          : "품목"
+                      } 출고`}
+                  </div>
+                  {isNewRecord(record.createdAt, record.status) && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold rounded-full shadow-sm animate-pulse flex-shrink-0">
+                      <Sparkles className="w-3 h-3" />
+                      NEW
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5">
                   {record.requester}

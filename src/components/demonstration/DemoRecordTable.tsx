@@ -1,13 +1,26 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Sparkles } from "lucide-react";
 import { DemoResponse, DemoStatus } from "@/types/demo/demo";
 import { formatDateForDisplayUTC } from "@/utils/dateUtils";
 import { formatDateTimeToKorean } from "@/utils/calendar/calendarUtils";
 
 type SortField = "createdAt" | "demoStartDate" | "demoTitle" | "demoStatus";
 type SortOrder = "asc" | "desc" | null;
+
+// 새로운 기록인지 확인하는 함수
+const isNewRecord = (createdAt: string, status: string): boolean => {
+  const createdDate = new Date(createdAt);
+  const now = new Date();
+  const hoursDiff = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60);
+
+  // 72시간 이내이고, 완료 상태가 아닌 경우
+  const isWithin72Hours = hoursDiff <= 72;
+  const isNotCompleted = !["demoCompleted", "demoCompletedAndReturned", "rejected", "rejectedByShipper"].includes(status);
+
+  return isWithin72Hours && isNotCompleted;
+};
 
 interface DemoRecordTableProps {
   records: DemoResponse[];
@@ -180,8 +193,16 @@ export default function DemoRecordTable({
                 </span>
               </td>
               <td className="px-4 py-3">
-                <div className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                  {record.demoTitle || "제목 없음"}
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                    {record.demoTitle || "제목 없음"}
+                  </div>
+                  {isNewRecord(record.createdAt, record.demoStatus) && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold rounded-full shadow-sm animate-pulse">
+                      <Sparkles className="w-3 h-3" />
+                      NEW
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5">
                   {record.requester}

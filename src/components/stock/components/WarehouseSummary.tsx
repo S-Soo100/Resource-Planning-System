@@ -73,7 +73,7 @@ const WarehouseSummary: React.FC<WarehouseSummaryProps> = ({ warehouse, items })
       </div>
 
       {/* 통계 정보 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-1 gap-3 mb-4">
         {/* 총 품목 수 */}
         <div className="bg-blue-50 rounded-lg p-3">
           <div className="flex items-center gap-2">
@@ -81,28 +81,6 @@ const WarehouseSummary: React.FC<WarehouseSummaryProps> = ({ warehouse, items })
             <div>
               <p className="text-xs text-gray-600">총 품목 수</p>
               <p className="text-xl font-bold text-gray-900">{items.length}개</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 총 수량 */}
-        <div className="bg-green-50 rounded-lg p-3">
-          <div className="flex items-center gap-2">
-            <FaBoxes className="text-xl text-green-600" />
-            <div>
-              <p className="text-xs text-gray-600">총 재고 수량</p>
-              <p className="text-xl font-bold text-gray-900">{totalQuantity.toLocaleString()}개</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 카테고리 수 */}
-        <div className="bg-purple-50 rounded-lg p-3">
-          <div className="flex items-center gap-2">
-            <FaListUl className="text-xl text-purple-600" />
-            <div>
-              <p className="text-xs text-gray-600">관리 카테고리</p>
-              <p className="text-xl font-bold text-gray-900">{categoryGroups.length}개</p>
             </div>
           </div>
         </div>

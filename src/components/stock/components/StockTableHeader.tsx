@@ -26,45 +26,43 @@ export default function StockTableHeader({
 }: StockTableHeaderProps) {
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center m-4 space-x-4">
-          <div className="relative w-64">
-            <Input
-              type="text"
-              placeholder="품목코드 또는 품목명 검색..."
-              value={searchText}
-              onChange={(e) => onSearch(e.target.value)}
-              rightIcon={<SearchOutlined className="text-gray-400" />}
-              className="border-0 bg-gray-50 rounded-2xl"
-            />
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="hideZeroStock"
-              checked={hideZeroStock}
-              onChange={(e) => onHideZeroStockChange(e.target.checked)}
-              className="w-4 h-4 text-blue-500 rounded focus:ring-blue-400"
-            />
-            <label
-              htmlFor="hideZeroStock"
-              className="ml-2 text-sm text-gray-700"
-            >
-              재고가 0인 품목 숨기기
-            </label>
-          </div>
-        </div>
-      </div>
-
       <div className="mb-8">
-        <div className="flex flex-col items-center justify-between gap-2 px-4 mb-4">
-          <h2 className="flex justify-start w-full text-xl font-bold text-start">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 px-4 mb-4">
+          <h2 className="text-xl font-bold">
             {warehouseName}
           </h2>
 
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-64">
+              <Input
+                type="text"
+                placeholder="품목코드 또는 품목명 검색..."
+                value={searchText}
+                onChange={(e) => onSearch(e.target.value)}
+                rightIcon={<SearchOutlined className="text-gray-400" />}
+                className="border-0 bg-gray-50 rounded-2xl"
+              />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="hideZeroStock"
+                checked={hideZeroStock}
+                onChange={(e) => onHideZeroStockChange(e.target.checked)}
+                className="w-4 h-4 text-blue-500 rounded focus:ring-blue-400"
+              />
+              <label
+                htmlFor="hideZeroStock"
+                className="ml-2 text-sm text-gray-700"
+              >
+                재고가 0인 품목 숨기기
+              </label>
+            </div>
+          </div>
+
           {showButtons && (
-            <div className="flex items-center justify-end w-full space-x-2">
+            <div className="flex items-center space-x-2">
               <Button
                 variant="primary"
                 onClick={onInboundClick}

@@ -67,6 +67,103 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8">
         <div className="space-y-8">
+          {/* v1.13.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.13.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-11-17
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 추가됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("추가됨")}
+                    <span className="ml-2">추가됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>NEW 배지 표시</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-green-800 list-disc">
+                        <li>발주/시연 기록 목록에서 신규 데이터 강조</li>
+                        <li>생성일 기준 72시간 이내 + 완료되지 않은 항목에 표시</li>
+                        <li>핑크-로즈 그라데이션 배경 + Sparkles 아이콘</li>
+                        <li>animate-pulse 효과로 시선 집중</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>team-select 페이지 현대적 디자인</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>배경 blob 애니메이션 (보라, 노랑, 핑크색)</li>
+                        <li>glassmorphism 효과 (backdrop-blur)</li>
+                        <li>팀 카드별 그라데이션 색상 자동 할당</li>
+                        <li>hover 시 scale, rotate, 그라데이션 배경 효과</li>
+                        <li>순차적 fadeIn 애니메이션</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>ioHistory 비고 필드 자동 정리</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>"주문 ID 155 - " 같은 시스템 내부 정보 자동 숨김</li>
+                        <li>정규식 패턴 매칭으로 깔끔한 표시</li>
+                        <li>사용자 경험 개선</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 수정됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("수정됨")}
+                    <span className="ml-2">수정됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <h4 className="mb-2 font-medium text-red-900">
+                        <strong>packageOrder 패키지 선택 오류 수정</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-red-800 list-disc">
+                        <li>패키지 선택 시 아이템 추가 안 되는 문제 해결</li>
+                        <li>packageItems 배열 우선 사용 (API 2.0)</li>
+                        <li>itemlist 문자열 fallback 추가 (구버전 호환)</li>
+                        <li>에러 처리 및 사용자 피드백 강화</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.12.0 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +172,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.12.0
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

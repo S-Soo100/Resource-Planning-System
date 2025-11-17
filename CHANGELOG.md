@@ -5,6 +5,37 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## v1.13.0 (2025-11-17)
+
+### 추가됨 (Added)
+
+- **NEW 배지 표시**: 발주/시연 기록 목록에서 신규 데이터 강조
+  - 생성일 기준 72시간 이내이면서 완료되지 않은 항목에 표시
+  - 핑크-로즈 그라데이션 배경 + Sparkles 아이콘
+  - animate-pulse 효과로 시선 집중
+
+### 개선됨 (Improved)
+
+- **team-select 페이지 현대적 디자인**: 생동감 있고 인터랙티브한 UI/UX
+  - 배경 blob 애니메이션 (보라, 노랑, 핑크색)
+  - glassmorphism 효과 (backdrop-blur)
+  - 팀 카드별 그라데이션 색상 자동 할당
+  - hover 시 scale, rotate, 그라데이션 배경 효과
+  - 순차적 fadeIn 애니메이션
+  - 모달 및 버튼 애니메이션 강화
+
+- **ioHistory 비고 필드 자동 정리**: 시스템 내부 정보 숨김
+  - "주문 ID 155 - " 같은 접두사 자동 제거
+  - 정규식 패턴 매칭으로 깔끔한 표시
+  - 사용자 경험 개선
+
+### 수정됨 (Fixed)
+
+- **packageOrder 패키지 선택 오류 수정**: 아이템 추가 안 되는 문제 해결
+  - packageItems 배열 우선 사용 (API 2.0)
+  - itemlist 문자열 fallback 추가 (구버전 호환)
+  - 에러 처리 및 사용자 피드백 강화
+
 ## v1.12.0 (2025-11-17)
 
 ### 추가됨 (Added)

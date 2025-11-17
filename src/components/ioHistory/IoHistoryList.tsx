@@ -25,6 +25,13 @@ import { getTodayString, formatDateToLocalString, formatDateForDisplayUTC } from
 
 // 로컬 formatDate 함수 완전 제거 - formatDateForDisplayUTC 직접 사용
 
+// 비고에서 "주문 ID X - " 패턴 제거 함수
+const removeOrderIdPrefix = (remarks: string | null | undefined): string => {
+  if (!remarks) return "";
+  // "주문 ID 숫자 - " 패턴을 찾아서 제거
+  return remarks.replace(/^주문\s*ID\s*\d+\s*-\s*/, "");
+};
+
 // 타입 필터 옵션
 type TypeFilter = "all" | "inbound" | "outbound";
 
@@ -923,7 +930,7 @@ export default function IoHistoryList() {
                       {record.inboundQuantity || record.outboundQuantity}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                      {record.remarks}
+                      {removeOrderIdPrefix(record.remarks)}
                     </td>
                   </tr>
                   {expandedRecordId === record.id && (

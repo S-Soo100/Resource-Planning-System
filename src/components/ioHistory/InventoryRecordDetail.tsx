@@ -17,6 +17,13 @@ interface InventoryRecordDetailProps {
 
 // 로컬 formatDate 함수 완전 제거 - formatDateForDisplayUTC 직접 사용
 
+// 비고에서 "주문 ID X - " 패턴 제거 함수
+const removeOrderIdPrefix = (remarks: string | null | undefined): string => {
+  if (!remarks) return "";
+  // "주문 ID 숫자 - " 패턴을 찾아서 제거
+  return remarks.replace(/^주문\s*ID\s*\d+\s*-\s*/, "");
+};
+
 function formatFileSize(bytes?: number) {
   if (!bytes) return "";
   if (bytes < 1024) return bytes + "B";
@@ -121,7 +128,7 @@ export default function InventoryRecordDetail({
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="text-gray-600">비고</div>
               <div className="font-medium truncate">
-                {record.remarks || "-"}
+                {removeOrderIdPrefix(record.remarks) || "-"}
               </div>
               <div className="text-gray-600">창고</div>
               <div className="font-medium">

@@ -114,7 +114,7 @@ const EventDetailModal: React.FC<{
 
 const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('week');
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
 
   // 필터 상태 (초기값: 빈 배열 - 아무것도 선택 안 됨)
   const [selectedDemoStatuses, setSelectedDemoStatuses] = useState<string[]>([]);

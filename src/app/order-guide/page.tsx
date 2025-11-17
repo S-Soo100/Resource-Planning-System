@@ -772,7 +772,7 @@ export default function OrderGuidePage() {
 
   return (
     <div className="py-8 min-h-screen bg-gray-50">
-      <div className="container px-4 mx-auto max-w-5xl">
+      <div className="container px-4 mx-auto max-w-7xl">
         {/* 헤더 */}
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-3xl font-bold text-gray-900">
@@ -887,8 +887,9 @@ export default function OrderGuidePage() {
           </div>
         </div>
 
-        {/* 발주 안내 콘텐츠 */}
-        <Card className="p-4 md:p-6 bg-gray-50">
+        {/* 발주 안내 콘텐츠 - 너비 축소 */}
+        <div className="mx-auto max-w-5xl">
+          <Card className="p-4 md:p-6 bg-gray-50">
           <div className="mb-4 text-center">
             <h2 className="mb-1 text-xl font-bold text-gray-900">
               {currentStepData.title}
@@ -950,6 +951,7 @@ export default function OrderGuidePage() {
             </div>
           </div>
         </Card>
+        </div>
       </div>
     </div>
   );

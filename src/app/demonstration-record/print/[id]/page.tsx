@@ -494,6 +494,22 @@ const DemoRecordPrint = () => {
               </div>
             </div>
           </div>
+
+          {/* 이벤트 날짜 정보 (선택 사항) */}
+          {(demo.eventStartDate || demo.eventEndDate) && (
+            <div className="print-info-row" style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #ccc" }}>
+              <span className="print-info-label">이벤트 기간:</span>
+              <span className="print-info-value">
+                {demo.eventStartDate && demo.eventEndDate
+                  ? `${formatDateForDisplayFullUTC(demo.eventStartDate)} ~ ${formatDateForDisplayFullUTC(demo.eventEndDate)}`
+                  : demo.eventStartDate
+                  ? `${formatDateForDisplayFullUTC(demo.eventStartDate)} ~`
+                  : demo.eventEndDate
+                  ? `~ ${formatDateForDisplayFullUTC(demo.eventEndDate)}`
+                  : "-"}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* 시연품 목록 */}

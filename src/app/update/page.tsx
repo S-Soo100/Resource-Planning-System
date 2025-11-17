@@ -67,6 +67,110 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8">
         <div className="space-y-8">
+          {/* v1.14.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.14.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-11-17
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 추가됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("추가됨")}
+                    <span className="ml-2">추가됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>시연 이벤트 날짜 필드 (백엔드 API 2.0)</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-green-800 list-disc">
+                        <li>
+                          <code className="px-1.5 py-0.5 bg-green-100 rounded text-xs">
+                            eventStartDate
+                          </code>
+                          : 실제 이벤트 시작 날짜 (선택 사항)
+                        </li>
+                        <li>
+                          <code className="px-1.5 py-0.5 bg-green-100 rounded text-xs">
+                            eventEndDate
+                          </code>
+                          : 실제 이벤트 종료 날짜 (선택 사항)
+                        </li>
+                        <li>시연품 배송 일정과 실제 이벤트 개최 일정을 구분 가능</li>
+                        <li>시연 생성 폼, 수정 모달에 날짜 선택 UI 추가</li>
+                        <li>시연 상세 페이지에 이벤트 기간 표시 (녹색 카드)</li>
+                        <li>시연 인쇄 페이지에 이벤트 기간 정보 포함</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>시연 생성/수정 폼 UX 개선</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>파란색 안내 메시지로 배송 일정과 이벤트 기간 차이 명확히 설명</li>
+                        <li>날짜 유효성 검증 (종료일 ≥ 시작일)</li>
+                        <li>빈 값은 undefined로 처리하여 기존 데이터와 호환성 유지</li>
+                        <li>테스트 데이터 자동 채우기 기능에도 이벤트 날짜 포함</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>타입 안정성 강화</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>Demo 관련 모든 TypeScript 인터페이스 업데이트</li>
+                        <li>
+                          <code className="px-1.5 py-0.5 bg-orange-100 rounded text-xs">
+                            DemoResponse
+                          </code>
+                          ,{" "}
+                          <code className="px-1.5 py-0.5 bg-orange-100 rounded text-xs">
+                            CreateDemoRequest
+                          </code>
+                          ,{" "}
+                          <code className="px-1.5 py-0.5 bg-orange-100 rounded text-xs">
+                            PatchDemoRequest
+                          </code>
+                          ,{" "}
+                          <code className="px-1.5 py-0.5 bg-orange-100 rounded text-xs">
+                            DemonstrationFormData
+                          </code>
+                          에 이벤트 날짜 필드 추가
+                        </li>
+                        <li>null/undefined 안전 처리</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.13.0 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +179,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.13.0
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

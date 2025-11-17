@@ -810,12 +810,12 @@ export default function OrderGuidePage() {
                 }}
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
-                <div className="absolute top-3 left-3 px-2 py-1 text-xs font-bold text-white/70 animate-pulse">
+                <div className="absolute top-3 right-3 px-3 py-1.5 text-sm font-bold text-white bg-white/30 rounded-full shadow-lg animate-pulse">
                   Click!
                 </div>
                 <div className="relative">
                   <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
-                    <Package className="w-9 h-9 text-white" />
+                    <Package className="w-9 h-9 text-white animate-spin" style={{ animationDuration: '3s' }} />
                   </div>
                   <h4 className="mb-3 text-2xl md:text-3xl font-bold text-white">
                     패키지 발주
@@ -840,12 +840,12 @@ export default function OrderGuidePage() {
                   }}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
-                  <div className="absolute top-3 left-3 px-2 py-1 text-xs font-bold text-white/70 animate-pulse">
+                  <div className="absolute top-3 right-3 px-3 py-1.5 text-sm font-bold text-white bg-white/30 rounded-full shadow-lg animate-pulse">
                     Click!
                   </div>
                   <div className="relative">
                     <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
-                      <Accessibility className="w-9 h-9 text-white" />
+                      <Accessibility className="w-9 h-9 text-white animate-spin" style={{ animationDuration: '3s' }} />
                     </div>
                     <h4 className="mb-3 text-2xl md:text-3xl font-bold text-white">
                       휠체어 발주
@@ -870,12 +870,12 @@ export default function OrderGuidePage() {
                 }}
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
-                <div className="absolute top-3 left-3 px-2 py-1 text-xs font-bold text-white/70 animate-pulse">
+                <div className="absolute top-3 right-3 px-3 py-1.5 text-sm font-bold text-white bg-white/30 rounded-full shadow-lg animate-pulse">
                   Click!
                 </div>
                 <div className="relative">
                   <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
-                    <ShoppingCart className="w-9 h-9 text-white" />
+                    <ShoppingCart className="w-9 h-9 text-white animate-spin" style={{ animationDuration: '3s' }} />
                   </div>
                   <h4 className="mb-3 text-2xl md:text-3xl font-bold text-white">
                     개별 품목 발주

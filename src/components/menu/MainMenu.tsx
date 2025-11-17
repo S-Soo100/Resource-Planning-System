@@ -439,23 +439,30 @@ const MainMenu = () => {
                   className={`absolute top-0 right-0 w-20 h-20 ${currentTab.bgColor} rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-32 group-hover:h-32`}
                 ></div>
 
-                <div className="relative">
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.3 }}
-                    className={`flex justify-center items-center mb-4 w-14 h-14 md:w-16 md:h-16 ${currentTab.bgColor} rounded-lg transition-all duration-300`}
-                  >
-                    <div className="text-4xl md:text-5xl">
-                      {item.icon}
-                    </div>
-                  </motion.div>
-                  <h4 className="mb-3 text-lg md:text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
-                    {item.title}
-                  </h4>
-                  <p className="mb-4 text-base md:text-lg text-gray-600 leading-relaxed">
+                <div className="relative flex flex-col gap-3">
+                  {/* 첫 번째 줄: 아이콘 + 타이틀 */}
+                  <div className="flex items-center gap-4">
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.3 }}
+                      className={`flex justify-center items-center flex-shrink-0 w-14 h-14 md:w-16 md:h-16 ${currentTab.bgColor} rounded-lg transition-all duration-300`}
+                    >
+                      <div className="text-4xl md:text-5xl">
+                        {item.icon}
+                      </div>
+                    </motion.div>
+                    <h4 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
+                      {item.title}
+                    </h4>
+                  </div>
+
+                  {/* 두 번째 줄: 서브타이틀 */}
+                  <p className="text-base md:text-lg text-gray-600 leading-relaxed pl-0">
                     {item.subtitle}
                   </p>
-                  <div className={`flex gap-2 items-center text-base md:text-lg font-semibold ${currentTab.textColor}`}>
+
+                  {/* 세 번째 줄: 시작하기 버튼 (오른쪽 정렬) */}
+                  <div className={`flex gap-2 items-center justify-end text-base md:text-lg font-semibold ${currentTab.textColor}`}>
                     <span>시작하기</span>
                     <motion.svg
                       className="w-5 h-5 md:w-6 md:h-6"

@@ -810,6 +810,9 @@ export default function OrderGuidePage() {
                 }}
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
+                <div className="absolute top-3 left-3 px-2 py-1 text-xs font-bold text-white/70 animate-pulse">
+                  Click!
+                </div>
                 <div className="relative">
                   <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
                     <Package className="w-9 h-9 text-white" />
@@ -837,6 +840,9 @@ export default function OrderGuidePage() {
                   }}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
+                  <div className="absolute top-3 left-3 px-2 py-1 text-xs font-bold text-white/70 animate-pulse">
+                    Click!
+                  </div>
                   <div className="relative">
                     <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
                       <Accessibility className="w-9 h-9 text-white" />
@@ -864,6 +870,9 @@ export default function OrderGuidePage() {
                 }}
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
+                <div className="absolute top-3 left-3 px-2 py-1 text-xs font-bold text-white/70 animate-pulse">
+                  Click!
+                </div>
                 <div className="relative">
                   <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
                     <ShoppingCart className="w-9 h-9 text-white" />

@@ -213,28 +213,25 @@ export default function OrderGuidePage() {
       content:
         selectedType === "package" ? (
           <div className="space-y-3">
-            <div className="p-2 bg-blue-50 rounded">
-              <div className="flex gap-2 items-start">
-                <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="mb-1 text-sm font-semibold text-blue-800">
-                    패키지 발주란?
-                  </h4>
-                  <p className="text-xs text-blue-700">
-                    자주 사용되는 품목들을 미리 묶어둔 패키지를 선택하여 한 번에
-                    발주하는 방식입니다.
-                  </p>
-                </div>
+            <div className="p-2 bg-gray-100 rounded">
+              <div>
+                <h4 className="mb-1 text-sm font-semibold text-gray-900">
+                  패키지 발주란?
+                </h4>
+                <p className="text-xs text-gray-700">
+                  자주 사용되는 품목들을 미리 묶어둔 패키지를 선택하여 한 번에
+                  발주하는 방식입니다.
+                </p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <div className="flex gap-2 items-start p-2 rounded border text-xs">
-                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-blue-600 bg-blue-100 rounded-full flex-shrink-0">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   1
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-1 font-semibold">창고 선택</h4>
+                  <h4 className="mb-1 font-semibold text-gray-900">창고 선택</h4>
                   <p className="mb-1 text-gray-600">
                     발주할 창고를 선택합니다.
                   </p>
@@ -244,12 +241,12 @@ export default function OrderGuidePage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 items-start p-2 rounded border text-xs">
-                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-blue-600 bg-blue-100 rounded-full flex-shrink-0">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   2
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-1 font-semibold">패키지 선택</h4>
+                  <h4 className="mb-1 font-semibold text-gray-900">패키지 선택</h4>
                   <p className="mb-1 text-gray-600">
                     사용할 패키지를 선택합니다.
                   </p>
@@ -259,52 +256,52 @@ export default function OrderGuidePage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 items-start p-2 rounded border text-xs">
-                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-blue-600 bg-blue-100 rounded-full flex-shrink-0">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   3
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-1 font-semibold">수량 설정</h4>
+                  <h4 className="mb-1 font-semibold text-gray-900">수량 설정</h4>
                   <p className="mb-1 text-gray-600">
                     패키지 수량을 설정합니다.
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-2 items-start p-2 rounded border text-xs">
-                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-blue-600 bg-blue-100 rounded-full flex-shrink-0">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   4
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-1 font-semibold">배송 정보 입력</h4>
+                  <h4 className="mb-1 font-semibold text-gray-900">배송 정보 입력</h4>
                   <p className="mb-1 text-gray-600">
                     수령인, 연락처, 배송지 주소를 입력합니다.
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-2 items-start p-2 rounded border text-xs">
-                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-blue-600 bg-blue-100 rounded-full flex-shrink-0">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   5
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-1 font-semibold">증빙서류 업로드</h4>
+                  <h4 className="mb-1 font-semibold text-gray-900">증빙서류 업로드</h4>
                   <p className="text-gray-600">
                     발주서, 견적서 등을 업로드합니다.
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-2 items-start p-2 rounded border text-xs">
-                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-blue-600 bg-blue-100 rounded-full flex-shrink-0">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   6
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-1 font-semibold">발주 요청</h4>
+                  <h4 className="mb-1 font-semibold text-gray-900">발주 요청</h4>
                   <p className="mb-1 text-gray-600">
                     모든 정보를 확인한 후 발주를 요청합니다.
                   </p>
-                  <div className="p-1.5 text-green-700 bg-green-100 rounded">
+                  <div className="p-1.5 text-gray-900 bg-gray-200 rounded">
                     <span className="font-medium">완료:</span> 발주 요청이 접수되었습니다.
                   </div>
                 </div>
@@ -312,76 +309,71 @@ export default function OrderGuidePage() {
             </div>
           </div>
         ) : selectedType === "wheelchair" ? (
-          <div className="space-y-6">
-            <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
-              <div className="flex gap-3 items-start">
-                <div className="flex justify-center items-center w-6 h-6 bg-purple-100 rounded-full">
-                  🦽
-                </div>
-                <div>
-                  <h4 className="mb-2 font-semibold text-purple-800">
-                    휠체어 발주란?
-                  </h4>
-                  <p className="text-sm text-purple-700">
-                    휠체어 관련 전용 품목을 쉽고 빠르게 선택하여 발주하는
-                    방식입니다. 휠체어 부품, 악세서리, 정비용품 등을 효율적으로
-                    관리할 수 있습니다.
-                  </p>
-                </div>
+          <div className="space-y-3">
+            <div className="p-2 bg-gray-100 rounded border border-gray-300">
+              <div>
+                <h4 className="mb-1 text-sm font-semibold text-gray-900">
+                  휠체어 발주란?
+                </h4>
+                <p className="text-xs text-gray-700">
+                  휠체어 관련 전용 품목을 쉽고 빠르게 선택하여 발주하는
+                  방식입니다. 휠체어 부품, 악세서리, 정비용품 등을 효율적으로
+                  관리할 수 있습니다.
+                </p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex gap-4 items-start p-4 rounded-lg border border-purple-200 bg-purple-25">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+            <div className="space-y-2">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   1
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold text-purple-800">
+                  <h4 className="mb-1 font-semibold text-gray-900">
                     휠체어 본체 품목 선택
                   </h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <p className="mb-1 text-gray-600">
                     휠체어 본체 관련 품목을 선택합니다.
                   </p>
-                  <div className="p-3 text-sm bg-purple-50 rounded border border-purple-100">
+                  <div className="p-1.5 bg-gray-100 rounded">
                     <span className="font-medium">예시:</span> &quot;K-MS2 42/42
                     - 재고: 8개&quot;
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg border border-purple-200 bg-purple-25">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   2
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold text-purple-800">
+                  <h4 className="mb-1 font-semibold text-gray-900">
                     악세사리품 선택
                   </h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <p className="mb-1 text-gray-600">
                     휠체어 악세사리 및 부가 옵션 품목을 선택합니다. 쿠션, 벨트
                     등 다양한 옵션을 추가할 수 있습니다.
                   </p>
-                  <div className="p-3 text-sm bg-purple-50 rounded border border-purple-100">
+                  <div className="p-1.5 bg-gray-100 rounded">
                     <span className="font-medium">예시:</span> 등받이 쿠션 1개,
                     안전벨트 1개, 수납 가방 1개
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg border border-purple-200 bg-purple-25">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   3
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold text-purple-800">
+                  <h4 className="mb-1 font-semibold text-gray-900">
                     배송 정보 입력
                   </h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <p className="mb-1 text-gray-600">
                     수령인, 연락처, 배송지 주소를 입력합니다. 휠체어 사용자의
                     특별 요청사항도 기록할 수 있습니다.
                   </p>
-                  <div className="p-3 space-y-1 text-sm bg-purple-50 rounded border border-purple-100">
+                  <div className="p-1.5 space-y-1 bg-gray-100 rounded">
                     <div>
                       <span className="font-medium">수령인:</span> 김휠체어
                     </div>
@@ -400,42 +392,42 @@ export default function OrderGuidePage() {
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg border border-purple-200 bg-purple-25">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   4
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold text-purple-800">
+                  <h4 className="mb-1 font-semibold text-gray-900">
                     증빙서류 업로드
                   </h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <p className="mb-1 text-gray-600">
                     발주서, 견적서, 휠체어 사용자 확인서 등 필요한 증빙서류를
                     업로드합니다.
                   </p>
-                  <div className="p-3 text-sm bg-purple-50 rounded border border-purple-100">
+                  <div className="p-1.5 bg-gray-100 rounded">
                     <span className="font-medium">필수:</span> 발주서, 견적서,
                     휠체어 사용자 확인서
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg border border-purple-200 bg-purple-25">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-purple-600 bg-purple-100 rounded-full">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   5
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold text-purple-800">
+                  <h4 className="mb-1 font-semibold text-gray-900">
                     발주 요청
                   </h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <p className="mb-1 text-gray-600">
                     모든 정보를 확인한 후 휠체어 전용 발주를 요청합니다.
                   </p>
-                  <div className="p-3 text-sm text-purple-700 bg-purple-100 rounded border border-purple-200">
+                  <div className="p-1.5 text-gray-900 bg-gray-200 rounded">
                     <span className="font-medium">완료:</span> 휠체어 발주
-                    요청이 접수되었습니다. 🦽
+                    요청이 접수되었습니다.
                   </div>
-                  <div className="p-2 mt-2 text-xs text-purple-700 bg-purple-50 rounded border border-purple-200">
-                    📧 <strong>알림:</strong> 요청자, 승인권자, 관리자, 휠체어
+                  <div className="p-1.5 mt-1 text-gray-700 bg-gray-100 rounded border border-gray-300">
+                    <strong>알림:</strong> 요청자, 승인권자, 관리자, 휠체어
                     전담팀에게 이메일 알림이 자동 발송됩니다.
                   </div>
                 </div>
@@ -443,84 +435,81 @@ export default function OrderGuidePage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="p-4 bg-green-50 rounded-lg">
-              <div className="flex gap-3 items-start">
-                <Info className="w-5 h-5 text-green-600 mt-0.5" />
-                <div>
-                  <h4 className="mb-2 font-semibold text-green-800">
-                    개별 품목 발주란?
-                  </h4>
-                  <p className="text-sm text-green-700">
-                    필요한 품목을 개별적으로 선택하여 발주하는 방식입니다. 특정
-                    품목만 필요하거나 패키지에 없는 품목을 발주할 때 사용합니다.
-                  </p>
-                </div>
+          <div className="space-y-3">
+            <div className="p-2 bg-gray-100 rounded">
+              <div>
+                <h4 className="mb-1 text-sm font-semibold text-gray-900">
+                  개별 품목 발주란?
+                </h4>
+                <p className="text-xs text-gray-700">
+                  필요한 품목을 개별적으로 선택하여 발주하는 방식입니다. 특정
+                  품목만 필요하거나 패키지에 없는 품목을 발주할 때 사용합니다.
+                </p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex gap-4 items-start p-4 rounded-lg border">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-green-600 bg-green-100 rounded-full">
+            <div className="space-y-2">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   1
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold">창고 선택</h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <h4 className="mb-1 font-semibold text-gray-900">창고 선택</h4>
+                  <p className="mb-1 text-gray-600">
                     발주할 창고를 선택합니다. 접근 권한이 있는 창고만
                     표시됩니다.
                   </p>
-                  <div className="p-3 text-sm bg-gray-100 rounded">
+                  <div className="p-1.5 bg-gray-100 rounded">
                     <span className="font-medium">예시:</span> &quot;서울 본사
                     창고&quot;, &quot;부산 지점 창고&quot;
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg border">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-green-600 bg-green-100 rounded-full">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   2
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold">품목 선택</h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <h4 className="mb-1 font-semibold text-gray-900">품목 선택</h4>
+                  <p className="mb-1 text-gray-600">
                     발주할 품목을 하나씩 선택합니다. 품목명, 코드, 현재 재고를
                     확인할 수 있습니다.
                   </p>
-                  <div className="p-3 text-sm bg-gray-100 rounded">
+                  <div className="p-1.5 bg-gray-100 rounded">
                     <span className="font-medium">예시:</span> &quot;엔진 오일
                     (EO001) - 재고: 15개&quot;
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg border">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-green-600 bg-green-100 rounded-full">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   3
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold">수량 설정</h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <h4 className="mb-1 font-semibold text-gray-900">수량 설정</h4>
+                  <p className="mb-1 text-gray-600">
                     각 품목별로 필요한 수량을 설정합니다. + / - 버튼으로 조절
                     가능합니다.
                   </p>
-                  <div className="p-3 text-sm bg-gray-100 rounded">
+                  <div className="p-1.5 bg-gray-100 rounded">
                     <span className="font-medium">예시:</span> 엔진 오일 5개,
                     브레이크 패드 2세트
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg border">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-green-600 bg-green-100 rounded-full">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   4
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold">배송 정보 입력</h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <h4 className="mb-1 font-semibold text-gray-900">배송 정보 입력</h4>
+                  <p className="mb-1 text-gray-600">
                     수령인, 연락처, 배송지 주소를 입력합니다.
                   </p>
-                  <div className="p-3 space-y-1 text-sm bg-gray-100 rounded">
+                  <div className="p-1.5 space-y-1 bg-gray-100 rounded">
                     <div>
                       <span className="font-medium">수령인:</span> 홍길동
                     </div>
@@ -535,37 +524,37 @@ export default function OrderGuidePage() {
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg border">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-green-600 bg-green-100 rounded-full">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   5
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold">증빙서류 업로드</h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <h4 className="mb-1 font-semibold text-gray-900">증빙서류 업로드</h4>
+                  <p className="mb-1 text-gray-600">
                     발주서, 견적서 등 필요한 증빙서류를 업로드합니다.
                   </p>
-                  <div className="p-3 text-sm bg-gray-100 rounded">
+                  <div className="p-1.5 bg-gray-100 rounded">
                     <span className="font-medium">필수:</span> 발주서, 견적서,
                     계약서 등
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start p-4 rounded-lg border">
-                <div className="flex justify-center items-center w-8 h-8 text-sm font-semibold text-green-600 bg-green-100 rounded-full">
+              <div className="flex gap-2 items-start p-2 rounded border border-gray-300 text-xs">
+                <div className="flex justify-center items-center w-6 h-6 text-xs font-semibold text-gray-900 bg-gray-200 rounded-full flex-shrink-0">
                   6
                 </div>
                 <div className="flex-1">
-                  <h4 className="mb-2 font-semibold">발주 요청</h4>
-                  <p className="mb-2 text-sm text-gray-600">
+                  <h4 className="mb-1 font-semibold text-gray-900">발주 요청</h4>
+                  <p className="mb-1 text-gray-600">
                     모든 정보를 확인한 후 발주를 요청합니다.
                   </p>
-                  <div className="p-3 text-sm text-green-700 bg-green-100 rounded">
+                  <div className="p-1.5 text-gray-900 bg-gray-200 rounded">
                     <span className="font-medium">완료:</span> 발주 요청이
                     접수되었습니다.
                   </div>
-                  <div className="p-2 mt-2 text-xs text-blue-700 bg-blue-50 rounded border border-blue-200">
-                    📧 <strong>알림:</strong> 요청자, 승인권자, 관리자에게
+                  <div className="p-1.5 mt-1 text-gray-700 bg-gray-100 rounded border border-gray-300">
+                    <strong>알림:</strong> 요청자, 승인권자, 관리자에게
                     이메일 알림이 자동 발송됩니다.
                   </div>
                 </div>

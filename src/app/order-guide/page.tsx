@@ -57,7 +57,6 @@ export default function OrderGuidePage() {
             onClick={() => setSelectedType("package")}
           >
             <div className="text-center">
-              <Package className="mx-auto mb-2 w-12 h-12 text-blue-600 sm:mb-4 sm:w-16 sm:h-16" />
               <h3 className="mb-1 text-lg font-semibold sm:mb-2 sm:text-xl">
                 휠리엑스 패키지 발주
               </h3>
@@ -97,16 +96,13 @@ export default function OrderGuidePage() {
                     추천
                   </div>
                 )}
-                <div className="flex justify-center items-center mx-auto mb-2 w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl shadow-lg sm:mb-4 sm:w-18 sm:h-18">
-                  <Accessibility className="w-8 h-8 text-purple-700 sm:w-12 sm:h-12" />
-                </div>
-                <h3 className="mb-1 text-lg font-bold text-purple-800 sm:mb-2 sm:text-xl">
+                <h3 className="mb-1 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl">
                   휠체어 발주
                 </h3>
-                <p className="mb-2 text-sm font-medium text-purple-700 sm:mb-4 sm:text-base">
+                <p className="mb-2 text-sm font-medium text-gray-700 sm:mb-4 sm:text-base">
                   휠체어 전용 품목을 선택하여 발주합니다
                 </p>
-                <div className="space-y-1 text-xs text-purple-800 sm:text-sm">
+                <div className="space-y-1 text-xs text-gray-800 sm:text-sm">
                   <div className="flex gap-1 justify-center items-center sm:gap-2">
                     <div className="flex justify-center items-center w-4 h-4 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full shadow-sm">
                       <svg
@@ -170,7 +166,6 @@ export default function OrderGuidePage() {
             onClick={() => setSelectedType("individual")}
           >
             <div className="text-center">
-              <ShoppingCart className="mx-auto mb-2 w-12 h-12 text-green-600 sm:mb-4 sm:w-16 sm:h-16" />
               <h3 className="mb-1 text-lg font-semibold sm:mb-2 sm:text-xl">
                 개별 품목 발주
               </h3>
@@ -894,7 +889,16 @@ export default function OrderGuidePage() {
 
         {/* 발주 안내 콘텐츠 */}
         <Card className="p-4 md:p-6 bg-gray-50">
-          {/* 진행률 표시 - 안내 영역 내부로 이동 */}
+          <div className="mb-4 text-center">
+            <h2 className="mb-1 text-xl font-bold text-gray-900">
+              {currentStepData.title}
+            </h2>
+            <p className="text-sm text-gray-600">{currentStepData.description}</p>
+          </div>
+
+          <div className="mb-6 text-sm">{currentStepData.content}</div>
+
+          {/* 진행률 표시 - 이전/다음 버튼 바로 위로 이동 */}
           <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-semibold text-gray-700">
@@ -911,15 +915,6 @@ export default function OrderGuidePage() {
               ></div>
             </div>
           </div>
-
-          <div className="mb-4 text-center">
-            <h2 className="mb-1 text-xl font-bold text-gray-900">
-              {currentStepData.title}
-            </h2>
-            <p className="text-sm text-gray-600">{currentStepData.description}</p>
-          </div>
-
-          <div className="mb-6 text-sm">{currentStepData.content}</div>
 
           {/* 네비게이션 버튼 */}
           <div className="flex justify-between items-center">

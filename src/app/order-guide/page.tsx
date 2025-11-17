@@ -958,6 +958,13 @@ export default function OrderGuidePage() {
           </div>
         </Card>
         </div>
+
+        {/* 디자인 크레딧 */}
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-400">
+            디자이너가 허락하지 않은 디자인입니다.
+          </p>
+        </div>
       </div>
     </div>
   );

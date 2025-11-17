@@ -808,6 +808,7 @@ export default function OrderGuidePage() {
                 style={{
                   animation: 'wiggle 3s ease-in-out infinite'
                 }}
+                title="디자이너가 허락하지 않은 디자인입니다."
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
                 <div className="absolute top-3 right-3 px-3 py-1.5 text-sm font-bold text-white bg-white/30 rounded-full shadow-lg animate-pulse">
@@ -838,6 +839,7 @@ export default function OrderGuidePage() {
                   style={{
                     animation: 'wiggle 3s ease-in-out infinite 0.5s'
                   }}
+                  title="디자이너가 허락하지 않은 디자인입니다."
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
                   <div className="absolute top-3 right-3 px-3 py-1.5 text-sm font-bold text-white bg-white/30 rounded-full shadow-lg animate-pulse">
@@ -868,6 +870,7 @@ export default function OrderGuidePage() {
                 style={{
                   animation: 'wiggle 3s ease-in-out infinite 1s'
                 }}
+                title="디자이너가 허락하지 않은 디자인입니다."
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
                 <div className="absolute top-3 right-3 px-3 py-1.5 text-sm font-bold text-white bg-white/30 rounded-full shadow-lg animate-pulse">

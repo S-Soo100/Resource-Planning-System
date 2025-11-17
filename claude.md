@@ -63,4 +63,4 @@ npm run lint
 1. `CHANGELOG.md` - Keep a Changelog 형식
 2. `/update` 페이지 - `src/app/update/page.tsx`
 3. `/docs` 폴더 문서 (비즈니스 로직 변경 시)
-4. 빌드를 수행해보고 문제가 없다면 커밋하기
+4. 커밋을 해야 할 때는,빌드를 수행해보고 문제가 없다면 커밋하기

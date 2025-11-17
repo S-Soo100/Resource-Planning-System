@@ -56,10 +56,10 @@ export default function MenuPage() {
                 <div className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse"></div>
               </div>
             </div>
-            <h2 className="mb-2 text-xl font-semibold text-gray-800">
+            <h2 className="mb-2 text-2xl md:text-3xl font-semibold text-gray-800">
               로딩 중...
             </h2>
-            <p className="text-gray-600">KARS 시스템에 연결 중입니다</p>
+            <p className="text-base md:text-lg text-gray-600">KARS 시스템에 연결 중입니다</p>
           </div>
         </div>
 
@@ -69,11 +69,11 @@ export default function MenuPage() {
             <div className="flex flex-col items-center justify-center text-center">
               <Link
                 href="/update"
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                className="text-base md:text-lg text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
               >
                 {APP_NAME} v{APP_VERSION}
               </Link>
-              <p className="mt-1 text-xs text-gray-400">{COPYRIGHT}</p>
+              <p className="mt-1 text-sm md:text-base text-gray-400">{COPYRIGHT}</p>
             </div>
           </div>
         </div>
@@ -97,11 +97,11 @@ export default function MenuPage() {
           <div className="flex flex-col items-center justify-center text-center">
             <Link
               href="/update"
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+              className="text-base md:text-lg text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
             >
               {APP_NAME} v{APP_VERSION}
             </Link>
-            <p className="mt-1 text-xs text-gray-400">{COPYRIGHT}</p>
+            <p className="mt-1 text-sm md:text-base text-gray-400">{COPYRIGHT}</p>
           </div>
         </div>
       </div>

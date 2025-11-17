@@ -849,7 +849,10 @@ export default function OrderGuidePage() {
               {/* 패키지 발주 */}
               <button
                 onClick={() => router.push("/packageOrder")}
-                className="group relative overflow-hidden p-8 text-left bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:-translate-y-2 hover:from-blue-600 hover:to-blue-700"
+                className="group relative overflow-hidden p-8 text-left bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:-translate-y-2 hover:from-blue-600 hover:to-blue-700 animate-wiggle"
+                style={{
+                  animation: 'wiggle 3s ease-in-out infinite'
+                }}
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
                 <div className="relative">
@@ -874,6 +877,9 @@ export default function OrderGuidePage() {
                 <button
                   onClick={() => router.push("/orderWheelchair")}
                   className="group relative overflow-hidden p-8 text-left bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:-translate-y-2 hover:from-purple-600 hover:to-purple-700"
+                  style={{
+                    animation: 'wiggle 3s ease-in-out infinite 0.5s'
+                  }}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
                   <div className="absolute top-3 right-3 px-3 py-1.5 text-sm font-bold text-purple-600 bg-white rounded-full shadow-lg animate-pulse">
@@ -901,6 +907,9 @@ export default function OrderGuidePage() {
               <button
                 onClick={() => router.push("/orderRequest")}
                 className="group relative overflow-hidden p-8 text-left bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:-translate-y-2 hover:from-green-600 hover:to-green-700"
+                style={{
+                  animation: 'wiggle 3s ease-in-out infinite 1s'
+                }}
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
                 <div className="relative">

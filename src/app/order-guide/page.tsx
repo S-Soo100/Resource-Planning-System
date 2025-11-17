@@ -830,17 +830,17 @@ export default function OrderGuidePage() {
 
         {/* 빠른 이동 버튼 */}
         <div className="mb-8">
-          <div className="p-6 bg-gradient-to-br from-blue-50 via-purple-50 to-green-50 rounded-2xl border-2 border-blue-200 shadow-lg">
-            <div className="flex gap-2 items-center mb-4">
-              <div className="flex justify-center items-center w-8 h-8 bg-blue-600 rounded-full shadow-md">
-                <ArrowRight className="w-5 h-5 text-white" />
+          <div className="p-8 bg-white rounded-2xl border border-gray-200 shadow-xl">
+            <div className="flex gap-3 items-center mb-6">
+              <div className="flex justify-center items-center w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg">
+                <ArrowRight className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">
+              <h3 className="text-2xl font-bold text-gray-900">
                 바로 발주하기
               </h3>
             </div>
             <div
-              className={`grid gap-4 ${
+              className={`grid gap-6 ${
                 hasWheelchairWarehouses
                   ? "grid-cols-1 sm:grid-cols-3"
                   : "grid-cols-1 sm:grid-cols-2"
@@ -849,22 +849,22 @@ export default function OrderGuidePage() {
               {/* 패키지 발주 */}
               <button
                 onClick={() => router.push("/packageOrder")}
-                className="group relative overflow-hidden p-6 text-left bg-white rounded-xl border-2 border-blue-300 shadow-md transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-blue-500"
+                className="group relative overflow-hidden p-8 text-left bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:-translate-y-2 hover:from-blue-600 hover:to-blue-700"
               >
-                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-100 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-32 group-hover:h-32"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
                 <div className="relative">
-                  <div className="flex justify-center items-center mb-3 w-12 h-12 bg-blue-100 rounded-lg transition-all duration-300 group-hover:bg-blue-200 group-hover:scale-110">
-                    <Package className="w-7 h-7 text-blue-600" />
+                  <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
+                    <Package className="w-9 h-9 text-white" />
                   </div>
-                  <h4 className="mb-2 text-base font-bold text-gray-900">
+                  <h4 className="mb-3 text-xl font-bold text-white">
                     패키지 발주
                   </h4>
-                  <p className="mb-3 text-sm text-gray-600">
+                  <p className="mb-4 text-sm text-blue-100">
                     미리 구성된 패키지로 빠르게 발주
                   </p>
-                  <div className="flex gap-2 items-center text-sm font-semibold text-blue-600">
-                    <span>시작하기</span>
-                    <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  <div className="flex gap-2 items-center text-base font-bold text-white">
+                    <span>지금 시작하기</span>
+                    <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-2" />
                   </div>
                 </div>
               </button>
@@ -873,25 +873,25 @@ export default function OrderGuidePage() {
               {hasWheelchairWarehouses && (
                 <button
                   onClick={() => router.push("/orderWheelchair")}
-                  className="group relative overflow-hidden p-6 text-left bg-white rounded-xl border-2 border-purple-300 shadow-md transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-purple-500"
+                  className="group relative overflow-hidden p-8 text-left bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:-translate-y-2 hover:from-purple-600 hover:to-purple-700"
                 >
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-purple-100 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-32 group-hover:h-32"></div>
-                  <div className="absolute top-2 right-2 px-2 py-1 text-xs font-bold text-white bg-purple-600 rounded-full shadow-md">
-                    추천
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
+                  <div className="absolute top-3 right-3 px-3 py-1.5 text-sm font-bold text-purple-600 bg-white rounded-full shadow-lg animate-pulse">
+                    추천!
                   </div>
                   <div className="relative">
-                    <div className="flex justify-center items-center mb-3 w-12 h-12 bg-purple-100 rounded-lg transition-all duration-300 group-hover:bg-purple-200 group-hover:scale-110">
-                      <Accessibility className="w-7 h-7 text-purple-600" />
+                    <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
+                      <Accessibility className="w-9 h-9 text-white" />
                     </div>
-                    <h4 className="mb-2 text-base font-bold text-gray-900">
+                    <h4 className="mb-3 text-xl font-bold text-white">
                       휠체어 발주
                     </h4>
-                    <p className="mb-3 text-sm text-gray-600">
+                    <p className="mb-4 text-sm text-purple-100">
                       휠체어 전용 품목을 빠르게 선택
                     </p>
-                    <div className="flex gap-2 items-center text-sm font-semibold text-purple-600">
-                      <span>시작하기</span>
-                      <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    <div className="flex gap-2 items-center text-base font-bold text-white">
+                      <span>지금 시작하기</span>
+                      <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-2" />
                     </div>
                   </div>
                 </button>
@@ -900,22 +900,22 @@ export default function OrderGuidePage() {
               {/* 개별 품목 발주 */}
               <button
                 onClick={() => router.push("/orderRequest")}
-                className="group relative overflow-hidden p-6 text-left bg-white rounded-xl border-2 border-green-300 shadow-md transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-green-500"
+                className="group relative overflow-hidden p-8 text-left bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-110 hover:-translate-y-2 hover:from-green-600 hover:to-green-700"
               >
-                <div className="absolute top-0 right-0 w-20 h-20 bg-green-100 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-32 group-hover:h-32"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-40 group-hover:h-40"></div>
                 <div className="relative">
-                  <div className="flex justify-center items-center mb-3 w-12 h-12 bg-green-100 rounded-lg transition-all duration-300 group-hover:bg-green-200 group-hover:scale-110">
-                    <ShoppingCart className="w-7 h-7 text-green-600" />
+                  <div className="flex justify-center items-center mb-4 w-16 h-16 bg-white/20 rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-6">
+                    <ShoppingCart className="w-9 h-9 text-white" />
                   </div>
-                  <h4 className="mb-2 text-base font-bold text-gray-900">
+                  <h4 className="mb-3 text-xl font-bold text-white">
                     개별 품목 발주
                   </h4>
-                  <p className="mb-3 text-sm text-gray-600">
+                  <p className="mb-4 text-sm text-green-100">
                     원하는 품목을 자유롭게 선택
                   </p>
-                  <div className="flex gap-2 items-center text-sm font-semibold text-green-600">
-                    <span>시작하기</span>
-                    <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  <div className="flex gap-2 items-center text-base font-bold text-white">
+                    <span>지금 시작하기</span>
+                    <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-2" />
                   </div>
                 </div>
               </button>
@@ -923,26 +923,26 @@ export default function OrderGuidePage() {
           </div>
         </div>
 
-        {/* 진행률 표시 */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              단계 {currentStep + 1} / {steps.length}
-            </span>
-            <span className="text-sm text-gray-500">
-              {Math.round(((currentStep + 1) / steps.length) * 100)}% 완료
-            </span>
-          </div>
-          <div className="w-full h-2 bg-gray-200 rounded-full">
-            <div
-              className="h-2 bg-blue-600 rounded-full transition-all duration-300"
-              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-
         {/* 발주 안내 콘텐츠 */}
-        <Card className="p-8">
+        <Card className="p-8 bg-gray-50">
+          {/* 진행률 표시 - 안내 영역 내부로 이동 */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-base font-semibold text-gray-700">
+                단계 {currentStep + 1} / {steps.length}
+              </span>
+              <span className="text-sm text-gray-600">
+                {Math.round(((currentStep + 1) / steps.length) * 100)}% 완료
+              </span>
+            </div>
+            <div className="w-full h-3 bg-gray-200 rounded-full">
+              <div
+                className="h-3 bg-gradient-to-r from-gray-600 to-gray-700 rounded-full transition-all duration-300"
+                style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+
           <div className="mb-6 text-center">
             <h2 className="mb-2 text-2xl font-bold text-gray-900">
               {currentStepData.title}

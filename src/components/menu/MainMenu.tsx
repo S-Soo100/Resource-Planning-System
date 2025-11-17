@@ -282,8 +282,8 @@ const MainMenu = () => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-blue-500 animate-spin"></div>
-          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
+          <div className="mx-auto w-14 h-14 md:w-16 md:h-16 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+          <p className="mt-4 text-base md:text-lg text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
     );
@@ -310,13 +310,13 @@ const MainMenu = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="flex items-center text-3xl font-bold text-gray-900"
+            className="flex items-center text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900"
           >
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <FaUser className="mr-3 text-blue-600" />
+              <FaUser className="mr-3 text-2xl md:text-3xl lg:text-4xl text-blue-600" />
             </motion.div>
             {user.name}님, 환영합니다!
           </motion.h1>
@@ -331,9 +331,9 @@ const MainMenu = () => {
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => router.push("/calendar")}
-                className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg transition-colors duration-200 hover:bg-green-100 shadow-sm hover:shadow-md"
+                className="flex gap-2 items-center px-4 md:px-5 py-2 md:py-3 text-base md:text-lg font-medium text-green-600 bg-green-50 rounded-lg transition-colors duration-200 hover:bg-green-100 shadow-sm hover:shadow-md"
               >
-                <FaCalendarAlt className="text-lg" />
+                <FaCalendarAlt className="text-lg md:text-xl" />
                 캘린더
               </motion.button>
             )}
@@ -341,9 +341,9 @@ const MainMenu = () => {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/how-to-use")}
-              className="flex gap-2 items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg transition-colors duration-200 hover:bg-blue-100 shadow-sm hover:shadow-md"
+              className="flex gap-2 items-center px-4 md:px-5 py-2 md:py-3 text-base md:text-lg font-medium text-blue-600 bg-blue-50 rounded-lg transition-colors duration-200 hover:bg-blue-100 shadow-sm hover:shadow-md"
             >
-              <FaQuestionCircle className="text-lg" />
+              <FaQuestionCircle className="text-lg md:text-xl" />
               사용법 안내
             </motion.button>
           </motion.div>
@@ -352,7 +352,7 @@ const MainMenu = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-2 text-lg text-gray-600"
+          className="mt-2 text-base md:text-xl lg:text-2xl text-gray-600"
         >
           팀: <span className="font-semibold">{selectedTeam.teamName}</span>
         </motion.p>
@@ -374,7 +374,7 @@ const MainMenu = () => {
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-3 px-4 rounded-md font-medium transition-all duration-200 relative overflow-hidden ${
+            className={`flex-1 py-3 md:py-4 px-4 md:px-6 text-base md:text-lg lg:text-xl rounded-md font-medium transition-all duration-200 relative overflow-hidden ${
               activeTab === tab.id
                 ? `${tab.bgColor} ${tab.textColor} shadow-sm`
                 : "text-gray-600 hover:text-gray-800 hover:bg-white"
@@ -432,7 +432,7 @@ const MainMenu = () => {
                   transformStyle: "preserve-3d",
                   perspective: "1000px",
                 }}
-                className={`group relative overflow-hidden p-6 text-left bg-white rounded-xl border-2 shadow-md transition-shadow duration-300 ${hoveredCard === index ? 'shadow-2xl' : ''} ${currentTab.hoverBorder} border-gray-200`}
+                className={`group relative overflow-hidden p-6 md:p-8 text-left bg-white rounded-xl border-2 shadow-md transition-shadow duration-300 ${hoveredCard === index ? 'shadow-2xl' : ''} ${currentTab.hoverBorder} border-gray-200`}
               >
                 {/* 배경 장식 원 */}
                 <div
@@ -443,22 +443,22 @@ const MainMenu = () => {
                   <motion.div
                     whileHover={{ scale: 1.1 }}
                     transition={{ duration: 0.3 }}
-                    className={`flex justify-center items-center mb-3 w-12 h-12 ${currentTab.bgColor} rounded-lg transition-all duration-300`}
+                    className={`flex justify-center items-center mb-4 w-14 h-14 md:w-16 md:h-16 ${currentTab.bgColor} rounded-lg transition-all duration-300`}
                   >
-                    <div className="text-3xl">
+                    <div className="text-4xl md:text-5xl">
                       {item.icon}
                     </div>
                   </motion.div>
-                  <h4 className="mb-2 text-base font-bold text-gray-900">
+                  <h4 className="mb-3 text-lg md:text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
                     {item.title}
                   </h4>
-                  <p className="mb-3 text-sm text-gray-600">
+                  <p className="mb-4 text-base md:text-lg text-gray-600 leading-relaxed">
                     {item.subtitle}
                   </p>
-                  <div className={`flex gap-2 items-center text-sm font-semibold ${currentTab.textColor}`}>
+                  <div className={`flex gap-2 items-center text-base md:text-lg font-semibold ${currentTab.textColor}`}>
                     <span>시작하기</span>
                     <motion.svg
-                      className="w-4 h-4"
+                      className="w-5 h-5 md:w-6 md:h-6"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"

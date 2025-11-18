@@ -1,4 +1,4 @@
-import { DemoSpanInfo } from '@/types/calendar/calendar';
+import { DemoSpanInfo, EventSpanInfo } from '@/types/calendar/calendar';
 import { formatDateToString, parseStringToDate } from './calendarUtils';
 
 /**
@@ -174,4 +174,107 @@ export function getDemoSpanDates(startDateString: string, endDateString: string)
 export function isDemoMultipleDays(startDateString: string, endDateString: string): boolean {
   const totalDays = calculateDemoTotalDays(startDateString, endDateString);
   return totalDays > 1;
+}
+
+/**
+ * 행사가 여러 날에 걸치는지 확인합니다
+ * @param startDateString 행사 시작일
+ * @param endDateString 행사 종료일
+ * @returns 여러 날에 걸치면 true, 하루 이내면 false
+ */
+export function isEventMultipleDays(
+  startDateString?: string | null,
+  endDateString?: string | null
+): boolean {
+  if (!startDateString || !endDateString) return false;
+  const totalDays = calculateDemoTotalDays(startDateString, endDateString);
+  return totalDays > 1;
+}
+
+/**
+ * 특정 날짜에 대한 행사 기간 정보를 계산합니다
+ * @param currentDateString 현재 날짜
+ * @param eventStartDate 행사 시작일
+ * @param eventEndDate 행사 종료일
+ * @param demoStartDate 시연 시작일 (물품 상차)
+ * @param demoEndDate 시연 종료일 (물품 하차)
+ * @returns 행사 기간 정보 또는 null
+ */
+export function calculateEventSpanInfo(
+  currentDateString: string,
+  eventStartDate?: string | null,
+  eventEndDate?: string | null,
+  demoStartDate?: string,
+  demoEndDate?: string
+): EventSpanInfo | null {
+  // 행사 날짜가 없으면 null 반환
+  if (!eventStartDate) return null;
+
+  const currentDate = parseStringToDate(currentDateString.split('T')[0]);
+  const eventStart = parseStringToDate(eventStartDate.split('T')[0]);
+  const eventEnd = eventEndDate ? parseStringToDate(eventEndDate.split('T')[0]) : eventStart;
+
+  // 행사 기간 계산
+  const totalDays = calculateDemoTotalDays(eventStartDate, eventEndDate || eventStartDate);
+  const dayIndex = calculateDemoDateIndex(currentDateString, eventStartDate, eventEndDate || eventStartDate);
+
+  // 현재 날짜가 행사 기간 내에 있는지 확인
+  const isWithinEvent = currentDate >= eventStart && currentDate <= eventEnd;
+
+  // 시연 기간과의 관계 확인
+  let isBeforeEvent = false;
+  let isAfterEvent = false;
+
+  if (demoStartDate && demoEndDate) {
+    const demoStart = parseStringToDate(demoStartDate.split('T')[0]);
+    const demoEnd = parseStringToDate(demoEndDate.split('T')[0]);
+
+    // 현재 날짜가 시연 기간 내에 있으면서 행사 전/후인지 확인
+    if (currentDate >= demoStart && currentDate < eventStart) {
+      isBeforeEvent = true;
+    } else if (currentDate > eventEnd && currentDate <= demoEnd) {
+      isAfterEvent = true;
+    }
+  }
+
+  // 행사 기간 내에 있거나 준비/철수 기간인 경우에만 정보 반환
+  if (!isWithinEvent && !isBeforeEvent && !isAfterEvent) {
+    return null;
+  }
+
+  return {
+    totalDays,
+    dayIndex: isWithinEvent ? dayIndex : -1,
+    isStart: currentDate.getTime() === eventStart.getTime(),
+    isEnd: currentDate.getTime() === eventEnd.getTime(),
+    isMiddle: isWithinEvent && currentDate > eventStart && currentDate < eventEnd,
+    isBeforeEvent,
+    isAfterEvent
+  };
+}
+
+/**
+ * 행사가 진행되는 모든 날짜를 가져옵니다
+ * @param eventStartDate 행사 시작일
+ * @param eventEndDate 행사 종료일
+ * @returns 행사 날짜 배열 (YYYY-MM-DD 형식)
+ */
+export function getEventSpanDates(
+  eventStartDate?: string | null,
+  eventEndDate?: string | null
+): string[] {
+  if (!eventStartDate) return [];
+
+  const startDate = parseStringToDate(eventStartDate.split('T')[0]);
+  const endDate = eventEndDate ? parseStringToDate(eventEndDate.split('T')[0]) : startDate;
+
+  const dates: string[] = [];
+  const currentDate = new Date(startDate);
+
+  while (currentDate <= endDate) {
+    dates.push(formatDateToString(currentDate));
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return dates;
 }

@@ -13,6 +13,7 @@ import {
 } from '@/utils/calendar/calendarUtils';
 import EventItem, { EventDot } from './EventItem';
 import DemoDayBarInline from './DemoDayBarInline';
+import EventDayBarInline from './EventDayBarInline';
 import DemoTitleOverlay from './DemoTitleOverlay';
 import { calculateDemoLayers, shouldShowTitle } from '@/utils/calendar/demoBarUtils';
 
@@ -96,7 +97,7 @@ const MonthView: React.FC<MonthViewProps> = ({
     return layersPerWeek;
   }, [demoEvents, demoLayerMap, monthInfo.weeks]);
 
-  const layerHeight = 52; // h-12 막대 + 여백
+  const layerHeight = 52; // 물품 막대 h-12 + 여백
   const baseRowHeight = 120;
 
   const handleDateClick = (date: Date) => {
@@ -137,6 +138,7 @@ const MonthView: React.FC<MonthViewProps> = ({
       <div className="relative">
         {monthInfo.weeks.map((week, weekIndex) => {
           const weekLayerCount = weekMaxLayers[weekIndex];
+          // 행사 막대가 겹쳐서 표시되므로 추가 높이 불필요
           const weekRowHeight = baseRowHeight + (weekLayerCount * layerHeight);
 
           return (
@@ -186,7 +188,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                   {date.getDate()}
                 </div>
 
-                {/* 시연 막대들 */}
+                {/* 시연 막대들 (물품 이동) */}
                 {dayDemoEvents.map(demo => {
                   const demoId = (demo.details as DemoEventDetails).id;
                   const layerIndex = demoLayerMap.get(demoId) || 0;
@@ -194,7 +196,7 @@ const MonthView: React.FC<MonthViewProps> = ({
 
                   return (
                     <DemoDayBarInline
-                      key={demo.id}
+                      key={`demo-${demo.id}`}
                       demo={demo}
                       columnIndex={dayIndex}
                       layerIndex={layerIndex}
@@ -202,6 +204,28 @@ const MonthView: React.FC<MonthViewProps> = ({
                       onDemoClick={handleEventClick}
                     />
                   );
+                })}
+
+                {/* 행사 막대들 (실제 행사 기간) */}
+                {dayDemoEvents.map(demo => {
+                  const demoId = (demo.details as DemoEventDetails).id;
+                  const layerIndex = demoLayerMap.get(demoId) || 0;
+                  const eventSpanInfo = (demo.details as DemoEventDetails).eventSpanInfo;
+
+                  // 행사 정보가 있는 경우에만 렌더링
+                  if (eventSpanInfo) {
+                    return (
+                      <EventDayBarInline
+                        key={`event-${demo.id}`}
+                        demo={demo}
+                        columnIndex={dayIndex}
+                        layerIndex={layerIndex}
+                        showTitle={false} // 제목은 물품 막대에만 표시
+                        onDemoClick={handleEventClick}
+                      />
+                    );
+                  }
+                  return null;
                 })}
 
                 {/* 발주 이벤트 표시 */}

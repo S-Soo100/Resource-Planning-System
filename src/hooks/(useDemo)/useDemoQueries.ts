@@ -10,9 +10,9 @@ export const useDemosByTeam = (teamId: number) => {
     queryKey: ["demos", "team", teamId],
     queryFn: () => getDemoByTeamId(teamId),
     enabled: !!teamId,
-    staleTime: CACHE_TIME,
+    staleTime: 0, // 임시: 항상 새로운 데이터 가져오기
     gcTime: CACHE_TIME,
-    refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
+    refetchOnWindowFocus: true, // 윈도우 포커스 시 자동 refetch 활성화
     refetchOnMount: true, // 컴포넌트 마운트 시 자동 refetch 활성화
     refetchOnReconnect: false,
   });

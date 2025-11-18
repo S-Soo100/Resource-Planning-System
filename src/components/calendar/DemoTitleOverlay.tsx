@@ -65,8 +65,8 @@ const DemoTitleOverlay: React.FC<DemoTitleOverlayProps> = ({
   const demoId = demoDetails.id;
   const textColor = getTextColorByDemoId(demoId);
 
-  // 날짜 범위 표시 여부 (여러 날짜에 걸친 시연만)
-  const showDateRange = spanInfo && spanInfo.totalDays > 1;
+  // 날짜 범위 표시 여부 (모든 시연에 표시)
+  const showDateRange = true;
 
   // 제목이 표시될 셀 개수 계산
   const calculateDisplayDays = (): number => {

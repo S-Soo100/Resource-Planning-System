@@ -497,18 +497,26 @@ const DemoRecordPrint = () => {
 
           {/* 이벤트 날짜 정보 (선택 사항) */}
           {(demo.eventStartDate || demo.eventEndDate) && (
-            <div className="print-info-row" style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #ccc" }}>
-              <span className="print-info-label">이벤트 기간:</span>
-              <span className="print-info-value">
-                {demo.eventStartDate && demo.eventEndDate
-                  ? `${formatDateForDisplayFullUTC(demo.eventStartDate)}${demo.eventStartTime ? ` ${demo.eventStartTime}` : ""} ~ ${formatDateForDisplayFullUTC(demo.eventEndDate)}${demo.eventEndTime ? ` ${demo.eventEndTime}` : ""}`
-                  : demo.eventStartDate
-                  ? `${formatDateForDisplayFullUTC(demo.eventStartDate)}${demo.eventStartTime ? ` ${demo.eventStartTime}` : ""} ~`
-                  : demo.eventEndDate
-                  ? `~ ${formatDateForDisplayFullUTC(demo.eventEndDate)}${demo.eventEndTime ? ` ${demo.eventEndTime}` : ""}`
-                  : "-"}
-              </span>
-            </div>
+            <>
+              <div className="print-info-row" style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #ccc" }}>
+                <span className="print-info-label">이벤트 기간:</span>
+                <span className="print-info-value">
+                  {demo.eventStartDate && demo.eventEndDate
+                    ? `${formatDateForDisplayFullUTC(demo.eventStartDate)} ~ ${formatDateForDisplayFullUTC(demo.eventEndDate)}`
+                    : demo.eventStartDate
+                    ? `${formatDateForDisplayFullUTC(demo.eventStartDate)} ~`
+                    : demo.eventEndDate
+                    ? `~ ${formatDateForDisplayFullUTC(demo.eventEndDate)}`
+                    : "-"}
+                </span>
+              </div>
+              <div className="print-info-row">
+                <span className="print-info-label">이벤트 시간:</span>
+                <span className="print-info-value">
+                  {demo.eventStartTime || "시간 미지정"} ~ {demo.eventEndTime || "시간 미지정"}
+                </span>
+              </div>
+            </>
           )}
         </div>
 

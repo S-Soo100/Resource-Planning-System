@@ -5,6 +5,7 @@ import { CalendarEvent, MonthInfo } from '@/types/calendar/calendar';
 import { formatDateToString } from '@/utils/calendar/calendarUtils';
 import {
   calculateDemoSpanInfo,
+  calculateEventSpanInfo,
   getDemoSpanDates,
   isDemoMultipleDays
 } from '@/utils/calendar/demoUtils';
@@ -76,6 +77,15 @@ export function useMonthData(monthInfo: MonthInfo) {
               demo.demoEndDate
             );
 
+            // 행사 기간 정보 계산
+            const eventSpanInfo = calculateEventSpanInfo(
+              dateStr,
+              demo.eventStartDate,
+              demo.eventEndDate,
+              demo.demoStartDate,
+              demo.demoEndDate
+            );
+
             if (spanInfo) {
               demoEvents.push({
                 id: demo.id,
@@ -104,6 +114,7 @@ export function useMonthData(monthInfo: MonthInfo) {
                   demoStatus: demo.demoStatus || 'unknown',
                   warehouseName: demo.warehouse?.warehouseName || '창고 정보 없음',
                   spanInfo, // 시연 기간 정보 추가
+                  eventSpanInfo: eventSpanInfo || undefined, // 행사 기간 정보 추가 (null을 undefined로 변환)
                 },
               });
             }

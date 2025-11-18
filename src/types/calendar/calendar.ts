@@ -91,6 +91,17 @@ export interface DemoSpanInfo {
   isMiddle: boolean; // 시연 진행중 여부
 }
 
+// 행사 기간 정보 타입
+export interface EventSpanInfo {
+  totalDays: number; // 총 행사 기간 (일수)
+  dayIndex: number; // 현재 날짜가 행사의 몇 번째 날인지 (0부터 시작)
+  isStart: boolean; // 행사 시작일 여부
+  isEnd: boolean; // 행사 종료일 여부
+  isMiddle: boolean; // 행사 진행중 여부
+  isBeforeEvent: boolean; // 행사 시작 전 (준비 기간)
+  isAfterEvent: boolean; // 행사 종료 후 (철수 기간)
+}
+
 // 시연 이벤트 세부 정보 확장
 export interface DemoEventDetails {
   id: number;
@@ -112,6 +123,7 @@ export interface DemoEventDetails {
   demoStatus: string;
   warehouseName: string;
   spanInfo?: DemoSpanInfo; // 시연 기간 정보 (동적으로 계산됨)
+  eventSpanInfo?: EventSpanInfo; // 행사 기간 정보 (동적으로 계산됨)
 }
 
 // 이벤트 상태별 표시 텍스트

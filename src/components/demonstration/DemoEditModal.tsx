@@ -127,7 +127,9 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
     demoEndTime: "",
     demoEndDeliveryMethod: "",
     eventStartDate: "",
+    eventStartTime: "",
     eventEndDate: "",
+    eventEndTime: "",
     warehouseId: 0,
     demoItems: [],
   });
@@ -261,7 +263,9 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
           demoEndTime: normalizeTimeForDisplay(demo.demoEndTime || ""),
           demoEndDeliveryMethod: demo.demoEndDeliveryMethod || "",
           eventStartDate: normalizeDateForDisplay(demo.eventStartDate || ""),
+          eventStartTime: normalizeTimeForDisplay(demo.eventStartTime || ""),
           eventEndDate: normalizeDateForDisplay(demo.eventEndDate || ""),
+          eventEndTime: normalizeTimeForDisplay(demo.eventEndTime || ""),
           warehouseId: demo.warehouseId || 0,
           demoItems: existingItems.map((item) => ({
             itemId: item.itemId,
@@ -306,7 +310,9 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
         demoEndTime: "",
         demoEndDeliveryMethod: "",
         eventStartDate: "",
+        eventStartTime: "",
         eventEndDate: "",
+        eventEndTime: "",
         warehouseId: 0,
         demoItems: [],
       });
@@ -684,9 +690,17 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
           formData.eventStartDate && formData.eventStartDate.trim() !== ""
             ? formData.eventStartDate
             : undefined,
+        eventStartTime:
+          formData.eventStartTime && formData.eventStartTime.trim() !== ""
+            ? formData.eventStartTime
+            : undefined,
         eventEndDate:
           formData.eventEndDate && formData.eventEndDate.trim() !== ""
             ? formData.eventEndDate
+            : undefined,
+        eventEndTime:
+          formData.eventEndTime && formData.eventEndTime.trim() !== ""
+            ? formData.eventEndTime
             : undefined,
         demoItems: selectedItems.map((item) => ({
           itemId: item.itemId,
@@ -1323,35 +1337,45 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
               {/* 이벤트 날짜 (선택 사항) */}
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <h3 className="text-lg font-medium text-gray-700 mb-4">
-                  이벤트 날짜 (선택 사항)
+                  이벤트 일정 (선택 사항)
                 </h3>
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
                   <p className="text-sm text-gray-600">
                     💡 시연품 배송 일정과 별도로 <strong>실제 이벤트 개최 기간</strong>을 기록할 수 있습니다.
                   </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-6">
                   <div>
-                    <DatePicker
-                      label="이벤트 시작일"
+                    <DateTimePicker
+                      label="이벤트 시작 일시"
                       date={formData.eventStartDate || ""}
+                      time={formData.eventStartTime || ""}
                       onDateChange={(date) =>
                         setFormData((prev) => ({ ...prev, eventStartDate: date }))
                       }
-                      placeholder="이벤트 시작 날짜를 선택하세요"
-                      helperText="실제 이벤트가 시작되는 날짜"
+                      onTimeChange={(time) =>
+                        setFormData((prev) => ({ ...prev, eventStartTime: time }))
+                      }
+                      placeholder="이벤트 시작 날짜와 시간을 선택하세요"
+                      helperText="실제 이벤트가 시작되는 일시"
+                      businessHours={{ start: "00:00", end: "23:30" }}
                     />
                   </div>
                   <div>
-                    <DatePicker
-                      label="이벤트 종료일"
+                    <DateTimePicker
+                      label="이벤트 종료 일시"
                       date={formData.eventEndDate || ""}
+                      time={formData.eventEndTime || ""}
                       onDateChange={(date) =>
                         setFormData((prev) => ({ ...prev, eventEndDate: date }))
                       }
-                      placeholder="이벤트 종료 날짜를 선택하세요"
-                      helperText="실제 이벤트가 종료되는 날짜"
+                      onTimeChange={(time) =>
+                        setFormData((prev) => ({ ...prev, eventEndTime: time }))
+                      }
+                      placeholder="이벤트 종료 날짜와 시간을 선택하세요"
+                      helperText="실제 이벤트가 종료되는 일시"
                       minDate={formData.eventStartDate || undefined}
+                      businessHours={{ start: "00:00", end: "23:30" }}
                     />
                   </div>
                 </div>

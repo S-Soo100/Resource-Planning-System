@@ -1444,11 +1444,11 @@ const DemoRecordDetail = () => {
                         </p>
                         <p className="font-medium text-gray-900">
                           {demo.eventStartDate && demo.eventEndDate
-                            ? `${formatDateForDisplayUTC(demo.eventStartDate)} ~ ${formatDateForDisplayUTC(demo.eventEndDate)}`
+                            ? `${formatDateForDisplayUTC(demo.eventStartDate)}${demo.eventStartTime ? ` ${demo.eventStartTime}` : ""} ~ ${formatDateForDisplayUTC(demo.eventEndDate)}${demo.eventEndTime ? ` ${demo.eventEndTime}` : ""}`
                             : demo.eventStartDate
-                            ? `${formatDateForDisplayUTC(demo.eventStartDate)} ~`
+                            ? `${formatDateForDisplayUTC(demo.eventStartDate)}${demo.eventStartTime ? ` ${demo.eventStartTime}` : ""} ~`
                             : demo.eventEndDate
-                            ? `~ ${formatDateForDisplayUTC(demo.eventEndDate)}`
+                            ? `~ ${formatDateForDisplayUTC(demo.eventEndDate)}${demo.eventEndTime ? ` ${demo.eventEndTime}` : ""}`
                             : "-"}
                         </p>
                       </div>

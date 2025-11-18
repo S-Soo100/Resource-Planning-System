@@ -1422,10 +1422,10 @@ const DemoRecordDetail = () => {
                   {/* 이벤트 날짜 정보 (선택 사항) */}
                   {(demo.eventStartDate || demo.eventEndDate) && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                      {/* 이벤트 시작 */}
+                      {/* 시연행사 시작 */}
                       {demo.eventStartDate && (
                         <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex gap-2 items-start mb-2">
+                          <div className="flex gap-2 items-start mb-3">
                             <svg
                               className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
                               fill="none"
@@ -1439,23 +1439,23 @@ const DemoRecordDetail = () => {
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                               />
                             </svg>
-                            <h3 className="font-medium text-green-900">이벤트 시작</h3>
+                            <h3 className="font-medium text-green-900">시연행사 시작</h3>
                           </div>
-                          <div className="pl-7 space-y-1">
-                            <p className="font-medium text-gray-900">
-                              {formatDateForDisplayUTC(demo.eventStartDate)}
+                          <div className="pl-7 space-y-2">
+                            <p className="text-2xl font-bold text-green-700">
+                              {demo.eventStartTime || "시간 미지정"}
                             </p>
                             <p className="text-sm text-gray-600">
-                              {demo.eventStartTime || "시간 미지정"}
+                              {formatDateForDisplayUTC(demo.eventStartDate)}
                             </p>
                           </div>
                         </div>
                       )}
 
-                      {/* 이벤트 종료 */}
+                      {/* 시연행사 종료 */}
                       {demo.eventEndDate && (
                         <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex gap-2 items-start mb-2">
+                          <div className="flex gap-2 items-start mb-3">
                             <svg
                               className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
                               fill="none"
@@ -1469,14 +1469,14 @@ const DemoRecordDetail = () => {
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                               />
                             </svg>
-                            <h3 className="font-medium text-green-900">이벤트 종료</h3>
+                            <h3 className="font-medium text-green-900">시연행사 종료</h3>
                           </div>
-                          <div className="pl-7 space-y-1">
-                            <p className="font-medium text-gray-900">
-                              {formatDateForDisplayUTC(demo.eventEndDate)}
+                          <div className="pl-7 space-y-2">
+                            <p className="text-2xl font-bold text-green-700">
+                              {demo.eventEndTime || "시간 미지정"}
                             </p>
                             <p className="text-sm text-gray-600">
-                              {demo.eventEndTime || "시간 미지정"}
+                              {formatDateForDisplayUTC(demo.eventEndDate)}
                             </p>
                           </div>
                         </div>

@@ -88,10 +88,11 @@ export function useCalendarData(weekInfo: WeekInfo) {
                 demoEndTime: demo.demoEndTime || '물품 하차 시간 정보 없음',
                 demoStartDeliveryMethod: demo.demoStartDeliveryMethod || '',
                 demoEndDeliveryMethod: demo.demoEndDeliveryMethod || '',
-                eventStartDate: demo.eventStartDate || null, // 실제 이벤트 시작일
-                eventStartTime: demo.eventStartTime || null, // 실제 이벤트 시작 시간
-                eventEndDate: demo.eventEndDate || null, // 실제 이벤트 종료일
-                eventEndTime: demo.eventEndTime || null, // 실제 이벤트 종료 시간
+                // eventStartDate/eventEndDate 필드 올바르게 매핑
+                eventStartDate: demo.eventStartDate ?? null,
+                eventStartTime: demo.eventStartTime ?? null,
+                eventEndDate: demo.eventEndDate ?? null,
+                eventEndTime: demo.eventEndTime ?? null,
                 demoStatus: demo.demoStatus || 'unknown',
                 warehouseName: demo.warehouse?.warehouseName || '창고 정보 없음',
                 spanInfo: spanInfo || undefined, // null을 undefined로 변환

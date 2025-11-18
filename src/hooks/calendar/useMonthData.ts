@@ -96,6 +96,11 @@ export function useMonthData(monthInfo: MonthInfo) {
                   demoEndTime: demo.demoEndTime || '물품 하차 시간 정보 없음',
                   demoStartDeliveryMethod: demo.demoStartDeliveryMethod || '',
                   demoEndDeliveryMethod: demo.demoEndDeliveryMethod || '',
+                  // eventStartDate/eventEndDate 필드 올바르게 매핑
+                  eventStartDate: demo.eventStartDate ?? null,
+                  eventStartTime: demo.eventStartTime ?? null,
+                  eventEndDate: demo.eventEndDate ?? null,
+                  eventEndTime: demo.eventEndTime ?? null,
                   demoStatus: demo.demoStatus || 'unknown',
                   warehouseName: demo.warehouse?.warehouseName || '창고 정보 없음',
                   spanInfo, // 시연 기간 정보 추가
@@ -124,6 +129,11 @@ export function useMonthData(monthInfo: MonthInfo) {
               demoEndTime: demo.demoEndTime || '물품 하차 시간 정보 없음',
               demoStartDeliveryMethod: demo.demoStartDeliveryMethod || '',
               demoEndDeliveryMethod: demo.demoEndDeliveryMethod || '',
+              // eventStartDate/eventEndDate 필드 올바르게 매핑
+              eventStartDate: demo.eventStartDate ?? null,
+              eventStartTime: demo.eventStartTime ?? null,
+              eventEndDate: demo.eventEndDate ?? null,
+              eventEndTime: demo.eventEndTime ?? null,
               demoStatus: demo.demoStatus || 'unknown',
               warehouseName: demo.warehouse?.warehouseName || '창고 정보 없음',
             },

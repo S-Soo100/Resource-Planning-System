@@ -96,25 +96,33 @@ export default function UpdatePage() {
                   <div className="space-y-4">
                     <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                       <h4 className="mb-2 font-medium text-green-900">
-                        <strong>시연 이벤트 날짜 필드 (백엔드 API 2.0)</strong>
+                        <strong>시연행사 날짜/시간 필드 (백엔드 API 2.0)</strong>
                       </h4>
                       <ul className="ml-5 space-y-1 text-sm text-green-800 list-disc">
                         <li>
                           <code className="px-1.5 py-0.5 bg-green-100 rounded text-xs">
                             eventStartDate
                           </code>
-                          : 실제 이벤트 시작 날짜 (선택 사항)
+                          ,{" "}
+                          <code className="px-1.5 py-0.5 bg-green-100 rounded text-xs">
+                            eventStartTime
+                          </code>
+                          : 실제 시연행사 시작 날짜 및 시간 (선택 사항)
                         </li>
                         <li>
                           <code className="px-1.5 py-0.5 bg-green-100 rounded text-xs">
                             eventEndDate
                           </code>
-                          : 실제 이벤트 종료 날짜 (선택 사항)
+                          ,{" "}
+                          <code className="px-1.5 py-0.5 bg-green-100 rounded text-xs">
+                            eventEndTime
+                          </code>
+                          : 실제 시연행사 종료 날짜 및 시간 (선택 사항)
                         </li>
-                        <li>시연품 배송 일정과 실제 이벤트 개최 일정을 구분 가능</li>
-                        <li>시연 생성 폼, 수정 모달에 날짜 선택 UI 추가</li>
-                        <li>시연 상세 페이지에 이벤트 기간 표시 (녹색 카드)</li>
-                        <li>시연 인쇄 페이지에 이벤트 기간 정보 포함</li>
+                        <li>시연품 배송 일정과 실제 시연행사 개최 일정을 구분 가능</li>
+                        <li>시연 생성 폼, 수정 모달에 날짜/시간 선택 UI 추가 (DateTimePicker)</li>
+                        <li>시연 상세 페이지에 시연행사 시작/종료 카드 분리 표시 (시간 강조)</li>
+                        <li>시연 인쇄 페이지에 시연행사 기간/시간 정보 포함</li>
                       </ul>
                     </div>
                   </div>
@@ -132,10 +140,24 @@ export default function UpdatePage() {
                         <strong>시연 생성/수정 폼 UX 개선</strong>
                       </h4>
                       <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
-                        <li>파란색 안내 메시지로 배송 일정과 이벤트 기간 차이 명확히 설명</li>
-                        <li>날짜 유효성 검증 (종료일 ≥ 시작일)</li>
+                        <li>파란색 안내 메시지로 배송 일정과 시연행사 기간 차이 명확히 설명</li>
+                        <li>DateTimePicker로 날짜와 시간 통합 입력</li>
+                        <li>날짜/시간 유효성 검증 (종료일시 ≥ 시작일시)</li>
                         <li>빈 값은 undefined로 처리하여 기존 데이터와 호환성 유지</li>
-                        <li>테스트 데이터 자동 채우기 기능에도 이벤트 날짜 포함</li>
+                        <li>시간 필드는 convertToUTC9()로 UTC+9 시간대 변환 후 전송</li>
+                        <li>테스트 데이터 자동 채우기 기능에도 시연행사 날짜/시간 포함</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>시연행사 정보 표시 개선</strong>
+                      </h4>
+                      <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
+                        <li>시연 상세 페이지: 시작/종료를 별도 카드로 분리</li>
+                        <li>시간을 2xl, font-bold로 강조 표시 (초록색)</li>
+                        <li>날짜는 작게 하단에 표시</li>
+                        <li>시간 미지정 시 "시간 미지정" 텍스트 표시</li>
+                        <li>"이벤트" → "시연행사" 용어 통일</li>
                       </ul>
                     </div>
                     <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
@@ -145,6 +167,10 @@ export default function UpdatePage() {
                       <ul className="ml-5 space-y-1 text-sm text-orange-800 list-disc">
                         <li>Demo 관련 모든 TypeScript 인터페이스 업데이트</li>
                         <li>
+                          <code className="px-1.5 py-0.5 bg-orange-100 rounded text-xs">
+                            Demo
+                          </code>
+                          ,{" "}
                           <code className="px-1.5 py-0.5 bg-orange-100 rounded text-xs">
                             DemoResponse
                           </code>
@@ -160,9 +186,13 @@ export default function UpdatePage() {
                           <code className="px-1.5 py-0.5 bg-orange-100 rounded text-xs">
                             DemonstrationFormData
                           </code>
-                          에 이벤트 날짜 필드 추가
+                          ,{" "}
+                          <code className="px-1.5 py-0.5 bg-orange-100 rounded text-xs">
+                            DemoEventDetails
+                          </code>
+                          에 시간 필드 추가
                         </li>
-                        <li>null/undefined 안전 처리</li>
+                        <li>null/undefined 안전 처리, Calendar 시스템 타입도 업데이트</li>
                       </ul>
                     </div>
                   </div>

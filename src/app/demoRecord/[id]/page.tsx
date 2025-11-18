@@ -1442,15 +1442,22 @@ const DemoRecordDetail = () => {
                         <p className="text-sm text-gray-600 mb-1">
                           실제 이벤트 개최 기간
                         </p>
-                        <p className="font-medium text-gray-900">
-                          {demo.eventStartDate && demo.eventEndDate
-                            ? `${formatDateForDisplayUTC(demo.eventStartDate)}${demo.eventStartTime ? ` ${demo.eventStartTime}` : ""} ~ ${formatDateForDisplayUTC(demo.eventEndDate)}${demo.eventEndTime ? ` ${demo.eventEndTime}` : ""}`
-                            : demo.eventStartDate
-                            ? `${formatDateForDisplayUTC(demo.eventStartDate)}${demo.eventStartTime ? ` ${demo.eventStartTime}` : ""} ~`
-                            : demo.eventEndDate
-                            ? `~ ${formatDateForDisplayUTC(demo.eventEndDate)}${demo.eventEndTime ? ` ${demo.eventEndTime}` : ""}`
-                            : "-"}
-                        </p>
+                        <div className="space-y-1">
+                          <p className="font-medium text-gray-900">
+                            {demo.eventStartDate && demo.eventEndDate
+                              ? `${formatDateForDisplayUTC(demo.eventStartDate)} ~ ${formatDateForDisplayUTC(demo.eventEndDate)}`
+                              : demo.eventStartDate
+                              ? `${formatDateForDisplayUTC(demo.eventStartDate)} ~`
+                              : demo.eventEndDate
+                              ? `~ ${formatDateForDisplayUTC(demo.eventEndDate)}`
+                              : "-"}
+                          </p>
+                          {(demo.eventStartDate || demo.eventEndDate) && (
+                            <p className="text-sm text-gray-600">
+                              {demo.eventStartTime || "시간 미지정"} ~ {demo.eventEndTime || "시간 미지정"}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}

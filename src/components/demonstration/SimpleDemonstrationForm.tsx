@@ -542,18 +542,20 @@ const SimpleDemonstrationForm: React.FC = () => {
           formData.eventStartDate && formData.eventStartDate.trim() !== ""
             ? formData.eventStartDate
             : undefined,
-        eventStartTime:
-          formData.eventStartTime && formData.eventStartTime.trim() !== ""
-            ? convertToUTC9(formData.eventStartTime)
-            : formData.eventStartTime,
+        // eventStartTime: 백엔드 미지원으로 임시 비활성화
+        // eventStartTime:
+        //   formData.eventStartTime && formData.eventStartTime.trim() !== ""
+        //     ? convertToUTC9(formData.eventStartTime)
+        //     : undefined,
         eventEndDate:
           formData.eventEndDate && formData.eventEndDate.trim() !== ""
             ? formData.eventEndDate
             : undefined,
-        eventEndTime:
-          formData.eventEndTime && formData.eventEndTime.trim() !== ""
-            ? convertToUTC9(formData.eventEndTime)
-            : formData.eventEndTime,
+        // eventEndTime: 백엔드 미지원으로 임시 비활성화
+        // eventEndTime:
+        //   formData.eventEndTime && formData.eventEndTime.trim() !== ""
+        //     ? convertToUTC9(formData.eventEndTime)
+        //     : undefined,
         userId: user?.id || 0,
         warehouseId: formData.warehouseId || 0,
         demoItems: selectedItems.map((item) => ({

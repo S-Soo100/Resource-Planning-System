@@ -33,6 +33,9 @@ export interface Demo {
   demoEndDate: string; // 며칠에 다시 안산에 받아서 하차 하는지
   demoEndTime: string; // 몇시에 다시 안산에 받아서 하차 하는지
   demoEndDeliveryMethod: string; // 회수 방법
+  // 실제 이벤트 날짜 (선택 사항)
+  eventStartDate?: string | null; // 이벤트 시작 날짜
+  eventEndDate?: string | null; // 이벤트 종료 날짜
   userId: number; // 나
   warehouseId: number; // 시연품 창고
   demoItems: Item[];

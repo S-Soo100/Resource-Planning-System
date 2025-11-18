@@ -7,7 +7,9 @@ import {
   isToday,
   isWeekend,
   isCurrentMonth,
-  formatDateToString
+  formatDateToString,
+  formatShortDate,
+  formatEventSchedule
 } from '@/utils/calendar/calendarUtils';
 import EventItem, { EventDot } from './EventItem';
 import DemoDayBarInline from './DemoDayBarInline';
@@ -19,6 +21,28 @@ interface MonthViewProps {
   events: CalendarEvent[];
   onEventClick?: (event: CalendarEvent) => void;
   className?: string;
+}
+
+/**
+ * 시연 ID별 텍스트 색상 팔레트
+ */
+const TEXT_COLORS = [
+  '#7c3aed', // purple-600
+  '#6d28d9', // violet-700
+  '#a21caf', // fuchsia-700
+  '#5b21b6', // violet-800
+  '#86198f', // fuchsia-800
+  '#4c1d95', // violet-900
+  '#701a75', // fuchsia-900
+  '#581c87', // purple-900
+];
+
+/**
+ * 시연 ID에 따라 색상 선택
+ */
+function getTextColorByDemoId(demoId: number): string {
+  const index = demoId % TEXT_COLORS.length;
+  return TEXT_COLORS[index];
 }
 
 const MonthView: React.FC<MonthViewProps> = ({
@@ -51,13 +75,29 @@ const MonthView: React.FC<MonthViewProps> = ({
     [demoEvents, dateMap]
   );
 
-  // 최대 레이어 개수
-  const maxLayers = demoLayerMap.size > 0 ? Math.max(...demoLayerMap.values()) + 1 : 0;
+  // 각 주(행)별로 최대 레이어 개수 계산
+  const weekMaxLayers = useMemo(() => {
+    const layersPerWeek = new Array(6).fill(0);
+
+    demoEvents.forEach(demo => {
+      const layerIndex = demoLayerMap.get((demo.details as DemoEventDetails).id) || 0;
+      const dateStr = demo.date.split('T')[0];
+
+      // 해당 날짜가 속한 주 찾기
+      monthInfo.weeks.forEach((week, weekIndex) => {
+        week.forEach(date => {
+          if (formatDateToString(date) === dateStr) {
+            layersPerWeek[weekIndex] = Math.max(layersPerWeek[weekIndex], layerIndex + 1);
+          }
+        });
+      });
+    });
+
+    return layersPerWeek;
+  }, [demoEvents, demoLayerMap, monthInfo.weeks]);
+
   const layerHeight = 52; // h-12 막대 + 여백
-  const demoBarsTotalHeight = maxLayers * layerHeight;
   const baseRowHeight = 120;
-  // 시연 이벤트가 있는 경우에만 높이 증가, 없으면 기본 높이 사용
-  const dynamicRowHeight = maxLayers > 0 ? baseRowHeight + demoBarsTotalHeight : baseRowHeight;
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(selectedDate?.getTime() === date.getTime() ? null : date);
@@ -94,15 +134,21 @@ const MonthView: React.FC<MonthViewProps> = ({
       </div>
 
       {/* 날짜별 이벤트 그리드 (6주 x 7일) */}
-      <div
-        className="grid grid-cols-7 relative"
-        style={{
-          gridTemplateRows: `repeat(6, minmax(${dynamicRowHeight}px, auto))`,
-          overflow: 'visible'
-        }}
-      >
-        {monthInfo.weeks.map((week, weekIndex) =>
-          week.map((date, dayIndex) => {
+      <div className="relative">
+        {monthInfo.weeks.map((week, weekIndex) => {
+          const weekLayerCount = weekMaxLayers[weekIndex];
+          const weekRowHeight = baseRowHeight + (weekLayerCount * layerHeight);
+
+          return (
+            <div
+              key={weekIndex}
+              className="grid grid-cols-7 border-b border-gray-200 last:border-b-0"
+              style={{
+                minHeight: `${weekRowHeight}px`,
+                position: 'relative'
+              }}
+            >
+              {week.map((date, dayIndex) => {
             const dayEvents = getEventsForDate(date);
             const hasEvents = hasEventsOnDate(date);
             const isWeekendDay = isWeekend(date);
@@ -118,17 +164,18 @@ const MonthView: React.FC<MonthViewProps> = ({
             const globalIndex = weekIndex * 7 + dayIndex;
 
             return (
-              <div
-                key={`${weekIndex}-${dayIndex}`}
-                className={`
-                  relative border-r border-gray-200 last:border-r-0 border-b border-gray-200
-                  p-2 cursor-pointer hover:bg-gray-50 transition-colors flex flex-col overflow-visible
-                  ${isWeekendDay ? 'bg-gray-25' : ''}
-                  ${isTodayDate ? 'bg-yellow-50' : ''}
-                  ${!isCurrentMonthDate ? 'bg-gray-100 opacity-50' : ''}
-                  ${isSelected ? 'bg-yellow-100 ring-2 ring-yellow-400' : ''}
-                `}
-                onClick={() => handleDateClick(date)}
+                <div
+                  key={`${weekIndex}-${dayIndex}`}
+                  className={`
+                    relative border-r border-gray-200 last:border-r-0
+                    p-2 cursor-pointer hover:bg-gray-50 transition-colors flex flex-col overflow-visible
+                    h-full
+                    ${isWeekendDay ? 'bg-gray-25' : ''}
+                    ${isTodayDate ? 'bg-yellow-50' : ''}
+                    ${!isCurrentMonthDate ? 'bg-gray-100 opacity-50' : ''}
+                    ${isSelected ? 'bg-yellow-100 ring-2 ring-yellow-400' : ''}
+                  `}
+                  onClick={() => handleDateClick(date)}
               >
                 {/* 날짜 표시 */}
                 <div className={`
@@ -160,7 +207,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                 {/* 발주 이벤트 표시 */}
                 <div
                   className="space-y-1 flex-1"
-                  style={{ marginTop: `${demoBarsTotalHeight}px` }}
+                  style={{ marginTop: `${weekLayerCount * layerHeight}px` }}
                 >
                   {dayOrderEvents.slice(0, 2).map((event) => (
                     <div
@@ -202,9 +249,11 @@ const MonthView: React.FC<MonthViewProps> = ({
                   </div>
                 )}
               </div>
-            );
-          })
-        )}
+              );
+            })}
+            </div>
+          );
+        })}
 
         {/* 시연 제목 오버레이 레이어 */}
         {demoEvents.map(demo => {
@@ -227,15 +276,60 @@ const MonthView: React.FC<MonthViewProps> = ({
 
           // 시작일 또는 월요일에만 제목 표시
           if (shouldShowTitle(spanInfo, columnIndex) && columnIndex !== -1 && rowIndex !== -1) {
+            // 이전 주들의 높이 합계 계산
+            let topOffset = 0;
+            for (let i = 0; i < rowIndex; i++) {
+              topOffset += baseRowHeight + (weekMaxLayers[i] * layerHeight);
+            }
+
             return (
-              <DemoTitleOverlay
+              <div
                 key={`title-${demoId}-${dateStr}`}
-                demo={demo}
-                columnIndex={columnIndex}
-                layerIndex={layerIndex}
-                rowIndex={rowIndex}
-                onDemoClick={handleEventClick}
-              />
+                className="absolute pointer-events-none flex flex-col justify-center"
+                style={{
+                  left: `${(columnIndex * 100) / 7}%`,
+                  top: `${topOffset + 40 + (layerIndex * layerHeight)}px`,
+                  width: `${((spanInfo?.totalDays || 1) * 100) / 7}%`,
+                  height: '48px',
+                  zIndex: 20,
+                  paddingLeft: '0.5rem',
+                  paddingRight: '0.5rem',
+                  overflow: 'hidden'
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEventClick(demo);
+                }}
+              >
+                <div
+                  className="font-medium text-sm leading-tight pointer-events-auto cursor-pointer"
+                  style={{
+                    whiteSpace: 'nowrap',
+                    color: getTextColorByDemoId(demoId),
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {demo.title}
+                </div>
+                <div
+                  className="text-[10px] opacity-75 leading-tight mt-0.5"
+                  style={{
+                    whiteSpace: 'nowrap',
+                    color: getTextColorByDemoId(demoId),
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  물품: {formatShortDate((demo.details as DemoEventDetails).demoStartDate)}~{formatShortDate((demo.details as DemoEventDetails).demoEndDate)}
+                  {(demo.details as DemoEventDetails).eventStartDate && ` · 행사: ${formatEventSchedule(
+                    (demo.details as DemoEventDetails).eventStartDate,
+                    (demo.details as DemoEventDetails).eventEndDate,
+                    (demo.details as DemoEventDetails).eventStartTime,
+                    (demo.details as DemoEventDetails).eventEndTime
+                  )}`}
+                </div>
+              </div>
             );
           }
           return null;

@@ -7,7 +7,7 @@ import { useCalendarData } from '@/hooks/calendar/useCalendarData';
 import { useMonthData } from '@/hooks/calendar/useMonthData';
 import { useCurrentTeam } from '@/hooks/useCurrentTeam';
 import { CalendarEvent, OrderEventDetails, DemoEventDetails, ViewMode } from '@/types/calendar/calendar';
-import { formatDateTimeToKorean } from '@/utils/calendar/calendarUtils';
+import { formatDateTimeToKorean, formatEventSchedule } from '@/utils/calendar/calendarUtils';
 import { DemoStatus } from '@/types/demo/demo';
 import { OrderStatus } from '@/types/(order)/order';
 import ViewModeToggle from './ViewModeToggle';
@@ -93,6 +93,15 @@ const EventDetailModal: React.FC<{
                 <div><strong>물품 상차 일시:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoStartDate, (event.details as DemoEventDetails).demoStartTime, (event.details as DemoEventDetails).demoStartDeliveryMethod)}</div>
                 <div><strong>물품 하차 일시:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoEndDate, (event.details as DemoEventDetails).demoEndTime, (event.details as DemoEventDetails).demoEndDeliveryMethod)}</div>
                 <div><strong>창고:</strong> {(event.details as DemoEventDetails).warehouseName}</div>
+                {(event.details as DemoEventDetails).eventStartDate && (
+                  <>
+                    <div className="h-px bg-gray-300 my-2" />
+                    <div><strong>행사 시작:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).eventStartDate, (event.details as DemoEventDetails).eventStartTime)}</div>
+                    {(event.details as DemoEventDetails).eventEndDate && (
+                      <div><strong>행사 종료:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).eventEndDate, (event.details as DemoEventDetails).eventEndTime)}</div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>

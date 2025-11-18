@@ -176,7 +176,7 @@ export function getWeeklyMemoStorageKey(weekKey: string): string {
  * @param deliveryMethod 배송방법 (예: "직접 배송")
  * @returns 한국어 형식 문자열 (예: "2025년 10월 2일 17시00분 (직접 배송)")
  */
-export function formatDateTimeToKorean(dateString: string, timeString?: string, deliveryMethod?: string): string {
+export function formatDateTimeToKorean(dateString?: string | null, timeString?: string | null, deliveryMethod?: string): string {
   if (!dateString) return '';
 
   try {
@@ -317,4 +317,84 @@ export function isThisMonth(monthInfo: MonthInfo): boolean {
     today.getFullYear() === monthInfo.year &&
     today.getMonth() + 1 === monthInfo.month
   );
+}
+
+/**
+ * 날짜를 MM/DD 포맷으로 변환합니다
+ * @param dateString ISO 날짜 문자열 (예: "2025-11-19T00:00:00.000Z")
+ * @returns MM/DD 형식 문자열 (예: "11/19")
+ */
+export function formatShortDate(dateString: string): string {
+  if (!dateString) return '';
+
+  try {
+    // ISO 형식인 경우 날짜 부분만 추출
+    const datePart = dateString.split('T')[0];
+    const [, month, day] = datePart.split('-').map(Number);
+    return `${month}/${day}`;
+  } catch (error) {
+    console.error('짧은 날짜 포맷팅 오류:', error);
+    return '';
+  }
+}
+
+/**
+ * 시간을 HH:MM 포맷으로 변환합니다 (null 처리)
+ * @param timeString 시간 문자열 (예: "10:00")
+ * @returns HH:MM 형식 문자열 또는 빈 문자열
+ */
+export function formatShortTime(timeString?: string | null): string {
+  if (!timeString || !timeString.trim()) return '';
+  return timeString.trim();
+}
+
+/**
+ * Event 일정을 간략하게 포맷팅합니다 (날짜 + 시간)
+ * @param startDate 시작 날짜
+ * @param endDate 종료 날짜 (선택)
+ * @param startTime 시작 시간 (선택)
+ * @param endTime 종료 시간 (선택)
+ * @returns 포맷된 일정 문자열 (예: "11/20", "11/20 10:00-17:00", "11/19-11/21 10:00-17:00")
+ */
+export function formatEventSchedule(
+  startDate?: string | null,
+  endDate?: string | null,
+  startTime?: string | null,
+  endTime?: string | null
+): string {
+  if (!startDate) return '';
+
+  try {
+    const startDateStr = formatShortDate(startDate);
+    const endDateStr = endDate ? formatShortDate(endDate) : '';
+    const startTimeStr = formatShortTime(startTime);
+    const endTimeStr = formatShortTime(endTime);
+
+    // 날짜 범위 구성
+    let dateRange = startDateStr;
+    if (endDateStr && endDateStr !== startDateStr) {
+      dateRange = `${startDateStr}-${endDateStr}`;
+    }
+
+    // 시간 범위 구성
+    let timeRange = '';
+    if (startTimeStr || endTimeStr) {
+      if (startTimeStr && endTimeStr) {
+        timeRange = `${startTimeStr}-${endTimeStr}`;
+      } else if (startTimeStr) {
+        timeRange = startTimeStr;
+      } else if (endTimeStr) {
+        timeRange = endTimeStr;
+      }
+    }
+
+    // 날짜 + 시간 조합
+    if (timeRange) {
+      return `${dateRange} ${timeRange}`;
+    }
+    return dateRange;
+  } catch (error) {
+    console.error('이벤트 일정 포맷팅 오류:', error);
+    return '';
+  }
 }

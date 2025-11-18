@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { CalendarEvent, OrderEventDetails, DemoEventDetails } from '@/types/calendar/calendar';
 import { useCalendarEvents } from '@/hooks/calendar/useCalendarEvents';
-import { formatDateTimeToKorean } from '@/utils/calendar/calendarUtils';
+import { formatDateTimeToKorean, formatEventSchedule } from '@/utils/calendar/calendarUtils';
 import { getDemoSpanDisplayText } from '@/utils/calendar/demoUtils';
 import { FaTruck, FaTheaterMasks, FaInfoCircle } from 'react-icons/fa';
 
@@ -167,6 +167,16 @@ const EventItem: React.FC<EventItemProps> = ({
             <p><strong>담당자:</strong> {(event.details as DemoEventDetails).demoManager}</p>
             <p><strong>시연지:</strong> {(event.details as DemoEventDetails).demoAddress}</p>
             <p><strong>물품 상차 일시:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoStartDate, (event.details as DemoEventDetails).demoStartTime, (event.details as DemoEventDetails).demoStartDeliveryMethod)}</p>
+            {(event.details as DemoEventDetails).eventStartDate && (
+              <p>
+                <strong>행사 일정:</strong> {formatEventSchedule(
+                  (event.details as DemoEventDetails).eventStartDate,
+                  (event.details as DemoEventDetails).eventEndDate,
+                  (event.details as DemoEventDetails).eventStartTime,
+                  (event.details as DemoEventDetails).eventEndTime
+                )}
+              </p>
+            )}
           </div>
         )}
       </div>

@@ -104,7 +104,10 @@ const MobileMonthView: React.FC<MobileMonthViewProps> = ({
                   </div>
 
                   <div className="text-sm text-gray-600 space-y-1">
-                    <div>📅 {startDateStr} ~ {endDateStr}</div>
+                    <div>📦 물품: {startDateStr} ~ {endDateStr}</div>
+                    {demoDetails.eventStartDate && (
+                      <div>🎪 행사: {demoDetails.eventStartDate.split('T')[0]} ~ {demoDetails.eventEndDate?.split('T')[0] || demoDetails.eventStartDate.split('T')[0]}</div>
+                    )}
                     <div>📍 {demoDetails.demoAddress}</div>
                     <div>👤 {demoDetails.demoManager}</div>
                   </div>
@@ -114,17 +117,37 @@ const MobileMonthView: React.FC<MobileMonthViewProps> = ({
                     <div className="flex items-center gap-1 mb-1">
                       <span className="text-xs text-purple-600">진행 상황</span>
                     </div>
-                    <div className="flex gap-1">
-                      {Array.from({ length: spanInfo?.totalDays || 1 }, (_, index) => (
+                    <div className="relative">
+                      {/* 물품 이동 기간 바 */}
+                      <div className="flex gap-1">
+                        {Array.from({ length: spanInfo?.totalDays || 1 }, (_, index) => (
+                          <div
+                            key={index}
+                            className={`flex-1 h-3 rounded ${
+                              index === 0 || index === (spanInfo?.totalDays || 1) - 1
+                                ? 'bg-purple-300'
+                                : 'bg-purple-200'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      {/* 행사 기간 오버레이 */}
+                      {demoDetails.eventStartDate && demoDetails.eventSpanInfo && (
                         <div
-                          key={index}
-                          className={`flex-1 h-2 rounded ${
-                            index === 0 || index === (spanInfo?.totalDays || 1) - 1
-                              ? 'bg-purple-600'
-                              : 'bg-purple-400'
-                          }`}
+                          className="absolute top-0 h-3 bg-purple-500/60 rounded"
+                          style={{
+                            left: `${(demoDetails.eventSpanInfo.dayIndex / (spanInfo?.totalDays || 1)) * 100}%`,
+                            width: `${((demoDetails.eventSpanInfo.totalDays || 1) / (spanInfo?.totalDays || 1)) * 100}%`
+                          }}
                         />
-                      ))}
+                      )}
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span className="text-[10px] text-gray-500">물품 상차</span>
+                      {demoDetails.eventStartDate && (
+                        <span className="text-[10px] text-purple-600 font-medium">행사</span>
+                      )}
+                      <span className="text-[10px] text-gray-500">물품 하차</span>
                     </div>
                   </div>
                 </div>

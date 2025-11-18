@@ -12,7 +12,7 @@ import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { toast } from "react-hot-toast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
-import { getTodayString, formatDateToLocalString } from "@/utils/dateUtils";
+import { getTodayString, formatDateToLocalString, convertToUTC9 } from "@/utils/dateUtils";
 import AddressSection from "@/components/common/AddressSection";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { useFileUpload } from "@/hooks/useFileUpload";
@@ -544,16 +544,16 @@ const SimpleDemonstrationForm: React.FC = () => {
             : undefined,
         eventStartTime:
           formData.eventStartTime && formData.eventStartTime.trim() !== ""
-            ? formData.eventStartTime
-            : undefined,
+            ? convertToUTC9(formData.eventStartTime)
+            : formData.eventStartTime,
         eventEndDate:
           formData.eventEndDate && formData.eventEndDate.trim() !== ""
             ? formData.eventEndDate
             : undefined,
         eventEndTime:
           formData.eventEndTime && formData.eventEndTime.trim() !== ""
-            ? formData.eventEndTime
-            : undefined,
+            ? convertToUTC9(formData.eventEndTime)
+            : formData.eventEndTime,
         userId: user?.id || 0,
         warehouseId: formData.warehouseId || 0,
         demoItems: selectedItems.map((item) => ({

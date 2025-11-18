@@ -692,16 +692,16 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
             : undefined,
         eventStartTime:
           formData.eventStartTime && formData.eventStartTime.trim() !== ""
-            ? formData.eventStartTime
-            : undefined,
+            ? convertToUTC9(formData.eventStartTime)
+            : formData.eventStartTime,
         eventEndDate:
           formData.eventEndDate && formData.eventEndDate.trim() !== ""
             ? formData.eventEndDate
             : undefined,
         eventEndTime:
           formData.eventEndTime && formData.eventEndTime.trim() !== ""
-            ? formData.eventEndTime
-            : undefined,
+            ? convertToUTC9(formData.eventEndTime)
+            : formData.eventEndTime,
         demoItems: selectedItems.map((item) => ({
           itemId: item.itemId,
           quantity: item.quantity,

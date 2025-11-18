@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { CalendarEvent, DemoEventDetails } from '@/types/calendar/calendar';
+import { formatShortDate, formatEventSchedule } from '@/utils/calendar/calendarUtils';
 
 interface DemoTitleOverlayProps {
   demo: CalendarEvent & { type: 'demo' };
@@ -48,16 +49,6 @@ function getDemoStatusShortText(status: string): string {
   return statusMap[status] || '요청';
 }
 
-/**
- * 날짜를 MM/DD 포맷으로 변환
- */
-function formatShortDate(dateString: string): string {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  return `${month}/${day}`;
-}
 
 /**
  * 시연 제목을 그리드 위에 오버레이로 표시하는 컴포넌트
@@ -138,7 +129,13 @@ const DemoTitleOverlay: React.FC<DemoTitleOverlayProps> = ({
             textOverflow: 'ellipsis'
           }}
         >
-          {getDemoStatusShortText(demo.status)} · {formatShortDate(demoDetails.demoStartDate)} ~ {formatShortDate(demoDetails.demoEndDate)}
+          물품: {formatShortDate(demoDetails.demoStartDate)}~{formatShortDate(demoDetails.demoEndDate)}
+          {demoDetails.eventStartDate && ` · 행사: ${formatEventSchedule(
+            demoDetails.eventStartDate,
+            demoDetails.eventEndDate,
+            demoDetails.eventStartTime,
+            demoDetails.eventEndTime
+          )}`}
         </div>
       )}
     </div>

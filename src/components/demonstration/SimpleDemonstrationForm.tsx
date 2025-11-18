@@ -1187,7 +1187,7 @@ const SimpleDemonstrationForm: React.FC = () => {
             {/* 이벤트 날짜 (선택 사항) */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <h3 className="text-lg font-medium text-gray-700 mb-4">
-                이벤트 날짜 (선택 사항)
+                이벤트 일정 (선택 사항)
               </h3>
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
                 <p className="text-sm text-gray-600">

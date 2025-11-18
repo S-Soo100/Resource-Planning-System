@@ -56,7 +56,8 @@ const MonthView: React.FC<MonthViewProps> = ({
   const layerHeight = 52; // h-12 막대 + 여백
   const demoBarsTotalHeight = maxLayers * layerHeight;
   const baseRowHeight = 120;
-  const dynamicRowHeight = Math.max(baseRowHeight, baseRowHeight + demoBarsTotalHeight);
+  // 시연 이벤트가 있는 경우에만 높이 증가, 없으면 기본 높이 사용
+  const dynamicRowHeight = maxLayers > 0 ? baseRowHeight + demoBarsTotalHeight : baseRowHeight;
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(selectedDate?.getTime() === date.getTime() ? null : date);

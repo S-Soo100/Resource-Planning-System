@@ -501,11 +501,11 @@ const DemoRecordPrint = () => {
               <span className="print-info-label">이벤트 기간:</span>
               <span className="print-info-value">
                 {demo.eventStartDate && demo.eventEndDate
-                  ? `${formatDateForDisplayFullUTC(demo.eventStartDate)} ~ ${formatDateForDisplayFullUTC(demo.eventEndDate)}`
+                  ? `${formatDateForDisplayFullUTC(demo.eventStartDate)}${demo.eventStartTime ? ` ${demo.eventStartTime}` : ""} ~ ${formatDateForDisplayFullUTC(demo.eventEndDate)}${demo.eventEndTime ? ` ${demo.eventEndTime}` : ""}`
                   : demo.eventStartDate
-                  ? `${formatDateForDisplayFullUTC(demo.eventStartDate)} ~`
+                  ? `${formatDateForDisplayFullUTC(demo.eventStartDate)}${demo.eventStartTime ? ` ${demo.eventStartTime}` : ""} ~`
                   : demo.eventEndDate
-                  ? `~ ${formatDateForDisplayFullUTC(demo.eventEndDate)}`
+                  ? `~ ${formatDateForDisplayFullUTC(demo.eventEndDate)}${demo.eventEndTime ? ` ${demo.eventEndTime}` : ""}`
                   : "-"}
               </span>
             </div>

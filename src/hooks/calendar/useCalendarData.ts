@@ -89,7 +89,9 @@ export function useCalendarData(weekInfo: WeekInfo) {
                 demoStartDeliveryMethod: demo.demoStartDeliveryMethod || '',
                 demoEndDeliveryMethod: demo.demoEndDeliveryMethod || '',
                 eventStartDate: demo.eventStartDate || null, // 실제 이벤트 시작일
+                eventStartTime: demo.eventStartTime || null, // 실제 이벤트 시작 시간
                 eventEndDate: demo.eventEndDate || null, // 실제 이벤트 종료일
+                eventEndTime: demo.eventEndTime || null, // 실제 이벤트 종료 시간
                 demoStatus: demo.demoStatus || 'unknown',
                 warehouseName: demo.warehouse?.warehouseName || '창고 정보 없음',
                 spanInfo: spanInfo || undefined, // null을 undefined로 변환

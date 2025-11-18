@@ -33,9 +33,11 @@ export interface Demo {
   demoEndDate: string; // 며칠에 다시 안산에 받아서 하차 하는지
   demoEndTime: string; // 몇시에 다시 안산에 받아서 하차 하는지
   demoEndDeliveryMethod: string; // 회수 방법
-  // 실제 이벤트 날짜 (선택 사항)
+  // 실제 이벤트 날짜 및 시간 (선택 사항)
   eventStartDate?: string | null; // 이벤트 시작 날짜
+  eventStartTime?: string | null; // 이벤트 시작 시간
   eventEndDate?: string | null; // 이벤트 종료 날짜
+  eventEndTime?: string | null; // 이벤트 종료 시간
   userId: number; // 나
   warehouseId: number; // 시연품 창고
   demoItems: Item[];
@@ -92,7 +94,9 @@ export interface DemoResponse {
   demoStartDeliveryMethod: string;
   demoEndDeliveryMethod: string;
   eventStartDate?: string | null; // 이벤트 시작 날짜 (선택)
+  eventStartTime?: string | null; // 이벤트 시작 시간 (선택)
   eventEndDate?: string | null; // 이벤트 종료 날짜 (선택)
+  eventEndTime?: string | null; // 이벤트 종료 시간 (선택)
   userId: number;
   warehouseId: number;
   createdAt: string;
@@ -217,7 +221,9 @@ export interface CreateDemoRequest {
   demoEndTime: string;
   demoEndDeliveryMethod: string;
   eventStartDate?: string; // 이벤트 시작 날짜 (선택)
+  eventStartTime?: string; // 이벤트 시작 시간 (선택)
   eventEndDate?: string; // 이벤트 종료 날짜 (선택)
+  eventEndTime?: string; // 이벤트 종료 시간 (선택)
   userId: number;
   warehouseId: number;
   demoItems: Array<{
@@ -248,7 +254,9 @@ export interface DemonstrationFormData {
   demoEndTime: string; // 시연품 회수 시간
   demoEndDeliveryMethod: string; // 회수 방법 (직접회수, 택배, 용차 등)
   eventStartDate?: string; // 이벤트 시작 날짜 (선택)
+  eventStartTime?: string; // 이벤트 시작 시간 (선택)
   eventEndDate?: string; // 이벤트 종료 날짜 (선택)
+  eventEndTime?: string; // 이벤트 종료 시간 (선택)
   userId: number; // 신청자 ID (현재 로그인한 사용자 ID)
   warehouseId: number; // 시연품 창고 ID
   // 주소 관련 필드 (기존 호환성을 위해 유지)
@@ -275,7 +283,9 @@ export interface PatchDemoRequest {
   demoStartDeliveryMethod?: string;
   demoEndDeliveryMethod?: string;
   eventStartDate?: string; // 이벤트 시작 날짜 (선택)
+  eventStartTime?: string; // 이벤트 시작 시간 (선택)
   eventEndDate?: string; // 이벤트 종료 날짜 (선택)
+  eventEndTime?: string; // 이벤트 종료 시간 (선택)
   warehouseId?: number;
   demoItems?: Array<{
     itemId: number;

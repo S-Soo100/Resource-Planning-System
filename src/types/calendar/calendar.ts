@@ -99,12 +99,14 @@ export interface DemoEventDetails {
   demoManager: string;
   demoManagerPhone: string;
   demoAddress: string;
-  demoStartDate: string; // 시연 시작일
+  demoStartDate: string; // 시연 시작일 (물품 상차)
   demoStartTime: string;
-  demoEndDate: string;
+  demoEndDate: string; // 시연 종료일 (물품 하차)
   demoEndTime: string;
   demoStartDeliveryMethod: string; // 상차 방법
   demoEndDeliveryMethod: string; // 하차 방법
+  eventStartDate?: string | null; // 실제 이벤트 시작일 (선택)
+  eventEndDate?: string | null; // 실제 이벤트 종료일 (선택)
   demoStatus: string;
   warehouseName: string;
   spanInfo?: DemoSpanInfo; // 시연 기간 정보 (동적으로 계산됨)

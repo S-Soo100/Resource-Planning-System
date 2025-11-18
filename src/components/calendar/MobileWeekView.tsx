@@ -1,10 +1,14 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { WeekInfo, CalendarEvent, DemoEventDetails } from '@/types/calendar/calendar';
 import { useCalendarEvents } from '@/hooks/calendar/useCalendarEvents';
-import { getDayName, isToday, isWeekend } from '@/utils/calendar/calendarUtils';
-import EventItem from './EventItem';
-import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import {
+  getDayName,
+  isToday,
+  isWeekend,
+  formatDateToString
+} from '@/utils/calendar/calendarUtils';
+import { calculateDemoLayers, shouldShowTitle } from '@/utils/calendar/demoBarUtils';
 
 interface MobileWeekViewProps {
   weekInfo: WeekInfo;
@@ -19,34 +23,34 @@ const MobileWeekView: React.FC<MobileWeekViewProps> = ({
   onEventClick,
   className = '',
 }) => {
-  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
-  const { getEventsForDate } = useCalendarEvents(events);
+  const { getEventsForDate, hasEventsOnDate } = useCalendarEvents(events);
 
-  // 시연 이벤트들 추출 및 그룹화
-  const demoEvents = events.filter(event => event.type === 'demo') as (CalendarEvent & { type: 'demo' })[];
+  // 날짜 → 인덱스 맵 생성
+  const dateMap = useMemo(() => {
+    const map = new Map<string, number>();
+    weekInfo.days.forEach((date, index) => {
+      map.set(formatDateToString(date), index);
+    });
+    return map;
+  }, [weekInfo.days]);
 
-  // 여러 날에 걸친 시연들 그룹화
-  const multiDayDemoGroups = new Map<number, (CalendarEvent & { type: 'demo' })[]>();
+  // 시연 이벤트들 추출
+  const demoEvents = useMemo(
+    () => events.filter(event => event.type === 'demo') as (CalendarEvent & { type: 'demo' })[],
+    [events]
+  );
 
-  demoEvents.forEach(demo => {
-    const demoDetails = demo.details as DemoEventDetails;
-    if (demoDetails.spanInfo && demoDetails.spanInfo.totalDays > 1) {
-      if (!multiDayDemoGroups.has(demoDetails.id)) {
-        multiDayDemoGroups.set(demoDetails.id, []);
-      }
-      multiDayDemoGroups.get(demoDetails.id)!.push(demo);
-    }
-  });
+  // 레이어 계산
+  const demoLayerMap = useMemo(
+    () => calculateDemoLayers(demoEvents, dateMap),
+    [demoEvents, dateMap]
+  );
 
-  const toggleDateExpansion = (dateStr: string) => {
-    const newExpanded = new Set(expandedDates);
-    if (newExpanded.has(dateStr)) {
-      newExpanded.delete(dateStr);
-    } else {
-      newExpanded.add(dateStr);
-    }
-    setExpandedDates(newExpanded);
-  };
+  // 최대 레이어 개수 계산
+  const maxLayers = demoLayerMap.size > 0 ? Math.max(...demoLayerMap.values()) + 1 : 0;
+  const layerHeight = 24; // 모바일용 높이
+  const baseRowHeight = 80; // 주간 뷰는 더 높게
+  const totalHeight = baseRowHeight + (maxLayers * layerHeight);
 
   const handleEventClick = (event: CalendarEvent) => {
     if (onEventClick) {
@@ -55,226 +59,178 @@ const MobileWeekView: React.FC<MobileWeekViewProps> = ({
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`}>
-      {/* 연결된 시연 섹션 */}
-      {multiDayDemoGroups.size > 0 && (
-        <div className="bg-purple-50 border-b border-purple-200 p-4">
-          <h3 className="text-lg font-semibold text-purple-800 mb-3 flex items-center gap-2">
-            🔗 연결된 시연 일정
-          </h3>
-          <div className="space-y-3">
-            {Array.from(multiDayDemoGroups.entries()).map(([demoId, demoGroup]) => {
-              const firstDemo = demoGroup[0];
-              const demoDetails = firstDemo.details as DemoEventDetails;
-              const spanInfo = demoDetails.spanInfo;
-
-              // 날짜 범위 계산
-              const dates = demoGroup.map(d => d.date.split('T')[0]).sort();
-              const startDateStr = dates[0];
-              const endDateStr = dates[dates.length - 1];
-
-              return (
-                <div
-                  key={demoId}
-                  className="bg-white rounded-lg border-2 border-purple-300 p-3 cursor-pointer hover:bg-purple-50 transition-colors"
-                  onClick={() => onEventClick && onEventClick(firstDemo)}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-purple-800 flex items-center gap-2">
-                      <span className="text-lg">🎭</span>
-                      {firstDemo.title}
-                    </h4>
-                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-                      {spanInfo?.totalDays || 1}일간
-                    </span>
-                  </div>
-
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <div>📦 물품: {startDateStr} ~ {endDateStr}</div>
-                    {demoDetails.eventStartDate && (
-                      <div>🎪 행사: {demoDetails.eventStartDate.split('T')[0]} ~ {demoDetails.eventEndDate?.split('T')[0] || demoDetails.eventStartDate.split('T')[0]}</div>
-                    )}
-                    <div>📍 {demoDetails.demoAddress}</div>
-                    <div>👤 {demoDetails.demoManager}</div>
-                  </div>
-
-                  {/* 진행 바 */}
-                  <div className="mt-3">
-                    <div className="flex items-center gap-1 mb-1">
-                      <span className="text-xs text-purple-600">진행 상황</span>
-                    </div>
-                    <div className="relative">
-                      {/* 물품 이동 기간 바 */}
-                      <div className="flex gap-1">
-                        {Array.from({ length: spanInfo?.totalDays || 1 }, (_, index) => (
-                          <div
-                            key={index}
-                            className={`flex-1 h-3 rounded ${
-                              index === 0 || index === (spanInfo?.totalDays || 1) - 1
-                                ? 'bg-purple-300'
-                                : 'bg-purple-200'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      {/* 행사 기간 오버레이 */}
-                      {demoDetails.eventStartDate && demoDetails.eventSpanInfo && (
-                        <div
-                          className="absolute top-0 h-3 bg-purple-500/60 rounded"
-                          style={{
-                            left: `${(demoDetails.eventSpanInfo.dayIndex / (spanInfo?.totalDays || 1)) * 100}%`,
-                            width: `${((demoDetails.eventSpanInfo.totalDays || 1) / (spanInfo?.totalDays || 1)) * 100}%`
-                          }}
-                        />
-                      )}
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span className="text-[10px] text-gray-500">물품 상차</span>
-                      {demoDetails.eventStartDate && (
-                        <span className="text-[10px] text-purple-600 font-medium">행사</span>
-                      )}
-                      <span className="text-[10px] text-gray-500">물품 하차</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 개별 날짜 섹션 */}
-      <div className="divide-y divide-gray-200">
+    <div className={`bg-white rounded-lg shadow-sm ${className}`}>
+      {/* 요일 헤더 */}
+      <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
         {weekInfo.days.map((date, index) => {
-          const dateStr = date.toISOString().split('T')[0];
-          const dayEvents = getEventsForDate(date);
-          const hasEvents = dayEvents.length > 0;
+          const dayName = getDayName(date.getDay());
           const isWeekendDay = isWeekend(date);
           const isTodayDate = isToday(date);
-          const isExpanded = expandedDates.has(dateStr);
 
           return (
             <div
               key={index}
               className={`
-                ${isWeekendDay ? 'bg-gray-25' : ''}
+                p-1 text-center border-r border-gray-200 last:border-r-0
                 ${isTodayDate ? 'bg-yellow-50' : ''}
               `}
             >
-              {/* 날짜 헤더 */}
-              <div
-                className={`
-                  flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors
-                  ${hasEvents ? 'cursor-pointer' : 'cursor-default'}
-                `}
-                onClick={() => hasEvents && toggleDateExpansion(dateStr)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`
-                    text-center
-                    ${isTodayDate ? 'text-blue-600 font-bold' : isWeekendDay ? 'text-red-600' : 'text-gray-700'}
-                  `}>
-                    <div className="text-xs mb-1">{getDayName(date.getDay())}요일</div>
-                    <div className={`
-                      text-2xl
-                      ${isTodayDate ? 'bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center' : ''}
-                    `}>
-                      {date.getDate()}
-                    </div>
-                  </div>
+              <div className={`
+                text-[10px] font-medium
+                ${isWeekendDay ? 'text-red-600' : 'text-gray-700'}
+              `}>
+                {dayName}
+              </div>
+              <div className={`
+                text-sm font-bold
+                ${isTodayDate ? 'text-blue-600' : isWeekendDay ? 'text-red-600' : 'text-gray-700'}
+              `}>
+                {date.getDate()}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-                  <div className="flex-1">
-                    <div className="text-sm text-gray-600">
-                      {date.getMonth() + 1}월 {date.getDate()}일
-                    </div>
-                    {hasEvents ? (
-                      <div className="text-sm text-blue-600 font-medium">
-                        일정 {dayEvents.length}개
+      {/* 일정 그리드 */}
+      <div
+        className="grid grid-cols-7 border-b border-gray-200"
+        style={{ minHeight: `${totalHeight}px` }}
+      >
+        {weekInfo.days.map((date, dayIndex) => {
+          const dayEvents = getEventsForDate(date);
+          const hasEvents = hasEventsOnDate(date);
+          const isWeekendDay = isWeekend(date);
+          const isTodayDate = isToday(date);
+
+          // 시연과 발주 분리
+          const dayDemoEvents = dayEvents.filter(e => e.type === 'demo') as (CalendarEvent & { type: 'demo' })[];
+          const dayOrderEvents = dayEvents.filter(e => e.type === 'order');
+
+          return (
+            <div
+              key={dayIndex}
+              className={`
+                relative border-r border-gray-200 last:border-r-0
+                p-1 text-[10px] cursor-pointer hover:bg-gray-50 transition-colors
+                ${isWeekendDay ? 'bg-gray-25' : ''}
+                ${isTodayDate ? 'bg-yellow-50' : ''}
+              `}
+              onClick={() => onEventClick && dayEvents[0] && onEventClick(dayEvents[0])}
+            >
+              {/* 시연 막대 (물품) */}
+              {dayDemoEvents.map(demo => {
+                const demoId = (demo.details as DemoEventDetails).id;
+                const layerIndex = demoLayerMap.get(demoId) || 0;
+                const spanInfo = (demo.details as DemoEventDetails).spanInfo;
+
+                return (
+                  <div
+                    key={`demo-${demo.id}`}
+                    className={`
+                      absolute left-0 right-0 h-5
+                      bg-purple-100 border-purple-400
+                      ${spanInfo?.isStart ? 'rounded-l-sm border-l border-t border-b' : ''}
+                      ${spanInfo?.isEnd ? 'rounded-r-sm border-r border-t border-b' : ''}
+                      ${spanInfo?.isMiddle ? 'border-t border-b' : ''}
+                      ${spanInfo?.totalDays === 1 ? 'rounded-sm border' : ''}
+                    `}
+                    style={{
+                      top: `${4 + layerIndex * 24}px`,
+                      zIndex: 5
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEventClick(demo);
+                    }}
+                  />
+                );
+              })}
+
+              {/* 행사 막대 */}
+              {dayDemoEvents.map(demo => {
+                const demoId = (demo.details as DemoEventDetails).id;
+                const layerIndex = demoLayerMap.get(demoId) || 0;
+                const eventSpanInfo = (demo.details as DemoEventDetails).eventSpanInfo;
+
+                if (eventSpanInfo && (eventSpanInfo.isStart || eventSpanInfo.isMiddle || eventSpanInfo.isEnd)) {
+                  return (
+                    <div
+                      key={`event-${demo.id}`}
+                      className={`
+                        absolute left-0.5 right-0.5 h-3
+                        bg-purple-400/50
+                        ${eventSpanInfo.isStart ? 'rounded-l-sm' : ''}
+                        ${eventSpanInfo.isEnd ? 'rounded-r-sm' : ''}
+                        ${eventSpanInfo.totalDays === 1 ? 'rounded-sm' : ''}
+                      `}
+                      style={{
+                        top: `${4 + layerIndex * 24 + 3}px`,
+                        zIndex: 6
+                      }}
+                    />
+                  );
+                }
+                return null;
+              })}
+
+              {/* 시연 제목 (시작일 또는 월요일에만) */}
+              {dayDemoEvents.map(demo => {
+                const demoDetails = demo.details as DemoEventDetails;
+                const spanInfo = demoDetails.spanInfo;
+                const layerIndex = demoLayerMap.get(demoDetails.id) || 0;
+
+                if (shouldShowTitle(spanInfo, dayIndex)) {
+                  return (
+                    <div
+                      key={`title-${demo.id}`}
+                      className="absolute left-1 right-1 pointer-events-none"
+                      style={{
+                        top: `${4 + layerIndex * 24}px`,
+                        zIndex: 10
+                      }}
+                    >
+                      <div className="text-[9px] text-purple-700 font-medium truncate">
+                        {demo.title}
                       </div>
-                    ) : (
-                      <div className="text-sm text-gray-400">
-                        일정 없음
-                      </div>
-                    )}
+                    </div>
+                  );
+                }
+                return null;
+              })}
+
+              {/* 발주 이벤트 */}
+              <div style={{ marginTop: `${maxLayers * layerHeight + 8}px` }}>
+                {dayOrderEvents.slice(0, 2).map(event => (
+                  <div
+                    key={event.id}
+                    className="text-[9px] text-blue-600 truncate mb-0.5"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEventClick(event);
+                    }}
+                  >
+                    {event.title}
                   </div>
-                </div>
-
-                {/* 이벤트 요약 미리보기 */}
-                <div className="flex items-center gap-2">
-                  {/* 이벤트 도트들 */}
-                  {hasEvents && (
-                    <div className="flex gap-1">
-                      {dayEvents.slice(0, 3).map((event) => (
-                        <div
-                          key={event.id}
-                          className={`
-                            w-3 h-3 rounded-full
-                            ${event.type === 'order' ? 'bg-blue-500' : 'bg-purple-500'}
-                          `}
-                        />
-                      ))}
-                      {dayEvents.length > 3 && (
-                        <div className="text-xs text-gray-500 ml-1">
-                          +{dayEvents.length - 3}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* 확장/축소 버튼 */}
-                  {hasEvents && (
-                    <div className="text-gray-400">
-                      {isExpanded ? (
-                        <FaChevronUp className="text-sm" />
-                      ) : (
-                        <FaChevronDown className="text-sm" />
-                      )}
-                    </div>
-                  )}
-                </div>
+                ))}
+                {dayOrderEvents.length > 2 && (
+                  <div className="text-[8px] text-gray-500 text-center">
+                    +{dayOrderEvents.length - 2}
+                  </div>
+                )}
               </div>
 
-              {/* 확장된 이벤트 리스트 */}
-              {hasEvents && isExpanded && (
-                <div className="px-4 pb-4 bg-gray-50">
-                  <div className="space-y-2">
-                    {dayEvents.map((event) => (
-                      <div
-                        key={event.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEventClick(event);
-                        }}
-                        className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                      >
-                        <EventItem
-                          event={event}
-                          isCompact={false}
-                          className="text-sm"
-                          isMobile={true}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 축소된 상태에서의 이벤트 미리보기 */}
-              {hasEvents && !isExpanded && dayEvents.length > 0 && (
-                <div className="px-4 pb-3">
-                  <div className="text-xs text-gray-600 truncate">
-                    {dayEvents.slice(0, 2).map((event, idx) => (
-                      <span key={event.id}>
-                        {idx > 0 && ', '}
-                        <span className={`
-                          ${event.type === 'order' ? 'text-blue-600' : 'text-purple-600'}
-                        `}>
-                          [{event.type === 'order' ? '발주' : '시연'}] {event.title}
-                        </span>
-                      </span>
-                    ))}
-                    {dayEvents.length > 2 && ` 외 ${dayEvents.length - 2}개`}
-                  </div>
+              {/* 이벤트 도트 */}
+              {hasEvents && (
+                <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-0.5">
+                  {dayEvents.slice(0, 3).map(event => (
+                    <div
+                      key={event.id}
+                      className={`w-1 h-1 rounded-full ${
+                        event.type === 'order' ? 'bg-blue-500' : 'bg-purple-500'
+                      }`}
+                    />
+                  ))}
                 </div>
               )}
             </div>

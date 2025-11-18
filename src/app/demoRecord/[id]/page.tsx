@@ -1421,44 +1421,66 @@ const DemoRecordDetail = () => {
 
                   {/* 이벤트 날짜 정보 (선택 사항) */}
                   {(demo.eventStartDate || demo.eventEndDate) && (
-                    <div className="p-4 mt-2 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex gap-2 items-start mb-2">
-                        <svg
-                          className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        <h3 className="font-medium text-green-900">이벤트 기간</h3>
-                      </div>
-                      <div className="pl-7">
-                        <p className="text-sm text-gray-600 mb-1">
-                          실제 이벤트 개최 기간
-                        </p>
-                        <div className="space-y-1">
-                          <p className="font-medium text-gray-900">
-                            {demo.eventStartDate && demo.eventEndDate
-                              ? `${formatDateForDisplayUTC(demo.eventStartDate)} ~ ${formatDateForDisplayUTC(demo.eventEndDate)}`
-                              : demo.eventStartDate
-                              ? `${formatDateForDisplayUTC(demo.eventStartDate)} ~`
-                              : demo.eventEndDate
-                              ? `~ ${formatDateForDisplayUTC(demo.eventEndDate)}`
-                              : "-"}
-                          </p>
-                          {(demo.eventStartDate || demo.eventEndDate) && (
-                            <p className="text-sm text-gray-600">
-                              {demo.eventStartTime || "시간 미지정"} ~ {demo.eventEndTime || "시간 미지정"}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                      {/* 이벤트 시작 */}
+                      {demo.eventStartDate && (
+                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex gap-2 items-start mb-2">
+                            <svg
+                              className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <h3 className="font-medium text-green-900">이벤트 시작</h3>
+                          </div>
+                          <div className="pl-7 space-y-1">
+                            <p className="font-medium text-gray-900">
+                              {formatDateForDisplayUTC(demo.eventStartDate)}
                             </p>
-                          )}
+                            <p className="text-sm text-gray-600">
+                              {demo.eventStartTime || "시간 미지정"}
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      )}
+
+                      {/* 이벤트 종료 */}
+                      {demo.eventEndDate && (
+                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex gap-2 items-start mb-2">
+                            <svg
+                              className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <h3 className="font-medium text-green-900">이벤트 종료</h3>
+                          </div>
+                          <div className="pl-7 space-y-1">
+                            <p className="font-medium text-gray-900">
+                              {formatDateForDisplayUTC(demo.eventEndDate)}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {demo.eventEndTime || "시간 미지정"}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

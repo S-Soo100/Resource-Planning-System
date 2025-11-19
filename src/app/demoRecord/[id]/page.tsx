@@ -1314,11 +1314,17 @@ const DemoRecordDetail = () => {
                     <Calendar size={20} />
                     시연 일정
                   </h2>
+
+                  {/* 시연 제목 */}
+                  <div className="mb-4">
+                    <div className="flex justify-between">
+                      <span className="text-gray-800">시연 제목:</span>
+                      <span className="font-medium">{demo.demoTitle}</span>
+                    </div>
+                  </div>
+
                   {/* 담당자 정보 */}
                   <div className="mb-4">
-                    {/* <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                      담당자 정보
-                    </h2> */}
                     <div className="flex justify-between">
                       <span className="text-gray-800">담당자:</span>
                       <span className="font-medium">
@@ -1327,101 +1333,10 @@ const DemoRecordDetail = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    {/* 상차 정보 */}
-                    <div className="p-4 mb-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex gap-2 items-center mb-2">
-                        {deliveryMethodIcon(demo.demoStartDeliveryMethod)}
-                        <h3 className="font-medium text-blue-900">상차 정보</h3>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">상차 방법:</span>
-                          <span className="font-medium">
-                            {demo.demoStartDeliveryMethod || "-"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">상차 날짜:</span>
-                          <span className="font-medium">
-                            {demo.demoStartDate
-                              ? formatDateTimeToKorean(demo.demoStartDate)
-                              : "-"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">물품 상차 시간:</span>
-                          <span className="font-medium">
-                            {demo.demoStartTime || "-"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    {/* 하차 정보 */}
-                    <div className="p-4 mb-4 bg-purple-50 rounded-lg border border-purple-200">
-                      <div className="flex gap-2 items-center mb-2">
-                        {deliveryMethodIcon(demo.demoEndDeliveryMethod)}
-                        <h3 className="font-medium text-purple-900">
-                          하차 정보
-                        </h3>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">하차 방법:</span>
-                          <span className="font-medium">
-                            {demo.demoEndDeliveryMethod || "-"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">하차 날짜:</span>
-                          <span className="font-medium">
-                            {demo.demoEndDate
-                              ? formatDateTimeToKorean(demo.demoEndDate)
-                              : "-"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">물품 하차 시간:</span>
-                          <span className="font-medium">
-                            {demo.demoEndTime || "-"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* 시연 주소 정보 (상차/하차 정보 바로 아래) */}
-                  <div className="p-4 mt-2 mb-6 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex gap-2 items-start mb-2">
-                      <svg
-                        className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      <h3 className="font-medium text-blue-900">시연 주소</h3>
-                    </div>
-                    <div className="pl-7">
-                      <p className="leading-relaxed text-gray-900 break-words">
-                        {demo.demoAddress}
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* 이벤트 날짜 정보 (선택 사항) */}
+                  {/* 시연행사 일정 (선택 사항) */}
                   {(demo.eventStartDate || demo.eventEndDate) && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                       {/* 시연행사 시작 */}
                       {demo.eventStartDate && (
                         <div className="p-4 bg-green-50 rounded-lg border border-green-200">
@@ -1483,6 +1398,108 @@ const DemoRecordDetail = () => {
                       )}
                     </div>
                   )}
+
+                  {/* 시연 주소 정보 */}
+                  <div className="p-4 mb-6 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex gap-2 items-start mb-2">
+                      <svg
+                        className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      <h3 className="font-medium text-blue-900">시연 주소</h3>
+                    </div>
+                    <div className="pl-7">
+                      <p className="leading-relaxed text-gray-900 break-words">
+                        {demo.demoAddress}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 영역 구분선 */}
+                  <div className="my-6 border-t-2 border-gray-300"></div>
+
+                  {/* 물류 일정 제목 */}
+                  <h3 className="mb-4 text-lg font-medium text-gray-900">
+                    <Truck className="inline-block mr-2 w-5 h-5" />
+                    물류 일정
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    {/* 상차 정보 */}
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex gap-2 items-center mb-2">
+                        {deliveryMethodIcon(demo.demoStartDeliveryMethod)}
+                        <h3 className="font-medium text-blue-900">상차 정보</h3>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">상차 방법:</span>
+                          <span className="font-medium">
+                            {demo.demoStartDeliveryMethod || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">상차 날짜:</span>
+                          <span className="font-medium">
+                            {demo.demoStartDate
+                              ? formatDateTimeToKorean(demo.demoStartDate)
+                              : "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">물품 상차 시간:</span>
+                          <span className="font-medium">
+                            {demo.demoStartTime || "-"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* 하차 정보 */}
+                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex gap-2 items-center mb-2">
+                        {deliveryMethodIcon(demo.demoEndDeliveryMethod)}
+                        <h3 className="font-medium text-purple-900">
+                          하차 정보
+                        </h3>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">하차 방법:</span>
+                          <span className="font-medium">
+                            {demo.demoEndDeliveryMethod || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">하차 날짜:</span>
+                          <span className="font-medium">
+                            {demo.demoEndDate
+                              ? formatDateTimeToKorean(demo.demoEndDate)
+                              : "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">물품 하차 시간:</span>
+                          <span className="font-medium">
+                            {demo.demoEndTime || "-"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* 시연품 정보 */}

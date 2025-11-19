@@ -258,7 +258,7 @@ const SimpleDemonstrationForm: React.FC = () => {
       { field: formData.demoStartTime, name: "물품 상차 시간" },
       { field: formData.demoEndDate, name: "물품 하차일" },
       { field: formData.demoEndTime, name: "물품 하차 시간" },
-      { field: formData.demoAddress || formData.address, name: "시연품 배송장소" },
+      { field: formData.demoAddress || formData.address, name: "시연 물품 배송장소" },
     ];
 
     for (const { field, name } of requiredFields) {
@@ -1035,6 +1035,53 @@ const SimpleDemonstrationForm: React.FC = () => {
                   </div>
                 </div>
               )}
+
+            {/* 시연행사 날짜 (선택 사항) */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-medium text-gray-700 mb-4">
+                시연행사 일정
+              </h3>
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
+                <p className="text-sm text-gray-600">
+                  💡 물류 일정과 별도로 <strong>실제 시연 기간</strong>을 기록해주세요.
+                </p>
+              </div>
+              <div className="space-y-6">
+                <div>
+                  <DateTimePicker
+                    label="시연행사 시작 일시"
+                    date={formData.eventStartDate || ""}
+                    time={formData.eventStartTime || ""}
+                    onDateChange={(date) =>
+                      setFormData((prev) => ({ ...prev, eventStartDate: date }))
+                    }
+                    onTimeChange={(time) =>
+                      setFormData((prev) => ({ ...prev, eventStartTime: time }))
+                    }
+                    placeholder="시연행사 시작 날짜와 시간을 선택하세요"
+                    helperText="시연/행사가 시작되는 일시"
+                    businessHours={{ start: "00:00", end: "23:30" }}
+                  />
+                </div>
+                <div>
+                  <DateTimePicker
+                    label="시연행사 종료 일시"
+                    date={formData.eventEndDate || ""}
+                    time={formData.eventEndTime || ""}
+                    onDateChange={(date) =>
+                      setFormData((prev) => ({ ...prev, eventEndDate: date }))
+                    }
+                    onTimeChange={(time) =>
+                      setFormData((prev) => ({ ...prev, eventEndTime: time }))
+                    }
+                    placeholder="시연행사 종료 날짜와 시간을 선택하세요"
+                    helperText="시연/행사가 종료되는 일시"
+                    minDate={formData.eventStartDate || undefined}
+                    businessHours={{ start: "00:00", end: "23:30" }}
+                  />
+                </div>
+              </div>
+            </div>
             </div>
           </Card>
 
@@ -1079,7 +1126,7 @@ const SimpleDemonstrationForm: React.FC = () => {
           <Card className="p-6">
             <h2 className="flex items-center mb-4 text-xl font-semibold text-gray-800">
               <Calendar className="mr-2 w-5 h-5" />
-              시연 일정 및 장소
+              출고 일정 및 장소
             </h2>
 
             {/* 시연 시작 */}
@@ -1118,16 +1165,16 @@ const SimpleDemonstrationForm: React.FC = () => {
                     }
                     type="delivery"
                     placeholder="상차 시 배송 방법을 선택하세요"
-                    helperText="시연품을 시연품 배송장소로 운송하는 방법입니다"
+                    helperText="시연품을 시연 물품 배송장소로 운송하는 방법입니다"
                   />
                 </div>
               </div>
             </div>
 
-            {/* 시연품 배송장소 */}
+            {/* 시연 물품 배송장소 */}
             <div className="mt-8">
               <h3 className="mb-4 text-lg font-medium text-gray-700">
-                시연품 배송장소
+                시연 물품 배송장소
               </h3>
               <AddressSection
                 address={formData.address}
@@ -1138,7 +1185,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                 onToggleAddressModal={handleToggleAddressModal}
                 onCloseAddressModal={handleCloseAddressModal}
                 focusRingColor="blue"
-                label="시연품 배송장소"
+                label="시연 물품 배송장소"
               />
             </div>
 
@@ -1179,53 +1226,6 @@ const SimpleDemonstrationForm: React.FC = () => {
                     type="pickup"
                     placeholder="회수 시 운송 방법을 선택하세요"
                     helperText="시연품을 창고로 반입하는 방법입니다"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 시연행사 날짜 (선택 사항) */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-medium text-gray-700 mb-4">
-                시연행사 일정 (선택 사항)
-              </h3>
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
-                <p className="text-sm text-gray-600">
-                  💡 시연품 배송 일정과 별도로 <strong>실제 시연행사 개최 기간</strong>을 기록할 수 있습니다.
-                </p>
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <DateTimePicker
-                    label="시연행사 시작 일시"
-                    date={formData.eventStartDate || ""}
-                    time={formData.eventStartTime || ""}
-                    onDateChange={(date) =>
-                      setFormData((prev) => ({ ...prev, eventStartDate: date }))
-                    }
-                    onTimeChange={(time) =>
-                      setFormData((prev) => ({ ...prev, eventStartTime: time }))
-                    }
-                    placeholder="시연행사 시작 날짜와 시간을 선택하세요"
-                    helperText="실제 시연행사가 시작되는 일시"
-                    businessHours={{ start: "00:00", end: "23:30" }}
-                  />
-                </div>
-                <div>
-                  <DateTimePicker
-                    label="시연행사 종료 일시"
-                    date={formData.eventEndDate || ""}
-                    time={formData.eventEndTime || ""}
-                    onDateChange={(date) =>
-                      setFormData((prev) => ({ ...prev, eventEndDate: date }))
-                    }
-                    onTimeChange={(time) =>
-                      setFormData((prev) => ({ ...prev, eventEndTime: time }))
-                    }
-                    placeholder="시연행사 종료 날짜와 시간을 선택하세요"
-                    helperText="실제 시연행사가 종료되는 일시"
-                    minDate={formData.eventStartDate || undefined}
-                    businessHours={{ start: "00:00", end: "23:30" }}
                   />
                 </div>
               </div>

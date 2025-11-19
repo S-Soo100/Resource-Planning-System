@@ -242,7 +242,7 @@ export interface DemonstrationFormData {
   memo: string; // 특이사항 (시연 관련 메모)
   demoTitle: string; // 시연/행사 명
   demoNationType: string; // 국내/해외 시연 구분
-  demoAddress: string; // 시연품 배송장소 (주소 + 상세주소 결합)
+  demoAddress: string; // 시연 물품 배송장소 (주소 + 상세주소 결합)
   demoPaymentType: string; // 결제 유형 (무료/유료)
   demoPrice?: number; // 시연 비용 (VAT 포함, 유료 시에만)
   demoPaymentDate?: string; // 결제 예정일 (유료 시에만)

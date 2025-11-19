@@ -1064,7 +1064,7 @@ export default function UpdatePage() {
                         <li>• <strong>카드 토글 기능</strong>: 클릭 시 시연 기간, 장소, 품목 등 상세 정보 확장 표시</li>
                         <li>• <strong>상세보기 버튼</strong>: 명확한 상세페이지 이동 버튼으로 사용자 경험 개선</li>
                         <li>• <strong>유료 시연 가격 표시</strong>: 유료 시연 시 금액 정보를 괄호 안에 명확히 표시</li>
-                        <li>• <strong>배송 방법 정보</strong>: 시연품 배송장소 뒤에 상차/하차 방법 표시로 물류 정보 가시성 향상</li>
+                        <li>• <strong>배송 방법 정보</strong>: 시연 물품 배송장소 뒤에 상차/하차 방법 표시로 물류 정보 가시성 향상</li>
                         <li>• <strong>품목 정보 정확성</strong>: item.teamItem.itemName 경로 수정으로 정확한 품목명 표시</li>
                         <li>• <strong>모바일 UI 최적화</strong>: 데스크톱과 동일한 카드 토글 및 상세보기 기능을 모바일에서도 제공</li>
                       </ul>

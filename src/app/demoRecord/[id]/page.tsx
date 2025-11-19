@@ -1315,23 +1315,14 @@ const DemoRecordDetail = () => {
                     시연 일정
                   </h2>
 
-                  {/* 시연 제목 */}
-                  <div className="mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-gray-800">시연 제목:</span>
-                      <span className="font-medium">{demo.demoTitle}</span>
-                    </div>
-                  </div>
-
-                  {/* 담당자 정보 */}
-                  <div className="mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-gray-800">담당자:</span>
-                      <span className="font-medium">
-                        {demo.demoManager} (
-                        {formatPhoneNumber(demo.demoManagerPhone)})
-                      </span>
-                    </div>
+                  {/* 시연 제목 및 담당자 정보 */}
+                  <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                    <h3 className="text-2xl font-bold text-gray-900 text-center">
+                      {demo.demoTitle}
+                    </h3>
+                    <p className="text-sm text-center text-gray-700 mt-2">
+                      담당자 : {demo.demoManager} ({formatPhoneNumber(demo.demoManagerPhone)})
+                    </p>
                   </div>
 
                   {/* 시연행사 일정 (선택 사항) */}

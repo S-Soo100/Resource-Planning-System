@@ -81,7 +81,7 @@ export function useCalendarData(weekInfo: WeekInfo) {
                 requester: demo.requester || '신청자 정보 없음',
                 demoManager: demo.demoManager || '담당자 정보 없음',
                 demoManagerPhone: demo.demoManagerPhone || '연락처 정보 없음',
-                demoAddress: demo.demoAddress || '시연품 배송장소 정보 없음',
+                demoAddress: demo.demoAddress || '시연 물품 배송장소 정보 없음',
                 demoStartDate: demo.demoStartDate || '시작일 정보 없음',
                 demoStartTime: demo.demoStartTime || '물품 상차 시간 정보 없음',
                 demoEndDate: demo.demoEndDate || '종료일 정보 없음',

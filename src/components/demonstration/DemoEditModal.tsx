@@ -558,7 +558,21 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       return;
     }
 
-    // 수정 권한 확인 (admin이면 무조건 수정 가능)
+    // 출고 완료 이후 상태는 Admin도 수정 불가
+    const postShipmentStatuses = [
+      DemoStatus.shipmentCompleted,
+      DemoStatus.rejectedByShipper,
+      DemoStatus.demoCompleted,
+    ];
+
+    if (postShipmentStatuses.includes(demo.demoStatus as DemoStatus)) {
+      toast.error(
+        "출고 완료 이후에는 데이터 수정이 불가능합니다. 수정이 필요하신 경우 새로운 시연을 생성해주세요."
+      );
+      return;
+    }
+
+    // 수정 권한 확인
     const isAdmin = user.isAdmin;
     const isAuthor = demo.userId === user.id;
 
@@ -567,16 +581,12 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
       return;
     }
 
-    // admin이면 상태 필터링 제거 - 무조건 수정 가능
+    // 일반 사용자는 추가 상태 필터링 적용
     if (!isAdmin) {
-      // 일반 사용자는 기존 상태 필터링 적용
       const nonEditableStatuses = [
         DemoStatus.approved,
         DemoStatus.rejected,
         DemoStatus.confirmedByShipper,
-        DemoStatus.shipmentCompleted,
-        DemoStatus.rejectedByShipper,
-        DemoStatus.demoCompleted,
       ];
 
       if (nonEditableStatuses.includes(demo.demoStatus as DemoStatus)) {

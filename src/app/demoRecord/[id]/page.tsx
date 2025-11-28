@@ -744,6 +744,17 @@ const DemoRecordDetail = () => {
   // 수정 권한 확인
   const hasPermissionToEdit = (record: DemoResponse) => {
     if (!auth) return false;
+
+    // 출고 완료 이후 상태는 Admin도 수정 불가
+    const postShipmentStatuses = [
+      DemoStatus.shipmentCompleted,
+      DemoStatus.rejectedByShipper,
+      DemoStatus.demoCompleted,
+    ];
+    if (postShipmentStatuses.includes(record.demoStatus as DemoStatus)) {
+      return false;
+    }
+
     const isAdmin = auth.isAdmin;
     const isAuthor = record.userId === auth.id;
     if (isAdmin) return true;
@@ -1043,14 +1054,32 @@ const DemoRecordDetail = () => {
                     </div>
                   ) : (
                     (() => {
-                      const nonEditableStatuses = [
-                        DemoStatus.approved,
-                        DemoStatus.rejected,
-                        DemoStatus.confirmedByShipper,
+                      const postShipmentStatuses = [
                         DemoStatus.shipmentCompleted,
                         DemoStatus.rejectedByShipper,
                         DemoStatus.demoCompleted,
                       ];
+
+                      const nonEditableStatuses = [
+                        DemoStatus.approved,
+                        DemoStatus.rejected,
+                        DemoStatus.confirmedByShipper,
+                      ];
+
+                      if (
+                        postShipmentStatuses.includes(
+                          demo.demoStatus as DemoStatus
+                        )
+                      ) {
+                        return (
+                          <div className="flex gap-2 items-center ml-auto">
+                            <div className="px-4 py-2 text-sm text-red-700 bg-red-100 rounded-lg border border-red-200">
+                              출고 완료 이후에는 데이터 수정이 불가능합니다.
+                              수정이 필요하신 경우 새로운 시연을 생성해주세요.
+                            </div>
+                          </div>
+                        );
+                      }
 
                       if (
                         nonEditableStatuses.includes(

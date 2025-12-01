@@ -242,7 +242,13 @@ export default function DemoRecordTable({
                           e.target.value as DemoStatus
                         );
                       }}
-                      disabled={updatingStatusId === record.id}
+                      disabled={
+                        updatingStatusId === record.id ||
+                        (userAccessLevel === "moderator" &&
+                         record.demoStatus !== "requested" &&
+                         record.demoStatus !== "approved" &&
+                         record.demoStatus !== "rejected")
+                      }
                       className="text-xs bg-white border border-gray-300 rounded px-2 py-1 disabled:opacity-50 w-full"
                       onClick={(e) => e.stopPropagation()}
                     >

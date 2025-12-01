@@ -1101,17 +1101,7 @@ const DemoRecordDetail = () => {
                 </div>
 
                 {/* 상태 변경 섹션 */}
-                {(() => {
-                  const hasPermission = hasPermissionToChangeStatus();
-                  const canChange = canChangeStatus(demo.demoStatus);
-                  // console.log("🎯 상태 변경 섹션 조건 체크:", {
-                  //   hasPermission,
-                  //   canChange,
-                  //   demoStatus: demo.demoStatus,
-                  //   authLevel: auth?.accessLevel,
-                  // });
-                  return hasPermission && canChange;
-                })() && (
+                {hasPermissionToChangeStatus() && (
                   <div className="p-6 mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 shadow-sm">
                     <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
                       <svg
@@ -1154,7 +1144,13 @@ const DemoRecordDetail = () => {
                                 e.target.value as DemoStatus
                               )
                             }
-                            disabled={isUpdatingStatus}
+                            disabled={
+                              isUpdatingStatus ||
+                              (auth?.accessLevel === "moderator" &&
+                               demo.demoStatus !== "requested" &&
+                               demo.demoStatus !== "approved" &&
+                               demo.demoStatus !== "rejected")
+                            }
                             className="px-4 py-2 pr-10 bg-white rounded-lg border border-gray-300 transition-colors appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <option value="">-선택-</option>
@@ -1220,11 +1216,22 @@ const DemoRecordDetail = () => {
                           />
                         </svg>
                         <div className="text-sm text-blue-800">
-                          {auth?.accessLevel === "moderator"
-                            ? "1차승인권자는 초기 승인 단계만 담당합니다."
-                            : auth?.accessLevel === "admin"
-                            ? "관리자는 모든 상태를 변경할 수 있습니다."
-                            : "상태 변경 권한이 없습니다."}
+                          {auth?.accessLevel === "moderator" ? (
+                            <>
+                              1차승인권자는 초기 승인 단계(요청, 승인, 반려)만 담당합니다.
+                              {demo.demoStatus !== "requested" &&
+                               demo.demoStatus !== "approved" &&
+                               demo.demoStatus !== "rejected" && (
+                                <span className="block mt-1 text-amber-700">
+                                  ⚠️ 현재 상태에서는 상태 변경이 불가능합니다.
+                                </span>
+                              )}
+                            </>
+                          ) : auth?.accessLevel === "admin" ? (
+                            "관리자는 모든 상태를 변경할 수 있습니다."
+                          ) : (
+                            "상태 변경 권한이 없습니다."
+                          )}
                         </div>
                       </div>
                     </div>

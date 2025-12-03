@@ -921,17 +921,7 @@ const OrderRecordDetail = () => {
                   </h1>
                 </div>
                 {/* 상태 변경 섹션 */}
-                {(() => {
-                  const hasPermission = hasPermissionToChangeStatus();
-                  const canChange = canChangeStatus(order.status);
-                  // console.log("🎯 상태 변경 섹션 조건 체크:", {
-                  //   hasPermission,
-                  //   canChange,
-                  //   orderStatus: order.status,
-                  //   authLevel: auth?.accessLevel,
-                  // });
-                  return hasPermission && canChange;
-                })() && (
+                {hasPermissionToChangeStatus() && (
                   <div className="p-4 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
                     <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
                       <svg
@@ -974,8 +964,14 @@ const OrderRecordDetail = () => {
                             e.target.value as OrderStatus
                           )
                         }
-                        disabled={isUpdatingStatus}
-                        className="px-3 py-2 bg-white rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={
+                          isUpdatingStatus ||
+                          (auth?.accessLevel === "moderator" &&
+                           order.status !== OrderStatus.requested &&
+                           order.status !== OrderStatus.approved &&
+                           order.status !== OrderStatus.rejected)
+                        }
+                        className="px-3 py-2 bg-white rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {getAvailableStatusOptions().map((option) => (
                           <option
@@ -1008,11 +1004,22 @@ const OrderRecordDetail = () => {
                       )}
                     </div>
                     <div className="mt-3 text-xs text-gray-500">
-                      {auth?.accessLevel === "moderator"
-                        ? "1차승인권자는 초기 승인 단계만 담당합니다."
-                        : auth?.accessLevel === "admin"
-                        ? "관리자는 모든 상태를 변경할 수 있습니다."
-                        : "상태 변경 권한이 없습니다."}
+                      {auth?.accessLevel === "moderator" ? (
+                        <>
+                          1차승인권자는 초기 승인 단계(요청, 승인, 반려)만 담당합니다.
+                          {order.status !== OrderStatus.requested &&
+                           order.status !== OrderStatus.approved &&
+                           order.status !== OrderStatus.rejected && (
+                            <span className="block mt-1 text-amber-700">
+                              ⚠️ 현재 상태에서는 상태 변경이 불가능합니다.
+                            </span>
+                          )}
+                        </>
+                      ) : auth?.accessLevel === "admin" ? (
+                        "관리자는 모든 상태를 변경할 수 있습니다."
+                      ) : (
+                        "상태 변경 권한이 없습니다."
+                      )}
                     </div>
                   </div>
                 )}

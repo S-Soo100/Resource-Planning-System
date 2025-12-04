@@ -39,6 +39,8 @@ type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
 
 type TabType = "all" | "user" | "supplier";
 type ShipmentTabType = "pending" | "completed";
+type SortField = "createdAt" | "outboundDate" | "title" | "status";
+type SortOrder = "asc" | "desc" | null;
 
 interface OrderResponse extends ApiResponse {
   data: Order[];
@@ -125,6 +127,8 @@ const OrderRecordTabs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [sortField, setSortField] = useState<SortField>("createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
 
   const recordsPerPage = 10;
 
@@ -418,12 +422,48 @@ const OrderRecordTabs = () => {
 
   // 페이지네이션 계산 (useMemo로 최적화)
   const { totalPages, currentRecords, startIndex } = useMemo(() => {
-    // createdAt 기준으로 내림차순 정렬 (최신순)
-    const sortedOrders = [...filteredOrders].sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      return dateB - dateA; // 내림차순 (최신순)
-    });
+    // 정렬 적용
+    let sortedOrders = [...filteredOrders];
+
+    if (sortField && sortOrder) {
+      sortedOrders.sort((a, b) => {
+        let aValue: string | number;
+        let bValue: string | number;
+
+        switch (sortField) {
+          case "createdAt":
+            aValue = new Date(a.createdAt).getTime();
+            bValue = new Date(b.createdAt).getTime();
+            break;
+          case "outboundDate":
+            aValue = new Date(a.outboundDate || a.createdAt).getTime();
+            bValue = new Date(b.outboundDate || b.createdAt).getTime();
+            break;
+          case "title":
+            aValue = a.title || "";
+            bValue = b.title || "";
+            break;
+          case "status":
+            aValue = a.status;
+            bValue = b.status;
+            break;
+          default:
+            return 0;
+        }
+
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          return sortOrder === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+        }
+
+        return 0;
+      });
+    }
 
     const total = Math.ceil(sortedOrders.length / recordsPerPage);
     const indexOfLastRecord = currentPage * recordsPerPage;
@@ -439,7 +479,7 @@ const OrderRecordTabs = () => {
       currentRecords: records,
       startIndex: indexOfFirstRecord,
     };
-  }, [filteredOrders, currentPage, recordsPerPage]);
+  }, [filteredOrders, currentPage, recordsPerPage, sortField, sortOrder]);
 
   // 탭 변경 핸들러
   const handleTabChange = (tab: TabType) => {
@@ -467,6 +507,24 @@ const OrderRecordTabs = () => {
   ) => {
     setStatusFilter(e.target.value);
     setCurrentPage(1); // 필터 변경 시 첫 페이지로 이동
+  };
+
+  // 정렬 핸들러 추가
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortOrder === "asc") {
+        setSortOrder("desc");
+      } else if (sortOrder === "desc") {
+        setSortOrder(null);
+        setSortField("createdAt");
+      } else {
+        setSortOrder("asc");
+      }
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+    setCurrentPage(1); // 정렬 변경 시 첫 페이지로 이동
   };
 
   const handleSupplierChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -1234,6 +1292,9 @@ const OrderRecordTabs = () => {
             onDetailClick={(record) => {
               handleRowClick(record.id);
             }}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSort={handleSort}
           />
         )}
 

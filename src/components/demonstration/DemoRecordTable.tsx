@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React from "react";
 import { ArrowUpDown, ArrowUp, ArrowDown, Sparkles } from "lucide-react";
 import { DemoResponse, DemoStatus } from "@/types/demo/demo";
 import { formatDateForDisplayUTC } from "@/utils/dateUtils";
@@ -31,6 +31,9 @@ interface DemoRecordTableProps {
   updatingStatusId: number | null;
   userAccessLevel: string;
   onDetailClick: (record: DemoResponse) => void;
+  sortField: SortField;
+  sortOrder: SortOrder;
+  onSort: (field: SortField) => void;
 }
 
 export default function DemoRecordTable({
@@ -42,27 +45,13 @@ export default function DemoRecordTable({
   updatingStatusId,
   userAccessLevel,
   onDetailClick,
+  sortField,
+  sortOrder,
+  onSort,
 }: DemoRecordTableProps) {
-  const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-
-  // 정렬 핸들러
+  // 정렬 핸들러 - 부모 컴포넌트로 위임
   const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      // 같은 필드 클릭: null -> asc -> desc -> null
-      if (sortOrder === null) {
-        setSortOrder("asc");
-      } else if (sortOrder === "asc") {
-        setSortOrder("desc");
-      } else {
-        setSortOrder(null);
-        setSortField("createdAt"); // 정렬 해제 시 기본값으로
-      }
-    } else {
-      // 다른 필드 클릭: 해당 필드로 오름차순 정렬
-      setSortField(field);
-      setSortOrder("asc");
-    }
+    onSort(field);
   };
 
   // 정렬 아이콘 렌더링
@@ -77,48 +66,7 @@ export default function DemoRecordTable({
     );
   };
 
-  // 정렬된 레코드
-  const sortedRecords = useMemo(() => {
-    if (!sortField || sortOrder === null) {
-      // 기본 정렬: 생성일 내림차순
-      return [...records].sort((a, b) => {
-        const dateA = new Date(a.createdAt);
-        const dateB = new Date(b.createdAt);
-        return dateB.getTime() - dateA.getTime();
-      });
-    }
-
-    const sorted = [...records].sort((a, b) => {
-      let compareResult = 0;
-
-      switch (sortField) {
-        case "createdAt": {
-          const dateA = new Date(a.createdAt);
-          const dateB = new Date(b.createdAt);
-          compareResult = dateA.getTime() - dateB.getTime();
-          break;
-        }
-        case "demoStartDate": {
-          const dateA = a.demoStartDate ? new Date(a.demoStartDate) : new Date(0);
-          const dateB = b.demoStartDate ? new Date(b.demoStartDate) : new Date(0);
-          compareResult = dateA.getTime() - dateB.getTime();
-          break;
-        }
-        case "demoTitle":
-          compareResult = (a.demoTitle || "").localeCompare(b.demoTitle || "");
-          break;
-        case "demoStatus":
-          compareResult = (a.demoStatus || "").localeCompare(b.demoStatus || "");
-          break;
-        default:
-          compareResult = 0;
-      }
-
-      return sortOrder === "asc" ? compareResult : -compareResult;
-    });
-
-    return sorted;
-  }, [records, sortField, sortOrder]);
+  // 정렬은 부모 컴포넌트에서 처리되므로 여기서는 그대로 사용
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow">
@@ -178,7 +126,7 @@ export default function DemoRecordTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {sortedRecords.map((record, index) => (
+          {records.map((record, index) => (
             <tr
               key={record.id}
               className="hover:bg-gray-50 transition-colors cursor-pointer"
@@ -284,7 +232,7 @@ export default function DemoRecordTable({
                   }}
                   className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 active:bg-blue-200 transition-colors"
                 >
-                  상세보기
+                  상세
                 </button>
               </td>
             </tr>

@@ -28,6 +28,8 @@ import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils
 import { formatDateTimeToKorean } from "@/utils/calendar/calendarUtils";
 
 type TabType = "ongoing" | "completed";
+type SortField = "createdAt" | "demoStartDate" | "demoTitle" | "demoStatus";
+type SortOrder = "asc" | "desc" | null;
 
 // API 응답 데이터를 DemoResponse 형식으로 변환하는 함수
 const convertToDemoRecord = (demo: DemoResponse): DemoResponse => {
@@ -76,6 +78,8 @@ const DemonstrationRecordTabs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [sortField, setSortField] = useState<SortField>("createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDemo, setSelectedDemo] = useState<DemoResponse | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null);
@@ -225,20 +229,59 @@ const DemonstrationRecordTabs = () => {
     return filtered;
   }, [demoRecords, searchTerm, statusFilter]);
 
-  // 페이지네이션
-  // createdAt 기준으로 내림차순 정렬 (최신순)
-  const sortedRecords = useMemo(() => {
-    return [...filteredRecords].sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      return dateB - dateA; // 내림차순 (최신순)
-    });
-  }, [filteredRecords]);
+  // 페이지네이션 및 정렬
+  const { sortedRecords, totalPages, startIndex, endIndex, currentRecords } = useMemo(() => {
+    // 정렬 적용
+    let sorted = [...filteredRecords];
 
-  const totalPages = Math.ceil(sortedRecords.length / recordsPerPage);
-  const startIndex = (currentPage - 1) * recordsPerPage;
-  const endIndex = startIndex + recordsPerPage;
-  const currentRecords = sortedRecords.slice(startIndex, endIndex);
+    if (sortField && sortOrder) {
+      sorted.sort((a, b) => {
+        let compareResult = 0;
+
+        switch (sortField) {
+          case "createdAt": {
+            const dateA = new Date(a.createdAt);
+            const dateB = new Date(b.createdAt);
+            compareResult = dateA.getTime() - dateB.getTime();
+            break;
+          }
+          case "demoStartDate": {
+            const dateA = new Date(a.demoStartDate || a.createdAt);
+            const dateB = new Date(b.demoStartDate || b.createdAt);
+            compareResult = dateA.getTime() - dateB.getTime();
+            break;
+          }
+          case "demoTitle": {
+            const titleA = a.demoTitle || "";
+            const titleB = b.demoTitle || "";
+            compareResult = titleA.localeCompare(titleB);
+            break;
+          }
+          case "demoStatus": {
+            compareResult = a.demoStatus.localeCompare(b.demoStatus);
+            break;
+          }
+          default:
+            compareResult = 0;
+        }
+
+        return sortOrder === "asc" ? compareResult : -compareResult;
+      });
+    }
+
+    const total = Math.ceil(sorted.length / recordsPerPage);
+    const start = (currentPage - 1) * recordsPerPage;
+    const end = start + recordsPerPage;
+    const current = sorted.slice(start, end);
+
+    return {
+      sortedRecords: sorted,
+      totalPages: total,
+      startIndex: start,
+      endIndex: end,
+      currentRecords: current,
+    };
+  }, [filteredRecords, currentPage, recordsPerPage, sortField, sortOrder]);
 
   // 탭 변경 핸들러
   const handleTabChange = (tab: TabType) => {
@@ -260,6 +303,24 @@ const DemonstrationRecordTabs = () => {
   ) => {
     setStatusFilter(e.target.value);
     setCurrentPage(1);
+  };
+
+  // 정렬 핸들러 추가
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortOrder === "asc") {
+        setSortOrder("desc");
+      } else if (sortOrder === "desc") {
+        setSortOrder(null);
+        setSortField("createdAt");
+      } else {
+        setSortOrder("asc");
+      }
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+    setCurrentPage(1); // 정렬 변경 시 첫 페이지로 이동
   };
 
   // 페이지 변경 핸들러
@@ -644,6 +705,9 @@ const DemonstrationRecordTabs = () => {
             onDetailClick={(record) => {
               handleRowClick(record.id);
             }}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSort={handleSort}
           />
         )}
       </div>

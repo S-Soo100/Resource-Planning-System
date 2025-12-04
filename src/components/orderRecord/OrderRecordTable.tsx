@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React from "react";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
 import { ArrowUpDown, ArrowUp, ArrowDown, Package, Sparkles } from "lucide-react";
@@ -17,6 +17,9 @@ const isNewRecord = (createdAt: string, status: string): boolean => {
   return isWithin72Hours && isNotCompleted;
 };
 
+type SortField = "createdAt" | "outboundDate" | "title" | "status";
+type SortOrder = "asc" | "desc" | null;
+
 interface OrderRecordTableProps {
   records: IOrderRecord[];
   getStatusText: (status: string) => string;
@@ -27,10 +30,10 @@ interface OrderRecordTableProps {
   userAccessLevel: string;
   auth: any;
   onDetailClick: (record: IOrderRecord) => void;
+  sortField: SortField;
+  sortOrder: SortOrder;
+  onSort: (field: SortField) => void;
 }
-
-type SortField = "createdAt" | "outboundDate" | "title" | "status";
-type SortOrder = "asc" | "desc" | null;
 
 export default function OrderRecordTable({
   records,
@@ -42,25 +45,13 @@ export default function OrderRecordTable({
   userAccessLevel,
   auth,
   onDetailClick,
+  sortField,
+  sortOrder,
+  onSort,
 }: OrderRecordTableProps) {
-  const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-
-  // 정렬 핸들러
+  // 정렬 핸들러 - 부모 컴포넌트로 위임
   const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      if (sortOrder === "asc") {
-        setSortOrder("desc");
-      } else if (sortOrder === "desc") {
-        setSortOrder(null);
-        setSortField("createdAt");
-      } else {
-        setSortOrder("asc");
-      }
-    } else {
-      setSortField(field);
-      setSortOrder("asc");
-    }
+    onSort(field);
   };
 
   // 정렬 아이콘 렌더링
@@ -77,50 +68,7 @@ export default function OrderRecordTable({
     return <ArrowUpDown className="w-4 h-4 ml-1 text-gray-400" />;
   };
 
-  // 정렬된 레코드 목록
-  const sortedRecords = useMemo(() => {
-    if (!sortField || !sortOrder) return records;
-
-    const sorted = [...records].sort((a, b) => {
-      let aValue: string | number;
-      let bValue: string | number;
-
-      switch (sortField) {
-        case "createdAt":
-          aValue = new Date(a.createdAt).getTime();
-          bValue = new Date(b.createdAt).getTime();
-          break;
-        case "outboundDate":
-          aValue = new Date(a.outboundDate || a.createdAt).getTime();
-          bValue = new Date(b.outboundDate || b.createdAt).getTime();
-          break;
-        case "title":
-          aValue = a.title || "";
-          bValue = b.title || "";
-          break;
-        case "status":
-          aValue = a.status;
-          bValue = b.status;
-          break;
-        default:
-          return 0;
-      }
-
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        return sortOrder === "asc"
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      if (typeof aValue === "number" && typeof bValue === "number") {
-        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
-      }
-
-      return 0;
-    });
-
-    return sorted;
-  }, [records, sortField, sortOrder]);
+  // 정렬은 부모 컴포넌트에서 처리되므로 여기서는 그대로 사용
 
   if (records.length === 0) {
     return (
@@ -194,7 +142,7 @@ export default function OrderRecordTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {sortedRecords.map((record, index) => (
+          {records.map((record, index) => (
             <tr
               key={record.id}
               className="hover:bg-gray-50 transition-colors cursor-pointer"
@@ -333,7 +281,7 @@ export default function OrderRecordTable({
                   }}
                   className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-colors"
                 >
-                  상세보기
+                  상세
                 </button>
               </td>
             </tr>

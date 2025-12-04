@@ -565,7 +565,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                   }}
                   className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:border-blue-300 transition-colors"
                 >
-                  상세보기
+                  상세
                 </button>
               </span>
             </div>
@@ -884,7 +884,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                     className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md transition-colors hover:bg-green-600"
                     aria-label="발주 상세 정보 보기"
                   >
-                    상세보기
+                    상세
                   </button>
                   {hasPermissionToEdit(record) && (
                     <button

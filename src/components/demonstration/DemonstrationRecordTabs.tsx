@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Search,
   Filter,
+  Sparkles,
 } from "lucide-react";
 import { DemoResponse } from "@/types/demo/demo";
 import { useDemo } from "@/hooks/useDemo";
@@ -71,6 +72,34 @@ const convertToDemoRecord = (demo: DemoResponse): DemoResponse => {
 };
 
 // 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
+
+// 새로운 기록인지 확인하는 함수
+const isNewRecord = (createdAt: string, status: string): boolean => {
+  const createdDate = new Date(createdAt);
+  const now = new Date();
+  const hoursDiff = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60);
+
+  // 72시간 이내이고, 완료 상태가 아닌 경우
+  const isWithin72Hours = hoursDiff <= 72;
+  const isNotCompleted = !["demoCompleted", "demoCompletedAndReturned", "rejected", "rejectedByShipper"].includes(status);
+
+  return isWithin72Hours && isNotCompleted;
+};
+
+// 미디어 쿼리 훅
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, [matches, query]);
+  return matches;
+}
 
 const DemonstrationRecordTabs = () => {
   const router = useRouter();
@@ -564,6 +593,8 @@ const DemonstrationRecordTabs = () => {
     handleRefresh();
   };
 
+  const isMobile = useMediaQuery("(max-width: 759px)");
+
   return (
     <div className="relative px-4 py-6">
       {/* 로딩 오버레이 */}
@@ -693,7 +724,84 @@ const DemonstrationRecordTabs = () => {
                 : "아직 시연 요청이 없습니다."}
             </p>
           </div>
+        ) : isMobile ? (
+          /* 모바일 카드형 리스트 */
+          <div className="space-y-3">
+            {currentRecords.map((record, index) => (
+              <div
+                key={record.id}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => handleRowClick(record.id)}
+              >
+                {/* 제목 및 NEW 배지 */}
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
+                        {record.demoTitle || `시연 #${record.id}`}
+                      </h3>
+                      {isNewRecord(record.createdAt, record.demoStatus) && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold rounded-full shadow-sm animate-pulse flex-shrink-0">
+                          <Sparkles className="w-3 h-3" />
+                          NEW
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      요청자: {record.requester}
+                    </p>
+                  </div>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ml-2 ${getStatusColorClass(
+                      record.demoStatus
+                    )}`}
+                  >
+                    {getStatusText(record.demoStatus)}
+                  </span>
+                </div>
+
+                {/* 시연 정보 */}
+                <div className="space-y-1 text-xs text-gray-600 mb-3">
+                  {record.demoStartDate && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      <span>시작: {formatDateForDisplayUTC(record.demoStartDate)}</span>
+                    </div>
+                  )}
+                  {record.demoManager && (
+                    <div>담당자: {record.demoManager}</div>
+                  )}
+                  {record.demoNationType && (
+                    <div>
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                        record.demoNationType === "국내" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
+                      }`}>
+                        {record.demoNationType}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 하단 액션 버튼 */}
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <span className="text-xs text-gray-400">
+                    생성: {formatDateForDisplayUTC(record.createdAt)}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRowClick(record.id);
+                    }}
+                    className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 hover:border-blue-300 transition-colors"
+                  >
+                    상세
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
+          /* 데스크톱 테이블형 리스트 */
           <DemoRecordTable
             records={currentRecords}
             getStatusText={getStatusText}

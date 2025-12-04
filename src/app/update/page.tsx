@@ -67,6 +67,82 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8">
         <div className="space-y-8">
+          {/* v1.15.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.15.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-12-04
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 추가됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("추가됨")}
+                    <span className="ml-2">추가됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <h4 className="mb-2 font-medium text-green-900">
+                        <strong>시연 기록 페이지 모바일 레이아웃</strong>
+                      </h4>
+                      <ul className="space-y-1 text-sm text-green-800">
+                        <li>• 760px 이하 화면에서 카드형 레이아웃으로 자동 전환</li>
+                        <li>• NEW 배지 표시 (72시간 이내 생성된 기록)</li>
+                        <li>• 제목, 요청자, 상태, 시작일, 담당자, 국내/해외 구분 표시</li>
+                        <li>• 터치하기 쉬운 큰 카드 영역과 직관적인 정보 배치</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>정렬 기능 개선</strong>
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li>• 정렬 상태를 부모 컴포넌트로 이동하여 올바른 데이터 처리 순서 구현</li>
+                        <li>• 이전: 페이지네이션 → 정렬 (현재 페이지만 정렬)</li>
+                        <li>• 개선: 검색/필터 → 정렬 → 페이지네이션 (전체 데이터 정렬)</li>
+                        <li>• 정렬 기준 변경 시 자동으로 1페이지로 이동</li>
+                        <li>• 생성일, 출고예정일/시작일, 제목, 상태 기준 오름차순/내림차순 정렬 지원</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>UI 개선: 상세보기 버튼 텍스트 간소화</strong>
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li>• "상세보기" → "상세" (2글자)로 변경</li>
+                        <li>• 모바일 환경에서 공간 절약 및 가독성 향상</li>
+                        <li>• 발주/시연 기록 페이지 모두 적용</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.14.0 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +151,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.14.0
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

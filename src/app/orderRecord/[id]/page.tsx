@@ -381,10 +381,17 @@ const OrderRecordDetail = () => {
   const updateOrderStatusMutation = useUpdateOrderStatus();
   const deleteOrderMutation = useDeleteOrder();
 
-  // authStore에서 직접 로그인 상태 확인
-  const isAuthenticated = authStore.getState().isAuthenticated;
+  // authStore에서 하이드레이션 상태 구독
+  const hasHydrated = authStore((state) => state._hasHydrated);
+  const isAuthenticated = authStore((state) => state.isAuthenticated);
 
   useEffect(() => {
+    // Zustand persist 하이드레이션이 완료될 때까지 대기
+    if (!hasHydrated) {
+      console.log("⏳ Zustand 하이드레이션 대기 중...");
+      return;
+    }
+
     const fetchOrder = async () => {
       setIsLoading(true);
 
@@ -393,6 +400,7 @@ const OrderRecordDetail = () => {
       console.log("🔍 로그인 상태 확인:", {
         auth,
         isAuthenticated,
+        hasHydrated,
       });
 
       // 로그인되지 않은 상태에서는 모달을 먼저 표시
@@ -430,7 +438,7 @@ const OrderRecordDetail = () => {
     if (orderId) {
       fetchOrder();
     }
-  }, [orderId, router]);
+  }, [orderId, router, hasHydrated]);
 
   // teamId가 있으면 콘솔에 출력 (디버깅용)
   useEffect(() => {

@@ -67,6 +67,111 @@ export default function UpdatePage() {
       {/* Content */}
       <div className="px-4 py-8">
         <div className="space-y-8">
+          {/* v1.16.0 */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    v1.16.0
+                  </h2>
+                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
+                    최신
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="mr-1 w-4 h-4" />
+                  2025-12-19
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* 보안 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("보안")}
+                    <span className="ml-2">보안</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <h4 className="mb-2 font-medium text-purple-900">
+                        <strong>Next.js 긴급 보안 패치 (15.1.3 → 15.1.11)</strong>
+                      </h4>
+                      <ul className="space-y-1 text-sm text-purple-800">
+                        <li>• CVE-2025-66478 (critical): RSC 원격 코드 실행 취약점 수정</li>
+                        <li>• CVE-2025-55184 (high): 악의적 HTTP 요청으로 인한 DoS 공격 방지</li>
+                        <li>• CVE-2025-55183 (medium): Server Action 소스코드 노출 취약점 수정</li>
+                        <li>• CVE-2025-67779 (high): CVE-2025-55184 불완전 수정 보완</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 수정됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("수정됨")}
+                    <span className="ml-2">수정됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <h4 className="mb-2 font-medium text-red-900">
+                        <strong>로그인/팀 선택 플로우 개선</strong>
+                      </h4>
+                      <ul className="space-y-1 text-sm text-red-800">
+                        <li>• 무한 로딩 문제 완전 해결</li>
+                        <li>• 로그인 성공 시 2초 딜레이 제거, 즉시 리다이렉트</li>
+                        <li>• 팀 선택 후 즉시 리다이렉트 (불필요한 딜레이 제거)</li>
+                        <li>• 인증 체크 타이머 1000ms → 300ms로 단축 (0.7초 개선)</li>
+                        <li>• 모달 로그인 시 로딩 상태 정상 해제 추가</li>
+                        <li>• 총 2.7초 성능 향상으로 사용자 경험 대폭 개선</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <h4 className="mb-2 font-medium text-red-900">
+                        <strong>하이드레이션 타이밍 이슈 수정</strong>
+                      </h4>
+                      <ul className="space-y-1 text-sm text-red-800">
+                        <li>• Zustand persist 관련 간헐적 401 에러 해결</li>
+                        <li>• orderRecord/demoRecord 상세 페이지에 hasHydrated 체크 추가</li>
+                        <li>• 하이드레이션 완료 전 API 호출 방지</li>
+                        <li>• 로그인 후 상세 페이지 진입 시 안정성 향상</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <h4 className="mb-2 font-medium text-red-900">
+                        <strong>업체 추가 모달 에러 처리 개선</strong>
+                      </h4>
+                      <ul className="space-y-1 text-sm text-red-800">
+                        <li>• 업체 등록 시 에러 디버깅 로직 강화</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 개선됨 */}
+                <div>
+                  <h3 className="flex items-center mb-3 text-lg font-medium text-gray-900">
+                    {getIconForType("개선됨")}
+                    <span className="ml-2">개선됨</span>
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="mb-2 font-medium text-orange-900">
+                        <strong>로그인 성능 최적화</strong>
+                      </h4>
+                      <ul className="space-y-1 text-sm text-orange-800">
+                        <li>• 로그인 → 팀 선택 플로우에서 총 2.7초 단축</li>
+                        <li>• 더 빠르고 부드러운 사용자 경험 제공</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* v1.15.0 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-200">
@@ -75,9 +180,6 @@ export default function UpdatePage() {
                   <h2 className="text-xl font-semibold text-gray-900">
                     v1.15.0
                   </h2>
-                  <span className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded">
-                    최신
-                  </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="mr-1 w-4 h-4" />

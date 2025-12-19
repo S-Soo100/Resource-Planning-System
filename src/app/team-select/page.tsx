@@ -28,7 +28,7 @@ export default function TeamSelectPage() {
     setMounted(true);
   }, []);
 
-  // Auth 데이터 확인 로직 추가
+  // Auth 데이터 확인 로직
   useEffect(() => {
     if (!mounted) return;
 
@@ -54,7 +54,7 @@ export default function TeamSelectPage() {
       } else {
         setAuthCheckCompleted(true);
       }
-    }, 1000);
+    }, 300); // 1000ms에서 300ms로 단축
 
     return () => clearTimeout(authCheckTimer);
   }, [mounted, zustandAuth, router]);
@@ -62,9 +62,7 @@ export default function TeamSelectPage() {
   useEffect(() => {
     if (selectedTeam && !isRedirecting && authCheckCompleted) {
       setIsRedirecting(true);
-      setTimeout(() => {
-        router.push("/menu");
-      }, 2000);
+      router.push("/menu");
     }
   }, [selectedTeam, router, isRedirecting, authCheckCompleted]);
 

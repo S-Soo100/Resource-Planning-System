@@ -425,10 +425,17 @@ const DemoRecordDetail = () => {
   const deleteDemoMutation = useDeleteDemo();
   // useWarehouseItems 훅 제거 - 이 페이지에서는 불필요
 
-  // authStore에서 직접 로그인 상태 확인
-  const isAuthenticated = authStore.getState().isAuthenticated;
+  // authStore에서 하이드레이션 상태 구독
+  const hasHydrated = authStore((state) => state._hasHydrated);
+  const isAuthenticated = authStore((state) => state.isAuthenticated);
 
   useEffect(() => {
+    // Zustand persist 하이드레이션이 완료될 때까지 대기
+    if (!hasHydrated) {
+      console.log("⏳ Zustand 하이드레이션 대기 중...");
+      return;
+    }
+
     const fetchDemo = async () => {
       setIsLoading(true);
 
@@ -437,6 +444,7 @@ const DemoRecordDetail = () => {
       console.log("🔍 로그인 상태 확인:", {
         auth,
         isAuthenticated,
+        hasHydrated,
       });
 
       // 로그인되지 않은 상태에서는 모달을 먼저 표시
@@ -475,7 +483,7 @@ const DemoRecordDetail = () => {
     if (demoId) {
       fetchDemo();
     }
-  }, [demoId, router]); // auth, isAuthenticated, teamId는 authStore에서 직접 가져오므로 의존성에서 제외
+  }, [demoId, router, hasHydrated]); // hasHydrated 추가 - 하이드레이션 완료 후 실행
 
   // teamId가 있으면 콘솔에 출력 (디버깅용)
   useEffect(() => {

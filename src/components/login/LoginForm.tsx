@@ -52,12 +52,11 @@ export default function LoginForm({
           if (userData) {
             onLoginSuccess(userData);
           }
-          // 모달에서는 로딩 상태를 유지하지 않음
+          setIsLoading(false);
         } else {
-          // 일반 로그인 플로우
-          setTimeout(() => {
-            router.push("/team-select");
-          }, 2000);
+          // 일반 로그인 플로우 - 즉시 리다이렉트
+          router.push("/team-select");
+          // 라우팅 시작 시 로딩 상태는 유지 (페이지 전환 중 표시)
         }
       } else {
         setLoginError(

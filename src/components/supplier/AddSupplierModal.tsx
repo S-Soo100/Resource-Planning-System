@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { supplierApi } from "@/api/supplier-api";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
+import { authStore } from "@/store/authStore";
 
 interface AddSupplierModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const selectedTeam = authStore((state) => state.selectedTeam);
   const [formData, setFormData] = useState({
     supplierName: "",
     supplierPhone: "",
@@ -56,19 +58,30 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
       return;
     }
 
+    if (!selectedTeam?.id) {
+      toast.error("팀 정보를 찾을 수 없습니다.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // 주소와 상세주소를 합쳐서 전송
       const fullAddress = `${formData.address} ${formData.detailAddress}`.trim();
 
-      const response = await supplierApi.createSupplier({
+      const requestData = {
         supplierName: formData.supplierName.trim(),
         supplierPhoneNumber: formData.supplierPhone.trim() || undefined,
         email: formData.supplierEmail.trim() || undefined,
         supplierAddress: fullAddress || undefined,
         registrationNumber: formData.registrationNumber.trim() || undefined,
         memo: formData.supplierNote.trim() || undefined,
-      });
+        teamId: selectedTeam.id,
+      };
+
+      console.log("📤 납품처 생성 요청 데이터:", JSON.stringify(requestData, null, 2));
+      console.log("📤 선택된 팀 정보:", selectedTeam);
+
+      const response = await supplierApi.createSupplier(requestData);
 
       if (response.success) {
         toast.success("납품처가 추가되었습니다.");

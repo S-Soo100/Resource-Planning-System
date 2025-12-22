@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { Button, Timeline, Pagination, Empty, Alert, Spin, Tag } from 'antd';
 import { StockOutlined, UpOutlined, DownOutlined, UserOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useItemQuantityHistory } from '@/hooks/useChangeHistory';
-// import { useChangeHistorySSE } from '@/hooks/useChangeHistorySSE'; // 임시 비활성화
+import { useChangeHistorySSE } from '@/hooks/useChangeHistorySSE';
 import {
   formatDateTime,
   formatQuantityChange,
@@ -37,8 +37,8 @@ const ItemQuantityHistory: React.FC<ItemQuantityHistoryProps> = ({ itemId }) => 
     isExpanded // 펼쳤을 때만 API 호출
   );
 
-  // SSE 실시간 알림 (임시 비활성화)
-  // const { isConnected } = useChangeHistorySSE('item', itemId, isExpanded);
+  // SSE 실시간 알림
+  useChangeHistorySSE('item', itemId, isExpanded);
 
   // 에러 처리
   if (isError) {

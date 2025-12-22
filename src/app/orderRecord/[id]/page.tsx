@@ -26,6 +26,7 @@ import { OrderComment } from "@/types/(order)/orderComment";
 import { IUser } from "@/types/(auth)/user";
 import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
 import { uploadMultipleOrderFileById, deleteOrderFile } from "@/api/order-api";
+import OrderChangeHistory from "@/components/orderRecord/OrderChangeHistory";
 
 // 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
 
@@ -1287,6 +1288,9 @@ const OrderRecordDetail = () => {
                     </p>
                   )}
                 </div>
+
+                {/* 변경 이력 */}
+                {order && <OrderChangeHistory orderId={order.id} />}
 
                 {/* 댓글 섹션 */}
                 {order && (

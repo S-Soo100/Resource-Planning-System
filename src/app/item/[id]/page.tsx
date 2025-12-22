@@ -9,6 +9,7 @@ import { ko } from "date-fns/locale";
 import { Item } from "@/types/(item)/item";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Package } from "lucide-react";
+import ItemQuantityHistory from "@/components/item/ItemQuantityHistory";
 
 export default function ItemDetailPage() {
   const params = useParams();
@@ -102,6 +103,9 @@ export default function ItemDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* 재고 변동 이력 */}
+        <ItemQuantityHistory itemId={Number(itemId)} />
 
         {/* 입출고 내역 */}
         <div className="bg-white rounded-lg shadow-sm p-6">

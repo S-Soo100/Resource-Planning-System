@@ -38,6 +38,7 @@ import {
   CreateDemoCommentDto,
   type DemoComment,
 } from "@/hooks/(useDemo)/useDemoComments";
+import DemoChangeHistory from "@/components/demonstration/DemoChangeHistory";
 
 // 로컬 formatDate 함수 제거 - dateUtils의 formatDateForDisplayUTC 사용
 
@@ -1695,6 +1696,9 @@ const DemoRecordDetail = () => {
                     <p className="text-gray-500 text-center py-4">첨부파일이 없습니다.</p>
                   )}
                 </div>
+
+                {/* 변경 이력 */}
+                {demo && <DemoChangeHistory demoId={demo.id} />}
 
                 {/* 수정 모달 */}
                 {isEditModalOpen && demo && (

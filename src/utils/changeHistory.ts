@@ -11,9 +11,12 @@ import {
   StockOutlined,
   InfoCircleOutlined,
   UserOutlined,
+  CalendarOutlined,
+  ShoppingCartOutlined,
+  InboxOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import type { ChangeHistoryItem, ChangeAction, AccessLevel } from '@/types/change-history';
+import type { ChangeHistoryItem, ChangeAction, AccessLevel, EntityType } from '@/types/change-history';
 
 /**
  * 액션 타입별 Ant Design 색상 반환
@@ -205,4 +208,56 @@ export const getQuantityChangeIcon = (item: ChangeHistoryItem): React.ReactNode 
   ) : (
     React.createElement('span', { className: 'text-red-600 font-bold' }, '▼')
   );
+};
+
+// ============================================================================
+// v3.0: 엔티티 타입 관련 함수
+// ============================================================================
+
+/**
+ * 엔티티 타입별 한글 라벨 반환 (v3.0)
+ */
+export const getEntityTypeLabel = (type: EntityType): string => {
+  switch (type) {
+    case 'demo':
+      return '시연';
+    case 'order':
+      return '주문';
+    case 'item':
+      return '재고';
+    default:
+      return type;
+  }
+};
+
+/**
+ * 엔티티 타입별 Ant Design 색상 반환 (v3.0)
+ */
+export const getEntityTypeColor = (type: EntityType): string => {
+  switch (type) {
+    case 'demo':
+      return 'purple';
+    case 'order':
+      return 'blue';
+    case 'item':
+      return 'orange';
+    default:
+      return 'default';
+  }
+};
+
+/**
+ * 엔티티 타입별 아이콘 반환 (v3.0)
+ */
+export const getEntityTypeIcon = (type: EntityType): React.ReactNode => {
+  switch (type) {
+    case 'demo':
+      return React.createElement(CalendarOutlined);
+    case 'order':
+      return React.createElement(ShoppingCartOutlined);
+    case 'item':
+      return React.createElement(InboxOutlined);
+    default:
+      return React.createElement(InfoCircleOutlined);
+  }
 };

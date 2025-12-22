@@ -1,0 +1,152 @@
+/**
+ * 팀 활동 대시보드 컴포넌트 (v3.0)
+ */
+'use client';
+
+import React, { useState } from 'react';
+import { Card, Tag, Timeline, Checkbox, Empty, Spin } from 'antd';
+import { TeamOutlined } from '@ant-design/icons';
+import { useTeamChangeHistorySSE } from '@/hooks/useTeamChangeHistorySSE';
+import SSEConnectionStatus from '@/components/common/SSEConnectionStatus';
+import type { TeamHistoryEvent, EntityType } from '@/types/change-history';
+import {
+  getEntityTypeLabel,
+  getEntityTypeColor,
+  getEntityTypeIcon,
+  getActionLabel,
+  getActionColor,
+  formatDateTime,
+} from '@/utils/changeHistory';
+
+interface TeamActivityDashboardProps {
+  teamId: number;
+  teamName: string;
+}
+
+const TeamActivityDashboard: React.FC<TeamActivityDashboardProps> = ({
+  teamId,
+  teamName,
+}) => {
+  const [events, setEvents] = useState<TeamHistoryEvent[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<EntityType[]>(['demo', 'order', 'item']);
+  const [isConnecting, setIsConnecting] = useState(true);
+  const [lastHeartbeat, setLastHeartbeat] = useState<Date | undefined>(undefined);
+
+  // 팀별 SSE 연결
+  const { isConnected } = useTeamChangeHistorySSE(teamId, {
+    enabled: true,
+    types: selectedTypes,
+    onEvent: (event) => {
+      // 새 이벤트를 리스트 맨 앞에 추가 (최신순)
+      setEvents((prev) => [event, ...prev].slice(0, 50)); // 최대 50개까지만 유지
+      setIsConnecting(false);
+    },
+    onHeartbeat: (timestamp) => {
+      setLastHeartbeat(new Date(timestamp));
+      setIsConnecting(false);
+    },
+    onError: () => {
+      setIsConnecting(false);
+    },
+  });
+
+  // 타입 필터 변경
+  const handleTypeChange = (checkedValues: EntityType[]) => {
+    setSelectedTypes(checkedValues);
+    setEvents([]); // 필터 변경 시 기존 이벤트 초기화
+  };
+
+  return (
+    <Card
+      title={
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <TeamOutlined />
+            {teamName} 실시간 활동
+          </span>
+          <div className="flex items-center gap-2">
+            <SSEConnectionStatus
+              isConnected={isConnected}
+              lastHeartbeat={lastHeartbeat}
+            />
+          </div>
+        </div>
+      }
+      className="mb-6"
+    >
+      {/* 타입 필터 */}
+      <div className="mb-4">
+        <Checkbox.Group
+          value={selectedTypes}
+          onChange={handleTypeChange as any}
+        >
+          <Checkbox value="demo">시연</Checkbox>
+          <Checkbox value="order">주문</Checkbox>
+          <Checkbox value="item">재고</Checkbox>
+        </Checkbox.Group>
+      </div>
+
+      {/* 로딩 상태 */}
+      {isConnecting && (
+        <div className="text-center py-8">
+          <Spin />
+          <p className="mt-2 text-gray-500">실시간 연결 중...</p>
+        </div>
+      )}
+
+      {/* 이벤트 리스트 */}
+      {!isConnecting && events.length === 0 && (
+        <Empty
+          description="아직 활동이 없습니다"
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        />
+      )}
+
+      {!isConnecting && events.length > 0 && (
+        <Timeline
+          items={events.map((event) => ({
+            color: getActionColor(event.action),
+            dot: getEntityTypeIcon(event.entityType),
+            children: (
+              <div key={event.id} className="mb-2">
+                {/* 엔티티 타입 + 액션 */}
+                <div className="flex items-center gap-2 mb-1">
+                  <Tag color={getEntityTypeColor(event.entityType)}>
+                    {getEntityTypeLabel(event.entityType)}
+                  </Tag>
+                  <Tag color={getActionColor(event.action)}>
+                    {getActionLabel(event.action)}
+                  </Tag>
+                  <span className="text-gray-500 text-sm">
+                    {formatDateTime(event.createdAt)}
+                  </span>
+                </div>
+
+                {/* 변경 내용 */}
+                {event.fieldLabel && (
+                  <div className="text-sm mb-1">
+                    <span className="font-semibold">{event.fieldLabel}</span> 변경
+                  </div>
+                )}
+
+                {/* 작업자 */}
+                <div className="text-sm text-gray-600">
+                  {event.userName}님이 변경했습니다
+                </div>
+
+                {/* 비고 */}
+                {event.remarks && (
+                  <div className="mt-1 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                    💬 {event.remarks}
+                  </div>
+                )}
+              </div>
+            ),
+          }))}
+        />
+      )}
+    </Card>
+  );
+};
+
+export default TeamActivityDashboard;

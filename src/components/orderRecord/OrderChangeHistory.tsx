@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { Button, Timeline, Pagination, Radio, Empty, Alert, Spin } from 'antd';
 import { HistoryOutlined, UpOutlined, DownOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useOrderChangeHistory } from '@/hooks/useChangeHistory';
-// import { useChangeHistorySSE } from '@/hooks/useChangeHistorySSE'; // 임시 비활성화
+import { useChangeHistorySSE } from '@/hooks/useChangeHistorySSE';
 import ChangeHistoryItem from '@/components/common/ChangeHistoryItem';
 import { getActionColor, getActionIcon } from '@/utils/changeHistory';
 import { exportChangeHistory } from '@/utils/exportChangeHistory';
@@ -33,8 +33,8 @@ const OrderChangeHistory: React.FC<OrderChangeHistoryProps> = ({ orderId }) => {
     isExpanded // 펼쳤을 때만 API 호출
   );
 
-  // SSE 실시간 알림 (임시 비활성화)
-  // const { isConnected } = useChangeHistorySSE('order', orderId, isExpanded);
+  // SSE 실시간 알림
+  useChangeHistorySSE('order', orderId, isExpanded);
 
   // 에러 처리
   if (isError) {

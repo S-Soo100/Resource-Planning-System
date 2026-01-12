@@ -44,6 +44,30 @@ export default function DemonstrationPage() {
     );
   }
 
+  // 거래처 계정 접근 제한
+  if (user.accessLevel === "supplier") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            접근 권한이 없습니다
+          </h2>
+          <p className="text-gray-600 mb-6">
+            거래처 계정은 시연 요청 페이지에 접근할 수 없습니다.
+          </p>
+          <Button
+            variant="default"
+            onClick={() => router.push("/menu")}
+            icon={<ArrowLeft className="w-4 h-4" />}
+            iconPosition="left"
+          >
+            메인 메뉴로
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="py-6">
       <SimpleDemonstrationForm />

@@ -13,6 +13,7 @@ import {
   FaUser,
   FaQuestionCircle,
   FaCalendarAlt,
+  FaChartLine,
 } from "react-icons/fa";
 import {
   PiNewspaperClippingFill,
@@ -167,10 +168,9 @@ const MainMenu = () => {
         checkAccess(`/demonstration`, [
           "admin",
           "user",
-          "supplier",
           "moderator",
         ]),
-      accessLevel: ["supplier", "user", "admin", "moderator"],
+      accessLevel: ["user", "admin", "moderator"],
     },
     {
       title: "시연 기록",
@@ -180,10 +180,9 @@ const MainMenu = () => {
         checkAccess(`/demonstration-record`, [
           "admin",
           "user",
-          "supplier",
           "moderator",
         ]),
-      accessLevel: ["supplier", "user", "admin", "moderator"],
+      accessLevel: ["user", "admin", "moderator"],
     },
   ];
 
@@ -215,6 +214,13 @@ const MainMenu = () => {
       subtitle: "팀 구성원 추가, 창고 추가",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () => checkAccess(`/admin`, ["admin", "moderator"]),
+      accessLevel: ["admin", "moderator"],
+    },
+    {
+      title: "5. 팀 활동 모니터링",
+      subtitle: "팀 전체의 실시간 변경 이력을 확인합니다",
+      icon: <FaChartLine className="text-3xl" />,
+      onClick: () => checkAccess(`/team-dashboard`, ["admin", "moderator"]),
       accessLevel: ["admin", "moderator"],
     },
   ];

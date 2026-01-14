@@ -265,7 +265,7 @@ GET /change-history/item/789?action=quantity_change
 ### SSE란?
 
 Server-Sent Events(SSE)는 서버에서 클라이언트로 단방향 실시간 데이터를 전송하는 기술입니다.
-
+  
 - **연결 방식**: HTTP 기반, 한 번 연결하면 서버가 계속 푸시
 - **재연결**: 브라우저가 자동 재연결 지원
 - **서버 부하**: 이벤트 발생 시에만 데이터 전송 (폴링보다 효율적)

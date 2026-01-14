@@ -8,8 +8,8 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Item } from "@/types/(item)/item";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
-import { Package } from "lucide-react";
 import ItemQuantityHistory from "@/components/item/ItemQuantityHistory";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function ItemDetailPage() {
   const params = useParams();
@@ -19,6 +19,7 @@ export default function ItemDetailPage() {
   const { records, isLoading: isRecordsLoading } =
     useInventoryRecordsByTeamId();
   const { warehouses } = useWarehouseItems();
+  const { user } = useCurrentUser();
 
   const item = itemResponse?.data as Item | undefined;
   const warehouse = warehouses.find((w) => w.id === item?.warehouseId);
@@ -104,8 +105,10 @@ export default function ItemDetailPage() {
           </div>
         </div>
 
-        {/* 재고 변동 이력 */}
-        <ItemQuantityHistory itemId={Number(itemId)} />
+        {/* 재고 변동 이력 (관리자 전용) */}
+        {user?.accessLevel === "admin" && (
+          <ItemQuantityHistory itemId={Number(itemId)} />
+        )}
 
         {/* 입출고 내역 */}
         <div className="bg-white rounded-lg shadow-sm p-6">

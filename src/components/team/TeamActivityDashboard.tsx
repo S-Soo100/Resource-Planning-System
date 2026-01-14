@@ -1,5 +1,5 @@
 /**
- * 팀 활동 대시보드 컴포넌트 (v3.0)
+ * 팀 활동 대시보드 컴포넌트 (v3.2 - SSE 실시간 방식)
  */
 'use client';
 
@@ -122,16 +122,67 @@ const TeamActivityDashboard: React.FC<TeamActivityDashboardProps> = ({
                   </span>
                 </div>
 
+                {/* 엔티티 ID */}
+                <div className="text-sm text-gray-600 mb-2">
+                  ID: {event.entityId}
+                </div>
+
                 {/* 변경 내용 */}
                 {event.fieldLabel && (
-                  <div className="text-sm mb-1">
-                    <span className="font-semibold">{event.fieldLabel}</span> 변경
+                  <div className="text-sm mb-2">
+                    <span className="font-semibold text-gray-700">{event.fieldLabel}</span> 변경
                   </div>
                 )}
 
-                {/* 작업자 */}
+                {/* oldValue → newValue 비교 (update 액션일 때만) */}
+                {event.action === 'update' && (event.oldValue || event.newValue) && (
+                  <div className="text-sm mb-2 bg-blue-50 p-2 rounded">
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-600 font-mono flex-1">
+                        {typeof event.oldValue === 'object'
+                          ? JSON.stringify(event.oldValue, null, 2)
+                          : event.oldValue || '(없음)'}
+                      </span>
+                      <span className="text-gray-400">→</span>
+                      <span className="text-green-600 font-mono flex-1">
+                        {typeof event.newValue === 'object'
+                          ? JSON.stringify(event.newValue, null, 2)
+                          : event.newValue || '(없음)'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* create/delete 액션일 때 값 표시 */}
+                {event.action === 'create' && event.newValue && (
+                  <div className="text-sm mb-2 bg-green-50 p-2 rounded">
+                    <span className="text-gray-600">생성 값:</span>{' '}
+                    <span className="font-mono text-green-600">
+                      {typeof event.newValue === 'object'
+                        ? JSON.stringify(event.newValue, null, 2)
+                        : event.newValue}
+                    </span>
+                  </div>
+                )}
+
+                {event.action === 'delete' && event.oldValue && (
+                  <div className="text-sm mb-2 bg-red-50 p-2 rounded">
+                    <span className="text-gray-600">삭제 값:</span>{' '}
+                    <span className="font-mono text-red-600">
+                      {typeof event.oldValue === 'object'
+                        ? JSON.stringify(event.oldValue, null, 2)
+                        : event.oldValue}
+                    </span>
+                  </div>
+                )}
+
+                {/* 작업자 정보 (이름 + 이메일) */}
                 <div className="text-sm text-gray-600">
-                  {event.userName}님이 변경했습니다
+                  <span className="font-semibold">{event.userName}</span>
+                  {event.userEmail && (
+                    <span className="text-gray-500"> ({event.userEmail})</span>
+                  )}
+                  님이 변경했습니다
                 </div>
 
                 {/* 비고 */}

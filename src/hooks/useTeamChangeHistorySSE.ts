@@ -1,11 +1,12 @@
 /**
- * 팀별 변경 이력 SSE (Server-Sent Events) 실시간 알림 훅 (v3.0)
+ * 팀별 변경 이력 SSE (Server-Sent Events) 실시간 알림 훅 (v3.1 - EventSourcePolyfill)
  * @see /docs/user log notice api/CHANGE_HISTORY_API 2.md
  */
 
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
+import { EventSourcePolyfill } from 'event-source-polyfill';
 import { getToken } from '@/api/cookie-api';
 import type { TeamSSEEvent, TeamHistoryEvent, EntityType } from '@/types/change-history';
 import { getActionLabel, getEntityTypeLabel } from '@/utils/changeHistory';
@@ -44,7 +45,7 @@ export const useTeamChangeHistorySSE = (
   } = options;
 
   const queryClient = useQueryClient();
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const eventSourceRef = useRef<EventSourcePolyfill | null>(null);
 
   useEffect(() => {
     // 비활성화 상태거나 팀 ID가 없으면 연결 안 함
@@ -65,9 +66,11 @@ export const useTeamChangeHistorySSE = (
 
     console.log(`[Team SSE] 연결 시작: Team ${teamId}`, types || 'all types');
 
-    // EventSource 생성
-    const eventSource = new EventSource(sseUrl, {
-      withCredentials: true,
+    // EventSourcePolyfill 생성 (Authorization 헤더 지원)
+    const eventSource = new EventSourcePolyfill(sseUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     eventSourceRef.current = eventSource;
 
@@ -113,7 +116,7 @@ export const useTeamChangeHistorySSE = (
       console.error(`[Team SSE] 연결 오류:`, error);
       onError?.(error);
 
-      if (eventSource.readyState === EventSource.CLOSED) {
+      if (eventSource.readyState === EventSourcePolyfill.CLOSED) {
         console.log('[Team SSE] 연결이 종료되었습니다.');
       }
     };
@@ -129,6 +132,6 @@ export const useTeamChangeHistorySSE = (
   }, [teamId, enabled, types, queryClient, onEvent, onHeartbeat, onError]);
 
   return {
-    isConnected: eventSourceRef.current?.readyState === EventSource.OPEN,
+    isConnected: eventSourceRef.current?.readyState === EventSourcePolyfill.OPEN,
   };
 };

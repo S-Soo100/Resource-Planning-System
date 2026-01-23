@@ -31,7 +31,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${notoSansKr.className} font-sans antialiased min-w-96 mx-auto max-w-[1800px] shadow-lg relative min-h-screen`}
+        className={`${notoSansKr.className} font-sans antialiased min-w-96 mx-auto max-w-7xl shadow-lg relative min-h-screen`}
       >
         <Providers>
           <header className="relative z-50">

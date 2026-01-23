@@ -3,6 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global UI Scale - Reduce overall size to 87.5% */
+html {
+  font-size: 87.5%;
+}
+
 /* Wiggle Animation for Order Guide Buttons */
 @keyframes wiggle {
   0%, 100% {

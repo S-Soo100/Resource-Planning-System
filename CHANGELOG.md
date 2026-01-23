@@ -5,6 +5,34 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## v1.17.0 (2026-01-23)
+
+### 추가됨 (Added)
+
+- **업데이트 자동화 커맨드**: `/update-changelog` 슬래시 커맨드 추가
+  - git log 분석하여 최근 커밋 기반으로 CHANGELOG 자동 생성
+  - 버전 번호 자동 증가 (patch/minor/major 선택 가능)
+  - Keep a Changelog 형식 준수
+  - version.ts 자동 업데이트
+  - 대화형 모드로 사용자 확인 후 커밋
+
+- **카테고리 관리 UX 개선**: 카테고리 삭제 성공 시 토스트 알림 메시지 표시
+  - 삭제 완료 시 즉각적인 피드백 제공
+  - 사용자 경험 향상
+
+### 수정됨 (Fixed)
+
+- **카테고리 삭제 API 버그**: teamId 쿼리 파라미터 누락 문제 해결
+  - 팀별 카테고리 삭제 시 올바른 팀 데이터만 영향받도록 수정
+  - API 호출 시 ID를 문자열로 변환하여 타입 오류 방지
+
+### 개선됨 (Improved)
+
+- **개발자 경험 향상**: 업데이트 관리 프로세스 자동화
+  - 수동으로 CHANGELOG 작성하던 번거로움 해소
+  - 커밋 메시지 기반 자동 분류로 일관성 있는 문서화
+  - 버전 관리 실수 방지
+
 ## v1.16.1 (2026-01-23)
 
 ### 수정됨 (Fixed)

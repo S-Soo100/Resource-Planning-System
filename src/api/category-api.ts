@@ -61,7 +61,7 @@ export const categoryApi = {
   },
 
   deleteCategory: async (id: number): Promise<ApiResponse<boolean>> => {
-    const response = await api.delete<ApiResponse<boolean>>(`/category/${id}`);
+    const response = await api.delete<ApiResponse<boolean>>(`/category/${id.toString()}`);
     return response.data;
   },
 };

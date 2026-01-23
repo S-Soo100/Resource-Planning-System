@@ -137,6 +137,7 @@ export default function TeamItemsPage() {
         if (selectedCategoryId === categoryId) {
           setSelectedCategoryId(null);
         }
+        alert(`'${categoryName}' 카테고리가 성공적으로 삭제되었습니다.`);
       } catch (error) {
         console.error("카테고리 삭제 오류:", error);
         alert("카테고리 삭제에 실패했습니다. 연결된 아이템이 있는지 확인해주세요.");

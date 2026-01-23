@@ -58,9 +58,30 @@ npm run type-check
 npm run lint
 ```
 
-## 업데이트 필수 사항
+## 업데이트 관리
+
+### 자동 업데이트 (권장)
+`/update-changelog` 커맨드 사용:
+```bash
+# 대화형 모드
+/update-changelog
+
+# 버전 유형 직접 지정
+/update-changelog patch    # 버그 수정 (1.16.1 → 1.16.2)
+/update-changelog minor    # 새 기능 (1.16.1 → 1.17.0)
+/update-changelog major    # 대규모 변경 (1.16.1 → 2.0.0)
+```
+
+커맨드가 자동으로 처리:
+- 최근 커밋 분석 및 변경사항 분류
+- CHANGELOG.md에 새 버전 섹션 추가
+- src/constants/version.ts 버전 업데이트
+- /update 페이지는 CHANGELOG.md에서 자동 생성됨
+
+### 수동 업데이트
 변경 시 반드시 업데이트:
-1. `CHANGELOG.md` - Keep a Changelog 형식
-2. `/update` 페이지 - `src/app/update/page.tsx`
-3. `/docs` 폴더 문서 (비즈니스 로직 변경 시)
-4. 커밋을 해야 할 때는,빌드를 수행해보고 문제가 없다면 커밋하기
+1. `CHANGELOG.md` - Keep a Changelog 형식 준수
+2. `src/constants/version.ts` - APP_VERSION 업데이트
+3. `/update` 페이지는 자동 생성 (수정 불필요)
+4. `/docs` 폴더 문서 (비즈니스 로직 변경 시)
+5. 커밋 전 빌드 테스트 필수 (`npm run build`)

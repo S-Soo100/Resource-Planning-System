@@ -80,6 +80,7 @@ export default function TeamItemsPage() {
     categories,
     isLoading: isCategoryLoading,
     getCategoriesSorted,
+    deleteCategory,
   } = useCategory(selectedTeam?.id);
 
   // 반응형 뷰 모드 감지
@@ -116,7 +117,31 @@ export default function TeamItemsPage() {
     name: string;
     priority: number;
   }) => {
+    setIsCategoryModalOpen(true);
     categoryModalRef.current?.openEditMode(category);
+  };
+
+  // 카테고리 삭제
+  const handleDeleteCategory = async (categoryId: number) => {
+    const category = categories.find((c) => c.id === categoryId);
+    const categoryName = category?.name || "카테고리";
+
+    if (
+      window.confirm(
+        `정말 '${categoryName}' 카테고리를 삭제하시겠습니까?\n\n연결된 아이템이 있는 경우 삭제할 수 없습니다.`
+      )
+    ) {
+      try {
+        await deleteCategory(categoryId);
+        // 삭제된 카테고리가 선택되어 있었다면 선택 초기화
+        if (selectedCategoryId === categoryId) {
+          setSelectedCategoryId(null);
+        }
+      } catch (error) {
+        console.error("카테고리 삭제 오류:", error);
+        alert("카테고리 삭제에 실패했습니다. 연결된 아이템이 있는지 확인해주세요.");
+      }
+    }
   };
 
   // 카테고리 모달 닫기
@@ -383,15 +408,28 @@ export default function TeamItemsPage() {
                           {category.name}
                         </h3>
                         {!isReadOnly && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditCategoryModal(category);
-                            }}
-                            className="p-1 text-gray-400 transition-colors rounded hover:text-purple-600 hover:bg-purple-100"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditCategoryModal(category);
+                              }}
+                              className="p-1 text-gray-400 transition-colors rounded hover:text-purple-600 hover:bg-purple-100"
+                              title="카테고리 수정"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteCategory(category.id);
+                              }}
+                              className="p-1 text-gray-400 transition-colors rounded hover:text-red-600 hover:bg-red-100"
+                              title="카테고리 삭제"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </div>
                       <div className="flex justify-between items-center">

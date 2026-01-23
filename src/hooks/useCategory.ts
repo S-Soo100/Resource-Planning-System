@@ -153,7 +153,7 @@ export const useCategory = (teamId?: number) => {
   // 카테고리 삭제
   const deleteCategoryMutation = useMutation({
     mutationFn: async (categoryId: number) => {
-      const response = await categoryApi.deleteCategory(categoryId);
+      const response = await categoryApi.deleteCategory(categoryId, effectiveTeamId);
       if (!response.success) {
         throw new Error(response.error || "카테고리 삭제에 실패했습니다");
       }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { User, X, LogOut, RefreshCcw, UserCircle, Home } from "lucide-react";
+import { User, X, LogOut, RefreshCcw, UserCircle, ArrowLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { authStore } from "@/store/authStore";
@@ -61,8 +61,8 @@ const Appbar = () => {
           onClick={() => navigateByAuthStatus(router)}
           className="flex items-center text-blue-500 focus:outline-none"
         >
-          <Home className="w-5 h-5" />
-          <span className="mx-2 text-sm">메인으로</span>
+          <ArrowLeft className="w-5 h-5" />
+          <span className="mx-2 text-sm">뒤로가기</span>
         </button>
       );
     }

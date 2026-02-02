@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { filterAccessibleWarehouses } from "@/utils/warehousePermissions";
 import { useCategory } from "@/hooks/useCategory";
 import { authStore } from "@/store/authStore";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export interface StockTableFormValues {
   itemId?: number;
@@ -25,6 +26,8 @@ export interface StockTableFormValues {
 }
 
 export default function StockTable() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const {
     items,
@@ -37,10 +40,15 @@ export default function StockTable() {
   const updateQuantityMutation = useUpdateItemQuantity();
   const queryClient = useQueryClient();
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [hideZeroStock, setHideZeroStock] = useState(false);
+
+  // URL에서 초기값 읽기
+  const [searchText, setSearchText] = useState(searchParams.get("search") || "");
+  const [hideZeroStock, setHideZeroStock] = useState(searchParams.get("hideZero") === "true");
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
-    null
+    searchParams.get("warehouse") ? Number(searchParams.get("warehouse")) : null
+  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    searchParams.get("category") ? Number(searchParams.get("category")) : null
   );
 
   const [quantityEditValues, setQuantityEditValues] = useState<{
@@ -79,7 +87,40 @@ export default function StockTable() {
     );
   }
 
-  // 페이지 로드 시 첫 번째 창고 자동 선택
+  // URL 업데이트 함수
+  const updateURL = (params: {
+    warehouse?: number | null;
+    category?: number | null;
+    search?: string;
+    hideZero?: boolean;
+  }) => {
+    const newParams = new URLSearchParams();
+
+    // 창고 파라미터
+    if (params.warehouse !== undefined && params.warehouse !== null) {
+      newParams.set("warehouse", params.warehouse.toString());
+    }
+
+    // 카테고리 파라미터 (선택된 경우만)
+    if (params.category !== undefined && params.category !== null) {
+      newParams.set("category", params.category.toString());
+    }
+
+    // 검색어 파라미터 (비어있지 않은 경우만)
+    if (params.search !== undefined && params.search !== "") {
+      newParams.set("search", params.search);
+    }
+
+    // 재고 숨기기 파라미터 (활성화된 경우만)
+    if (params.hideZero !== undefined && params.hideZero) {
+      newParams.set("hideZero", "true");
+    }
+
+    const queryString = newParams.toString();
+    router.push(`/stock${queryString ? `?${queryString}` : ""}`, { scroll: false });
+  };
+
+  // 페이지 로드 시 첫 번째 창고 자동 선택 (URL에 창고 파라미터가 없는 경우)
   useEffect(() => {
     if (
       !isDataLoading &&
@@ -91,6 +132,19 @@ export default function StockTable() {
       setSelectedWarehouseId(firstWarehouseId);
     }
   }, [isDataLoading, accessibleWarehouses, selectedWarehouseId]);
+
+  // 필터 상태가 변경될 때마다 URL 업데이트
+  useEffect(() => {
+    if (selectedWarehouseId !== null) {
+      updateURL({
+        warehouse: selectedWarehouseId,
+        category: selectedCategoryId,
+        search: searchText,
+        hideZero: hideZeroStock,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedWarehouseId, selectedCategoryId, searchText, hideZeroStock]);
 
   const handleSearch = (value: string) => {
     setSearchText(value);
@@ -182,6 +236,32 @@ export default function StockTable() {
   const selectedTeamId = authStore((state) => state.selectedTeam?.id);
   const { categories } = useCategory(selectedTeamId);
 
+  // 창고 및 카테고리 유효성 검사
+  useEffect(() => {
+    if (!isDataLoading && accessibleWarehouses && accessibleWarehouses.length > 0) {
+      // 창고 ID 유효성 검사
+      if (selectedWarehouseId !== null) {
+        const isValidWarehouse = accessibleWarehouses.some(
+          (w) => Number(w.id) === selectedWarehouseId
+        );
+        if (!isValidWarehouse) {
+          // 유효하지 않은 창고면 첫 번째 창고로 폴백
+          const firstWarehouseId = Number(accessibleWarehouses[0].id);
+          setSelectedWarehouseId(firstWarehouseId);
+          setSelectedCategoryId(null); // 카테고리도 초기화
+        }
+      }
+
+      // 카테고리 ID 유효성 검사
+      if (selectedCategoryId !== null && categories.length > 0) {
+        const isValidCategory = categories.some((cat) => cat.id === selectedCategoryId);
+        if (!isValidCategory) {
+          setSelectedCategoryId(null); // 유효하지 않은 카테고리면 전체로 리셋
+        }
+      }
+    }
+  }, [isDataLoading, accessibleWarehouses, categories, selectedWarehouseId, selectedCategoryId]);
+
   // 카테고리 ID로 카테고리 이름 찾기
   const getCategoryNameById = (categoryId?: number | null): string => {
     if (!categoryId) return "";
@@ -214,13 +294,41 @@ export default function StockTable() {
       // 재고가 0인 품목 필터링
       const passesZeroFilter = hideZeroStock ? item.itemQuantity > 0 : true;
 
-      return matchesSearch && passesZeroFilter;
+      // 카테고리 필터링
+      const itemCategoryId = item.teamItem?.category?.id ?? item.teamItem?.categoryId;
+      const passesCategoryFilter = selectedCategoryId === null || itemCategoryId === selectedCategoryId;
+
+      return matchesSearch && passesZeroFilter && passesCategoryFilter;
     });
+  };
+
+  // 선택된 창고의 물품에서 고유한 카테고리 추출
+  const getWarehouseCategories = () => {
+    if (!selectedWarehouseId) return [];
+
+    const warehouseItems = getWarehouseItems(selectedWarehouseId);
+    const categoryIds = new Set<number>();
+
+    warehouseItems.forEach((item) => {
+      const categoryId = item.teamItem?.category?.id ?? item.teamItem?.categoryId;
+      if (categoryId) {
+        categoryIds.add(categoryId);
+      }
+    });
+
+    // 카테고리 ID로 실제 카테고리 객체 찾기
+    return categories.filter((cat) => categoryIds.has(cat.id));
   };
 
   // 창고 선택 핸들러
   const handleWarehouseSelect = (warehouseId: number) => {
     setSelectedWarehouseId(warehouseId);
+    setSelectedCategoryId(null); // 창고 변경 시 카테고리 필터 초기화
+  };
+
+  // 카테고리 선택 핸들러
+  const handleCategorySelect = (categoryId: number | null) => {
+    setSelectedCategoryId(categoryId);
   };
 
   if (isUserLoading || isDataLoading)
@@ -276,6 +384,42 @@ export default function StockTable() {
                 }
                 items={getWarehouseItems(selectedWarehouseId)}
               />
+            </div>
+
+            {/* 카테고리 필터 버튼 */}
+            <div className="px-4 mb-4">
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  카테고리 필터
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {/* 전체 버튼 */}
+                  <button
+                    onClick={() => handleCategorySelect(null)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      selectedCategoryId === null
+                        ? "bg-blue-500 text-white shadow-md"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    전체
+                  </button>
+                  {/* 선택된 창고의 카테고리 버튼들만 표시 */}
+                  {getWarehouseCategories().map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => handleCategorySelect(category.id)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        selectedCategoryId === category.id
+                          ? "bg-blue-500 text-white shadow-md"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <StockTableHeader

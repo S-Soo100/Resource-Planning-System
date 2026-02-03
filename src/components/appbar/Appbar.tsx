@@ -56,20 +56,20 @@ const Appbar = () => {
     // 뒤로가기 버튼이 필요한 경우
     if (pathname !== "/" && pathname !== "/menu") {
       return (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => router.back()}
-            className="flex items-center text-blue-500 focus:outline-none"
+            className="flex items-center justify-center bg-blue-500 text-white rounded-full p-2 shadow-sm focus:outline-none hover:bg-blue-600 transition-colors"
+            title="뒤로가기"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="mx-2 text-sm">뒤로가기</span>
           </button>
           <button
             onClick={() => router.push("/menu")}
-            className="flex items-center text-gray-600 hover:text-blue-500 focus:outline-none transition-colors"
+            className="flex items-center justify-center bg-gray-100 text-gray-600 rounded-full p-2 shadow-sm focus:outline-none hover:bg-gray-200 hover:text-blue-500 transition-colors"
+            title="메인으로"
           >
             <Home className="w-5 h-5" />
-            <span className="mx-2 text-sm">메인으로</span>
           </button>
         </div>
       );

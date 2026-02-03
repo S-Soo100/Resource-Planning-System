@@ -84,8 +84,8 @@ const MainMenu = () => {
       title: "입출고 내역",
       subtitle: "품목별 입출고 기록을 조회합니다",
       icon: <FaClipboardList className="text-3xl" />,
-      onClick: () => checkAccess(`/ioHistory`, ["admin", "user", "moderator", "supplier"]),
-      accessLevel: ["user", "admin", "moderator", "supplier"],
+      onClick: () => checkAccess(`/ioHistory`, ["admin", "user", "moderator"]),
+      accessLevel: ["user", "admin", "moderator"],
     },
     // {
     //   title: "품목 관리",

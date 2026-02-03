@@ -68,6 +68,24 @@ export default function OrderRecordTable({
     return <ArrowUpDown className="w-4 h-4 ml-1 text-gray-400" />;
   };
 
+  // 기간 계산 (레코드들의 생성일 기준)
+  const getPeriodInfo = () => {
+    if (records.length === 0) return "";
+
+    const dates = records.map(r => new Date(r.createdAt));
+    const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
+    const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}.${month}.${day}`;
+    };
+
+    return `${formatDate(minDate)} ~ ${formatDate(maxDate)}`;
+  };
+
   // 정렬은 부모 컴포넌트에서 처리되므로 여기서는 그대로 사용
 
   if (records.length === 0) {
@@ -130,6 +148,9 @@ export default function OrderRecordTable({
                 상태
                 {renderSortIcon("status")}
               </div>
+            </th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
+              거래금액
             </th>
             {hasPermissionToChangeStatus() && (
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
@@ -224,6 +245,11 @@ export default function OrderRecordTable({
                 </span>
               </td>
 
+              {/* 거래금액 */}
+              <td className="px-6 py-4 text-sm text-right text-gray-900 font-medium">
+                100원
+              </td>
+
               {/* 상태 변경 드롭다운 */}
               {hasPermissionToChangeStatus() && (
                 <td className="px-6 py-4">
@@ -286,6 +312,24 @@ export default function OrderRecordTable({
               </td>
             </tr>
           ))}
+          {/* 합계 행 */}
+          <tr className="bg-blue-50 border-t-2 border-blue-200">
+            <td colSpan={6} className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
+              <div className="flex flex-col items-end gap-1">
+                <span>합계</span>
+                <span className="text-xs font-normal text-gray-600">
+                  {getPeriodInfo()}
+                </span>
+              </div>
+            </td>
+            <td className="px-6 py-4 text-sm font-bold text-blue-700 text-right">
+              {records.length * 100}원
+            </td>
+            {hasPermissionToChangeStatus() && (
+              <td className="px-6 py-4"></td>
+            )}
+            <td className="px-6 py-4"></td>
+          </tr>
         </tbody>
       </table>
     </div>

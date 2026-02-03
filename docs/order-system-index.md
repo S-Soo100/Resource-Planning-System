@@ -537,3 +537,118 @@ const handleFileDelete = async (fileId: number) => {
 - 파일 추가 시 기존 발주 정보는 변경되지 않음
 - 대용량 파일 업로드 시 네트워크 상태에 따라 시간이 소요될 수 있음
 - 파일 삭제는 즉시 반영되며 복구 불가능
+
+## 💰 거래금액 관리 (개발 중)
+
+### 현재 상태 (v1.18.x)
+
+발주 기록 조회 페이지에 거래금액 표시 기능이 임시로 구현되었습니다.
+
+#### 구현 내역
+
+**OrderRecordTable.tsx:**
+- **거래금액 컬럼 추가**: 테이블 헤더에 '거래금액' 컬럼 표시
+- **임시 데이터**: 모든 발주 건에 대해 100원으로 하드코딩
+- **합계 행 추가**: 테이블 하단에 합계 및 기간 정보 표시
+  - 현재 페이지의 발주 건수 × 100원 자동 계산
+  - 생성일 기준 최소/최대 날짜 범위 표시 (예: 2026.01.01 ~ 2026.02.02)
+
+```typescript
+// 거래금액 표시 (임시 하드코딩)
+<td className="px-6 py-4 text-sm text-right text-gray-900 font-medium">
+  100원
+</td>
+
+// 합계 행
+<tr className="bg-blue-50 border-t-2 border-blue-200">
+  <td colSpan={6} className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
+    <div className="flex flex-col items-end gap-1">
+      <span>합계</span>
+      <span className="text-xs font-normal text-gray-600">
+        {getPeriodInfo()} {/* 예: 2026.01.01 ~ 2026.02.02 */}
+      </span>
+    </div>
+  </td>
+  <td className="px-6 py-4 text-sm font-bold text-blue-700 text-right">
+    {records.length * 100}원
+  </td>
+  ...
+</tr>
+```
+
+### 향후 계획
+
+#### Backend 연동 (예정)
+
+- **거래금액 필드 추가**: Order 타입에 `transactionAmount` 필드 추가
+- **API 응답 포함**: 발주 조회 시 거래금액 데이터 포함
+- **실제 금액 표시**: 하드코딩된 100원을 실제 거래금액으로 대체
+
+#### 정책 확정 필요 사항
+
+다음 사항들이 확정되면 본격적으로 개발 진행:
+
+1. **거래금액 입력 시점**
+   - 발주 요청 시 입력?
+   - 승인 시 입력?
+   - 출고 완료 시 입력?
+
+2. **거래금액 계산 방식**
+   - 품목별 단가 × 수량 자동 계산?
+   - 수동 입력?
+   - 품목별 단가 정보 관리 필요?
+
+3. **거래금액 수정 권한**
+   - Admin만 수정 가능?
+   - 발주자도 특정 상태에서 수정 가능?
+
+4. **합계 계산 기준**
+   - 현재 페이지 합계만 표시?
+   - 전체 합계 표시?
+   - 기간별 필터링 후 합계?
+
+5. **모바일 화면 표시**
+   - OrderRecordTabsMobile에도 동일하게 표시?
+   - 간소화된 형태로 표시?
+
+#### 구현 예정 기능
+
+- [ ] Order 타입에 거래금액 필드 추가
+- [ ] 발주 요청 폼에 거래금액 입력 필드 추가
+- [ ] 발주 수정 모달에 거래금액 수정 기능 추가
+- [ ] 거래금액 권한 제어 로직 구현
+- [ ] 모바일 화면 거래금액 표시
+- [ ] 거래금액 필터링/정렬 기능
+- [ ] 거래금액 통계/리포트 기능
+
+### 기술적 고려사항
+
+#### 데이터 타입
+
+```typescript
+// 향후 예정
+interface Order {
+  // ... 기존 필드
+  transactionAmount?: number; // 거래금액 (원)
+  // 또는
+  transactionAmount?: {
+    amount: number;
+    currency: string; // "KRW"
+    updatedAt: string; // 마지막 수정 시간
+    updatedBy: number; // 수정한 사용자 ID
+  };
+}
+```
+
+#### UI 개선 방향
+
+- 금액 포맷팅: 천 단위 콤마 (예: 1,234,567원)
+- 합계 강조: 색상 및 폰트 크기로 시각적 구분
+- 기간별 통계: 월별/분기별 거래금액 집계
+- 엑셀 내보내기: 거래금액 포함하여 데이터 추출
+
+### 참고사항
+
+- 현재 구현은 **임시 UI 프로토타입**이며, Backend API 연동 전까지 하드코딩된 값 사용
+- 정책 확정 후 본격적인 개발 진행
+- 기존 발주 데이터에 거래금액 정보 없는 경우 처리 방안 필요

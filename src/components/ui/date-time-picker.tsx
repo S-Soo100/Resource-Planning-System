@@ -324,9 +324,8 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                         };
 
                         const isDisabled =
-                          (minDate && day < getDateOnly(minDate)) ||
-                          (maxDate && day > getDateOnly(maxDate)) ||
-                          day < today;
+                          !!(minDate && day < getDateOnly(minDate)) ||
+                          !!(maxDate && day > getDateOnly(maxDate));
 
                         return (
                           <button

@@ -256,9 +256,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
                       selectedDate &&
                       day.toDateString() === selectedDate.toDateString();
                     const isDisabled =
-                      (minDate && day < new Date(minDate)) ||
-                      (maxDate && day > new Date(maxDate)) ||
-                      day < today;
+                      !!(minDate && day < new Date(minDate)) ||
+                      !!(maxDate && day > new Date(maxDate));
 
                     return (
                       <button

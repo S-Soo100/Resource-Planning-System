@@ -1029,7 +1029,6 @@ const SimpleDemonstrationForm: React.FC = () => {
                         }
                         placeholder="결제 예정일을 선택하세요"
                         helperText="시연 비용 결제 예정일입니다"
-                        minDate={getTodayString()}
                       />
                     </div>
                   </div>
@@ -1148,7 +1147,6 @@ const SimpleDemonstrationForm: React.FC = () => {
                     }
                     placeholder="물품 상차 일자와 시간을 선택하세요"
                     helperText="물품을 창고에서 상차하는 시간입니다"
-                    minDate={getTodayString()}
                     businessHours={{ start: "00:00", end: "23:30" }}
                   />
                 </div>
@@ -1208,7 +1206,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                     }
                     placeholder="물품 하차 일자와 시간을 선택하세요"
                     helperText="물품을 창고로 하차하는 시간입니다"
-                    minDate={formData.demoStartDate || getTodayString()}
+                    minDate={formData.demoStartDate || undefined}
                     businessHours={{ start: "00:00", end: "23:30" }}
                   />
                 </div>

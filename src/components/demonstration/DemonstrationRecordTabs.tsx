@@ -28,7 +28,7 @@ import { DemoStatus } from "@/types/demo/demo";
 import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
 import { formatDateTimeToKorean } from "@/utils/calendar/calendarUtils";
 
-type TabType = "ongoing" | "completed";
+type TabType = "ongoing" | "long-term" | "completed";
 type SortField = "createdAt" | "demoStartDate" | "demoTitle" | "demoStatus";
 type SortOrder = "asc" | "desc" | null;
 
@@ -204,6 +204,9 @@ const DemonstrationRecordTabs = () => {
           "rejectedByShipper",
         ].includes(record.demoStatus);
       });
+    } else if (activeTab === "long-term") {
+      // '장기 시연' 탭인 경우 - 현재는 데이터 표시하지 않음 (추후 필터링 로직 추가 예정)
+      return [];
     } else {
       // '시연종료' 탭인 경우 완료된 시연만 필터링
       return allDemoRecords.filter((record: DemoResponse) => {
@@ -620,6 +623,8 @@ const DemonstrationRecordTabs = () => {
           <p className="mt-1 text-base text-gray-500">
             {activeTab === "ongoing"
               ? "진행 중인 시연 요청 및 진행 상황을 확인할 수 있습니다."
+              : activeTab === "long-term"
+              ? "장기 시연 기록을 확인할 수 있습니다."
               : "완료된 시연 기록을 확인할 수 있습니다."}
           </p>
         </div>
@@ -679,6 +684,16 @@ const DemonstrationRecordTabs = () => {
           진행중
         </button>
         <button
+          onClick={() => handleTabChange("long-term")}
+          className={`flex-1 px-5 py-2 rounded-xl font-semibold text-base transition-colors shadow-sm ${
+            activeTab === "long-term"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          장기 시연
+        </button>
+        <button
           onClick={() => handleTabChange("completed")}
           className={`flex-1 px-5 py-2 rounded-xl font-semibold text-base transition-colors shadow-sm ${
             activeTab === "completed"
@@ -694,7 +709,7 @@ const DemonstrationRecordTabs = () => {
       <div className="mb-4 p-4 bg-gray-50 rounded-xl">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            {activeTab === "ongoing" ? "진행중" : "시연종료"} 시연:{" "}
+            {activeTab === "ongoing" ? "진행중" : activeTab === "long-term" ? "장기 시연" : "시연종료"} 시연:{" "}
             <span className="font-semibold text-gray-900">
               {filteredRecords.length}
             </span>
@@ -704,6 +719,107 @@ const DemonstrationRecordTabs = () => {
             전체 시연: {allDemoRecords.length}개
           </div>
         </div>
+      </div>
+
+      {/* 현재 페이지 유료 시연 총액 표시 */}
+      <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+        {/* 기간 정보 */}
+        {(() => {
+          const paidRecords = currentRecords.filter(record => record.demoPrice && record.demoPrice > 0);
+
+          if (paidRecords.length === 0) return null;
+
+          const dates = paidRecords
+            .map(record => record.demoStartDate || record.createdAt)
+            .filter(date => date)
+            .map(date => new Date(date))
+            .sort((a, b) => a.getTime() - b.getTime());
+
+          const startDate = dates[0];
+          const endDate = dates[dates.length - 1];
+
+          return dates.length > 0 ? (
+            <div className="mb-3 pb-3 border-b border-blue-200">
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <span className="text-blue-700 font-medium">시연 기간:</span>
+                <span className="text-gray-700">
+                  {formatDateForDisplayUTC(startDate.toISOString())}
+                  {startDate.getTime() !== endDate.getTime() && (
+                    <>
+                      <span className="mx-1.5 text-blue-600">~</span>
+                      {formatDateForDisplayUTC(endDate.toISOString())}
+                    </>
+                  )}
+                </span>
+                <span className="text-xs text-gray-500">
+                  ({Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) + 1)}일)
+                </span>
+              </div>
+            </div>
+          ) : null;
+        })()}
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-xs text-blue-600 font-medium">현재 페이지 유료 시연</div>
+              <div className="text-sm text-gray-600">
+                <span className="font-semibold text-blue-700">
+                  {currentRecords.filter(record => record.demoPrice && record.demoPrice > 0).length}
+                </span>
+                건
+              </div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-xs text-blue-600 font-medium mb-1">총 대금</div>
+            <div className="text-lg font-bold text-blue-700">
+              {currentRecords
+                .filter(record => record.demoPrice && record.demoPrice > 0)
+                .reduce((sum, record) => sum + (record.demoPrice || 0), 0)
+                .toLocaleString('ko-KR')}
+              <span className="text-sm font-medium ml-1">원</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 결제 유형별 통계 */}
+        {(() => {
+          const paidRecords = currentRecords.filter(record => record.demoPrice && record.demoPrice > 0);
+          const paymentTypes = paidRecords.reduce((acc, record) => {
+            const type = record.demoPaymentType || '미지정';
+            if (!acc[type]) {
+              acc[type] = { count: 0, amount: 0 };
+            }
+            acc[type].count += 1;
+            acc[type].amount += record.demoPrice || 0;
+            return acc;
+          }, {} as Record<string, { count: number; amount: number }>);
+
+          return Object.keys(paymentTypes).length > 0 ? (
+            <div className="mt-3 pt-3 border-t border-blue-200">
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(paymentTypes).map(([type, data]) => (
+                  <div key={type} className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-blue-100">
+                    <span className="text-xs font-medium text-gray-700">{type}</span>
+                    <span className="text-xs text-gray-500">·</span>
+                    <span className="text-xs text-blue-600 font-semibold">{data.count}건</span>
+                    <span className="text-xs text-gray-500">·</span>
+                    <span className="text-xs text-gray-900 font-semibold">
+                      {data.amount.toLocaleString('ko-KR')}원
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null;
+        })()}
       </div>
 
       {/* 테이블형 리스트 */}

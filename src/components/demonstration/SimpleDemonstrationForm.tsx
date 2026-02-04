@@ -113,6 +113,7 @@ const SimpleDemonstrationForm: React.FC = () => {
     warehouseId: 0,
     address: "",
     detailAddress: "",
+    isLongTerm: false, // 장기시연 여부 (기본값: false)
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -352,6 +353,7 @@ const SimpleDemonstrationForm: React.FC = () => {
       warehouseId: formData.warehouseId || 0,
       address: "서울특별시 강남구 테헤란로 123",
       detailAddress: "테스트빌딩 5층 501호",
+      isLongTerm: false, // 장기시연 여부 (기본값: false)
     });
 
     // 가격 표시도 업데이트
@@ -455,6 +457,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                 warehouseId: 0,
                 address: "",
                 detailAddress: "",
+                isLongTerm: false, // 장기시연 여부 (기본값: false)
               });
               setSelectedItems([]);
               fileUpload.resetFiles();
@@ -556,6 +559,7 @@ const SimpleDemonstrationForm: React.FC = () => {
             : undefined,
         userId: user?.id || 0,
         warehouseId: formData.warehouseId || 0,
+        isLongTerm: formData.isLongTerm, // 장기시연 여부
         demoItems: selectedItems.map((item) => ({
           itemId: item.itemId,
           quantity: item.quantity,
@@ -687,6 +691,7 @@ const SimpleDemonstrationForm: React.FC = () => {
           warehouseId: 0,
           address: "",
           detailAddress: "",
+          isLongTerm: false, // 장기시연 여부 (기본값: false)
         });
         setSelectedItems([]);
         fileUpload.resetFiles();
@@ -976,6 +981,25 @@ const SimpleDemonstrationForm: React.FC = () => {
                     <option value="유료">유료</option>
                   </select>
                 </div>
+              </div>
+
+              {/* 장기시연 체크박스 */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isLongTerm"
+                  checked={formData.isLongTerm}
+                  onChange={(e) =>
+                    setFormData({ ...formData, isLongTerm: e.target.checked })
+                  }
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <label
+                  htmlFor="isLongTerm"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  장기 시연 (1개월 이상)
+                </label>
               </div>
 
               {formData.demoPaymentType === "유료" && (

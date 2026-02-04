@@ -128,10 +128,26 @@ export function useWarehouseItems(
   const isLoading = !allWarehousesData;
   const isError = false;
 
-  // 사용자 권한에 따른 창고 필터링
+  // 사용자 권한에 따른 창고 필터링 및 정렬
   const accessibleWarehouses = useMemo(() => {
     if (!user || !allWarehousesData?.warehouses) return [];
-    return filterAccessibleWarehouses(user, allWarehousesData.warehouses);
+
+    const filtered = filterAccessibleWarehouses(user, allWarehousesData.warehouses);
+
+    // sortOrder 기준 정렬
+    return filtered.sort((a, b) => {
+      // sortOrder가 모두 null인 경우 → createdAt 기준 정렬 (오름차순)
+      if (a.sortOrder === null && b.sortOrder === null) {
+        if (!a.createdAt || !b.createdAt) return 0;
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      // a만 null인 경우 뒤로
+      if (a.sortOrder === null) return 1;
+      // b만 null인 경우 뒤로
+      if (b.sortOrder === null) return -1;
+      // 둘 다 숫자인 경우 오름차순
+      return a.sortOrder - b.sortOrder;
+    });
   }, [user, allWarehousesData?.warehouses]);
 
   // 접근 가능한 창고의 아이템만 필터링

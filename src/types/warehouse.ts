@@ -19,6 +19,7 @@ export interface Warehouse {
   };
   items: Item[];
   warehouseAddress?: string;
+  sortOrder: number | null; // 정렬 순서 (0부터 시작, null = 순서 미지정)
   createdAt: string | null;
   updatedAt: string | null;
 }
@@ -28,6 +29,7 @@ export interface CreateWarehouseProps {
   warehouseName: string;
   warehouseAddress: string;
   detailLocation: string;
+  sortOrder?: number | null; // 정렬 순서 (선택적)
 }
 
 export interface CreateWarehouseDto {
@@ -35,6 +37,7 @@ export interface CreateWarehouseDto {
   warehouseAddress: string;
   description?: string;
   teamId: number;
+  sortOrder?: number | null; // 정렬 순서 (선택적, 미전송 시 null)
 }
 
 export interface UpdateWarehouseRequest {
@@ -42,6 +45,7 @@ export interface UpdateWarehouseRequest {
   warehouseAddress?: string;
   description?: string;
   teamId?: number;
+  sortOrder?: number | null; // 정렬 순서 (선택적)
 }
 
 export interface WarehouseResponse {

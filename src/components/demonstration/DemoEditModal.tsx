@@ -131,6 +131,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
     eventEndDate: "",
     eventEndTime: "",
     warehouseId: 0,
+    isLongTerm: false, // 장기시연 여부 (기본값: false)
     demoItems: [],
   });
 
@@ -267,6 +268,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
           eventEndDate: normalizeDateForDisplay(demo.eventEndDate || ""),
           eventEndTime: normalizeTimeForDisplay(demo.eventEndTime || ""),
           warehouseId: demo.warehouseId || 0,
+          isLongTerm: demo.isLongTerm ?? false, // 장기시연 여부 (기본값: false)
           demoItems: existingItems.map((item) => ({
             itemId: item.itemId,
             quantity: item.quantity,
@@ -314,6 +316,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
         eventEndDate: "",
         eventEndTime: "",
         warehouseId: 0,
+        isLongTerm: false, // 장기시연 여부 (기본값: false)
         demoItems: [],
       });
       setSelectedItems([]);
@@ -1136,6 +1139,28 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                       <option value="유료">유료</option>
                     </select>
                   </div>
+                </div>
+
+                {/* 장기시연 체크박스 */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isLongTerm"
+                    checked={formData.isLongTerm}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        isLongTerm: e.target.checked,
+                      }))
+                    }
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <label
+                    htmlFor="isLongTerm"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    장기 시연 (1개월 이상)
+                  </label>
                 </div>
 
                 {formData.demoPaymentType === "유료" && (

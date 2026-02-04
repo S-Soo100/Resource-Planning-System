@@ -181,6 +181,7 @@ export interface DemoResponse {
     inboundQuantity: number;
     outboundQuantity: number;
   }>;
+  isLongTerm: boolean; // 장기시연 여부 (1개월 이상)
 }
 
 export interface CreateDemoDto {
@@ -231,6 +232,7 @@ export interface CreateDemoRequest {
     quantity: number;
     memo: string;
   }>;
+  isLongTerm?: boolean; // 장기시연 여부 (선택적, 기본값: false)
 }
 
 // 폼에서 사용할 데이터 타입 (주소 필드 포함)
@@ -262,6 +264,7 @@ export interface DemonstrationFormData {
   // 주소 관련 필드 (기존 호환성을 위해 유지)
   address: string; // 기본 주소 (주소 검색 API 결과)
   detailAddress: string; // 상세 주소 (사용자 입력)
+  isLongTerm: boolean; // 장기시연 여부 (1개월 이상, 폼 상태 관리용)
 }
 
 // 시연 수정 요청 데이터 타입 (백엔드 API 스펙에 맞춤)
@@ -292,4 +295,5 @@ export interface PatchDemoRequest {
     quantity: number;
     memo: string;
   }>;
+  isLongTerm?: boolean; // 장기시연 여부 (선택적)
 }

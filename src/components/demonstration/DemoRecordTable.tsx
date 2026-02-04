@@ -151,6 +151,11 @@ export default function DemoRecordTable({
                       NEW
                     </span>
                   )}
+                  {record.isLongTerm && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                      장기시연
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5">
                   {record.requester}

@@ -247,7 +247,7 @@ export default function OrderRecordTable({
 
               {/* 거래금액 */}
               <td className="px-6 py-4 text-sm text-right text-gray-900 font-medium">
-                100원
+                0원
               </td>
 
               {/* 상태 변경 드롭다운 */}
@@ -323,7 +323,7 @@ export default function OrderRecordTable({
               </div>
             </td>
             <td className="px-6 py-4 text-sm font-bold text-blue-700 text-right">
-              {records.length * 100}원
+              0원
             </td>
             {hasPermissionToChangeStatus() && (
               <td className="px-6 py-4"></td>

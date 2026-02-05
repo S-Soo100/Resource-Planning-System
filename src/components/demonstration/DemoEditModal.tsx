@@ -1159,7 +1159,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                     htmlFor="isLongTerm"
                     className="text-sm font-medium text-gray-700"
                   >
-                    장기 시연 (1개월 이상)
+                    장기 시연
                   </label>
                 </div>
 

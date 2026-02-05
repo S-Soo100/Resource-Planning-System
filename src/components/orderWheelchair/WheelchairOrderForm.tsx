@@ -36,8 +36,8 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import AddSupplierModal from "../supplier/AddSupplierModal";
 
-// 휠체어 전용 창고명
-const WHEELCHAIR_WAREHOUSE_NAME = "캥스터즈 안산 연구소/휠체어";
+// 휠체어 전용 창고 ID
+const WHEELCHAIR_WAREHOUSE_ID = 54;
 
 export default function WheelchairOrderForm() {
   const router = useRouter();
@@ -107,11 +107,11 @@ export default function WheelchairOrderForm() {
     }
   }, [warehouseItemsData]);
 
-  // 휠체어 창고 자동 설정
+  // 휠체어 창고 자동 설정 (ID 54로 고정)
   useEffect(() => {
     if (warehouses && !formData.warehouseId) {
       const targetWarehouse = warehouses.find(
-        (warehouse) => warehouse.warehouseName === WHEELCHAIR_WAREHOUSE_NAME
+        (warehouse) => warehouse.id === WHEELCHAIR_WAREHOUSE_ID
       );
 
       if (targetWarehouse) {
@@ -120,6 +120,8 @@ export default function WheelchairOrderForm() {
           ...prev,
           warehouseId: targetWarehouse.id,
         }));
+      } else {
+        console.warn(`창고 ID ${WHEELCHAIR_WAREHOUSE_ID}를 찾을 수 없습니다.`);
       }
     }
   }, [warehouses, formData.warehouseId]);

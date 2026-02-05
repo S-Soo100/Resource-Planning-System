@@ -7,45 +7,12 @@ import { Warehouse } from "@/types/warehouse";
  * @param warehouseId 확인할 창고 ID
  * @returns 접근 가능 여부
  */
-export function hasWarehouseAccess(user: IUser, warehouseId: number): boolean {
-  // Supplier이외에는
-  if (user.accessLevel !== "supplier") {
-    return true;
-  }
-
-  // Admin은 모든 창고에 접근 가능
-  // if (user.accessLevel === "admin") {
-  //   return true;
-  // }
-
-  // restrictedWhs가 없거나 빈 문자열이거나 빈 배열인 경우 모든 창고 접근 가능
-  if (
-    !user.restrictedWhs ||
-    user.restrictedWhs === "" ||
-    (Array.isArray(user.restrictedWhs) && user.restrictedWhs.length === 0)
-  ) {
-    return true;
-  }
-
-  // restrictedWhs 배열을 number[]로 변환하여 체크
-  let restrictedWarehouseIds: number[] = [];
-
-  if (typeof user.restrictedWhs === "string") {
-    if (user.restrictedWhs.trim() === "") {
-      return true; // 빈 문자열인 경우 제한 없음
-    }
-    restrictedWarehouseIds = user.restrictedWhs
-      .split(",")
-      .map((id) => parseInt(id.trim()))
-      .filter((id) => !isNaN(id));
-  } else if (Array.isArray(user.restrictedWhs)) {
-    restrictedWarehouseIds = user.restrictedWhs.map((id) =>
-      typeof id === "string" ? parseInt(id) : id
-    );
-  }
-
-  // 제한된 창고 목록에 포함되어 있으면 접근 불가
-  return !restrictedWarehouseIds.includes(warehouseId);
+export function hasWarehouseAccess(
+  _user: IUser,
+  _warehouseId: number
+): boolean {
+  // 임시 조치: 모든 사용자가 모든 창고에 접근 가능
+  return true;
 }
 
 /**
@@ -55,16 +22,11 @@ export function hasWarehouseAccess(user: IUser, warehouseId: number): boolean {
  * @returns 접근 가능한 창고 목록
  */
 export function filterAccessibleWarehouses(
-  user: IUser,
+  _user: IUser,
   warehouses: Warehouse[]
 ): Warehouse[] {
-  if (!user || !warehouses) {
-    return [];
-  }
-
-  return warehouses.filter((warehouse) =>
-    hasWarehouseAccess(user, warehouse.id)
-  );
+  // 임시 조치: 모든 창고 반환 (필터링 없음)
+  return warehouses || [];
 }
 
 /**

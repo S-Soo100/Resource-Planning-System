@@ -8,10 +8,15 @@ import { Warehouse } from "@/types/warehouse";
  * @returns 접근 가능 여부
  */
 export function hasWarehouseAccess(user: IUser, warehouseId: number): boolean {
-  // Admin은 모든 창고에 접근 가능
-  if (user.accessLevel === "admin") {
+  // Supplier이외에는
+  if (user.accessLevel !== "supplier") {
     return true;
   }
+
+  // Admin은 모든 창고에 접근 가능
+  // if (user.accessLevel === "admin") {
+  //   return true;
+  // }
 
   // restrictedWhs가 없거나 빈 문자열이거나 빈 배열인 경우 모든 창고 접근 가능
   if (

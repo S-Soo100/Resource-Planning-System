@@ -54,10 +54,10 @@ export function useWarehouseItems(
       return response.success ? response.data : null;
     },
     enabled: shouldEnableQueries,
-    staleTime,
+    staleTime: 0, // 임시: 항상 fresh하게
     gcTime,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: true, // 임시: 포커스 시 재조회
+    refetchOnMount: true, // 임시: 마운트 시 재조회
     refetchOnReconnect: false,
     retry: 1,
   });
@@ -91,10 +91,10 @@ export function useWarehouseItems(
       return { warehouses, items };
     },
     enabled: shouldEnableQueries && hasWarehouses,
-    staleTime,
+    staleTime: 0, // 임시: 항상 fresh하게
     gcTime,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: true, // 임시: 포커스 시 재조회
+    refetchOnMount: true, // 임시: 마운트 시 재조회
     refetchOnReconnect: false,
     retry: 1,
   });

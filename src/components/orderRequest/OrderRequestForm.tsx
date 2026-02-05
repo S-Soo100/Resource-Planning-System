@@ -133,21 +133,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   // 실제 사용할 창고 목록과 아이템 데이터 (props 우선)
   const baseWarehousesList = propWarehousesList || warehousesList;
 
-  // 팀 id가 57일 때 특정 창고만 선택 가능하도록 필터링 (admin은 예외)
+  // 임시 조치: 모든 팀에서 모든 창고 선택 가능
   const effectiveWarehousesList = useMemo(() => {
-    // admin 권한이면 모든 창고 선택 가능
-    if (user?.accessLevel === "admin") {
-      return baseWarehousesList;
-    }
-
-    if (currentTeam?.id === 57) {
-      const allowedWarehouses = ["캥스터즈 안산 연구소/휠리엑스", "J&J Logistics Solutions"];
-      return baseWarehousesList.filter(warehouse =>
-        allowedWarehouses.includes(warehouse.warehouseName)
-      );
-    }
     return baseWarehousesList;
-  }, [baseWarehousesList, currentTeam?.id, user?.accessLevel]);
+  }, [baseWarehousesList]);
 
   // 현재 선택된 창고의 아이템 목록
   const currentWarehouseItems = useMemo(() => {

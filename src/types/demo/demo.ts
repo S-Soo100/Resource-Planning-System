@@ -38,6 +38,7 @@ export interface Demo {
   eventStartTime?: string | null; // 이벤트 시작 시간
   eventEndDate?: string | null; // 이벤트 종료 날짜
   eventEndTime?: string | null; // 이벤트 종료 시간
+  isLongTerm?: boolean; // 장기시연 여부
   userId: number; // 나
   warehouseId: number; // 시연품 창고
   demoItems: Item[];
@@ -97,6 +98,7 @@ export interface DemoResponse {
   eventStartTime?: string | null; // 이벤트 시작 시간 (선택)
   eventEndDate?: string | null; // 이벤트 종료 날짜 (선택)
   eventEndTime?: string | null; // 이벤트 종료 시간 (선택)
+  isLongTerm: boolean; // 장기시연 여부
   userId: number;
   warehouseId: number;
   createdAt: string;
@@ -224,6 +226,7 @@ export interface CreateDemoRequest {
   eventStartTime?: string; // 이벤트 시작 시간 (선택)
   eventEndDate?: string; // 이벤트 종료 날짜 (선택)
   eventEndTime?: string; // 이벤트 종료 시간 (선택)
+  isLongTerm?: boolean; // 장기시연 여부 (선택)
   userId: number;
   warehouseId: number;
   demoItems: Array<{
@@ -257,6 +260,7 @@ export interface DemonstrationFormData {
   eventStartTime?: string; // 이벤트 시작 시간 (선택)
   eventEndDate?: string; // 이벤트 종료 날짜 (선택)
   eventEndTime?: string; // 이벤트 종료 시간 (선택)
+  isLongTerm?: boolean; // 장기시연 여부 (선택)
   userId: number; // 신청자 ID (현재 로그인한 사용자 ID)
   warehouseId: number; // 시연품 창고 ID
   // 주소 관련 필드 (기존 호환성을 위해 유지)
@@ -286,6 +290,7 @@ export interface PatchDemoRequest {
   eventStartTime?: string; // 이벤트 시작 시간 (선택)
   eventEndDate?: string; // 이벤트 종료 날짜 (선택)
   eventEndTime?: string; // 이벤트 종료 시간 (선택)
+  isLongTerm?: boolean; // 장기시연 여부 (선택)
   warehouseId?: number;
   demoItems?: Array<{
     itemId: number;

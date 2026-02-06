@@ -232,6 +232,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               stockQuantity: warehouseItem?.itemQuantity || 0,
               warehouseItemId: warehouseItem?.id || item.itemId || 0,
               memo: item.memo || "",
+              sellingPrice: item.sellingPrice?.toString() || "",
             };
           });
 
@@ -1090,11 +1091,11 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                             type="number"
                             value={item.sellingPrice || ""}
                             onChange={(e) =>
-                              handleSellingPriceChange(index, e.target.value)
+                              handleSellingPriceChange(index, e.target.value, true)
                             }
                             placeholder="0"
                             min="0"
-                            step="1000"
+                            step="1"
                             className="px-2 py-1 text-sm border border-gray-300 rounded w-32"
                           />
                           <span className="text-xs text-gray-500">원</span>
@@ -1192,7 +1193,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                             }
                             placeholder="0"
                             min="0"
-                            step="1000"
+                            step="1"
                             className="px-2 py-1 text-sm border border-gray-300 rounded w-32"
                           />
                           <span className="text-xs text-gray-500">원</span>

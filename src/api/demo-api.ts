@@ -23,6 +23,15 @@ export const createDemo = async (
 
     // AxiosError 타입 체크
     if (error instanceof AxiosError) {
+      // 🔍 백엔드 응답 상세 로깅 추가
+      console.error("[API] 시연 생성 오류 상세:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        code: error.code,
+      });
+
       // 타임아웃 오류 처리
       if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
         return {
@@ -44,6 +53,14 @@ export const createDemo = async (
         return {
           success: false,
           message: error.response.data.message,
+        };
+      }
+
+      // 400 에러이지만 message가 없는 경우
+      if (error.response?.status === 400) {
+        return {
+          success: false,
+          message: `잘못된 요청입니다. ${JSON.stringify(error.response.data)}`,
         };
       }
     }

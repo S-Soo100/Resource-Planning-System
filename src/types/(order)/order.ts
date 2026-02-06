@@ -27,6 +27,7 @@ export interface Order {
   manager: string;
   status: string;
   memo: string;
+  totalPrice?: number | null; // 주문 총 판매가격
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -68,6 +69,7 @@ export interface OrderItem {
   itemId: number;
   quantity: number;
   memo: string;
+  sellingPrice?: number | null; // 주문 품목 판매가
   item: {
     id: number;
     itemQuantity: number;
@@ -76,6 +78,7 @@ export interface OrderItem {
       itemCode: string;
       itemName: string;
       memo: string;
+      costPrice?: number | null; // 품목 원가
     };
     createdAt: string;
     updatedAt: string;
@@ -118,6 +121,7 @@ export interface CreateOrderDto {
   manager: string;
   status: OrderStatus;
   memo: string;
+  totalPrice?: number; // 주문 총 판매가격 (선택)
   orderItems: CreateOrderItemRequest[];
 }
 
@@ -125,6 +129,7 @@ export interface CreateOrderItemRequest {
   itemId: number;
   quantity: number;
   memo: string;
+  sellingPrice?: number; // 주문 품목 판매가 (선택)
 }
 
 export interface UpdateOrderDto {
@@ -139,6 +144,7 @@ export interface UpdateOrderDto {
   manager?: string;
   status?: string;
   memo?: string;
+  totalPrice?: number; // 주문 총 판매가격 (선택)
   orderItems?: CreateOrderItemRequest[];
 }
 
@@ -164,6 +170,7 @@ export interface CreatOrderResponse {
   manager: string;
   status: string;
   memo: string;
+  totalPrice?: number | null; // 주문 총 판매가격
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -193,6 +200,7 @@ export interface CreatOrderResponse {
     itemId: number;
     quantity: number;
     memo: string;
+    sellingPrice?: number | null; // 주문 품목 판매가
     createdAt: string;
     updatedAt: string;
     item: {
@@ -200,6 +208,7 @@ export interface CreatOrderResponse {
       itemCode: string;
       itemName: string;
       itemQuantity: number;
+      costPrice?: number | null; // 품목 원가
     };
   }>;
   inventoryRecords: Array<{

@@ -268,6 +268,18 @@ export default function WheelchairOrderForm() {
     });
   };
 
+  // 품목별 판매가 변경 핸들러
+  const handleSellingPriceChange = (index: number, value: string) => {
+    setOrderItems((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        sellingPrice: value,
+      };
+      return updated;
+    });
+  };
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -379,6 +391,14 @@ export default function WheelchairOrderForm() {
     setIsSubmitting(true);
 
     try {
+      // 총 판매가격 계산
+      const calculatedTotalPrice = orderItems
+        .filter((item) => item.quantity > 0 && item.sellingPrice)
+        .reduce((sum, item) => {
+          const price = parseInt(item.sellingPrice || "0", 10);
+          return sum + (price * item.quantity);
+        }, 0);
+
       const orderData: CreateOrderDto = {
         userId: auth?.id ?? 0,
         title: formData.title, // 제목 필드 추가
@@ -395,12 +415,14 @@ export default function WheelchairOrderForm() {
         installationDate: formData.setupDate,
         status: OrderStatus.requested,
         memo: formData.notes,
+        totalPrice: calculatedTotalPrice > 0 ? calculatedTotalPrice : undefined,
         orderItems: orderItems
           .filter((item) => item.quantity > 0)
           .map((item) => ({
             itemId: item.warehouseItemId,
             quantity: item.quantity,
             memo: item.teamItem.memo || "",
+            sellingPrice: item.sellingPrice ? parseInt(item.sellingPrice, 10) : undefined,
           })),
       };
 
@@ -631,57 +653,93 @@ export default function WheelchairOrderForm() {
               {orderItems.map((item, index) => (
                 <div
                   key={item.warehouseItemId}
-                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                  className="p-3 bg-gray-50 rounded-lg"
                 >
-                  <div className="flex-1">
-                    <div className="flex gap-2 items-center">
-                      <p className="font-medium text-gray-800">
-                        {item.teamItem.itemName}
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <div className="flex gap-2 items-center">
+                        <p className="font-medium text-gray-800">
+                          {item.teamItem.itemName}
+                        </p>
+                        {item.stockAvailable === false && (
+                          <div className="flex items-center text-xs text-red-500">
+                            <AlertCircle size={14} className="mr-1" />
+                            재고 부족
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        코드: {item.teamItem.itemCode}
+                        {item.stockQuantity !== undefined && (
+                          <span className="ml-2">
+                            (재고: {item.stockQuantity}개)
+                          </span>
+                        )}
                       </p>
-                      {item.stockAvailable === false && (
-                        <div className="flex items-center text-xs text-red-500">
-                          <AlertCircle size={14} className="mr-1" />
-                          재고 부족
-                        </div>
-                      )}
                     </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      코드: {item.teamItem.itemCode}
-                      {item.stockQuantity !== undefined && (
-                        <span className="ml-2">
-                          (재고: {item.stockQuantity}개)
-                        </span>
-                      )}
-                    </p>
+                    <div className="flex gap-2 items-center">
+                      <button
+                        type="button"
+                        onClick={() => handleQuantityChange(index, false)}
+                        className="p-1 bg-gray-200 rounded transition-colors hover:bg-gray-300"
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="w-8 font-medium text-center">
+                        {item.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleQuantityChange(index, true)}
+                        className="p-1 bg-gray-200 rounded transition-colors hover:bg-gray-300"
+                      >
+                        <Plus size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(item.warehouseItemId)}
+                        className="p-1 ml-2 text-red-600 bg-red-100 rounded transition-colors hover:bg-red-200"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
                   </div>
                   <div className="flex gap-2 items-center">
-                    <button
-                      type="button"
-                      onClick={() => handleQuantityChange(index, false)}
-                      className="p-1 bg-gray-200 rounded transition-colors hover:bg-gray-300"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="w-8 font-medium text-center">
-                      {item.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleQuantityChange(index, true)}
-                      className="p-1 bg-gray-200 rounded transition-colors hover:bg-gray-300"
-                    >
-                      <Plus size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveItem(item.warehouseItemId)}
-                      className="p-1 ml-2 text-red-600 bg-red-100 rounded transition-colors hover:bg-red-200"
-                    >
-                      <X size={16} />
-                    </button>
+                    <label className="text-sm text-gray-600 min-w-[60px]">판매가:</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="개당 판매가 (원)"
+                      value={item.sellingPrice || ""}
+                      onChange={(e) => handleSellingPriceChange(index, e.target.value)}
+                      className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    />
+                    {item.sellingPrice && item.quantity > 0 && (
+                      <span className="text-sm text-gray-600 min-w-[100px] text-right">
+                        소계: {(parseInt(item.sellingPrice) * item.quantity).toLocaleString()}원
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
+              {/* 총 판매가격 표시 */}
+              {orderItems.some(item => item.sellingPrice && item.quantity > 0) && (
+                <div className="pt-3 border-t mt-3">
+                  <div className="flex justify-end items-center">
+                    <span className="text-base font-semibold text-gray-700 mr-2">총 판매가격:</span>
+                    <span className="text-lg font-bold text-purple-600">
+                      {orderItems
+                        .filter(item => item.quantity > 0 && item.sellingPrice)
+                        .reduce((sum, item) => {
+                          const price = parseInt(item.sellingPrice || "0", 10);
+                          return sum + (price * item.quantity);
+                        }, 0)
+                        .toLocaleString()}원
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

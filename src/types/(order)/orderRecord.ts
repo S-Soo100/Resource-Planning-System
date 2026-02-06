@@ -18,6 +18,7 @@ export interface IOrderRecord {
   manager: string;
   status: string;
   memo: string; // 이전의 additionalItems
+  totalPrice?: number | null; // 주문 총 판매가격
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

@@ -18,6 +18,7 @@ export type OrderRequestFormData = {
   notes: string;
   manager: string;
   demoCost?: string; // 시연 비용
+  totalPrice?: string; // 주문 총 판매가격 (입력은 문자열로)
 };
 
 export type OrderItemWithDetails = {
@@ -26,6 +27,7 @@ export type OrderItemWithDetails = {
   stockAvailable?: boolean;
   stockQuantity?: number;
   memo?: string; // 품목별 개별 메모
+  sellingPrice?: string; // 주문 품목 판매가 (입력은 문자열로)
 };
 
 export interface OrderRequestFormProps {

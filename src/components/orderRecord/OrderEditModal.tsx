@@ -1011,133 +1011,221 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 <h3 className="mb-2 font-medium">선택된 품목</h3>
                 <div className="p-3 rounded-md border">
                   {/* 패키지 아이템들 */}
-                  {packageItems.map((item, index) => (
-                    <div
-                      key={`package-${item.warehouseItemId}`}
-                      className="flex justify-between items-center py-2 border-b last:border-0"
-                    >
-                      <div className="flex-1">
-                        <div className="flex gap-2 items-center">
-                          <p className="font-medium">
-                            {item.teamItem.itemName}{" "}
-                            <span className="text-xs text-blue-600">
-                              (패키지)
+                  {packageItems.map((item, index) => {
+                    const subtotal = item.sellingPrice
+                      ? parseInt(item.sellingPrice, 10) * item.quantity
+                      : 0;
+                    return (
+                      <div
+                        key={`package-${item.warehouseItemId}`}
+                        className="py-3 border-b last:border-0"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <div className="flex gap-2 items-center">
+                              <p className="font-medium">
+                                {item.teamItem.itemName}{" "}
+                                <span className="text-xs text-blue-600">
+                                  (패키지)
+                                </span>
+                              </p>
+                              {formData.warehouseId &&
+                                item.stockAvailable === false && (
+                                  <div className="flex items-center text-xs text-red-500">
+                                    <AlertCircle size={14} className="mr-1" />
+                                    재고 부족
+                                  </div>
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              코드: {item.teamItem.itemCode}
+                              {formData.warehouseId &&
+                                item.stockQuantity !== undefined && (
+                                  <span className="ml-2">
+                                    (재고: {item.stockQuantity}개)
+                                  </span>
+                                )}
+                            </p>
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleQuantityChange(index, false, true)
+                              }
+                              className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              <Minus size={16} />
+                            </button>
+                            <span className="w-8 text-center">
+                              {item.quantity}
                             </span>
-                          </p>
-                          {formData.warehouseId &&
-                            item.stockAvailable === false && (
-                              <div className="flex items-center text-xs text-red-500">
-                                <AlertCircle size={14} className="mr-1" />
-                                재고 부족
-                              </div>
-                            )}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleQuantityChange(index, true, true)
+                              }
+                              className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              <Plus size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleRemoveItem(item.warehouseItemId, true)
+                              }
+                              className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
+                              title="품목 제거"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500">
-                          코드: {item.teamItem.itemCode}
-                          {formData.warehouseId &&
-                            item.stockQuantity !== undefined && (
-                              <span className="ml-2">
-                                (재고: {item.stockQuantity}개)
-                              </span>
-                            )}
-                        </p>
+                        {/* 판매가 입력 */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <label className="text-xs text-gray-600 whitespace-nowrap">
+                            판매가:
+                          </label>
+                          <input
+                            type="number"
+                            value={item.sellingPrice || ""}
+                            onChange={(e) =>
+                              handleSellingPriceChange(index, e.target.value)
+                            }
+                            placeholder="0"
+                            min="0"
+                            step="1000"
+                            className="px-2 py-1 text-sm border border-gray-300 rounded w-32"
+                          />
+                          <span className="text-xs text-gray-500">원</span>
+                          {item.sellingPrice && (
+                            <span className="ml-auto text-sm font-medium text-blue-600">
+                              소계: {subtotal.toLocaleString()}원
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-2 items-center">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleQuantityChange(index, false, true)
-                          }
-                          className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span className="w-8 text-center">{item.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleQuantityChange(index, true, true)
-                          }
-                          className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                        >
-                          <Plus size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleRemoveItem(item.warehouseItemId, true)
-                          }
-                          className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
-                          title="품목 제거"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   {/* 개별 아이템들 */}
-                  {individualItems.map((item, index) => (
-                    <div
-                      key={`individual-${item.warehouseItemId}`}
-                      className="flex justify-between items-center py-2 border-b last:border-0"
-                    >
-                      <div className="flex-1">
-                        <div className="flex gap-2 items-center">
-                          <p className="font-medium">
-                            {item.teamItem.itemName}
-                          </p>
-                          {formData.warehouseId &&
-                            item.stockAvailable === false && (
-                              <div className="flex items-center text-xs text-red-500">
-                                <AlertCircle size={14} className="mr-1" />
-                                재고 부족
-                              </div>
-                            )}
+                  {individualItems.map((item, index) => {
+                    const actualIndex = packageItems.length + index;
+                    const subtotal = item.sellingPrice
+                      ? parseInt(item.sellingPrice, 10) * item.quantity
+                      : 0;
+                    return (
+                      <div
+                        key={`individual-${item.warehouseItemId}`}
+                        className="py-3 border-b last:border-0"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <div className="flex gap-2 items-center">
+                              <p className="font-medium">
+                                {item.teamItem.itemName}
+                              </p>
+                              {formData.warehouseId &&
+                                item.stockAvailable === false && (
+                                  <div className="flex items-center text-xs text-red-500">
+                                    <AlertCircle size={14} className="mr-1" />
+                                    재고 부족
+                                  </div>
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              코드: {item.teamItem.itemCode}
+                              {formData.warehouseId &&
+                                item.stockQuantity !== undefined && (
+                                  <span className="ml-2">
+                                    (재고: {item.stockQuantity}개)
+                                  </span>
+                                )}
+                            </p>
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleQuantityChange(index, false, false)
+                              }
+                              className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              <Minus size={16} />
+                            </button>
+                            <span className="w-8 text-center">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleQuantityChange(index, true, false)
+                              }
+                              className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              <Plus size={16} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleRemoveItem(item.warehouseItemId, false)
+                              }
+                              className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500">
-                          코드: {item.teamItem.itemCode}
-                          {formData.warehouseId &&
-                            item.stockQuantity !== undefined && (
-                              <span className="ml-2">
-                                (재고: {item.stockQuantity}개)
-                              </span>
-                            )}
-                        </p>
+                        {/* 판매가 입력 */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <label className="text-xs text-gray-600 whitespace-nowrap">
+                            판매가:
+                          </label>
+                          <input
+                            type="number"
+                            value={item.sellingPrice || ""}
+                            onChange={(e) =>
+                              handleSellingPriceChange(
+                                actualIndex,
+                                e.target.value
+                              )
+                            }
+                            placeholder="0"
+                            min="0"
+                            step="1000"
+                            className="px-2 py-1 text-sm border border-gray-300 rounded w-32"
+                          />
+                          <span className="text-xs text-gray-500">원</span>
+                          {item.sellingPrice && (
+                            <span className="ml-auto text-sm font-medium text-blue-600">
+                              소계: {subtotal.toLocaleString()}원
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-2 items-center">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleQuantityChange(index, false, false)
-                          }
-                          className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span className="w-8 text-center">{item.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleQuantityChange(index, true, false)
-                          }
-                          className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                        >
-                          <Plus size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleRemoveItem(item.warehouseItemId, false)
-                          }
-                          className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
+                {/* 총 거래금액 표시 */}
+                {allOrderItems.some((item) => item.sellingPrice) && (
+                  <div className="mt-3 pt-3 border-t-2 border-gray-300">
+                    <div className="flex justify-between items-center">
+                      <span className="text-base font-bold text-gray-900">
+                        총 거래금액
+                      </span>
+                      <span className="text-lg font-bold text-blue-700">
+                        {allOrderItems
+                          .filter((item) => item.quantity > 0 && item.sellingPrice)
+                          .reduce((sum, item) => {
+                            const price = parseInt(item.sellingPrice || "0", 10);
+                            return sum + price * item.quantity;
+                          }, 0)
+                          .toLocaleString()}
+                        원
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

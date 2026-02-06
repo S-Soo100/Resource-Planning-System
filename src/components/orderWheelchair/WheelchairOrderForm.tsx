@@ -649,97 +649,113 @@ export default function WheelchairOrderForm() {
         {orderItems.length > 0 && (
           <div className="p-4 bg-white rounded-lg border shadow-sm">
             <h3 className="mb-3 font-medium text-gray-800">선택된 품목</h3>
-            <div className="space-y-3">
-              {orderItems.map((item, index) => (
-                <div
-                  key={item.warehouseItemId}
-                  className="p-3 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="flex gap-2 items-center">
-                        <p className="font-medium text-gray-800">
-                          {item.teamItem.itemName}
-                        </p>
-                        {item.stockAvailable === false && (
-                          <div className="flex items-center text-xs text-red-500">
-                            <AlertCircle size={14} className="mr-1" />
-                            재고 부족
+            <div className="overflow-x-auto border rounded-lg">
+              <table className="w-full">
+                <thead className="bg-purple-50 border-b">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">품목명</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">품목코드</th>
+                    <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">재고</th>
+                    <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">수량</th>
+                    <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">단가 (원)</th>
+                    <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">소계 (원)</th>
+                    <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">작업</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orderItems.map((item, index) => {
+                    const subtotal = item.sellingPrice && item.quantity > 0
+                      ? parseInt(item.sellingPrice) * item.quantity
+                      : 0;
+                    return (
+                      <tr key={item.warehouseItemId} className="border-b last:border-0 hover:bg-purple-50">
+                        <td className="px-4 py-2">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-sm">{item.teamItem.itemName}</span>
+                            {item.stockAvailable === false && (
+                              <div className="flex items-center text-xs text-red-500 mt-1">
+                                <AlertCircle size={12} className="mr-1" />
+                                재고 부족
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        코드: {item.teamItem.itemCode}
-                        {item.stockQuantity !== undefined && (
-                          <span className="ml-2">
-                            (재고: {item.stockQuantity}개)
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <button
-                        type="button"
-                        onClick={() => handleQuantityChange(index, false)}
-                        className="p-1 bg-gray-200 rounded transition-colors hover:bg-gray-300"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-8 font-medium text-center">
-                        {item.quantity}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleQuantityChange(index, true)}
-                        className="p-1 bg-gray-200 rounded transition-colors hover:bg-gray-300"
-                      >
-                        <Plus size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(item.warehouseItemId)}
-                        className="p-1 ml-2 text-red-600 bg-red-100 rounded transition-colors hover:bg-red-200"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <label className="text-sm text-gray-600 min-w-[60px]">판매가:</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      placeholder="개당 판매가 (원)"
-                      value={item.sellingPrice || ""}
-                      onChange={(e) => handleSellingPriceChange(index, e.target.value)}
-                      className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    />
-                    {item.sellingPrice && item.quantity > 0 && (
-                      <span className="text-sm text-gray-600 min-w-[100px] text-right">
-                        소계: {(parseInt(item.sellingPrice) * item.quantity).toLocaleString()}원
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {/* 총 판매가격 표시 */}
-              {orderItems.some(item => item.sellingPrice && item.quantity > 0) && (
-                <div className="pt-3 border-t mt-3">
-                  <div className="flex justify-end items-center">
-                    <span className="text-base font-semibold text-gray-700 mr-2">총 판매가격:</span>
-                    <span className="text-lg font-bold text-purple-600">
-                      {orderItems
-                        .filter(item => item.quantity > 0 && item.sellingPrice)
-                        .reduce((sum, item) => {
-                          const price = parseInt(item.sellingPrice || "0", 10);
-                          return sum + (price * item.quantity);
-                        }, 0)
-                        .toLocaleString()}원
-                    </span>
-                  </div>
-                </div>
-              )}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-600">
+                          {item.teamItem.itemCode}
+                        </td>
+                        <td className="px-4 py-2 text-center text-sm text-gray-600">
+                          {item.stockQuantity !== undefined
+                            ? `${item.stockQuantity}개`
+                            : "-"}
+                        </td>
+                        <td className="px-4 py-2">
+                          <div className="flex gap-1 items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() => handleQuantityChange(index, false)}
+                              className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleQuantityChange(index, true)}
+                              className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2">
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder="0"
+                            value={item.sellingPrice || ""}
+                            onChange={(e) => handleSellingPriceChange(index, e.target.value)}
+                            className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                          />
+                        </td>
+                        <td className="px-4 py-2 text-right text-sm font-medium">
+                          {subtotal > 0 ? subtotal.toLocaleString() : "-"}
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(item.warehouseItemId)}
+                            className="p-1 text-red-600 bg-red-50 rounded hover:bg-red-100"
+                            title="품목 제거"
+                          >
+                            <X size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                {/* 총 판매가격 표시 */}
+                {orderItems.some(item => item.sellingPrice && item.quantity > 0) && (
+                  <tfoot className="bg-purple-50 border-t-2 border-purple-200">
+                    <tr>
+                      <td colSpan={5} className="px-4 py-3 text-right text-base font-bold text-gray-900">
+                        총 거래금액
+                      </td>
+                      <td className="px-4 py-3 text-right text-lg font-bold text-purple-700">
+                        {orderItems
+                          .filter(item => item.quantity > 0 && item.sellingPrice)
+                          .reduce((sum, item) => {
+                            const price = parseInt(item.sellingPrice || "0", 10);
+                            return sum + (price * item.quantity);
+                          }, 0)
+                          .toLocaleString()}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
             </div>
           </div>
         )}

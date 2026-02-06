@@ -247,7 +247,9 @@ export default function OrderRecordTable({
 
               {/* 거래금액 */}
               <td className="px-6 py-4 text-sm text-right text-gray-900 font-medium">
-                0원
+                {record.totalPrice != null
+                  ? `${record.totalPrice.toLocaleString()}원`
+                  : "-"}
               </td>
 
               {/* 상태 변경 드롭다운 */}
@@ -323,7 +325,12 @@ export default function OrderRecordTable({
               </div>
             </td>
             <td className="px-6 py-4 text-sm font-bold text-blue-700 text-right">
-              0원
+              {(() => {
+                const total = records.reduce((sum, record) => {
+                  return sum + (record.totalPrice ?? 0);
+                }, 0);
+                return total > 0 ? `${total.toLocaleString()}원` : "-";
+              })()}
             </td>
             {hasPermissionToChangeStatus() && (
               <td className="px-6 py-4"></td>

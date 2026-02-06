@@ -18,6 +18,7 @@ interface TeamItem {
   itemName: string;
   memo?: string;
   imageUrl?: string | null;
+  costPrice?: number | null;
   category?: Category;
 }
 
@@ -34,6 +35,7 @@ interface TeamItemFormData {
   itemName: string;
   memo: string;
   categoryId: number | null;
+  costPrice: string; // 원가 (입력은 문자열로, 전송 시 number로 변환)
 }
 
 export default function TeamItemModal({
@@ -48,6 +50,7 @@ export default function TeamItemModal({
     itemName: "",
     memo: "",
     categoryId: null,
+    costPrice: "",
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -76,6 +79,7 @@ export default function TeamItemModal({
           itemName: editItem.itemName,
           memo: editItem.memo || "",
           categoryId: editItem.category?.id || null,
+          costPrice: editItem.costPrice?.toString() || "",
         });
         // 기존 이미지 미리보기
         setImagePreview(editItem.imageUrl || null);
@@ -89,6 +93,7 @@ export default function TeamItemModal({
           itemName: "",
           memo: "",
           categoryId: defaultCategoryId,
+          costPrice: "",
         });
         setImagePreview(null);
         setSelectedImage(null);
@@ -199,6 +204,7 @@ export default function TeamItemModal({
       const teamItemDto: CreateTeamItemDto = {
         ...formData,
         teamId: teamId,
+        costPrice: formData.costPrice ? parseInt(formData.costPrice, 10) : undefined,
       };
 
       let itemId: number;
@@ -319,6 +325,22 @@ export default function TeamItemModal({
             placeholder="예: 신형 모델"
             className="w-full h-24 px-3 py-2 transition-colors border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
+        </div>
+
+        <div>
+          <Input
+            label="원가 (원)"
+            name="costPrice"
+            type="number"
+            value={formData.costPrice}
+            onChange={handleInputChange}
+            placeholder="예: 50000"
+            min="0"
+            step="1"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            선택 사항입니다. 입력하지 않으면 저장되지 않습니다.
+          </p>
         </div>
 
         {/* 이미지 업로드 섹션 */}

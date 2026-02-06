@@ -41,6 +41,7 @@ interface OrderItemWithDetails {
   stockQuantity: number;
   warehouseItemId: number;
   memo?: string;
+  sellingPrice?: string; // 주문 품목 판매가 (입력은 문자열로)
 }
 
 const OrderEditModal: React.FC<OrderEditModalProps> = ({
@@ -87,6 +88,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     warehouseId: null as number | null,
     packageId: null as number | null,
     status: "" as string,
+    totalPrice: "" as string, // 주문 총 판매가격
   });
 
   // 훅 호출
@@ -199,6 +201,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         warehouseId: orderRecord.warehouseId || null,
         packageId: orderRecord.packageId || null,
         status: orderRecord.status || "",
+        totalPrice: orderRecord.totalPrice?.toString() || "",
       };
 
       setFormData(newFormData);
@@ -426,6 +429,32 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
       });
     },
     [currentWarehouseItems, handlePackageQuantityChange]
+  );
+
+  // 품목별 판매가 변경 핸들러
+  const handleSellingPriceChange = useCallback(
+    (index: number, value: string, isPackageItem: boolean = false) => {
+      if (isPackageItem) {
+        setPackageItems((prev) => {
+          const updated = [...prev];
+          updated[index] = {
+            ...updated[index],
+            sellingPrice: value,
+          };
+          return updated;
+        });
+      } else {
+        setIndividualItems((prev) => {
+          const updated = [...prev];
+          updated[index] = {
+            ...updated[index],
+            sellingPrice: value,
+          };
+          return updated;
+        });
+      }
+    },
+    []
   );
 
   const handleChange = (
@@ -702,6 +731,14 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         return serverDate ? `${serverDate}T00:00:00.000Z` : "";
       };
 
+      // 총 판매가격 계산
+      const calculatedTotalPrice = allOrderItems
+        .filter((item) => item.quantity > 0 && item.sellingPrice)
+        .reduce((sum, item) => {
+          const price = parseInt(item.sellingPrice || "0", 10);
+          return sum + (price * item.quantity);
+        }, 0);
+
       const orderData = {
         id: orderRecord.id.toString(),
         data: {
@@ -720,12 +757,14 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           installationDate: toUTCISOString(formData.setupDate),
           status: formData.status, // formData에서 상태 가져오기
           memo: formData.notes,
+          totalPrice: calculatedTotalPrice > 0 ? calculatedTotalPrice : undefined,
           orderItems: allOrderItems
             .filter((item) => item.quantity > 0)
             .map((item) => ({
               itemId: item.warehouseItemId,
               quantity: item.quantity,
               memo: item.memo || formData.notes,
+              sellingPrice: item.sellingPrice ? parseInt(item.sellingPrice, 10) : undefined,
             })),
         },
       };

@@ -394,28 +394,73 @@ const OrderRecordPrint = () => {
         <div className="print-section">
           <div className="print-section-title">발주 품목</div>
           {order.orderItems && order.orderItems.length > 0 ? (
-            <table className="print-items-table">
-              <thead>
-                <tr>
-                  <th style={{ width: "40%" }}>품목명</th>
-                  <th style={{ width: "30%" }}>품목코드</th>
-                  <th style={{ width: "15%" }}>수량</th>
-                  <th style={{ width: "15%" }}>단위</th>
-                </tr>
-              </thead>
-              <tbody>
-                {order.orderItems.map((item, index) => (
-                  <tr key={index}>
-                    <td>
-                      {item.item?.teamItem?.itemName || "알 수 없는 품목"}
-                    </td>
-                    <td>{item.item?.teamItem?.itemCode || "코드 없음"}</td>
-                    <td style={{ textAlign: "center" }}>{item.quantity}</td>
-                    <td style={{ textAlign: "center" }}>개</td>
+            <>
+              <table className="print-items-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: "30%" }}>품목명</th>
+                    <th style={{ width: "20%" }}>품목코드</th>
+                    <th style={{ width: "12%" }}>수량</th>
+                    <th style={{ width: "10%" }}>단위</th>
+                    <th style={{ width: "14%", textAlign: "right" }}>단가</th>
+                    <th style={{ width: "14%", textAlign: "right" }}>소계</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {order.orderItems.map((item, index) => {
+                    const sellingPrice = item.sellingPrice ?? 0;
+                    const subtotal = sellingPrice * item.quantity;
+                    return (
+                      <tr key={index}>
+                        <td>
+                          {item.item?.teamItem?.itemName || "알 수 없는 품목"}
+                        </td>
+                        <td>{item.item?.teamItem?.itemCode || "코드 없음"}</td>
+                        <td style={{ textAlign: "center" }}>{item.quantity}</td>
+                        <td style={{ textAlign: "center" }}>개</td>
+                        <td style={{ textAlign: "right" }}>
+                          {item.sellingPrice != null
+                            ? `${item.sellingPrice.toLocaleString()}원`
+                            : "-"}
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          {item.sellingPrice != null
+                            ? `${subtotal.toLocaleString()}원`
+                            : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                {/* 총액 표시 */}
+                {order.totalPrice != null && order.totalPrice > 0 && (
+                  <tfoot>
+                    <tr style={{ borderTop: "2px solid #333" }}>
+                      <td
+                        colSpan={5}
+                        style={{
+                          textAlign: "right",
+                          fontWeight: "bold",
+                          padding: "12px 8px",
+                        }}
+                      >
+                        총 거래금액
+                      </td>
+                      <td
+                        style={{
+                          textAlign: "right",
+                          fontWeight: "bold",
+                          fontSize: "1.1em",
+                          padding: "12px 8px",
+                        }}
+                      >
+                        {order.totalPrice.toLocaleString()}원
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </>
           ) : (
             <p>발주 품목이 없습니다.</p>
           )}

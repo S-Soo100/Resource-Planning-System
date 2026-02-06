@@ -1128,32 +1128,58 @@ const OrderRecordDetail = () => {
                     발주 품목
                   </h2>
                   {order.orderItems && order.orderItems.length > 0 ? (
-                    <div className="space-y-3">
-                      {order.orderItems.map((item, index) => (
-                        <div
-                          key={index}
-                          className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
-                        >
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">
-                              {item.item?.teamItem?.itemName ||
-                                "알 수 없는 품목"}
+                    <>
+                      <div className="space-y-3">
+                        {order.orderItems.map((item, index) => {
+                          const sellingPrice = item.sellingPrice ?? 0;
+                          const subtotal = sellingPrice * item.quantity;
+                          return (
+                            <div
+                              key={index}
+                              className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-900">
+                                  {item.item?.teamItem?.itemName ||
+                                    "알 수 없는 품목"}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {item.item?.teamItem?.itemCode || "코드 없음"}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="font-medium text-gray-900">
+                                  {item.quantity}개
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {item.sellingPrice != null
+                                    ? `@${item.sellingPrice.toLocaleString()}원`
+                                    : "가격 미입력"}
+                                </div>
+                                {item.sellingPrice != null && (
+                                  <div className="text-sm font-medium text-blue-600 mt-1">
+                                    소계: {subtotal.toLocaleString()}원
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <div className="text-sm text-gray-500">
-                              {item.item?.teamItem?.itemCode || "코드 없음"}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-medium text-gray-900">
-                              {item.quantity}개
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              가격 정보 없음
-                            </div>
+                          );
+                        })}
+                      </div>
+                      {/* 총액 표시 */}
+                      {order.totalPrice != null && order.totalPrice > 0 && (
+                        <div className="mt-4 pt-4 border-t-2 border-gray-200">
+                          <div className="flex justify-between items-center">
+                            <span className="text-lg font-bold text-gray-900">
+                              총 거래금액
+                            </span>
+                            <span className="text-xl font-bold text-blue-700">
+                              {order.totalPrice.toLocaleString()}원
+                            </span>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      )}
+                    </>
                   ) : (
                     <p className="text-gray-500">발주 품목이 없습니다.</p>
                   )}

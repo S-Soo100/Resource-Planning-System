@@ -65,6 +65,7 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
     manager: order.manager || "",
     status: order.status || OrderStatus.requested,
     memo: order.memo || "",
+    totalPrice: order.totalPrice ?? null, // 주문 총 판매가격 추가
     createdAt: order.createdAt,
     updatedAt: order.updatedAt || order.createdAt,
     deletedAt: order.deletedAt || null,

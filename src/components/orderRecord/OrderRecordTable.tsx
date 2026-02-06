@@ -107,14 +107,14 @@ export default function OrderRecordTable({
       <table className="w-full">
         <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
               #
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
               유형
             </th>
             <th
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+              className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
               onClick={() => handleSort("title")}
             >
               <div className="flex items-center">
@@ -123,7 +123,7 @@ export default function OrderRecordTable({
               </div>
             </th>
             <th
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none w-32"
+              className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none w-28"
               onClick={() => handleSort("createdAt")}
             >
               <div className="flex items-center">
@@ -132,7 +132,7 @@ export default function OrderRecordTable({
               </div>
             </th>
             <th
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none w-32"
+              className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none w-28"
               onClick={() => handleSort("outboundDate")}
             >
               <div className="flex items-center">
@@ -141,7 +141,7 @@ export default function OrderRecordTable({
               </div>
             </th>
             <th
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none w-28"
+              className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none w-24"
               onClick={() => handleSort("status")}
             >
               <div className="flex items-center">
@@ -149,15 +149,15 @@ export default function OrderRecordTable({
                 {renderSortIcon("status")}
               </div>
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-28">
+            <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
               거래금액
             </th>
             {hasPermissionToChangeStatus() && (
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                 상태 변경
               </th>
             )}
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+            <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
               작업
             </th>
           </tr>
@@ -170,12 +170,12 @@ export default function OrderRecordTable({
               onClick={() => onDetailClick(record)}
             >
               {/* 번호 */}
-              <td className="px-6 py-4 text-sm text-gray-500">
+              <td className="px-4 py-3 text-sm text-gray-500">
                 {index + 1}
               </td>
 
               {/* 유형 */}
-              <td className="px-6 py-4">
+              <td className="px-4 py-3">
                 <span
                   className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${
                     record.packageId && record.packageId > 0
@@ -190,9 +190,9 @@ export default function OrderRecordTable({
               </td>
 
               {/* 제목 */}
-              <td className="px-6 py-4">
+              <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-gray-900 truncate max-w-md">
                     {record.title ||
                       `${
                         record.warehouse?.warehouseName ||
@@ -225,17 +225,17 @@ export default function OrderRecordTable({
               </td>
 
               {/* 생성일 */}
-              <td className="px-6 py-4 text-sm text-gray-600">
+              <td className="px-4 py-3 text-sm text-gray-600">
                 {formatDateForDisplayUTC(record.createdAt)}
               </td>
 
               {/* 출고예정일 */}
-              <td className="px-6 py-4 text-sm text-gray-600">
+              <td className="px-4 py-3 text-sm text-gray-600">
                 {formatDateForDisplayUTC(record.outboundDate)}
               </td>
 
               {/* 상태 */}
-              <td className="px-6 py-4">
+              <td className="px-4 py-3">
                 <span
                   className={`inline-flex px-2 py-1 rounded text-xs font-medium ${getStatusColorClass(
                     record.status
@@ -246,7 +246,7 @@ export default function OrderRecordTable({
               </td>
 
               {/* 거래금액 */}
-              <td className="px-6 py-4 text-sm text-right text-gray-900 font-medium">
+              <td className="px-4 py-3 text-sm text-right text-gray-900 font-medium">
                 {record.totalPrice != null
                   ? `${record.totalPrice.toLocaleString()}원`
                   : "-"}
@@ -254,7 +254,7 @@ export default function OrderRecordTable({
 
               {/* 상태 변경 드롭다운 */}
               {hasPermissionToChangeStatus() && (
-                <td className="px-6 py-4">
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <select
                       value={record.status}
@@ -301,7 +301,7 @@ export default function OrderRecordTable({
               )}
 
               {/* 상세보기 버튼 */}
-              <td className="px-6 py-4 text-right">
+              <td className="px-4 py-3 text-right">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -316,7 +316,7 @@ export default function OrderRecordTable({
           ))}
           {/* 합계 행 */}
           <tr className="bg-blue-50 border-t-2 border-blue-200">
-            <td colSpan={6} className="px-6 py-4 text-sm font-bold text-gray-900 text-right">
+            <td colSpan={6} className="px-4 py-3 text-sm font-bold text-gray-900 text-right">
               <div className="flex flex-col items-end gap-1">
                 <span>합계</span>
                 <span className="text-xs font-normal text-gray-600">
@@ -324,7 +324,7 @@ export default function OrderRecordTable({
                 </span>
               </div>
             </td>
-            <td className="px-6 py-4 text-sm font-bold text-blue-700 text-right">
+            <td className="px-4 py-3 text-sm font-bold text-blue-700 text-right">
               {(() => {
                 const total = records.reduce((sum, record) => {
                   return sum + (record.totalPrice ?? 0);
@@ -333,9 +333,9 @@ export default function OrderRecordTable({
               })()}
             </td>
             {hasPermissionToChangeStatus() && (
-              <td className="px-6 py-4"></td>
+              <td className="px-4 py-3"></td>
             )}
-            <td className="px-6 py-4"></td>
+            <td className="px-4 py-3"></td>
           </tr>
         </tbody>
       </table>

@@ -142,7 +142,7 @@ export default function DemoRecordTable({
               </td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <div className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                  <div className="text-sm font-medium text-gray-900 truncate max-w-md">
                     {record.demoTitle || "제목 없음"}
                   </div>
                   {isNewRecord(record.createdAt, record.demoStatus) && (

@@ -205,8 +205,10 @@ const DemonstrationRecordTabs = () => {
         ].includes(record.demoStatus);
       });
     } else if (activeTab === "long-term") {
-      // '장기 시연' 탭인 경우 - 현재는 데이터 표시하지 않음 (추후 필터링 로직 추가 예정)
-      return [];
+      // '장기 시연' 탭인 경우 - 장기시연만 표시 (진행 여부 무관)
+      return allDemoRecords.filter((record: DemoResponse) => {
+        return record.isLongTerm === true;
+      });
     } else {
       // '시연종료' 탭인 경우 완료된 시연만 필터링
       return allDemoRecords.filter((record: DemoResponse) => {

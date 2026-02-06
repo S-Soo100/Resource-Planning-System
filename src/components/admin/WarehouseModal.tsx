@@ -40,6 +40,7 @@ export default function WarehouseModal({
     warehouseName: "",
     warehouseAddress: "",
     detailLocation: "",
+    sortOrder: null, // 정렬 순서 (기본값: null)
   });
 
   // 수정 모드일 때 기존 데이터로 초기화
@@ -64,6 +65,7 @@ export default function WarehouseModal({
         warehouseName: editingWarehouse.warehouseName,
         warehouseAddress: mainAddress,
         detailLocation: detailLocation,
+        sortOrder: editingWarehouse.sortOrder ?? null, // 정렬 순서 (기본값: null)
       });
     } else {
       // 새 창고 추가 모드일 때 초기화
@@ -71,6 +73,7 @@ export default function WarehouseModal({
         warehouseName: "",
         warehouseAddress: "",
         detailLocation: "",
+        sortOrder: null, // 정렬 순서 (기본값: null)
       });
     }
   }, [editingWarehouse, isOpen]);
@@ -94,6 +97,7 @@ export default function WarehouseModal({
           ? ` ${warehouseData.detailLocation}`
           : ""),
       teamId: 0, // 부모 컴포넌트에서 설정됨
+      sortOrder: warehouseData.sortOrder, // 정렬 순서
     };
 
     await onSubmit(warehouseRequest, !!editingWarehouse, editingWarehouse?.id);
@@ -104,6 +108,7 @@ export default function WarehouseModal({
       warehouseName: "",
       warehouseAddress: "",
       detailLocation: "",
+      sortOrder: null, // 정렬 순서 (기본값: null)
     });
     setIsAddressModalOpen(false);
     onClose();
@@ -175,6 +180,26 @@ export default function WarehouseModal({
               onChange={handleInputChange}
               placeholder="건물명, 동/호수 등 상세 주소를 입력하세요"
             />
+          </div>
+
+          <div>
+            <Input
+              label="정렬 순서 (선택)"
+              name="sortOrder"
+              type="number"
+              min="0"
+              value={warehouseData.sortOrder ?? ""}
+              onChange={(e) =>
+                setWarehouseData({
+                  ...warehouseData,
+                  sortOrder: e.target.value ? parseInt(e.target.value, 10) : null,
+                })
+              }
+              placeholder="미입력 시 맨 아래에 표시"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              0부터 시작 (0 = 첫 번째, 미입력 = 맨 아래)
+            </p>
           </div>
 
           <div className="flex justify-end pt-4 space-x-3">

@@ -24,6 +24,7 @@ interface OrderRecordTableProps {
   records: IOrderRecord[];
   getStatusText: (status: string) => string;
   getStatusColorClass: (status: string) => string;
+  getStatusHoverClass: (status: string) => string;
   hasPermissionToChangeStatus: () => boolean;
   handleStatusChange: (id: number, status: OrderStatus) => void;
   isUpdatingStatus: number | null;
@@ -39,6 +40,7 @@ export default function OrderRecordTable({
   records,
   getStatusText,
   getStatusColorClass,
+  getStatusHoverClass,
   hasPermissionToChangeStatus,
   handleStatusChange,
   isUpdatingStatus,
@@ -152,11 +154,6 @@ export default function OrderRecordTable({
             <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
               거래금액
             </th>
-            {hasPermissionToChangeStatus() && (
-              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                상태 변경
-              </th>
-            )}
             <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
               작업
             </th>
@@ -234,15 +231,64 @@ export default function OrderRecordTable({
                 {formatDateForDisplayUTC(record.outboundDate)}
               </td>
 
-              {/* 상태 */}
-              <td className="px-4 py-3">
-                <span
-                  className={`inline-flex px-2 py-1 rounded text-xs font-medium ${getStatusColorClass(
-                    record.status
-                  )}`}
-                >
-                  {getStatusText(record.status)}
-                </span>
+              {/* 상태 (인라인 드롭다운) */}
+              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-2">
+                  {hasPermissionToChangeStatus() ? (
+                    <>
+                      <select
+                        value={record.status}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(record.id, e.target.value as OrderStatus);
+                        }}
+                        disabled={
+                          isUpdatingStatus === record.id ||
+                          (userAccessLevel === "moderator" &&
+                           record.status !== OrderStatus.requested &&
+                           record.status !== OrderStatus.approved &&
+                           record.status !== OrderStatus.rejected)
+                        }
+                        className={`inline-flex px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-1 ${getStatusColorClass(
+                          record.status
+                        )} ${getStatusHoverClass(record.status)}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {userAccessLevel === "moderator" ? (
+                          <>
+                            <option value={OrderStatus.requested}>요청</option>
+                            <option value={OrderStatus.approved} disabled={record.userId === auth?.id}>
+                              승인{record.userId === auth?.id ? " (본인)" : ""}
+                            </option>
+                            <option value={OrderStatus.rejected} disabled={record.userId === auth?.id}>
+                              반려{record.userId === auth?.id ? " (본인)" : ""}
+                            </option>
+                          </>
+                        ) : userAccessLevel === "admin" ? (
+                          <>
+                            <option value={OrderStatus.requested}>요청</option>
+                            <option value={OrderStatus.approved}>승인</option>
+                            <option value={OrderStatus.rejected}>반려</option>
+                            <option value={OrderStatus.confirmedByShipper}>출고팀 확인</option>
+                            <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
+                            <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
+                          </>
+                        ) : null}
+                      </select>
+                      {isUpdatingStatus === record.id && (
+                        <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
+                      )}
+                    </>
+                  ) : (
+                    <span
+                      className={`inline-flex px-2 py-1 rounded text-xs font-medium ${getStatusColorClass(
+                        record.status
+                      )}`}
+                    >
+                      {getStatusText(record.status)}
+                    </span>
+                  )}
+                </div>
               </td>
 
               {/* 거래금액 */}
@@ -251,54 +297,6 @@ export default function OrderRecordTable({
                   ? `${record.totalPrice.toLocaleString()}원`
                   : "-"}
               </td>
-
-              {/* 상태 변경 드롭다운 */}
-              {hasPermissionToChangeStatus() && (
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={record.status}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        handleStatusChange(record.id, e.target.value as OrderStatus);
-                      }}
-                      disabled={
-                        isUpdatingStatus === record.id ||
-                        (userAccessLevel === "moderator" &&
-                         record.status !== OrderStatus.requested &&
-                         record.status !== OrderStatus.approved &&
-                         record.status !== OrderStatus.rejected)
-                      }
-                      className="text-xs bg-white border border-gray-300 rounded px-2 py-1 disabled:opacity-50 w-full"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {userAccessLevel === "moderator" ? (
-                        <>
-                          <option value={OrderStatus.requested}>요청</option>
-                          <option value={OrderStatus.approved} disabled={record.userId === auth?.id}>
-                            승인{record.userId === auth?.id ? " (본인)" : ""}
-                          </option>
-                          <option value={OrderStatus.rejected} disabled={record.userId === auth?.id}>
-                            반려{record.userId === auth?.id ? " (본인)" : ""}
-                          </option>
-                        </>
-                      ) : userAccessLevel === "admin" ? (
-                        <>
-                          <option value={OrderStatus.requested}>요청</option>
-                          <option value={OrderStatus.approved}>승인</option>
-                          <option value={OrderStatus.rejected}>반려</option>
-                          <option value={OrderStatus.confirmedByShipper}>출고팀 확인</option>
-                          <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
-                          <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
-                        </>
-                      ) : null}
-                    </select>
-                    {isUpdatingStatus === record.id && (
-                      <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
-                    )}
-                  </div>
-                </td>
-              )}
 
               {/* 상세보기 버튼 */}
               <td className="px-4 py-3 text-right">
@@ -332,9 +330,6 @@ export default function OrderRecordTable({
                 return total > 0 ? `${total.toLocaleString()}원` : "-";
               })()}
             </td>
-            {hasPermissionToChangeStatus() && (
-              <td className="px-4 py-3"></td>
-            )}
             <td className="px-4 py-3"></td>
           </tr>
         </tbody>

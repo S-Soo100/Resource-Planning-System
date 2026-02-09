@@ -1025,8 +1025,8 @@ const OrderRecordTabs = () => {
     if (userAccessLevel === "supplier") {
       return (
         <div className="flex gap-2 mb-4 sm:mb-6">
-          <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-full shadow-sm">
-            <User size={16} className="mr-2" />내 발주 기록
+          <div className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
+            <User size={18} className="mr-2" />내 발주 기록
           </div>
         </div>
       );
@@ -1034,38 +1034,39 @@ const OrderRecordTabs = () => {
 
     // supplier가 아닌 경우 모든 탭 표시
     return (
-      <div className="flex gap-2 mb-4 sm:mb-6">
+      <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-6">
         <button
           onClick={() => handleTabChange("all")}
-          className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+          className={`group inline-flex items-center px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 transform ${
             activeTab === "all"
-              ? "bg-blue-500 text-white shadow-md"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg scale-105"
+              : "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:scale-105 border border-gray-200"
           }`}
         >
-          <Package size={16} className="mr-2" />
-          전체
+          <Package size={16} className={`mr-1 sm:mr-2 transition-transform duration-300 sm:w-[18px] sm:h-[18px] ${activeTab === "all" ? "" : "group-hover:rotate-12"}`} />
+          <span className="whitespace-nowrap">전체</span>
         </button>
         <button
           onClick={() => handleTabChange("user")}
-          className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+          className={`group inline-flex items-center px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 transform ${
             activeTab === "user"
-              ? "bg-blue-500 text-white shadow-md"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg scale-105"
+              : "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:scale-105 border border-gray-200"
           }`}
         >
-          <User size={16} className="mr-2" />내 발주
+          <User size={16} className={`mr-1 sm:mr-2 transition-transform duration-300 sm:w-[18px] sm:h-[18px] ${activeTab === "user" ? "" : "group-hover:scale-110"}`} />
+          <span className="whitespace-nowrap">내 발주</span>
         </button>
         <button
           onClick={() => handleTabChange("supplier")}
-          className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+          className={`group inline-flex items-center px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 transform ${
             activeTab === "supplier"
-              ? "bg-blue-500 text-white shadow-md"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg scale-105"
+              : "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:scale-105 border border-gray-200"
           }`}
         >
-          <Truck size={16} className="mr-2" />
-          납품처별
+          <Truck size={16} className={`mr-1 sm:mr-2 transition-transform duration-300 sm:w-[18px] sm:h-[18px] ${activeTab === "supplier" ? "" : "group-hover:translate-x-1"}`} />
+          <span className="whitespace-nowrap">납품처별</span>
         </button>
       </div>
     );
@@ -1077,16 +1078,16 @@ const OrderRecordTabs = () => {
       <div className="flex gap-3 mb-4 sm:mb-6">
         <button
           onClick={() => handleShipmentTabChange("pending")}
-          className={`flex-1 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+          className={`group flex-1 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-[1.02] ${
             shipmentTab === "pending"
-              ? "bg-orange-500 text-white shadow-lg"
-              : "bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200"
+              ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-200"
+              : "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 hover:from-orange-100 hover:to-amber-100 border border-orange-200"
           }`}
         >
           <div className="flex gap-2 justify-center items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
+              className={`w-5 h-5 transition-transform duration-300 ${shipmentTab === "pending" ? "animate-pulse" : "group-hover:rotate-12"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -1103,16 +1104,16 @@ const OrderRecordTabs = () => {
         </button>
         <button
           onClick={() => handleShipmentTabChange("completed")}
-          className={`flex-1 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+          className={`group flex-1 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-[1.02] ${
             shipmentTab === "completed"
-              ? "bg-green-500 text-white shadow-lg"
-              : "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
+              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-200"
+              : "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 hover:from-green-100 hover:to-emerald-100 border border-green-200"
           }`}
         >
           <div className="flex gap-2 justify-center items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
+              className={`w-5 h-5 transition-transform duration-300 ${shipmentTab === "completed" ? "" : "group-hover:scale-110"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

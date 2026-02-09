@@ -458,6 +458,32 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     []
   );
 
+  // 품목별 메모 변경 핸들러
+  const handleMemoChange = useCallback(
+    (index: number, value: string, isPackageItem: boolean = false) => {
+      if (isPackageItem) {
+        setPackageItems((prev) => {
+          const updated = [...prev];
+          updated[index] = {
+            ...updated[index],
+            memo: value,
+          };
+          return updated;
+        });
+      } else {
+        setIndividualItems((prev) => {
+          const updated = [...prev];
+          updated[index] = {
+            ...updated[index],
+            memo: value,
+          };
+          return updated;
+        });
+      }
+    },
+    []
+  );
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -764,7 +790,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
             .map((item) => ({
               itemId: item.warehouseItemId,
               quantity: item.quantity,
-              memo: item.memo || formData.notes,
+              memo: item.memo || "",
               sellingPrice: item.sellingPrice ? parseInt(item.sellingPrice, 10) : undefined,
             })),
         },
@@ -1105,6 +1131,21 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                             </span>
                           )}
                         </div>
+                        {/* 메모 입력 */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <label className="text-xs text-gray-600 whitespace-nowrap">
+                            메모:
+                          </label>
+                          <input
+                            type="text"
+                            value={item.memo || ""}
+                            onChange={(e) =>
+                              handleMemoChange(index, e.target.value, true)
+                            }
+                            placeholder="메모 입력"
+                            className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded"
+                          />
+                        </div>
                       </div>
                     );
                   })}
@@ -1202,6 +1243,21 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                               소계: {subtotal.toLocaleString()}원
                             </span>
                           )}
+                        </div>
+                        {/* 메모 입력 */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <label className="text-xs text-gray-600 whitespace-nowrap">
+                            메모:
+                          </label>
+                          <input
+                            type="text"
+                            value={item.memo || ""}
+                            onChange={(e) =>
+                              handleMemoChange(index, e.target.value, false)
+                            }
+                            placeholder="메모 입력"
+                            className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded"
+                          />
                         </div>
                       </div>
                     );

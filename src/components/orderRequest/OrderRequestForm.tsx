@@ -472,6 +472,18 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     });
   };
 
+  // 품목별 메모 변경 핸들러
+  const handleMemoChange = (index: number, value: string) => {
+    setOrderItems((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        memo: value,
+      };
+      return updated;
+    });
+  };
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -737,7 +749,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           .map((item) => ({
             itemId: item.warehouseItemId,
             quantity: item.quantity,
-            memo: item.teamItem.memo || "",
+            memo: item.memo || "",
             sellingPrice: item.sellingPrice ? parseInt(item.sellingPrice, 10) : undefined,
           })),
       };
@@ -1159,6 +1171,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">수량</th>
                       <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">단가 (원)</th>
                       <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">소계 (원)</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">메모</th>
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">작업</th>
                     </tr>
                   </thead>
@@ -1221,6 +1234,15 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                           <td className="px-4 py-2 text-right text-sm font-medium">
                             {subtotal > 0 ? subtotal.toLocaleString() : "-"}
                           </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="text"
+                              placeholder="메모 입력"
+                              value={item.memo || ""}
+                              onChange={(e) => handleMemoChange(index, e.target.value)}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          </td>
                           <td className="px-4 py-2 text-center">
                             <button
                               type="button"
@@ -1239,7 +1261,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   {orderItems.some(item => item.sellingPrice && item.quantity > 0) && (
                     <tfoot className="bg-blue-50 border-t-2 border-blue-200">
                       <tr>
-                        <td colSpan={5} className="px-4 py-3 text-right text-base font-bold text-gray-900">
+                        <td colSpan={6} className="px-4 py-3 text-right text-base font-bold text-gray-900">
                           총 거래금액
                         </td>
                         <td className="px-4 py-3 text-right text-lg font-bold text-blue-700">

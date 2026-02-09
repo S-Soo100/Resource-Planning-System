@@ -934,6 +934,7 @@ const DemonstrationRecordTabs = () => {
             sortField={sortField}
             sortOrder={sortOrder}
             onSort={handleSort}
+            activeTab={activeTab}
           />
         )}
       </div>

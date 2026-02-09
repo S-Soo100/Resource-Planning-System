@@ -157,7 +157,7 @@ const HowToUsePage = () => {
           icon: <PiNewspaperClippingFill className="text-lg" />,
         },
         {
-          title: "전체 물품, 카테고리 등록",
+          title: "전체 물품 관리, 카테고리 관리",
           description: "팀에서 사용하는 모든 카테고리와 품목을 관리합니다",
           accessLevels: ["admin", "moderator"],
           icon: <FaBox className="text-lg" />,

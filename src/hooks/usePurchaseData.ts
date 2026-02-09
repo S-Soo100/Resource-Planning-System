@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import {
   PurchaseRecord,
   PurchaseSummary,
   PurchaseFilterParams,
 } from '@/types/purchase';
 import { InventoryRecord } from '@/types/(inventoryRecord)/inventory-record';
+import { inventoryRecordApi } from '@/api/inventory-record-api';
+import { authStore } from '@/store/authStore';
 
 /**
  * 입고 데이터를 구매 레코드로 변환
@@ -64,33 +65,33 @@ const calculateSummary = (records: PurchaseRecord[]): PurchaseSummary => {
  * 구매 데이터 조회 훅
  */
 export const usePurchaseData = (params: PurchaseFilterParams) => {
-  return useQuery({
-    queryKey: ['purchase', params],
-    queryFn: async () => {
-      // API 쿼리 파라미터 구성
-      const queryParams = new URLSearchParams();
-      queryParams.append('startDate', params.startDate);
-      queryParams.append('endDate', params.endDate);
+  const selectedTeam = authStore((state) => state.selectedTeam);
 
-      if (params.warehouseId) {
-        queryParams.append('warehouseId', params.warehouseId.toString());
-      }
-      if (params.supplierId) {
-        queryParams.append('supplierId', params.supplierId.toString());
-      }
-      if (params.categoryId) {
-        queryParams.append('categoryId', params.categoryId.toString());
+  return useQuery({
+    queryKey: ['purchase', params, selectedTeam?.id],
+    queryFn: async () => {
+      if (!selectedTeam?.id) {
+        throw new Error('팀이 선택되지 않았습니다.');
       }
 
       // 입고 데이터 조회
-      const response = await axios.get<InventoryRecord[]>(
-        `/api/inventory?${queryParams.toString()}`
+      const response = await inventoryRecordApi.getInventoryRecordsByTeamId(
+        selectedTeam.id,
+        params.startDate,
+        params.endDate
       );
+
+      if (!response.success || !response.data) {
+        throw new Error('입고 데이터 조회에 실패했습니다.');
+      }
 
       // 구매 레코드로 변환 (입고만 필터링)
       const purchaseRecords = response.data
         .map(transformToPurchaseRecord)
         .filter((record): record is PurchaseRecord => record !== null);
+
+      // TODO: 추후 API에서 warehouseId, supplierId, categoryId 필터링 지원 시 제거
+      // 현재는 클라이언트에서 필터링
 
       // 검색어 필터링
       let filteredRecords = purchaseRecords;

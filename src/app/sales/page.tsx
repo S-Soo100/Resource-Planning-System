@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import {
   ArrowUpDown,
@@ -8,8 +8,6 @@ import {
   ArrowDown,
   Download,
   AlertCircle,
-  ChevronDown,
-  ChevronRight,
 } from 'lucide-react';
 import { useSalesData } from '@/hooks/useSalesData';
 import { SalesSummary } from '@/components/sales/SalesSummary';
@@ -36,9 +34,6 @@ export default function SalesPage() {
   // 정렬 상태
   const [sortField, setSortField] = useState<SalesSortField>('purchaseDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-
-  // 확장된 행 ID 추적
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   // 데이터 조회
   const { data, isLoading, error } = useSalesData(filters);
@@ -91,15 +86,22 @@ export default function SalesPage() {
     );
   };
 
-  // 행 확장 토글
-  const toggleRow = (id: number) => {
-    const newExpanded = new Set(expandedRows);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedRows(newExpanded);
+  // 날짜 포맷 간소화 (2026-02-10T00:00:00.000Z → 26-02-10)
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const year = date.getFullYear().toString().slice(2); // 26
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 02
+    const day = date.getDate().toString().padStart(2, '0'); // 10
+    return `${year}-${month}-${day}`;
+  };
+
+  // 메모 텍스트 처리 (최대 2줄, 이후 ... 처리)
+  const truncateMemo = (memo: string | null) => {
+    if (!memo) return '-';
+    const lines = memo.split('\n');
+    if (lines.length <= 2) return memo;
+    return lines.slice(0, 2).join('\n') + '...';
   };
 
   // 엑셀 다운로드
@@ -249,9 +251,26 @@ export default function SalesPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 w-10"></th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                   No
+                </th>
+                <th
+                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('status')}
+                >
+                  <div className="flex items-center justify-center">
+                    상태
+                    {renderSortIcon('status')}
+                  </div>
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('supplierName')}
+                >
+                  <div className="flex items-center">
+                    판매처
+                    {renderSortIcon('supplierName')}
+                  </div>
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
@@ -271,18 +290,6 @@ export default function SalesPage() {
                     {renderSortIcon('title')}
                   </div>
                 </th>
-                <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('supplierName')}
-                >
-                  <div className="flex items-center">
-                    판매처
-                    {renderSortIcon('supplierName')}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  수령인
-                </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500">
                   품목 수
                 </th>
@@ -295,18 +302,6 @@ export default function SalesPage() {
                     {renderSortIcon('totalPrice')}
                   </div>
                 </th>
-                <th
-                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center justify-center">
-                    상태
-                    {renderSortIcon('status')}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  담당자
-                </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                   비고
                 </th>
@@ -314,64 +309,46 @@ export default function SalesPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {sortedRecords.map((record, index) => (
-                <>
-                  {/* 메인 행 */}
-                  <tr
-                    key={record.id}
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => toggleRow(record.id)}
-                  >
-                    <td className="px-4 py-3">
-                      {expandedRows.has(record.id) ? (
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {index + 1}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {record.purchaseDate}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {record.title}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {record.supplierName}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {record.receiver}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900">
-                      {record.itemCount}종 {record.totalQuantity}개
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
-                      {record.totalPrice !== null ? (
-                        `₩${record.totalPrice.toLocaleString()}`
-                      ) : (
-                        <span className="text-gray-400">미입력</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
-                          record.status
-                        )}`}
-                      >
-                        {record.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {record.manager}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {record.memo || '-'}
-                    </td>
-                  </tr>
+                <tr key={record.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {index + 1}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
+                        record.status
+                      )}`}
+                    >
+                      {record.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {record.supplierName}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {formatDate(record.purchaseDate)}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {record.title}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-center text-gray-900">
+                    {record.itemCount}종 {record.totalQuantity}개
+                  </td>
+                  <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                    {record.totalPrice !== null ? (
+                      `₩${record.totalPrice.toLocaleString()}`
+                    ) : (
+                      <span className="text-gray-400">미입력</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600 whitespace-pre-line">
+                    {truncateMemo(record.memo)}
+                  </td>
+                </tr>
+              ))}
 
-                  {/* 확장 행 (품목 상세) */}
-                  {expandedRows.has(record.id) && (
+              {/* 삭제할 확장 섹션 시작 */}
+              {false && (
                     <tr>
                       <td colSpan={11} className="px-4 py-4 bg-gray-50">
                         <div className="space-y-2">
@@ -474,15 +451,12 @@ export default function SalesPage() {
                       </td>
                     </tr>
                   )}
-                </>
-              ))}
 
               {/* 합계 행 */}
               {data?.summary && (
                 <tr className="bg-blue-50 border-t-2 border-blue-200">
-                  <td colSpan={2}></td>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="px-4 py-3 text-sm font-bold text-right text-gray-900"
                   >
                     합계
@@ -493,7 +467,7 @@ export default function SalesPage() {
                   <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">
                     ₩{data.summary.totalSales.toLocaleString()}
                   </td>
-                  <td colSpan={3}></td>
+                  <td></td>
                 </tr>
               )}
             </tbody>

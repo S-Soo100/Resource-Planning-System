@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import {
   SalesRecord,
   SalesSummary,
@@ -7,6 +6,8 @@ import {
   SalesPriceCalculation,
 } from '@/types/sales';
 import { Order } from '@/types/(order)/order';
+import { getOrdersByTeamId } from '@/api/order-api';
+import { authStore } from '@/store/authStore';
 
 /**
  * 발주의 총 판매 금액 계산
@@ -102,28 +103,43 @@ const calculateSummary = (records: SalesRecord[]): SalesSummary => {
  * 판매 데이터 조회 훅
  */
 export const useSalesData = (params: SalesFilterParams) => {
-  return useQuery({
-    queryKey: ['sales', params],
-    queryFn: async () => {
-      // API 쿼리 파라미터 구성
-      const queryParams = new URLSearchParams();
-      queryParams.append('startDate', params.startDate);
-      queryParams.append('endDate', params.endDate);
+  const selectedTeam = authStore((state) => state.selectedTeam);
 
-      if (params.supplierId) {
-        queryParams.append('supplierId', params.supplierId.toString());
-      }
-      if (params.status) {
-        queryParams.append('status', params.status);
+  return useQuery({
+    queryKey: ['sales', params, selectedTeam?.id],
+    queryFn: async () => {
+      if (!selectedTeam?.id) {
+        throw new Error('팀이 선택되지 않았습니다.');
       }
 
       // 발주 데이터 조회
-      const response = await axios.get<Order[]>(
-        `/api/order?${queryParams.toString()}`
-      );
+      const response = await getOrdersByTeamId(selectedTeam.id);
+      if (!response.success || !response.data) {
+        throw new Error('발주 데이터 조회에 실패했습니다.');
+      }
 
       // 판매 레코드로 변환
       let salesRecords = response.data.map(transformToSalesRecord);
+
+      // 날짜 필터링 (client-side)
+      salesRecords = salesRecords.filter((record) => {
+        const purchaseDate = record.purchaseDate;
+        return (
+          purchaseDate >= params.startDate && purchaseDate <= params.endDate
+        );
+      });
+
+      // 공급처 필터링
+      if (params.supplierId) {
+        salesRecords = salesRecords.filter(
+          (r) => r.originalOrder.supplierId === params.supplierId
+        );
+      }
+
+      // 상태 필터링
+      if (params.status) {
+        salesRecords = salesRecords.filter((r) => r.status === params.status);
+      }
 
       // 패키지/개별 필터링
       if (params.orderType && params.orderType !== 'all') {

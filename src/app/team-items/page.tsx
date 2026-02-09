@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
@@ -28,6 +28,7 @@ interface TeamItem {
   itemCode: string;
   itemName: string;
   memo?: string;
+  costPrice?: number | null;
   category?: {
     id: number;
     name: string;
@@ -82,6 +83,12 @@ export default function TeamItemsPage() {
     getCategoriesSorted,
     deleteCategory,
   } = useCategory(selectedTeam?.id);
+
+  // 원가 열람 권한 체크 (Admin과 Moderator만 가능)
+  const canViewCost = useMemo(() => {
+    if (!user) return false;
+    return user.accessLevel === 'admin' || user.accessLevel === 'moderator';
+  }, [user]);
 
   // 반응형 뷰 모드 감지
   useEffect(() => {
@@ -577,6 +584,9 @@ export default function TeamItemsPage() {
                     <th className="px-4 py-3 w-28 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       카테고리
                     </th>
+                    <th className="px-4 py-3 w-24 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">
+                      원가
+                    </th>
                     <th className="px-4 py-3 w-52 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       메모
                     </th>
@@ -614,6 +624,19 @@ export default function TeamItemsPage() {
                       </td>
                       <td className="px-4 py-3 text-sm whitespace-nowrap">
                         {item.category?.name || "없음"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
+                        {canViewCost ? (
+                          item.costPrice !== null && item.costPrice !== undefined ? (
+                            <span className="font-medium text-gray-900">
+                              ₩{item.costPrice.toLocaleString()}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">미입력</span>
+                          )
+                        ) : (
+                          <span className="text-gray-400 text-xs">-</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div

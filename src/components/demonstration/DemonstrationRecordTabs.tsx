@@ -26,7 +26,6 @@ import { useRouter } from "next/navigation";
 // import { useDeleteDemo } from "@/hooks/(useDemo)/useDemoMutations"; // 제거됨
 import { DemoStatus } from "@/types/demo/demo";
 import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
-import { formatDateTimeToKorean } from "@/utils/calendar/calendarUtils";
 
 type TabType = "ongoing" | "long-term" | "completed";
 type SortField = "createdAt" | "demoStartDate" | "demoTitle" | "demoStatus";

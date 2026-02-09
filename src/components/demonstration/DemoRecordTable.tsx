@@ -4,7 +4,6 @@ import React from "react";
 import { ArrowUpDown, ArrowUp, ArrowDown, Sparkles } from "lucide-react";
 import { DemoResponse, DemoStatus } from "@/types/demo/demo";
 import { formatDateForDisplayUTC } from "@/utils/dateUtils";
-import { formatDateTimeToKorean } from "@/utils/calendar/calendarUtils";
 
 type SortField = "createdAt" | "demoStartDate" | "demoTitle" | "demoStatus";
 type SortOrder = "asc" | "desc" | null;
@@ -75,8 +74,14 @@ export default function DemoRecordTable({
       <table className="w-full">
         <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-              #
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <button
+                onClick={() => handleSort("createdAt")}
+                className="flex items-center hover:text-gray-700 select-none"
+              >
+                생성일
+                {renderSortIcon("createdAt")}
+              </button>
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
               유형
@@ -88,15 +93,6 @@ export default function DemoRecordTable({
               >
                 제목
                 {renderSortIcon("demoTitle")}
-              </button>
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <button
-                onClick={() => handleSort("createdAt")}
-                className="flex items-center hover:text-gray-700 select-none"
-              >
-                생성일
-                {renderSortIcon("createdAt")}
               </button>
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -128,14 +124,14 @@ export default function DemoRecordTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {records.map((record, index) => (
+          {records.map((record) => (
             <tr
               key={record.id}
               className="hover:bg-gray-50 transition-colors cursor-pointer"
               onClick={() => onDetailClick(record)}
             >
-              <td className="px-4 py-3 text-sm text-gray-500">
-                {index + 1}
+              <td className="px-4 py-3 text-sm text-gray-600">
+                {formatDateForDisplayUTC(record.createdAt)}
               </td>
               <td className="px-4 py-3">
                 <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded font-medium">
@@ -169,12 +165,14 @@ export default function DemoRecordTable({
                 </div>
               </td>
               <td className="px-4 py-3 text-sm text-gray-600">
-                {formatDateForDisplayUTC(record.createdAt)}
-              </td>
-              <td className="px-4 py-3 text-sm text-gray-600">
-                {record.demoStartDate
-                  ? formatDateTimeToKorean(record.demoStartDate, record.demoStartTime)
-                  : "-"}
+                {record.demoStartDate ? (
+                  <>
+                    {formatDateForDisplayUTC(record.demoStartDate)}
+                    {record.demoStartTime && <span className="font-semibold text-gray-900"> {record.demoStartTime}</span>}
+                  </>
+                ) : (
+                  "-"
+                )}
               </td>
               <td className="px-4 py-3">
                 <span

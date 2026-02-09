@@ -1286,6 +1286,7 @@ const OrderRecordTabs = () => {
             records={currentRecords}
             getStatusText={getStatusText}
             getStatusColorClass={getStatusColorClass}
+            getStatusHoverClass={getStatusHoverClass}
             hasPermissionToChangeStatus={hasPermissionToChangeStatus}
             handleStatusChange={handleStatusChange}
             isUpdatingStatus={isUpdatingStatus}
@@ -1453,6 +1454,27 @@ const getStatusColorClass = (status: string): string => {
       return "bg-orange-50 text-orange-600";
     default:
       return "bg-gray-50 text-gray-600";
+  }
+};
+
+// 상태에 따른 hover 색상 클래스 반환 함수
+const getStatusHoverClass = (status: string): string => {
+  switch (status) {
+    case OrderStatus.requested:
+    case "주문 접수":
+      return "hover:bg-yellow-100 focus:ring-yellow-400";
+    case OrderStatus.approved:
+      return "hover:bg-green-100 focus:ring-green-400";
+    case OrderStatus.rejected:
+      return "hover:bg-red-100 focus:ring-red-400";
+    case OrderStatus.confirmedByShipper:
+      return "hover:bg-blue-100 focus:ring-blue-400";
+    case OrderStatus.shipmentCompleted:
+      return "hover:bg-purple-100 focus:ring-purple-400";
+    case OrderStatus.rejectedByShipper:
+      return "hover:bg-orange-100 focus:ring-orange-400";
+    default:
+      return "hover:bg-gray-100 focus:ring-gray-400";
   }
 };
 

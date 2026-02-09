@@ -18,6 +18,7 @@ import {
 import { DemoResponse } from "@/types/demo/demo";
 import { useDemo } from "@/hooks/useDemo";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
+import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 // import { useCurrentUser } from "@/hooks/useCurrentUser"; // 제거됨
 import { authStore } from "@/store/authStore";
 import DemoEditModal from "./DemoEditModal";
@@ -547,6 +548,28 @@ const DemonstrationRecordTabs = () => {
     }
   };
 
+  // 상태 호버 클래스
+  const getStatusHoverClass = (status: string): string => {
+    switch (status) {
+      case "requested":
+        return "hover:bg-yellow-100 focus:ring-yellow-400";
+      case "approved":
+        return "hover:bg-green-100 focus:ring-green-400";
+      case "rejected":
+        return "hover:bg-red-100 focus:ring-red-400";
+      case "confirmedByShipper":
+        return "hover:bg-blue-100 focus:ring-blue-400";
+      case "shipmentCompleted":
+        return "hover:bg-purple-100 focus:ring-purple-400";
+      case "rejectedByShipper":
+        return "hover:bg-orange-100 focus:ring-orange-400";
+      case "demoCompleted":
+        return "hover:bg-gray-100 focus:ring-gray-400";
+      default:
+        return "hover:bg-gray-100 focus:ring-gray-400";
+    }
+  };
+
   // 상태 아이콘
   const getStatusIcon = (status: string): JSX.Element => {
     switch (status) {
@@ -874,9 +897,7 @@ const DemonstrationRecordTabs = () => {
       {/* 테이블형 리스트 */}
       <div>
         {isLoading() ? (
-          <div className="flex justify-center items-center py-16">
-            <div className="w-10 h-10 rounded-full border-b-2 border-blue-500 animate-spin"></div>
-          </div>
+          <LoadingSkeleton type={isMobile ? 'card' : 'table'} count={10} />
         ) : currentRecords.length === 0 ? (
           <div className="py-16 text-center bg-white rounded-2xl shadow-sm">
             <Package className="mx-auto w-12 h-12 text-gray-300" />
@@ -971,6 +992,7 @@ const DemonstrationRecordTabs = () => {
             records={currentRecords}
             getStatusText={getStatusText}
             getStatusColorClass={getStatusColorClass}
+            getStatusHoverClass={getStatusHoverClass}
             canChangeStatus={canChangeStatus}
             handleStatusChange={handleStatusChange}
             updatingStatusId={updatingStatusId}

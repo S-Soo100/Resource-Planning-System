@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ArrowUpDown, ArrowUp, ArrowDown, Download, AlertCircle } from 'lucide-react';
 import { usePurchaseData } from '@/hooks/usePurchaseData';
 import { PurchaseSummary } from '@/components/purchase/PurchaseSummary';
 import { exportPurchaseToExcel } from '@/utils/exportPurchaseToExcel';
+import { ErrorState } from '@/components/common/ErrorState';
+import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import {
   PurchaseFilterParams,
   PurchaseSortField,
@@ -13,7 +15,25 @@ import {
   PurchaseRecord,
 } from '@/types/purchase';
 
+// 미디어 쿼리 훅
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, [matches, query]);
+  return matches;
+}
+
 export default function PurchasePage() {
+  // 미디어 쿼리
+  const isMobile = useMediaQuery('(max-width: 759px)');
+
   // 필터 상태 (기본값: 이번 달)
   const [filters, setFilters] = useState<PurchaseFilterParams>({
     startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
@@ -104,18 +124,35 @@ export default function PurchasePage() {
     exportPurchaseToExcel(data.records);
   };
 
-  if (isLoading) {
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500">로딩 중...</div>
-      </div>
+      <ErrorState
+        title="데이터 조회 실패"
+        message="구매 내역을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 
-  if (error) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-500">데이터 조회 중 오류가 발생했습니다.</div>
+      <div className="container mx-auto p-6">
+        <div className="mb-6">
+          <div className="h-9 bg-gray-200 rounded w-48 mb-2 animate-pulse"></div>
+          <div className="h-5 bg-gray-200 rounded w-96 animate-pulse"></div>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 animate-pulse">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="h-20 bg-gray-200 rounded"></div>
+            <div className="h-20 bg-gray-200 rounded"></div>
+            <div className="h-20 bg-gray-200 rounded"></div>
+          </div>
+          <div className="h-10 bg-gray-200 rounded"></div>
+        </div>
+
+        <LoadingSkeleton type="summary" />
+        <LoadingSkeleton type={isMobile ? 'card' : 'table'} count={5} />
       </div>
     );
   }
@@ -223,146 +260,237 @@ export default function PurchasePage() {
         </div>
       )}
 
-      {/* 테이블 */}
+      {/* 테이블/카드 */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  No
-                </th>
-                <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('supplierName')}
-                >
-                  <div className="flex items-center">
-                    공급처
-                    {renderSortIcon('supplierName')}
+        {isMobile ? (
+          /* 모바일 카드형 리스트 */
+          <div className="divide-y divide-gray-100">
+            {sortedRecords.map((record, index) => (
+              <div
+                key={record.id}
+                className="p-4 hover:bg-gray-50 transition-colors"
+              >
+                {/* 헤더: 품목명 & 금액 */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 mr-3">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                      {record.itemName}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {record.itemCode}
+                    </p>
                   </div>
-                </th>
-                <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('inboundDate')}
-                >
-                  <div className="flex items-center">
-                    입고일자
-                    {renderSortIcon('inboundDate')}
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-sm font-bold text-gray-900">
+                      {record.totalPrice !== null ? (
+                        `₩${record.totalPrice.toLocaleString()}`
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      {record.quantity.toLocaleString()}개
+                    </div>
                   </div>
-                </th>
-                <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('itemCode')}
-                >
-                  <div className="flex items-center">
-                    품목코드
-                    {renderSortIcon('itemCode')}
-                  </div>
-                </th>
-                <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('itemName')}
-                >
-                  <div className="flex items-center">
-                    품목명
-                    {renderSortIcon('itemName')}
-                  </div>
-                </th>
-                <th
-                  className="px-4 py-3 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('quantity')}
-                >
-                  <div className="flex items-center justify-end">
-                    수량
-                    {renderSortIcon('quantity')}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">
-                  단가
-                </th>
-                <th
-                  className="px-4 py-3 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('totalPrice')}
-                >
-                  <div className="flex items-center justify-end">
-                    금액
-                    {renderSortIcon('totalPrice')}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  비고
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {sortedRecords.map((record, index) => (
-                <tr
-                  key={record.id}
-                  className="hover:bg-gray-50"
-                >
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {index + 1}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {record.supplierName || '-'}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {formatDate(record.inboundDate)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {record.itemCode}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {record.itemName}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right text-gray-900">
-                    {record.quantity.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right text-gray-900">
-                    {record.unitPrice !== null ? (
-                      `₩${record.unitPrice.toLocaleString()}`
-                    ) : (
-                      <span className="text-gray-400">미입력</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
-                    {record.totalPrice !== null ? (
-                      `₩${record.totalPrice.toLocaleString()}`
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 whitespace-pre-line">
-                    {truncateRemarks(record.remarks)}
-                  </td>
-                </tr>
-              ))}
+                </div>
 
-              {/* 합계 행 */}
-              {data?.summary && (
-                <tr className="bg-blue-50 border-t-2 border-blue-200">
-                  <td
-                    colSpan={5}
-                    className="px-4 py-3 text-sm font-bold text-right text-gray-900"
+                {/* 상세 정보 */}
+                <div className="space-y-1 text-xs text-gray-600">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">공급처</span>
+                    <span className="font-medium">{record.supplierName || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">입고일자</span>
+                    <span>{formatDate(record.inboundDate)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">단가</span>
+                    <span>
+                      {record.unitPrice !== null ? (
+                        `₩${record.unitPrice.toLocaleString()}`
+                      ) : (
+                        <span className="text-gray-400">미입력</span>
+                      )}
+                    </span>
+                  </div>
+                  {record.remarks && (
+                    <div className="pt-2 border-t border-gray-100 mt-2">
+                      <span className="text-gray-500">비고:</span>
+                      <p className="text-gray-600 whitespace-pre-line mt-1">
+                        {truncateRemarks(record.remarks)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* 합계 카드 */}
+            {data?.summary && sortedRecords.length > 0 && (
+              <div className="p-4 bg-blue-50 border-t-2 border-blue-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-gray-900">합계</span>
+                  <div className="text-right">
+                    <div className="text-sm font-bold text-blue-600">
+                      ₩{data.summary.totalAmount.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-0.5">
+                      {data.summary.totalQuantity.toLocaleString()}개
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 데이터 없음 */}
+            {sortedRecords.length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                조회된 데이터가 없습니다.
+              </div>
+            )}
+          </div>
+        ) : (
+          /* 데스크톱 테이블형 리스트 */
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    No
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('supplierName')}
                   >
-                    합계
-                  </td>
-                  <td className="px-4 py-3 text-sm font-bold text-right text-gray-900">
-                    {data.summary.totalQuantity.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3"></td>
-                  <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">
-                    ₩{data.summary.totalAmount.toLocaleString()}
-                  </td>
-                  <td></td>
+                    <div className="flex items-center">
+                      공급처
+                      {renderSortIcon('supplierName')}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('inboundDate')}
+                  >
+                    <div className="flex items-center">
+                      입고일자
+                      {renderSortIcon('inboundDate')}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('itemCode')}
+                  >
+                    <div className="flex items-center">
+                      품목코드
+                      {renderSortIcon('itemCode')}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('itemName')}
+                  >
+                    <div className="flex items-center">
+                      품목명
+                      {renderSortIcon('itemName')}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('quantity')}
+                  >
+                    <div className="flex items-center justify-end">
+                      수량
+                      {renderSortIcon('quantity')}
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">
+                    단가
+                  </th>
+                  <th
+                    className="px-4 py-3 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('totalPrice')}
+                  >
+                    <div className="flex items-center justify-end">
+                      금액
+                      {renderSortIcon('totalPrice')}
+                    </div>
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    비고
+                  </th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {sortedRecords.map((record, index) => (
+                  <tr
+                    key={record.id}
+                    className="hover:bg-gray-50"
+                  >
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {index + 1}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {record.supplierName || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {formatDate(record.inboundDate)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {record.itemCode}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {record.itemName}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right text-gray-900">
+                      {record.quantity.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right text-gray-900">
+                      {record.unitPrice !== null ? (
+                        `₩${record.unitPrice.toLocaleString()}`
+                      ) : (
+                        <span className="text-gray-400">미입력</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                      {record.totalPrice !== null ? (
+                        `₩${record.totalPrice.toLocaleString()}`
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-pre-line">
+                      {truncateRemarks(record.remarks)}
+                    </td>
+                  </tr>
+                ))}
 
-        {/* 데이터 없음 */}
-        {sortedRecords.length === 0 && (
+                {/* 합계 행 */}
+                {data?.summary && (
+                  <tr className="bg-blue-50 border-t-2 border-blue-200">
+                    <td
+                      colSpan={5}
+                      className="px-4 py-3 text-sm font-bold text-right text-gray-900"
+                    >
+                      합계
+                    </td>
+                    <td className="px-4 py-3 text-sm font-bold text-right text-gray-900">
+                      {data.summary.totalQuantity.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3"></td>
+                    <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">
+                      ₩{data.summary.totalAmount.toLocaleString()}
+                    </td>
+                    <td></td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* 데이터 없음 (데스크톱용) */}
+        {!isMobile && sortedRecords.length === 0 && (
           <div className="text-center py-12 text-gray-500">
             조회된 데이터가 없습니다.
           </div>

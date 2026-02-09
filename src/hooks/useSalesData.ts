@@ -118,11 +118,13 @@ export const useSalesData = (params: SalesFilterParams) => {
         throw new Error('발주 데이터 조회에 실패했습니다.');
       }
 
+      const orders = response.data as Order[];
+
       // 판매 레코드로 변환
-      let salesRecords = response.data.map(transformToSalesRecord);
+      let salesRecords = orders.map(transformToSalesRecord);
 
       // 날짜 필터링 (client-side)
-      salesRecords = salesRecords.filter((record) => {
+      salesRecords = salesRecords.filter((record: SalesRecord) => {
         const purchaseDate = record.purchaseDate;
         return (
           purchaseDate >= params.startDate && purchaseDate <= params.endDate
@@ -132,24 +134,26 @@ export const useSalesData = (params: SalesFilterParams) => {
       // 공급처 필터링
       if (params.supplierId) {
         salesRecords = salesRecords.filter(
-          (r) => r.originalOrder.supplierId === params.supplierId
+          (r: SalesRecord) => r.originalOrder.supplierId === params.supplierId
         );
       }
 
       // 상태 필터링
       if (params.status) {
-        salesRecords = salesRecords.filter((r) => r.status === params.status);
+        salesRecords = salesRecords.filter(
+          (r: SalesRecord) => r.status === params.status
+        );
       }
 
       // 패키지/개별 필터링
       if (params.orderType && params.orderType !== 'all') {
         if (params.orderType === 'package') {
           salesRecords = salesRecords.filter(
-            (r) => r.originalOrder.packageId !== null
+            (r: SalesRecord) => r.originalOrder.packageId !== null
           );
         } else if (params.orderType === 'individual') {
           salesRecords = salesRecords.filter(
-            (r) => r.originalOrder.packageId === null
+            (r: SalesRecord) => r.originalOrder.packageId === null
           );
         }
       }
@@ -158,7 +162,7 @@ export const useSalesData = (params: SalesFilterParams) => {
       if (params.searchQuery && params.searchQuery.trim()) {
         const query = params.searchQuery.toLowerCase();
         salesRecords = salesRecords.filter(
-          (record) =>
+          (record: SalesRecord) =>
             record.title.toLowerCase().includes(query) ||
             record.supplierName.toLowerCase().includes(query) ||
             record.receiver.toLowerCase().includes(query) ||
@@ -168,7 +172,9 @@ export const useSalesData = (params: SalesFilterParams) => {
 
       // 판매가 미입력만 보기 필터
       if (params.showMissingPriceOnly) {
-        salesRecords = salesRecords.filter((r) => r.totalPrice === null);
+        salesRecords = salesRecords.filter(
+          (r: SalesRecord) => r.totalPrice === null
+        );
       }
 
       // 요약 정보 계산

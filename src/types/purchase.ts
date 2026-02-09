@@ -54,7 +54,8 @@ export type PurchaseSortField =
   | 'itemName'
   | 'itemCode'
   | 'quantity'
-  | 'totalPrice';
+  | 'totalPrice'
+  | 'supplierName';
 
 export type SortDirection = 'asc' | 'desc';
 

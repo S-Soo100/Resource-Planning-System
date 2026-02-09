@@ -80,6 +80,24 @@ export default function PurchasePage() {
     );
   };
 
+  // 날짜 포맷 간소화 (2026-02-10T00:00:00.000Z → 26-02-10)
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const year = date.getFullYear().toString().slice(2); // 26
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 02
+    const day = date.getDate().toString().padStart(2, '0'); // 10
+    return `${year}-${month}-${day}`;
+  };
+
+  // 비고 텍스트 처리 (최대 2줄, 이후 ... 처리)
+  const truncateRemarks = (remarks: string | null) => {
+    if (!remarks) return '-';
+    const lines = remarks.split('\n');
+    if (lines.length <= 2) return remarks;
+    return lines.slice(0, 2).join('\n') + '...';
+  };
+
   // 엑셀 다운로드
   const handleExportExcel = () => {
     if (!data?.records) return;
@@ -216,6 +234,15 @@ export default function PurchasePage() {
                 </th>
                 <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('supplierName')}
+                >
+                  <div className="flex items-center">
+                    공급처
+                    {renderSortIcon('supplierName')}
+                  </div>
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('inboundDate')}
                 >
                   <div className="flex items-center">
@@ -241,9 +268,6 @@ export default function PurchasePage() {
                     {renderSortIcon('itemName')}
                   </div>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  카테고리
-                </th>
                 <th
                   className="px-4 py-3 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('quantity')}
@@ -266,12 +290,6 @@ export default function PurchasePage() {
                   </div>
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  공급처
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  창고
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                   비고
                 </th>
               </tr>
@@ -280,24 +298,22 @@ export default function PurchasePage() {
               {sortedRecords.map((record, index) => (
                 <tr
                   key={record.id}
-                  className="hover:bg-gray-50 cursor-pointer"
+                  className="hover:bg-gray-50"
                 >
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {index + 1}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
-                    {record.inboundDate}
+                    {record.supplierName || '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {formatDate(record.inboundDate)}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">
                     {record.itemCode}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {record.itemName}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
-                      {record.categoryName}
-                    </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-right text-gray-900">
                     {record.quantity.toLocaleString()}
@@ -316,14 +332,8 @@ export default function PurchasePage() {
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {record.supplierName || '-'}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {record.warehouseName || '-'}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {record.remarks || '-'}
+                  <td className="px-4 py-3 text-sm text-gray-600 whitespace-pre-line">
+                    {truncateRemarks(record.remarks)}
                   </td>
                 </tr>
               ))}
@@ -344,7 +354,7 @@ export default function PurchasePage() {
                   <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">
                     ₩{data.summary.totalAmount.toLocaleString()}
                   </td>
-                  <td colSpan={3}></td>
+                  <td></td>
                 </tr>
               )}
             </tbody>

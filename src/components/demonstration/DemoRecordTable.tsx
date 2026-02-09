@@ -34,6 +34,7 @@ interface DemoRecordTableProps {
   sortField: SortField;
   sortOrder: SortOrder;
   onSort: (field: SortField) => void;
+  activeTab?: string; // 현재 활성 탭
 }
 
 export default function DemoRecordTable({
@@ -48,6 +49,7 @@ export default function DemoRecordTable({
   sortField,
   sortOrder,
   onSort,
+  activeTab = "ongoing",
 }: DemoRecordTableProps) {
   // 정렬 핸들러 - 부모 컴포넌트로 위임
   const handleSort = (field: SortField) => {
@@ -151,7 +153,7 @@ export default function DemoRecordTable({
                       NEW
                     </span>
                   )}
-                  {record.isLongTerm && (
+                  {record.isLongTerm && activeTab === "long-term" && (
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
                       장기시연
                     </span>

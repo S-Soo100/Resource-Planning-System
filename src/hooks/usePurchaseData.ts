@@ -86,9 +86,17 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
       }
 
       // 구매 레코드로 변환 (입고만 필터링)
-      const purchaseRecords = response.data
+      let purchaseRecords = response.data
         .map(transformToPurchaseRecord)
         .filter((record): record is PurchaseRecord => record !== null);
+
+      // 클라이언트 사이드 날짜 필터링 (서버 필터링이 제대로 동작하지 않을 경우 대비)
+      purchaseRecords = purchaseRecords.filter((record) => {
+        const inboundDate = record.inboundDate;
+        return (
+          inboundDate >= params.startDate && inboundDate <= params.endDate
+        );
+      });
 
       // TODO: 추후 API에서 warehouseId, supplierId, categoryId 필터링 지원 시 제거
       // 현재는 클라이언트에서 필터링

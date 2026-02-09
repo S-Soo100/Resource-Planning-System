@@ -674,19 +674,19 @@ const DemonstrationRecordTabs = () => {
       </div>
 
       {/* 탭 */}
-      <div className="flex mb-4 space-x-2">
+      <div className="flex mb-4 gap-1.5 sm:gap-2">
         <button
           onClick={() => handleTabChange("ongoing")}
-          className={`group flex-1 px-5 py-3 rounded-xl font-semibold text-base transition-all duration-300 transform hover:scale-[1.02] ${
+          className={`group flex-1 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-base transition-all duration-300 transform hover:scale-[1.02] ${
             activeTab === "ongoing"
               ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200"
               : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 hover:from-gray-100 hover:to-gray-200 border border-gray-200"
           }`}
         >
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`w-5 h-5 transition-transform duration-300 ${activeTab === "ongoing" ? "animate-pulse" : "group-hover:rotate-12"}`}
+              className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-transform duration-300 ${activeTab === "ongoing" ? "animate-pulse" : "group-hover:rotate-12"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -698,21 +698,21 @@ const DemonstrationRecordTabs = () => {
                 d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-            진행중
+            <span className="whitespace-nowrap">진행중</span>
           </div>
         </button>
         <button
           onClick={() => handleTabChange("long-term")}
-          className={`group flex-1 px-5 py-3 rounded-xl font-semibold text-base transition-all duration-300 transform hover:scale-[1.02] ${
+          className={`group flex-1 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-base transition-all duration-300 transform hover:scale-[1.02] ${
             activeTab === "long-term"
               ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-200"
               : "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 hover:from-purple-100 hover:to-purple-200 border border-purple-200"
           }`}
         >
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`w-5 h-5 transition-transform duration-300 ${activeTab === "long-term" ? "" : "group-hover:scale-110"}`}
+              className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-transform duration-300 ${activeTab === "long-term" ? "" : "group-hover:scale-110"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -724,21 +724,21 @@ const DemonstrationRecordTabs = () => {
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            장기 시연
+            <span className="whitespace-nowrap">장기 시연</span>
           </div>
         </button>
         <button
           onClick={() => handleTabChange("completed")}
-          className={`group flex-1 px-5 py-3 rounded-xl font-semibold text-base transition-all duration-300 transform hover:scale-[1.02] ${
+          className={`group flex-1 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-base transition-all duration-300 transform hover:scale-[1.02] ${
             activeTab === "completed"
               ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-200"
               : "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 hover:from-green-100 hover:to-emerald-100 border border-green-200"
           }`}
         >
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`w-5 h-5 transition-transform duration-300 ${activeTab === "completed" ? "" : "group-hover:scale-110"}`}
+              className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-transform duration-300 ${activeTab === "completed" ? "" : "group-hover:scale-110"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -750,7 +750,7 @@ const DemonstrationRecordTabs = () => {
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            시연종료
+            <span className="whitespace-nowrap">시연종료</span>
           </div>
         </button>
       </div>

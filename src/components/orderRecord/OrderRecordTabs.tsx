@@ -1075,19 +1075,19 @@ const OrderRecordTabs = () => {
   // 출고 상태 탭 렌더링
   const renderShipmentTabs = () => {
     return (
-      <div className="flex gap-3 mb-4 sm:mb-6">
+      <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
         <button
           onClick={() => handleShipmentTabChange("pending")}
-          className={`group flex-1 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-[1.02] ${
+          className={`group flex-1 px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 transform hover:scale-[1.02] ${
             shipmentTab === "pending"
               ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-200"
               : "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 hover:from-orange-100 hover:to-amber-100 border border-orange-200"
           }`}
         >
-          <div className="flex gap-2 justify-center items-center">
+          <div className="flex gap-1.5 sm:gap-2 justify-center items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`w-5 h-5 transition-transform duration-300 ${shipmentTab === "pending" ? "animate-pulse" : "group-hover:rotate-12"}`}
+              className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-transform duration-300 ${shipmentTab === "pending" ? "animate-pulse" : "group-hover:rotate-12"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -1099,21 +1099,21 @@ const OrderRecordTabs = () => {
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            출고 전
+            <span className="whitespace-nowrap">출고 전</span>
           </div>
         </button>
         <button
           onClick={() => handleShipmentTabChange("completed")}
-          className={`group flex-1 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-[1.02] ${
+          className={`group flex-1 px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 transform hover:scale-[1.02] ${
             shipmentTab === "completed"
               ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-200"
               : "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 hover:from-green-100 hover:to-emerald-100 border border-green-200"
           }`}
         >
-          <div className="flex gap-2 justify-center items-center">
+          <div className="flex gap-1.5 sm:gap-2 justify-center items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`w-5 h-5 transition-transform duration-300 ${shipmentTab === "completed" ? "" : "group-hover:scale-110"}`}
+              className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-transform duration-300 ${shipmentTab === "completed" ? "" : "group-hover:scale-110"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -1125,7 +1125,7 @@ const OrderRecordTabs = () => {
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            출고 완료
+            <span className="whitespace-nowrap">출고 완료</span>
           </div>
         </button>
       </div>

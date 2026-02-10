@@ -192,30 +192,37 @@ export function TransactionStatementModal({
                       <th className="border border-gray-300 px-1 py-1 text-left">품목명</th>
                       <th className="border border-gray-300 px-1 py-1 text-center w-10">수량</th>
                       <th className="border border-gray-300 px-1 py-1 text-right w-16">단가</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-16">부가세</th>
                       <th className="border border-gray-300 px-1 py-1 text-right w-20">금액</th>
                       <th className="border border-gray-300 px-1 py-1 text-left w-16">비고</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {orderItems.map((item, index) => (
-                      <tr key={item.id}>
-                        <td className="border border-gray-300 px-1 py-0.5 text-center">{index + 1}</td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemCode || '-'}</td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemName || '-'}</td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-center">{item.quantity}</td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                          {item.sellingPrice ? `₩${item.sellingPrice.toLocaleString()}` : '-'}
-                        </td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-right font-medium text-[8px]">
-                          {item.sellingPrice ? `₩${(item.quantity * item.sellingPrice).toLocaleString()}` : '-'}
-                        </td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-[7px]">{item.memo || '-'}</td>
-                      </tr>
-                    ))}
+                    {orderItems.map((item, index) => {
+                      const itemVat = item.sellingPrice ? Math.round(item.quantity * item.sellingPrice * 0.1) : 0;
+                      return (
+                        <tr key={item.id}>
+                          <td className="border border-gray-300 px-1 py-0.5 text-center">{index + 1}</td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemCode || '-'}</td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemName || '-'}</td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-center">{item.quantity}</td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                            {item.sellingPrice ? `₩${item.sellingPrice.toLocaleString()}` : '-'}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                            {item.sellingPrice ? `₩${itemVat.toLocaleString()}` : '-'}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-right font-medium text-[8px]">
+                            {item.sellingPrice ? `₩${(item.quantity * item.sellingPrice + itemVat).toLocaleString()}` : '-'}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-[7px]">{item.memo || '-'}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                   <tfoot className="bg-blue-50 font-semibold">
                     <tr>
-                      <td colSpan={3} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                      <td colSpan={4} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
                         총 품목: {record.itemCount}종 {record.totalQuantity}개
                       </td>
                       <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
@@ -226,7 +233,7 @@ export function TransactionStatementModal({
                       </td>
                     </tr>
                     <tr>
-                      <td colSpan={5} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                      <td colSpan={6} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
                         부가세(10%):
                       </td>
                       <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
@@ -234,7 +241,7 @@ export function TransactionStatementModal({
                       </td>
                     </tr>
                     <tr>
-                      <td colSpan={5} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                      <td colSpan={6} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
                         합계금액:
                       </td>
                       <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-blue-600 font-bold">
@@ -375,30 +382,37 @@ export function TransactionStatementModal({
                       <th className="border border-gray-300 px-1 py-1 text-left">품목명</th>
                       <th className="border border-gray-300 px-1 py-1 text-center w-10">수량</th>
                       <th className="border border-gray-300 px-1 py-1 text-right w-16">단가</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-16">부가세</th>
                       <th className="border border-gray-300 px-1 py-1 text-right w-20">금액</th>
                       <th className="border border-gray-300 px-1 py-1 text-left w-16">비고</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {orderItems.map((item, index) => (
-                      <tr key={`copy-${item.id}`}>
-                        <td className="border border-gray-300 px-1 py-0.5 text-center">{index + 1}</td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemCode || '-'}</td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemName || '-'}</td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-center">{item.quantity}</td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                          {item.sellingPrice ? `₩${item.sellingPrice.toLocaleString()}` : '-'}
-                        </td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-right font-medium text-[8px]">
-                          {item.sellingPrice ? `₩${(item.quantity * item.sellingPrice).toLocaleString()}` : '-'}
-                        </td>
-                        <td className="border border-gray-300 px-1 py-0.5 text-[7px]">{item.memo || '-'}</td>
-                      </tr>
-                    ))}
+                    {orderItems.map((item, index) => {
+                      const itemVat = item.sellingPrice ? Math.round(item.quantity * item.sellingPrice * 0.1) : 0;
+                      return (
+                        <tr key={`copy-${item.id}`}>
+                          <td className="border border-gray-300 px-1 py-0.5 text-center">{index + 1}</td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemCode || '-'}</td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemName || '-'}</td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-center">{item.quantity}</td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                            {item.sellingPrice ? `₩${item.sellingPrice.toLocaleString()}` : '-'}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                            {item.sellingPrice ? `₩${itemVat.toLocaleString()}` : '-'}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-right font-medium text-[8px]">
+                            {item.sellingPrice ? `₩${(item.quantity * item.sellingPrice + itemVat).toLocaleString()}` : '-'}
+                          </td>
+                          <td className="border border-gray-300 px-1 py-0.5 text-[7px]">{item.memo || '-'}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                   <tfoot className="bg-blue-50 font-semibold">
                     <tr>
-                      <td colSpan={3} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                      <td colSpan={4} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
                         총 품목: {record.itemCount}종 {record.totalQuantity}개
                       </td>
                       <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
@@ -409,7 +423,7 @@ export function TransactionStatementModal({
                       </td>
                     </tr>
                     <tr>
-                      <td colSpan={5} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                      <td colSpan={6} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
                         부가세(10%):
                       </td>
                       <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
@@ -417,7 +431,7 @@ export function TransactionStatementModal({
                       </td>
                     </tr>
                     <tr>
-                      <td colSpan={5} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                      <td colSpan={6} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
                         합계금액:
                       </td>
                       <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-blue-600 font-bold">

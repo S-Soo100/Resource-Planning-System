@@ -12,6 +12,7 @@ import { exportPurchaseToExcel } from '@/utils/exportPurchaseToExcel';
 import { ErrorState } from '@/components/common/ErrorState';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { LoadingCentered } from '@/components/ui/Loading';
+import { MonthRangePicker } from '@/components/common/MonthRangePicker';
 import {
   PurchaseFilterParams,
   PurchaseSortField,
@@ -76,6 +77,38 @@ export default function PurchasePage() {
     const currentTeamItem = teamItemsMap.get(teamItemId);
     return currentTeamItem?.costPrice;
   };
+
+  // 실시간 costPrice를 반영한 요약 정보 재계산
+  const actualSummary = useMemo(() => {
+    if (!data?.records || teamItemsMap.size === 0) return data?.summary;
+
+    const records = data.records;
+    const uniqueItems = new Set(records.map((r) => r.itemCode));
+    const totalQuantity = records.reduce((sum, r) => sum + r.quantity, 0);
+
+    // 실시간 costPrice를 사용하여 totalAmount 계산
+    const totalAmount = records.reduce((sum, r) => {
+      const costPrice = getCostPrice(r);
+      if (costPrice !== null && costPrice !== undefined) {
+        return sum + (r.quantity * costPrice);
+      }
+      return sum;
+    }, 0);
+
+    // 실시간 costPrice를 확인하여 미입력 건수 계산
+    const missingCostCount = records.filter((r) => {
+      const costPrice = getCostPrice(r);
+      return costPrice === null || costPrice === undefined;
+    }).length;
+
+    return {
+      totalOrders: records.length,
+      totalItems: uniqueItems.size,
+      totalQuantity,
+      totalAmount,
+      missingCostCount,
+    };
+  }, [data?.records, data?.summary, teamItemsMap]);
 
   // 정렬된 레코드
   const sortedRecords = useMemo(() => {
@@ -235,52 +268,33 @@ export default function PurchasePage() {
 
       {/* 필터 */}
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* 시작일 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              시작일
-            </label>
-            <input
-              type="date"
-              value={filters.startDate}
-              onChange={(e) =>
-                setFilters({ ...filters, startDate: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
+        {/* 월 범위 선택 */}
+        <MonthRangePicker
+          startDate={filters.startDate}
+          endDate={filters.endDate}
+          onStartDateChange={(date) =>
+            setFilters({ ...filters, startDate: date })
+          }
+          onEndDateChange={(date) =>
+            setFilters({ ...filters, endDate: date })
+          }
+          className="mb-4"
+        />
 
-          {/* 종료일 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              종료일
-            </label>
-            <input
-              type="date"
-              value={filters.endDate}
-              onChange={(e) =>
-                setFilters({ ...filters, endDate: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
-
-          {/* 검색 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              검색
-            </label>
-            <input
-              type="text"
-              placeholder="품목코드, 품목명, 비고"
-              value={filters.searchQuery}
-              onChange={(e) =>
-                setFilters({ ...filters, searchQuery: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
+        {/* 검색 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            검색
+          </label>
+          <input
+            type="text"
+            placeholder="품목코드, 품목명, 비고"
+            value={filters.searchQuery}
+            onChange={(e) =>
+              setFilters({ ...filters, searchQuery: e.target.value })
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
         </div>
 
         {/* 하단 버튼 */}
@@ -312,14 +326,14 @@ export default function PurchasePage() {
       </div>
 
       {/* 요약 카드 */}
-      {data?.summary && <PurchaseSummary summary={data.summary} />}
+      {actualSummary && <PurchaseSummary summary={actualSummary} />}
 
       {/* 원가 미입력 경고 */}
-      {data?.summary && data.summary.missingCostCount > 0 && (
+      {actualSummary && actualSummary.missingCostCount > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex items-start">
           <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-yellow-800">
-            <strong>원가 미입력 품목: {data.summary.missingCostCount}건</strong>
+            <strong>원가 미입력 품목: {actualSummary.missingCostCount}건</strong>
             <br />
             정확한 구매 금액 분석을 위해 원가 정보를 입력해주세요.
           </div>
@@ -399,16 +413,16 @@ export default function PurchasePage() {
             ))}
 
             {/* 합계 카드 */}
-            {data?.summary && sortedRecords.length > 0 && (
+            {actualSummary && sortedRecords.length > 0 && (
               <div className="p-4 bg-blue-50 border-t-2 border-blue-200">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-bold text-gray-900">합계</span>
                   <div className="text-right">
                     <div className="text-sm font-bold text-blue-600">
-                      ₩{data.summary.totalAmount.toLocaleString()}
+                      ₩{actualSummary.totalAmount.toLocaleString()}
                     </div>
                     <div className="text-xs text-gray-600 mt-0.5">
-                      {data.summary.totalQuantity.toLocaleString()}개
+                      {actualSummary.totalQuantity.toLocaleString()}개
                     </div>
                   </div>
                 </div>
@@ -539,7 +553,7 @@ export default function PurchasePage() {
                 ))}
 
                 {/* 합계 행 */}
-                {data?.summary && (
+                {actualSummary && (
                   <tr className="bg-blue-50 border-t-2 border-blue-200">
                     <td
                       colSpan={4}
@@ -548,11 +562,11 @@ export default function PurchasePage() {
                       합계
                     </td>
                     <td className="px-4 py-3 text-sm font-bold text-right text-gray-900">
-                      {data.summary.totalQuantity.toLocaleString()}
+                      {actualSummary.totalQuantity.toLocaleString()}
                     </td>
                     <td className="px-4 py-3"></td>
                     <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">
-                      ₩{data.summary.totalAmount.toLocaleString()}
+                      ₩{actualSummary.totalAmount.toLocaleString()}
                     </td>
                     <td></td>
                   </tr>

@@ -19,6 +19,7 @@ import { ErrorState } from '@/components/common/ErrorState';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { TransactionStatementModal } from '@/components/sales/TransactionStatementModal';
 import { LoadingCentered } from '@/components/ui/Loading';
+import { MonthRangePicker } from '@/components/common/MonthRangePicker';
 import {
   SalesFilterParams,
   SalesSortField,
@@ -285,52 +286,33 @@ export default function SalesPage() {
 
       {/* 필터 */}
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* 시작일 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              시작일
-            </label>
-            <input
-              type="date"
-              value={filters.startDate}
-              onChange={(e) =>
-                setFilters({ ...filters, startDate: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
+        {/* 월 범위 선택 */}
+        <MonthRangePicker
+          startDate={filters.startDate}
+          endDate={filters.endDate}
+          onStartDateChange={(date) =>
+            setFilters({ ...filters, startDate: date })
+          }
+          onEndDateChange={(date) =>
+            setFilters({ ...filters, endDate: date })
+          }
+          className="mb-4"
+        />
 
-          {/* 종료일 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              종료일
-            </label>
-            <input
-              type="date"
-              value={filters.endDate}
-              onChange={(e) =>
-                setFilters({ ...filters, endDate: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
-
-          {/* 검색 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              검색
-            </label>
-            <input
-              type="text"
-              placeholder="제목, 판매처, 수령인, 담당자"
-              value={filters.searchQuery}
-              onChange={(e) =>
-                setFilters({ ...filters, searchQuery: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
+        {/* 검색 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            검색
+          </label>
+          <input
+            type="text"
+            placeholder="제목, 판매처, 수령인, 담당자"
+            value={filters.searchQuery}
+            onChange={(e) =>
+              setFilters({ ...filters, searchQuery: e.target.value })
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
         </div>
 
         {/* 하단 버튼 */}

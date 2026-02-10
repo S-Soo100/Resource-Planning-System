@@ -8,12 +8,14 @@ import {
   ArrowDown,
   Download,
   AlertCircle,
+  FileText,
 } from 'lucide-react';
 import { useSalesData } from '@/hooks/useSalesData';
 import { SalesSummary } from '@/components/sales/SalesSummary';
 import { exportSalesToExcel } from '@/utils/exportSalesToExcel';
 import { ErrorState } from '@/components/common/ErrorState';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { TransactionStatementModal } from '@/components/sales/TransactionStatementModal';
 import {
   SalesFilterParams,
   SalesSortField,
@@ -54,6 +56,10 @@ export default function SalesPage() {
   // 정렬 상태
   const [sortField, setSortField] = useState<SalesSortField>('purchaseDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  // 거래명세서 모달 상태
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<SalesRecord | null>(null);
 
   // 데이터 조회
   const { data, isLoading, error } = useSalesData(filters);
@@ -142,6 +148,12 @@ export default function SalesPage() {
       default:
         return 'bg-gray-100 text-gray-700';
     }
+  };
+
+  // 거래명세서 열기
+  const handleOpenStatement = (record: SalesRecord) => {
+    setSelectedRecord(record);
+    setIsStatementModalOpen(true);
   };
 
   if (error) {
@@ -326,7 +338,7 @@ export default function SalesPage() {
                 </div>
 
                 {/* 상세 정보 */}
-                <div className="space-y-1 text-xs text-gray-600">
+                <div className="space-y-1 text-xs text-gray-600 mb-3">
                   <div className="flex justify-between">
                     <span className="text-gray-500">발주일자</span>
                     <span>{formatDate(record.purchaseDate)}</span>
@@ -346,6 +358,15 @@ export default function SalesPage() {
                     </div>
                   )}
                 </div>
+
+                {/* 거래명세서 버튼 */}
+                <button
+                  onClick={() => handleOpenStatement(record)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span className="text-sm font-medium">거래명세서</span>
+                </button>
               </div>
             ))}
 
@@ -436,6 +457,9 @@ export default function SalesPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     비고
                   </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-24">
+                    거래명세서
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -475,6 +499,15 @@ export default function SalesPage() {
                     <td className="px-4 py-3 text-sm text-gray-600 whitespace-pre-line">
                       {truncateMemo(record.memo)}
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => handleOpenStatement(record)}
+                        className="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                        title="거래명세서 보기"
+                      >
+                        <FileText className="w-5 h-5" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
 
@@ -494,6 +527,7 @@ export default function SalesPage() {
                       ₩{data.summary.totalSales.toLocaleString()}
                     </td>
                     <td></td>
+                    <td></td>
                   </tr>
                 )}
               </tbody>
@@ -508,6 +542,15 @@ export default function SalesPage() {
           </div>
         )}
       </div>
+
+      {/* 거래명세서 모달 */}
+      {selectedRecord && (
+        <TransactionStatementModal
+          isOpen={isStatementModalOpen}
+          onClose={() => setIsStatementModalOpen(false)}
+          record={selectedRecord}
+        />
+      )}
     </div>
   );
 }

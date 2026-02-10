@@ -236,17 +236,29 @@ export function TransactionStatementModal({
                   </tbody>
                   <tfoot className="bg-blue-50 font-semibold">
                     <tr>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
+                      <td colSpan={3} className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
                         총 품목: {record.itemCount}종 {record.totalQuantity}개
                       </td>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        공급가액: <span className="text-blue-600">₩{supplyAmount.toLocaleString()}</span>
+                      <td className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
+                        공급가액
                       </td>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        부가세: <span className="text-gray-700">₩{vat.toLocaleString()}</span>
+                      <td className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
+                        부가세
                       </td>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        합계: <span className="text-blue-600 font-bold">₩{totalAmount.toLocaleString()}</span>
+                      <td className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
+                        합계
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={3} className="border border-gray-300 px-1 py-0.5"></td>
+                      <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px] text-blue-600">
+                        ₩{supplyAmount.toLocaleString()}
+                      </td>
+                      <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        ₩{vat.toLocaleString()}
+                      </td>
+                      <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px] text-blue-600 font-bold">
+                        ₩{totalAmount.toLocaleString()}
                       </td>
                     </tr>
                   </tfoot>
@@ -411,17 +423,29 @@ export function TransactionStatementModal({
                   </tbody>
                   <tfoot className="bg-blue-50 font-semibold">
                     <tr>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
+                      <td colSpan={3} className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
                         총 품목: {record.itemCount}종 {record.totalQuantity}개
                       </td>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        공급가액: <span className="text-blue-600">₩{supplyAmount.toLocaleString()}</span>
+                      <td className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
+                        공급가액
                       </td>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        부가세: <span className="text-gray-700">₩{vat.toLocaleString()}</span>
+                      <td className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
+                        부가세
                       </td>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        합계: <span className="text-blue-600 font-bold">₩{totalAmount.toLocaleString()}</span>
+                      <td className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
+                        합계
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={3} className="border border-gray-300 px-1 py-0.5"></td>
+                      <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px] text-blue-600">
+                        ₩{supplyAmount.toLocaleString()}
+                      </td>
+                      <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        ₩{vat.toLocaleString()}
+                      </td>
+                      <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px] text-blue-600 font-bold">
+                        ₩{totalAmount.toLocaleString()}
                       </td>
                     </tr>
                   </tfoot>

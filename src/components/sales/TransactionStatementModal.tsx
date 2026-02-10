@@ -188,13 +188,12 @@ export function TransactionStatementModal({
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="border border-gray-300 px-1 py-1 text-center w-8">No</th>
-                      <th className="border border-gray-300 px-1 py-1 text-left w-16">품목코드</th>
                       <th className="border border-gray-300 px-1 py-1 text-left">품목명</th>
                       <th className="border border-gray-300 px-1 py-1 text-center w-10">수량</th>
-                      <th className="border border-gray-300 px-1 py-1 text-right w-16">단가</th>
-                      <th className="border border-gray-300 px-1 py-1 text-right w-16">부가세</th>
-                      <th className="border border-gray-300 px-1 py-1 text-right w-20">금액</th>
-                      <th className="border border-gray-300 px-1 py-1 text-left w-16">비고</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-[80px]">단가</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-[72px]">부가세</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-[88px]">금액</th>
+                      <th className="border border-gray-300 px-1 py-1 text-left w-[80px]">비고</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -203,7 +202,6 @@ export function TransactionStatementModal({
                       return (
                         <tr key={item.id}>
                           <td className="border border-gray-300 px-1 py-0.5 text-center">{index + 1}</td>
-                          <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemCode || '-'}</td>
                           <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemName || '-'}</td>
                           <td className="border border-gray-300 px-1 py-0.5 text-center">{item.quantity}</td>
                           <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
@@ -222,30 +220,17 @@ export function TransactionStatementModal({
                   </tbody>
                   <tfoot className="bg-blue-50 font-semibold">
                     <tr>
-                      <td colSpan={4} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
                         총 품목: {record.itemCount}종 {record.totalQuantity}개
                       </td>
                       <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        공급가액:
-                      </td>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-blue-600 text-[9px]">
-                        ₩{supplyAmount.toLocaleString()}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={6} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        부가세(10%):
+                        공급가액: <span className="text-blue-600">₩{supplyAmount.toLocaleString()}</span>
                       </td>
                       <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        ₩{vat.toLocaleString()}
+                        부가세: <span className="text-gray-700">₩{vat.toLocaleString()}</span>
                       </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={6} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        합계금액:
-                      </td>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-blue-600 font-bold">
-                        ₩{totalAmount.toLocaleString()}
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        합계: <span className="text-blue-600 font-bold">₩{totalAmount.toLocaleString()}</span>
                       </td>
                     </tr>
                   </tfoot>
@@ -378,13 +363,12 @@ export function TransactionStatementModal({
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="border border-gray-300 px-1 py-1 text-center w-8">No</th>
-                      <th className="border border-gray-300 px-1 py-1 text-left w-16">품목코드</th>
                       <th className="border border-gray-300 px-1 py-1 text-left">품목명</th>
                       <th className="border border-gray-300 px-1 py-1 text-center w-10">수량</th>
-                      <th className="border border-gray-300 px-1 py-1 text-right w-16">단가</th>
-                      <th className="border border-gray-300 px-1 py-1 text-right w-16">부가세</th>
-                      <th className="border border-gray-300 px-1 py-1 text-right w-20">금액</th>
-                      <th className="border border-gray-300 px-1 py-1 text-left w-16">비고</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-[80px]">단가</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-[72px]">부가세</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-[88px]">금액</th>
+                      <th className="border border-gray-300 px-1 py-1 text-left w-[80px]">비고</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -412,30 +396,17 @@ export function TransactionStatementModal({
                   </tbody>
                   <tfoot className="bg-blue-50 font-semibold">
                     <tr>
-                      <td colSpan={4} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-center text-[8px]">
                         총 품목: {record.itemCount}종 {record.totalQuantity}개
                       </td>
                       <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        공급가액:
-                      </td>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-blue-600 text-[9px]">
-                        ₩{supplyAmount.toLocaleString()}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={6} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        부가세(10%):
+                        공급가액: <span className="text-blue-600">₩{supplyAmount.toLocaleString()}</span>
                       </td>
                       <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        ₩{vat.toLocaleString()}
+                        부가세: <span className="text-gray-700">₩{vat.toLocaleString()}</span>
                       </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={6} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
-                        합계금액:
-                      </td>
-                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-blue-600 font-bold">
-                        ₩{totalAmount.toLocaleString()}
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        합계: <span className="text-blue-600 font-bold">₩{totalAmount.toLocaleString()}</span>
                       </td>
                     </tr>
                   </tfoot>

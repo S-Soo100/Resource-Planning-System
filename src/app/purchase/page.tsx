@@ -57,6 +57,32 @@ export default function PurchasePage() {
   // 데이터 조회
   const { data, isLoading, error } = usePurchaseData(filters);
 
+  // 정렬된 레코드
+  const sortedRecords = useMemo(() => {
+    if (!data?.records) return [];
+
+    const sorted = [...data.records].sort((a, b) => {
+      let aValue: any = a[sortField];
+      let bValue: any = b[sortField];
+
+      // null 값 처리
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+
+      // 문자열 비교
+      if (typeof aValue === 'string') {
+        return sortDirection === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      // 숫자 비교
+      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    });
+
+    return sorted;
+  }, [data?.records, sortField, sortDirection]);
+
   // 권한 체크: 로그인 및 사용자 로딩 상태
   if (isUserLoading) {
     return (
@@ -92,32 +118,6 @@ export default function PurchasePage() {
       </div>
     );
   }
-
-  // 정렬된 레코드
-  const sortedRecords = useMemo(() => {
-    if (!data?.records) return [];
-
-    const sorted = [...data.records].sort((a, b) => {
-      let aValue: any = a[sortField];
-      let bValue: any = b[sortField];
-
-      // null 값 처리
-      if (aValue === null) return 1;
-      if (bValue === null) return -1;
-
-      // 문자열 비교
-      if (typeof aValue === 'string') {
-        return sortDirection === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      // 숫자 비교
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-    });
-
-    return sorted;
-  }, [data?.records, sortField, sortDirection]);
 
   // 정렬 토글
   const handleSort = (field: PurchaseSortField) => {
@@ -163,6 +163,11 @@ export default function PurchasePage() {
   const handleExportExcel = () => {
     if (!data?.records) return;
     exportPurchaseToExcel(data.records);
+  };
+
+  // 품목명 클릭 시 품목 상세 페이지로 이동
+  const handleItemClick = (itemId: number) => {
+    router.push(`/item/${itemId}`);
   };
 
   if (error) {
@@ -468,8 +473,13 @@ export default function PurchasePage() {
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {formatDate(record.inboundDate)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {record.itemName}
+                    <td
+                      className="px-4 py-3 text-sm text-gray-900 cursor-pointer hover:bg-blue-50 transition-colors"
+                      onClick={() => handleItemClick(record.originalRecord.itemId)}
+                    >
+                      <div className="font-medium text-blue-600 hover:text-blue-700">
+                        {record.itemName}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-right text-gray-900">
                       {record.quantity.toLocaleString()}

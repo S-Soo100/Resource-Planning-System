@@ -123,7 +123,7 @@ export function TransactionStatementModal({
                   <div className="space-y-0.5 text-[10px]">
                     <div className="flex">
                       <span className="text-gray-600 w-16">회사명:</span>
-                      <span className="font-medium">(주)강스터즈</span>
+                      <span className="font-medium">내법인명</span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-2">
                       <div className="flex">
@@ -272,15 +272,15 @@ export function TransactionStatementModal({
               </div>
             </div>
 
-            {/* 절취선 (인쇄시에만) */}
-            <div className="print:block hidden border-t-2 border-dashed border-gray-400 my-2 relative">
+            {/* 절취선 */}
+            <div className="border-t-2 border-dashed border-gray-400 my-2 relative">
               <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[8px] text-gray-500">
                 ✂ 절 취 선 ✂
               </span>
             </div>
 
             {/* 두 번째 명세서 (동일한 내용) */}
-            <div className="p-6 print:p-4 print:h-[48vh] print:block hidden">
+            <div className="p-6 print:p-4 print:h-[48vh]">
               {/* 헤더 */}
               <div className="text-center mb-3 pb-2 border-b-2 border-blue-600">
                 <h1 className="text-xl font-bold text-gray-900">거래명세서</h1>
@@ -308,7 +308,7 @@ export function TransactionStatementModal({
                   <div className="space-y-0.5 text-[10px]">
                     <div className="flex">
                       <span className="text-gray-600 w-16">회사명:</span>
-                      <span className="font-medium">(주)강스터즈</span>
+                      <span className="font-medium">내법인명</span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-2">
                       <div className="flex">

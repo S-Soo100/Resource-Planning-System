@@ -370,22 +370,24 @@ export default function PacakgePage() {
     );
   }
 
-  if (!user || user.accessLevel === "supplier") {
+  // 권한 체크: Admin, Moderator만 접근 가능
+  if (!user || (user.accessLevel !== 'admin' && user.accessLevel !== 'moderator')) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="text-center">
+        <div className="text-center max-w-md">
+          <div className="text-6xl mb-4">🔒</div>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            열람 권한이 없습니다
+            접근 권한이 필요합니다
           </h2>
           <p className="text-gray-600 mb-6">
-            해당 페이지에 접근할 수 있는 권한이 없습니다.
+            패키지 관리 페이지는 관리자 또는 1차 승인권자만 접근할 수 있습니다.
           </p>
           <button
-            onClick={() => navigateByAuthStatus(router)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            onClick={() => router.push('/menu')}
+            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <ArrowLeft size={20} />
-            뒤로가기
+            메인으로 돌아가기
           </button>
         </div>
       </div>

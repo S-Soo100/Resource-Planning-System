@@ -445,6 +445,31 @@ export default function SupplierManagePage() {
     );
   }
 
+  // 권한 체크: Admin, Moderator만 접근 가능
+  if (!user || (user.accessLevel !== 'admin' && user.accessLevel !== 'moderator')) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-center max-w-md">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            접근 권한이 필요합니다
+          </h2>
+          <p className="text-gray-600 mb-6">
+            업체 관리 페이지는 관리자 또는 1차 승인권자만 접근할 수 있습니다.
+          </p>
+          <Button
+            variant="default"
+            onClick={() => router.push('/menu')}
+            icon={<ArrowLeft className="w-4 h-4" />}
+            iconPosition="left"
+          >
+            메인으로 돌아가기
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full p-6">
       <div className="mt-4 mb-8">

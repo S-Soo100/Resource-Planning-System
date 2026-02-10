@@ -8,11 +8,24 @@ import { Warehouse } from "@/types/warehouse";
  * @returns 접근 가능 여부
  */
 export function hasWarehouseAccess(
-  _user: IUser,
-  _warehouseId: number
+  user: IUser,
+  warehouseId: number
 ): boolean {
-  // 임시 조치: 모든 사용자가 모든 창고에 접근 가능
-  return true;
+  // Admin은 모든 창고에 접근 가능
+  if (user.accessLevel === 'admin') {
+    return true;
+  }
+
+  // 제한된 창고 ID 목록 가져오기
+  const restrictedIds = getRestrictedWarehouseIds(user);
+
+  // 제한된 창고 목록이 없으면 모든 창고 접근 가능
+  if (restrictedIds.length === 0) {
+    return true;
+  }
+
+  // 해당 창고가 제한 목록에 없으면 접근 가능
+  return !restrictedIds.includes(warehouseId);
 }
 
 /**
@@ -22,11 +35,30 @@ export function hasWarehouseAccess(
  * @returns 접근 가능한 창고 목록
  */
 export function filterAccessibleWarehouses(
-  _user: IUser,
+  user: IUser,
   warehouses: Warehouse[]
 ): Warehouse[] {
-  // 임시 조치: 모든 창고 반환 (필터링 없음)
-  return warehouses || [];
+  if (!warehouses || warehouses.length === 0) {
+    return [];
+  }
+
+  // Admin은 모든 창고 접근 가능
+  if (user.accessLevel === 'admin') {
+    return warehouses;
+  }
+
+  // 제한된 창고 ID 목록 가져오기
+  const restrictedIds = getRestrictedWarehouseIds(user);
+
+  // 제한된 창고 목록이 없으면 모든 창고 반환
+  if (restrictedIds.length === 0) {
+    return warehouses;
+  }
+
+  // 제한된 창고를 제외한 목록 반환
+  return warehouses.filter(
+    (warehouse) => !restrictedIds.includes(warehouse.id)
+  );
 }
 
 /**

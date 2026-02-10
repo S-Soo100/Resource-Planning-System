@@ -276,22 +276,20 @@ const MainMenu = () => {
 
   // 관리자 또는 1차 승인권자인 경우 판매&구매, 관리 탭 추가
   if (user?.accessLevel === "admin" || user?.accessLevel === "moderator") {
-    // 판매&구매 탭은 team id가 1일 때만 표시 (개발 중)
-    if (selectedTeam?.id === 1) {
-      tabs.push({
-        id: "analytics",
-        title: "판매 & 구매",
-        items: analyticsMenuItems,
-        bgColor: "bg-orange-50",
-        textColor: "text-orange-800",
-        borderColor: "border-orange-500",
-        iconBg: "bg-orange-600",
-        hoverBg: "hover:bg-orange-50",
-        hoverBorder: "hover:border-orange-200",
-      });
-    }
+    // 판매&구매 탭
+    tabs.push({
+      id: "analytics",
+      title: "판매 & 구매",
+      items: analyticsMenuItems,
+      bgColor: "bg-orange-50",
+      textColor: "text-orange-800",
+      borderColor: "border-orange-500",
+      iconBg: "bg-orange-600",
+      hoverBg: "hover:bg-orange-50",
+      hoverBorder: "hover:border-orange-200",
+    });
 
-    // 관리 탭은 항상 표시
+    // 관리 탭
     tabs.push({
       id: "admin",
       title: "관리",

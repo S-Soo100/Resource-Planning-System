@@ -10,7 +10,9 @@ import {
   AlertCircle,
   FileText,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useSalesData } from '@/hooks/useSalesData';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { SalesSummary } from '@/components/sales/SalesSummary';
 import { exportSalesToExcel } from '@/utils/exportSalesToExcel';
 import { ErrorState } from '@/components/common/ErrorState';
@@ -39,6 +41,9 @@ function useMediaQuery(query: string) {
 }
 
 export default function SalesPage() {
+  const router = useRouter();
+  const { user, isLoading: isUserLoading } = useCurrentUser();
+
   // 미디어 쿼리
   const isMobile = useMediaQuery('(max-width: 759px)');
 
@@ -63,6 +68,42 @@ export default function SalesPage() {
 
   // 데이터 조회
   const { data, isLoading, error } = useSalesData(filters);
+
+  // 권한 체크: 로그인 및 사용자 로딩 상태
+  if (isUserLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // 권한 체크: Supplier는 접근 불가
+  if (!user || user.accessLevel === 'supplier') {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <div className="text-center max-w-md">
+            <div className="text-6xl mb-4">🔒</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              접근 권한이 필요합니다
+            </h2>
+            <p className="text-gray-600 mb-6">
+              판매 내역 페이지는 팀 멤버만 접근할 수 있습니다.
+            </p>
+            <button
+              onClick={() => router.push('/menu')}
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              메인으로 돌아가기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // 정렬된 레코드
   const sortedRecords = useMemo(() => {

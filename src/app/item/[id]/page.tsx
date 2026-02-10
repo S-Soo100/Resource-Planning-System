@@ -12,6 +12,7 @@ import ItemQuantityHistory from "@/components/item/ItemQuantityHistory";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 export default function ItemDetailPage() {
   const params = useParams();
@@ -83,11 +84,28 @@ export default function ItemDetailPage() {
         queryClient.invalidateQueries({
           queryKey: ["items"],
         });
+        // TeamItems 무효화
+        queryClient.invalidateQueries({
+          queryKey: ["teamItems"],
+        });
+        // 구매 페이지 캐시 무효화 (모든 필터 조합)
+        queryClient.invalidateQueries({
+          queryKey: ["purchase"],
+          exact: false,
+        });
+        // 판매 페이지 캐시도 무효화
+        queryClient.invalidateQueries({
+          queryKey: ["sales"],
+          exact: false,
+        });
+
+        toast.success("단가가 수정되었습니다.");
       }
 
       setIsEditingCostPrice(false);
     } catch (error) {
       console.error("단가 업데이트 실패:", error);
+      toast.error("단가 수정에 실패했습니다.");
     }
   };
 

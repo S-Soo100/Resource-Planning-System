@@ -1,5 +1,5 @@
 import React from "react";
-import { Loader2 } from "lucide-react";
+import { LoadingInline } from "@/components/ui/Loading";
 
 interface SubmitSectionProps {
   isSubmitting: boolean;
@@ -25,7 +25,7 @@ const SubmitSection: React.FC<SubmitSectionProps> = ({
         className="flex gap-2 items-center px-6 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
         title="⚠️ API 미개발 상태 - 데모용으로만 동작합니다"
       >
-        {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+        {isSubmitting && <LoadingInline />}
         {isSubmitting ? "처리 중..." : "시연 요청 (API 미개발)"}
       </button>
     </div>

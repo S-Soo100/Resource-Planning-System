@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { IUser } from "@/types/(auth)/user";
 import { IUserTeam } from "@/types/team";
 import { Users, Calendar, ChevronRight, Sparkles } from "lucide-react";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 // 확장된 사용자 타입 정의
 interface ExtendedUser extends IUser {
@@ -144,7 +145,7 @@ export const TeamList: React.FC<TeamListDisplayProps> = ({
             {/* 로딩 오버레이 */}
             {isLoading && (
               <div className="flex absolute inset-0 justify-center items-center bg-white/80 backdrop-blur-sm">
-                <div className="w-8 h-8 rounded-full border-4 border-blue-500 animate-spin border-t-transparent" />
+                <LoadingCentered size="sm" />
               </div>
             )}
           </button>

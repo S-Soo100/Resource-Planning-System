@@ -14,6 +14,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import { navigateByAuthStatus } from "@/utils/navigation";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 // Daum 주소 검색 모달 동적 임포트
 const SearchAddressModal = dynamic(
@@ -438,7 +439,7 @@ export default function SupplierManagePage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
+          <LoadingCentered />
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -527,7 +528,7 @@ export default function SupplierManagePage() {
       <div className="w-full overflow-hidden bg-white shadow-md rounded-2xl">
         {isLoading ? (
           <div className="flex justify-center p-8">
-            <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+            <LoadingCentered size="lg" />
           </div>
         ) : suppliersList && suppliersList.length > 0 ? (
           <div className="w-full overflow-x-auto">

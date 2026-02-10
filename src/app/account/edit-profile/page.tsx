@@ -7,6 +7,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { userApi } from "@/api/user-api";
 import { useMutation } from "@tanstack/react-query";
 import { authStore } from "@/store/authStore";
+import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -79,7 +80,7 @@ export default function EditProfilePage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <LoadingCentered size="lg" />
           <p className="text-gray-600">로딩 중...</p>
         </div>
       </div>
@@ -194,7 +195,7 @@ export default function EditProfilePage() {
               >
                 {updateUserMutation.isPending ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <LoadingInline />
                     변경 중...
                   </>
                 ) : (

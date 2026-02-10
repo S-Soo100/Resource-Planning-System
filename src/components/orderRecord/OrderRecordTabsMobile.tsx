@@ -11,6 +11,7 @@ import {
 } from "@/hooks/useOrderComments";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { getDisplayFileName } from "@/utils/fileUtils";
+import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
 interface Props {
   records: IOrderRecord[];
@@ -180,7 +181,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
       <div className="overflow-y-auto mb-3 space-y-2 max-h-40">
         {isLoading ? (
           <div className="py-4 text-center">
-            <div className="inline-block w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+            <LoadingCentered />
             <p className="mt-2 text-xs text-gray-500">댓글을 불러오는 중...</p>
           </div>
         ) : error ? (
@@ -490,7 +491,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
           </select>
           {isUpdatingStatus === record.id && (
             <div className="flex absolute inset-0 justify-center items-center bg-gray-100 bg-opacity-50 rounded-md">
-              <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
+              <LoadingCentered />
             </div>
           )}
         </div>

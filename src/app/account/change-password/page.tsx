@@ -6,6 +6,7 @@ import { ArrowLeft, Lock, Eye, EyeOff, Save } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { userApi } from "@/api/user-api";
 import { authApi } from "@/api/auth-api";
+import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -123,7 +124,7 @@ export default function ChangePasswordPage() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="mx-auto mb-4 w-8 h-8 rounded-full border-b-2 border-blue-600 animate-spin"></div>
+          <LoadingCentered />
           <p className="text-gray-600">로딩 중...</p>
         </div>
       </div>
@@ -378,12 +379,12 @@ export default function ChangePasswordPage() {
                   </>
                 ) : isValidatingPassword ? (
                   <>
-                    <div className="mr-2 w-4 h-4 rounded-full border-b-2 border-white animate-spin"></div>
+                    <LoadingCentered />
                     현재 비밀번호 확인 중...
                   </>
                 ) : isSubmitting ? (
                   <>
-                    <div className="mr-2 w-4 h-4 rounded-full border-b-2 border-white animate-spin"></div>
+                    <LoadingCentered />
                     변경 중...
                   </>
                 ) : (

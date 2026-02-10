@@ -4,6 +4,7 @@ import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { IMappingUser } from "@/types/mappingUser";
 import { CreateUserDto, IUser } from "@/types/(auth)/user";
 import { Button } from "@/components/ui";
+import { LoadingCentered } from "@/components/ui/Loading";
 import UserManagementModal from "./UserManagementModal";
 import UserEditModal from "./UserEditModal";
 
@@ -82,7 +83,7 @@ export default function TeamMembers({
     return (
       <div className="p-5 bg-white rounded-lg border-2 border-purple-200 shadow-md">
         <div className="py-10 text-center">
-          <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-purple-500 animate-spin"></div>
+          <LoadingCentered size="lg" variant="purple" />
           <p className="mt-2 text-gray-600">팀 멤버 정보를 불러오는 중...</p>
         </div>
       </div>

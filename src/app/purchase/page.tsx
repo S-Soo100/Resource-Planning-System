@@ -6,6 +6,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown, Download, AlertCircle } from 'lucide-r
 import { useRouter } from 'next/navigation';
 import { usePurchaseData } from '@/hooks/usePurchaseData';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useTeamItems } from '@/hooks/useTeamItems';
 import { PurchaseSummary } from '@/components/purchase/PurchaseSummary';
 import { exportPurchaseToExcel } from '@/utils/exportPurchaseToExcel';
 import { ErrorState } from '@/components/common/ErrorState';
@@ -37,6 +38,10 @@ export default function PurchasePage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
 
+  // TeamItems 데이터 (live costPrice를 가져오기 위해)
+  const { useGetTeamItems } = useTeamItems();
+  const { teamItems } = useGetTeamItems();
+
   // 미디어 쿼리
   const isMobile = useMediaQuery('(max-width: 759px)');
 
@@ -57,6 +62,20 @@ export default function PurchasePage() {
 
   // 데이터 조회
   const { data, isLoading, error } = usePurchaseData(filters);
+
+  // TeamItem ID -> TeamItem 매핑 (live costPrice 조회용)
+  const teamItemsMap = useMemo(() => {
+    if (!teamItems) return new Map();
+    return new Map(teamItems.map((ti) => [ti.id, ti]));
+  }, [teamItems]);
+
+  // 레코드에서 현재 costPrice를 가져오는 헬퍼 함수
+  const getCostPrice = (record: PurchaseRecord): number | null | undefined => {
+    const teamItemId = record.originalRecord.item?.teamItem?.id;
+    if (!teamItemId) return null;
+    const currentTeamItem = teamItemsMap.get(teamItemId);
+    return currentTeamItem?.costPrice;
+  };
 
   // 정렬된 레코드
   const sortedRecords = useMemo(() => {
@@ -330,7 +349,7 @@ export default function PurchasePage() {
                   <div className="text-right flex-shrink-0">
                     <div className="text-sm font-bold text-gray-900">
                       {(() => {
-                        const costPrice = record.originalRecord.item?.teamItem?.costPrice;
+                        const costPrice = getCostPrice(record);
                         if (costPrice !== null && costPrice !== undefined) {
                           const totalPrice = record.quantity * costPrice;
                           return `₩${totalPrice.toLocaleString()}`;
@@ -357,12 +376,14 @@ export default function PurchasePage() {
                   <div className="flex justify-between">
                     <span className="text-gray-500">단가</span>
                     <span>
-                      {record.originalRecord.item?.teamItem?.costPrice !== null &&
-                       record.originalRecord.item?.teamItem?.costPrice !== undefined ? (
-                        `₩${record.originalRecord.item.teamItem.costPrice.toLocaleString()}`
-                      ) : (
-                        <span className="text-gray-400">미입력</span>
-                      )}
+                      {(() => {
+                        const costPrice = getCostPrice(record);
+                        return costPrice !== null && costPrice !== undefined ? (
+                          `₩${costPrice.toLocaleString()}`
+                        ) : (
+                          <span className="text-gray-400">미입력</span>
+                        );
+                      })()}
                     </span>
                   </div>
                   {record.remarks && (
@@ -490,16 +511,18 @@ export default function PurchasePage() {
                       {record.quantity.toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-sm text-right text-gray-900">
-                      {record.originalRecord.item?.teamItem?.costPrice !== null &&
-                       record.originalRecord.item?.teamItem?.costPrice !== undefined ? (
-                        `₩${record.originalRecord.item.teamItem.costPrice.toLocaleString()}`
-                      ) : (
-                        <span className="text-gray-400">미입력</span>
-                      )}
+                      {(() => {
+                        const costPrice = getCostPrice(record);
+                        return costPrice !== null && costPrice !== undefined ? (
+                          `₩${costPrice.toLocaleString()}`
+                        ) : (
+                          <span className="text-gray-400">미입력</span>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
                       {(() => {
-                        const costPrice = record.originalRecord.item?.teamItem?.costPrice;
+                        const costPrice = getCostPrice(record);
                         if (costPrice !== null && costPrice !== undefined) {
                           const totalPrice = record.quantity * costPrice;
                           return `₩${totalPrice.toLocaleString()}`;

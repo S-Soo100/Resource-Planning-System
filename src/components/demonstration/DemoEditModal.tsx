@@ -4,13 +4,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   X,
   Save,
-  Loader2,
   User,
   Calendar,
   Paperclip,
   Trash2,
   AlertCircle,
 } from "lucide-react";
+import { LoadingInline, LoadingCentered } from "@/components/ui/Loading";
 import { toast } from "react-hot-toast";
 import { DemoResponse, PatchDemoRequest, DemoStatus } from "@/types/demo/demo";
 import {
@@ -969,8 +969,8 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
         {isLoading ? (
           <div className="flex justify-center items-center p-12">
             <div className="text-center">
-              <Loader2 className="mx-auto mb-4 w-8 h-8 text-blue-600 animate-spin" />
-              <p className="text-gray-600">시연 데이터를 불러오는 중...</p>
+              <LoadingCentered size="lg" />
+              <p className="mt-4 text-gray-600">시연 데이터를 불러오는 중...</p>
             </div>
           </div>
         ) : (
@@ -1639,7 +1639,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
               >
                 {deleteDemoMutation.isPending ? (
                   <>
-                    <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                    <LoadingInline className="mr-2" />
                     삭제 중...
                   </>
                 ) : (
@@ -1656,7 +1656,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
               >
                 {isSubmitting || isFileUploading ? (
                   <>
-                    <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                    <LoadingInline className="mr-2" />
                     {isFileUploading ? "파일 처리 중..." : "수정 중..."}
                   </>
                 ) : (

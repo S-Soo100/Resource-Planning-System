@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import WheelchairOrderForm from "@/components/orderWheelchair/WheelchairOrderForm";
 import { DynamicTitle } from "@/components/common/DynamicTitle";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 export default function OrderWheelchairPage() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function OrderWheelchairPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <LoadingCentered size="lg" />
         </div>
       </div>
     );

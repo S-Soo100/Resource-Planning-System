@@ -1,5 +1,5 @@
 import React from "react";
-import { Loader2 } from "lucide-react";
+import { LoadingInline } from "@/components/ui/Loading";
 
 interface SubmitButtonProps {
   isSubmitting: boolean;
@@ -36,12 +36,12 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="mr-2 w-5 h-5 animate-spin" />
+            <LoadingInline size="md" className="mr-2" />
             {processingText}
           </>
         ) : isProcessing ? (
           <>
-            <Loader2 className="mr-2 w-5 h-5 animate-spin" />
+            <LoadingInline size="md" className="mr-2" />
             {completingText}
           </>
         ) : (

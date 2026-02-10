@@ -24,6 +24,7 @@ import {
 import { BiSolidPurchaseTag } from "react-icons/bi";
 import { MdPointOfSale } from "react-icons/md";
 import { useCategory } from "@/hooks/useCategory";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 const MainMenu = () => {
   const router = useRouter();
@@ -322,7 +323,7 @@ const MainMenu = () => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="mx-auto w-14 h-14 md:w-16 md:h-16 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+          <LoadingCentered size="lg" />
           <p className="mt-4 text-base md:text-lg text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>

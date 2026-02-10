@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
-import { Paperclip, Plus, Minus, X, AlertCircle, Loader2 } from "lucide-react";
+import { Paperclip, Plus, Minus, X, AlertCircle } from "lucide-react";
+import { LoadingInline } from "@/components/ui/Loading";
 import { useOrder } from "@/hooks/useOrder";
 import { useSuppliers } from "@/hooks/useSupplier";
 import { toast } from "react-hot-toast";
@@ -1742,7 +1743,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               >
                 {isSubmitting || isFileUploading ? (
                   <>
-                    <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                    <LoadingInline className="mr-2" />
                     {isFileUploading ? "파일 처리 중..." : "수정 중..."}
                   </>
                 ) : (

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ArrowUpDown, ArrowUp, ArrowDown, Sparkles, Settings } from "lucide-react";
 import { DemoResponse, DemoStatus } from "@/types/demo/demo";
 import { formatDateForDisplayUTC } from "@/utils/dateUtils";
+import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
 type SortField = "createdAt" | "demoStartDate" | "demoTitle" | "demoStatus";
 type SortOrder = "asc" | "desc" | null;
@@ -327,7 +328,7 @@ export default function DemoRecordTable({
                             ) : null}
                           </select>
                           {updatingStatusId === record.id && (
-                            <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
+                            <LoadingCentered />
                           )}
                         </>
                       ) : (

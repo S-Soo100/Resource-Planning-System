@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { LogOut, X } from "lucide-react";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 export default function TeamSelectPage() {
   const router = useRouter();
@@ -116,7 +117,7 @@ export default function TeamSelectPage() {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="p-8 text-center bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/50">
-          <div className="mx-auto w-16 h-16 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+          <LoadingCentered size="lg" />
           <p className="mt-6 text-lg font-medium text-gray-700">
             인증 상태 확인 중...
           </p>
@@ -130,7 +131,7 @@ export default function TeamSelectPage() {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="p-8 text-center bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/50">
-          <div className="mx-auto w-16 h-16 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+          <LoadingCentered size="lg" />
           <p className="mt-6 text-lg font-medium text-gray-700">
             {isRedirecting
               ? "선택된 팀이 있습니다. 메뉴로 이동합니다"

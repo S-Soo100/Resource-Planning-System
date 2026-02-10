@@ -3,6 +3,7 @@ import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
 import { ArrowUpDown, ArrowUp, ArrowDown, Package, Sparkles } from "lucide-react";
 import { formatDateForDisplayUTC } from "@/utils/dateUtils";
+import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
 // 새로운 기록인지 확인하는 함수
 const isNewRecord = (createdAt: string, status: string): boolean => {
@@ -276,7 +277,7 @@ export default function OrderRecordTable({
                         ) : null}
                       </select>
                       {isUpdatingStatus === record.id && (
-                        <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
+                        <LoadingCentered />
                       )}
                     </>
                   ) : (

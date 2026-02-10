@@ -33,6 +33,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import OrderEditModal from "./OrderEditModal";
 import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
 import OrderRecordTable from "./OrderRecordTable";
+import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
 // 사용자 접근 레벨 타입 추가
 type UserAccessLevel = "user" | "admin" | "supplier" | "moderator";
@@ -1006,7 +1007,7 @@ const OrderRecordTabs = () => {
   //         </select>
   //         {isUpdatingStatus === record.id && (
   //           <div className="flex absolute inset-0 justify-center items-center bg-gray-100 bg-opacity-50 rounded-md">
-  //             <div className="w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
+  //             <LoadingCentered />
   //           </div>
   //         )}
   //       </div>
@@ -1230,7 +1231,7 @@ const OrderRecordTabs = () => {
               <Truck size={16} className="text-gray-500" />
               {isLoadingSuppliers ? (
                 <div className="flex items-center px-3 py-2 text-sm text-gray-500">
-                  <div className="mr-2 w-4 h-4 rounded-full border-2 animate-spin border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent"></div>
+                  <LoadingCentered />
                   로딩중...
                 </div>
               ) : (
@@ -1254,7 +1255,7 @@ const OrderRecordTabs = () => {
         {/* 카드형 리스트 */}
         {isLoading() ? (
           <div className="flex flex-col justify-center items-center py-12">
-            <div className="mb-4 w-12 h-12 rounded-full border-4 border-gray-200 animate-spin border-t-blue-500"></div>
+            <LoadingCentered />
             <p className="text-gray-500">데이터를 불러오는 중...</p>
           </div>
         ) : isMobile ? (

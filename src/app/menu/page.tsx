@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { APP_VERSION, APP_NAME, COPYRIGHT } from "@/constants/version";
+import { Loading } from "@/components/ui/Loading";
 
 export default function MenuPage() {
   const router = useRouter();
@@ -48,13 +49,8 @@ export default function MenuPage() {
       <>
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
           <div className="flex flex-col items-center p-8 bg-white rounded-lg shadow-md">
-            <div className="relative w-24 h-24 mb-4">
-              <div className="absolute inset-0 border-4 border-blue-500 border-solid rounded-full border-t-transparent animate-spin"></div>
-              <div className="absolute rotate-45 border-4 border-purple-400 border-solid rounded-full inset-2 border-t-transparent animate-spin animation-delay-150"></div>
-              <div className="absolute rotate-90 border-4 border-teal-300 border-solid rounded-full inset-4 border-t-transparent animate-spin animation-delay-300"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse"></div>
-              </div>
+            <div className="mb-6">
+              <Loading size="lg" variant="primary" />
             </div>
             <h2 className="mb-2 text-2xl md:text-3xl font-semibold text-gray-800">
               로딩 중...

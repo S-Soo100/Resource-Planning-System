@@ -20,7 +20,8 @@ import MobileMonthView from './MobileMonthView';
 import WeeklyMemo from './WeeklyMemo';
 import EventItem from './EventItem';
 import EventFilter from './EventFilter';
-import { FaSpinner, FaExclamationCircle } from 'react-icons/fa';
+import { FaExclamationCircle } from 'react-icons/fa';
+import { LoadingCentered } from '@/components/ui/Loading';
 
 interface CalendarProps {
   className?: string;
@@ -238,8 +239,8 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
     return (
       <div className={`flex items-center justify-center min-h-[400px] ${className}`}>
         <div className="text-center">
-          <FaSpinner className="text-4xl text-gray-400 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">캘린더 데이터를 불러오는 중...</p>
+          <LoadingCentered size="lg" />
+          <p className="mt-4 text-gray-600">캘린더 데이터를 불러오는 중...</p>
         </div>
       </div>
     );

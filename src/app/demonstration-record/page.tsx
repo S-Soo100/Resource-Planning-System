@@ -5,6 +5,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import DemonstrationRecordTabs from "@/components/demonstration/DemonstrationRecordTabs";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 const DemonstrationRecordPage = () => {
   const router = useRouter();
@@ -14,7 +15,7 @@ const DemonstrationRecordPage = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <LoadingCentered size="lg" />
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>

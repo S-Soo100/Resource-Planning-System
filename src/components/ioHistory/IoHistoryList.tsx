@@ -22,6 +22,7 @@ import {
 import { useCategory } from "@/hooks/useCategory";
 import { useQueryClient } from "@tanstack/react-query";
 import { getTodayString, formatDateToLocalString, formatDateForDisplayUTC } from "@/utils/dateUtils";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 // 로컬 formatDate 함수 완전 제거 - formatDateForDisplayUTC 직접 사용
 
@@ -663,7 +664,7 @@ export default function IoHistoryList() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+          <LoadingCentered size="lg" />
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>

@@ -27,6 +27,7 @@ import { IUser } from "@/types/(auth)/user";
 import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
 import { uploadMultipleOrderFileById, deleteOrderFile } from "@/api/order-api";
 import OrderChangeHistory from "@/components/orderRecord/OrderChangeHistory";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 // 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
 
@@ -1009,7 +1010,7 @@ const OrderRecordDetail = () => {
                         {isUpdatingStatus ? "변경 중..." : "상태 변경"}
                       </button>
                       {isUpdatingStatus && (
-                        <div className="w-4 h-4 rounded-full border-2 border-blue-500 animate-spin border-t-transparent"></div>
+                        <LoadingCentered size="sm" />
                       )}
                     </div>
                     <div className="mt-3 text-xs text-gray-500">

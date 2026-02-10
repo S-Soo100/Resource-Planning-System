@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import Calendar from "@/components/calendar/Calendar";
 import { FaArrowLeft, FaCalendarAlt } from "react-icons/fa";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function CalendarPage() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-blue-500 animate-spin"></div>
+          <LoadingCentered size="lg" />
           <p className="mt-4 text-gray-600">로딩 중...</p>
         </div>
       </div>

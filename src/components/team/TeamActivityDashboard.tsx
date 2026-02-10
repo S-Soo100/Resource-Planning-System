@@ -4,7 +4,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Tag, Timeline, Checkbox, Empty, Spin } from 'antd';
+import { Card, Tag, Timeline, Checkbox, Empty } from 'antd';
+import { LoadingCentered } from '@/components/ui/Loading';
 import { TeamOutlined } from '@ant-design/icons';
 import { useTeamChangeHistorySSE } from '@/hooks/useTeamChangeHistorySSE';
 import SSEConnectionStatus from '@/components/common/SSEConnectionStatus';
@@ -89,7 +90,7 @@ const TeamActivityDashboard: React.FC<TeamActivityDashboardProps> = ({
       {/* 로딩 상태 */}
       {isConnecting && (
         <div className="text-center py-8">
-          <Spin />
+          <LoadingCentered />
           <p className="mt-2 text-gray-500">실시간 연결 중...</p>
         </div>
       )}

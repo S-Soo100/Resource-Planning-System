@@ -255,12 +255,6 @@ export default function UserEditModal({
           // user 상태를 최신 데이터로 업데이트
           setUser(response.data);
           console.log("[UserEditModal] 수정 후 최신 데이터로 업데이트:", response.data);
-
-          const sentRestrictedWhs = updateData.restrictedWhs || "";
-          const receivedRestrictedWhs = response.data.restrictedWhs || "";
-
-          const comparisonMessage = `[내가보낸값]\n${sentRestrictedWhs}\n\n[응답받은값]\n${receivedRestrictedWhs}`;
-          alert(comparisonMessage);
         }
       } catch (error) {
         console.error("사용자 정보 조회 실패:", error);

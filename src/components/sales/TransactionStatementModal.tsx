@@ -211,7 +211,6 @@ export function TransactionStatementModal({
                       <th className="border border-gray-300 px-1 py-1 text-right w-[80px]">단가</th>
                       <th className="border border-gray-300 px-1 py-1 text-right w-[72px]">부가세</th>
                       <th className="border border-gray-300 px-1 py-1 text-right w-[88px]">금액</th>
-                      <th className="border border-gray-300 px-1 py-1 text-left w-[80px]">비고</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -231,7 +230,6 @@ export function TransactionStatementModal({
                           <td className="border border-gray-300 px-1 py-0.5 text-right font-medium text-[8px]">
                             {item.sellingPrice ? `₩${(item.quantity * item.sellingPrice + itemVat).toLocaleString()}` : '-'}
                           </td>
-                          <td className="border border-gray-300 px-1 py-0.5 text-[7px]">{item.memo || '-'}</td>
                         </tr>
                       );
                     })}
@@ -386,7 +384,6 @@ export function TransactionStatementModal({
                       <th className="border border-gray-300 px-1 py-1 text-right w-[80px]">단가</th>
                       <th className="border border-gray-300 px-1 py-1 text-right w-[72px]">부가세</th>
                       <th className="border border-gray-300 px-1 py-1 text-right w-[88px]">금액</th>
-                      <th className="border border-gray-300 px-1 py-1 text-left w-[80px]">비고</th>
                     </tr>
                   </thead>
                   <tbody>

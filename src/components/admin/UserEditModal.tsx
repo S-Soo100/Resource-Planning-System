@@ -36,12 +36,39 @@ export default function UserEditModal({
   const [user, setUser] = useState<IUser | null>(null);
   const [isLoadingUser, setIsLoadingUser] = useState(false);
 
+  // 데이터 동기화 상태 추적
+  const [isDataReady, setIsDataReady] = useState(false);
+
+  // 에러 상태
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // 모달이 닫힐 때 상태 초기화
+  useEffect(() => {
+    if (!isOpen) {
+      setUser(null);
+      setFormData({});
+      setSelectedWarehouses([]);
+      setWarehouses(null);
+      setIsDataReady(false);
+      setLoadError(null);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     const fetchUser = async () => {
-      if (!selectedUserId) {
+      if (!selectedUserId || !isOpen) {
         setUser(null);
+        setIsDataReady(false);
+        setLoadError(null);
         return;
       }
+
+      // 새 사용자를 불러오기 전에 이전 데이터 먼저 클리어
+      setIsDataReady(false);
+      setLoadError(null);
+      setUser(null);
+      setFormData({});
+      setSelectedWarehouses([]);
 
       setIsLoadingUser(true);
       try {
@@ -50,6 +77,7 @@ export default function UserEditModal({
 
         if (response.success && response.data) {
           setUser(response.data);
+          setLoadError(null);
           console.log(
             "[UserEditModal] API에서 가져온 사용자 정보:",
             response.data
@@ -60,17 +88,19 @@ export default function UserEditModal({
             response.error
           );
           setUser(null);
+          setLoadError("사용자 정보를 불러오는데 실패했습니다.");
         }
       } catch (error) {
         console.error("[UserEditModal] 사용자 정보 가져오기 오류:", error);
         setUser(null);
+        setLoadError("사용자 정보를 불러오는 중 오류가 발생했습니다.");
       } finally {
         setIsLoadingUser(false);
       }
     };
 
     fetchUser();
-  }, [selectedUserId]);
+  }, [selectedUserId, isOpen]);
 
   // 팀의 모든 창고 목록 로딩
   useEffect(() => {
@@ -80,7 +110,7 @@ export default function UserEditModal({
       setIsLoadingWarehouses(true);
       try {
         const response = await warehouseApi.getTeamWarehouses(team.id);
-        // console.log("[UserEditModal] 창고 API 응답:", response);
+        console.log("[UserEditModal] 창고 API 응답:", response);
         if (response.success && response.data) {
           // response.data가 { data: Warehouse[], success: true } 형태로 오므로
           // response.data.data로 실제 배열에 접근
@@ -88,11 +118,15 @@ export default function UserEditModal({
             ? response.data
             : (response.data as { data: Warehouse[] }).data;
           setWarehouses(warehouseArray);
+          console.log("[UserEditModal] 창고 목록 설정 완료:", warehouseArray.length, "개");
         } else {
           setWarehouses(null);
+          setLoadError("창고 목록을 불러오는데 실패했습니다.");
         }
-      } catch {
+      } catch (error) {
+        console.error("[UserEditModal] 창고 목록 로딩 오류:", error);
         setWarehouses(null);
+        setLoadError("창고 목록을 불러오는 중 오류가 발생했습니다.");
       } finally {
         setIsLoadingWarehouses(false);
       }
@@ -101,7 +135,7 @@ export default function UserEditModal({
     if (isOpen && team?.id) {
       loadAllWarehouses();
     }
-  }, [isOpen, team?.id]);
+  }, [isOpen, team?.id, selectedUserId]);
 
   // 사용자 정보가 변경될 때 폼 데이터 초기화
   useEffect(() => {
@@ -161,29 +195,24 @@ export default function UserEditModal({
       console.log("[UserEditModal] 제한된 창고 ID:", restrictedIds);
       console.log("[UserEditModal] 원본 restrictedWhs:", user.restrictedWhs);
       setSelectedWarehouses(restrictedIds);
-    }
-  }, [selectedUserId, teamUsers]);
-
-  // 창고 목록이 로딩된 후 선택된 창고 상태 업데이트
-  useEffect(() => {
-    if (Array.isArray(warehouses) && warehouses.length > 0 && user) {
-      // console.log(
-      //   "[UserEditModal] 창고 목록 로딩 완료:",
-      //   warehouses.length,
-      //   "개"
-      // );
-    } else if (warehouses === null && !isLoadingWarehouses) {
-      // console.log("[UserEditModal] 창고 목록 로딩 실패");
-    } else if (Array.isArray(warehouses) && warehouses.length === 0) {
-      // console.log("[UserEditModal] 창고 목록이 비어있음");
     } else {
-      // console.log("[UserEditModal] 창고 목록 로딩 중:", {
-      //   isLoading: isLoadingWarehouses,
-      //   isArray: Array.isArray(warehouses),
-      //   length: Array.isArray(warehouses) ? warehouses.length : "N/A",
-      // });
+      // user가 null이면 폼 데이터 초기화
+      setFormData({});
+      setSelectedWarehouses([]);
     }
-  }, [warehouses, selectedUserId, teamUsers, isLoadingWarehouses]);
+  }, [user]);
+
+  // 데이터 준비 상태 체크 (사용자 정보 + 창고 목록 모두 로드 완료)
+  useEffect(() => {
+    const userLoaded = user !== null && !isLoadingUser;
+    const warehousesLoaded = warehouses !== null && !isLoadingWarehouses;
+
+    // 둘 다 로드 완료되면 데이터 준비 완료
+    if (userLoaded && warehousesLoaded) {
+      console.log("[UserEditModal] 모든 데이터 로드 완료 - 폼 렌더링 준비");
+      setIsDataReady(true);
+    }
+  }, [user, warehouses, isLoadingUser, isLoadingWarehouses]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,12 +246,16 @@ export default function UserEditModal({
       // useTeamAdmin의 updateUser 사용
       await updateUser({ userId: selectedUserId, userData: updateData });
 
-      // 보낸 값과 응답 값 비교를 위해 직접 API 호출
+      // 최신 데이터를 다시 불러와서 user 상태 업데이트
       try {
         const userApi = (await import("@/api/user-api")).userApi;
         const response = await userApi.getUser(selectedUserId.toString());
 
         if (response.success && response.data) {
+          // user 상태를 최신 데이터로 업데이트
+          setUser(response.data);
+          console.log("[UserEditModal] 수정 후 최신 데이터로 업데이트:", response.data);
+
           const sentRestrictedWhs = updateData.restrictedWhs || "";
           const receivedRestrictedWhs = response.data.restrictedWhs || "";
 
@@ -275,13 +308,45 @@ export default function UserEditModal({
 
   if (!isOpen) return null;
 
-  if (isLoadingUser) {
+  // 에러 발생 시
+  if (loadError && !isLoadingUser && !isLoadingWarehouses) {
     return (
       <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
         <div className="p-6 mx-4 w-full max-w-2xl bg-white rounded-lg shadow-xl">
-          <div className="flex justify-center items-center py-10">
-            <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-blue-500 animate-spin"></div>
-            <p className="ml-3 text-gray-600">사용자 정보를 불러오는 중...</p>
+          <div className="flex flex-col justify-center items-center py-10">
+            <div className="mb-4 text-red-500">
+              <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <p className="mb-4 text-lg font-medium text-gray-900">데이터 로드 실패</p>
+            <p className="mb-6 text-sm text-gray-600">{loadError}</p>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-white bg-purple-600 rounded-md hover:bg-purple-700"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 로딩 중이거나 데이터가 준비되지 않은 경우
+  const isLoading = isLoadingUser || isLoadingWarehouses || !isDataReady;
+
+  if (isLoading) {
+    return (
+      <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
+        <div className="p-6 mx-4 w-full max-w-2xl bg-white rounded-lg shadow-xl">
+          <div className="flex flex-col justify-center items-center py-10">
+            <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-purple-500 animate-spin"></div>
+            <p className="mt-3 text-gray-600">
+              {isLoadingUser && "사용자 정보를 불러오는 중..."}
+              {!isLoadingUser && isLoadingWarehouses && "창고 목록을 불러오는 중..."}
+              {!isLoadingUser && !isLoadingWarehouses && !isDataReady && "데이터를 준비하는 중..."}
+            </p>
           </div>
         </div>
       </div>

@@ -78,8 +78,7 @@ export function TransactionStatementModal({
           <div className="p-8 print:p-12" id="transaction-statement">
             {/* 헤더 */}
             <div className="text-center mb-8 pb-4 border-b-2 border-blue-600">
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">거래명세서</h1>
-              <p className="text-sm text-gray-500">TRANSACTION STATEMENT</p>
+              <h1 className="text-3xl font-bold text-gray-900">거래명세서</h1>
             </div>
 
             {/* 발행 정보 */}
@@ -90,7 +89,21 @@ export function TransactionStatementModal({
               </div>
               <div>
                 <span className="text-gray-600">문서번호:</span>{' '}
-                <span className="font-semibold">TXN-{format(new Date(), 'yyyyMMdd')}-{record.id.toString().padStart(4, '0')}</span>
+                <span className="font-semibold">KS_{format(new Date(), 'yyyyMMdd')}_{record.id.toString().padStart(4, '0')}</span>
+              </div>
+            </div>
+
+            {/* 거래 정보 (간소화) */}
+            <div className="border border-gray-300 rounded-lg p-4 mb-6">
+              <div className="flex justify-between text-sm">
+                <div>
+                  <span className="text-gray-600">DATE:</span>{' '}
+                  <span className="font-semibold">{formatDate(record.purchaseDate)}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">수령인:</span>{' '}
+                  <span className="font-semibold">{originalOrder.receiver || '-'}</span>
+                </div>
               </div>
             </div>
 
@@ -130,6 +143,10 @@ export function TransactionStatementModal({
                     <span className="text-gray-600 w-24">담당자:</span>
                     <span>{originalOrder.manager || 'XXX'}</span>
                   </div>
+                  <div className="flex">
+                    <span className="text-gray-600 w-24">연락처:</span>
+                    <span>{originalOrder.supplier?.supplierPhoneNumber || 'XXX'}</span>
+                  </div>
                 </div>
               </div>
 
@@ -144,50 +161,26 @@ export function TransactionStatementModal({
                     <span className="font-medium">{record.supplierName}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-gray-600 w-24">연락처:</span>
-                    <span>{originalOrder.supplier?.supplierPhoneNumber || '-'}</span>
+                    <span className="text-gray-600 w-24">사업자번호:</span>
+                    <span>-</span>
                   </div>
                   <div className="flex">
-                    <span className="text-gray-600 w-24">수령인:</span>
+                    <span className="text-gray-600 w-24">대표자:</span>
+                    <span>-</span>
+                  </div>
+                  <div className="flex">
+                    <span className="text-gray-600 w-24">사업장주소:</span>
+                    <span>{originalOrder.receiverAddress || '-'}</span>
+                  </div>
+                  <div className="flex">
+                    <span className="text-gray-600 w-24">담당자:</span>
                     <span>{originalOrder.receiver || '-'}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-gray-600 w-24">수령인 연락처:</span>
+                    <span className="text-gray-600 w-24">연락처:</span>
                     <span>{originalOrder.receiverPhone || '-'}</span>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* 거래 정보 */}
-            <div className="border border-gray-300 rounded-lg p-4 mb-6">
-              <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                <div className="flex">
-                  <span className="text-gray-600 w-32">발주번호:</span>
-                  <span className="font-semibold">#{record.id}</span>
-                </div>
-                <div className="flex">
-                  <span className="text-gray-600 w-32">발주일자:</span>
-                  <span>{formatDate(record.purchaseDate)}</span>
-                </div>
-                <div className="flex col-span-2">
-                  <span className="text-gray-600 w-32">발주제목:</span>
-                  <span className="font-medium">{record.title}</span>
-                </div>
-                <div className="flex">
-                  <span className="text-gray-600 w-32">발주 상태:</span>
-                  <span className="font-medium">{record.status}</span>
-                </div>
-                <div className="flex">
-                  <span className="text-gray-600 w-32">설치일:</span>
-                  <span>{originalOrder.installationDate ? formatDate(originalOrder.installationDate) : '-'}</span>
-                </div>
-                {originalOrder.receiverAddress && (
-                  <div className="flex col-span-2">
-                    <span className="text-gray-600 w-32">배송지:</span>
-                    <span>{originalOrder.receiverAddress}</span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -252,32 +245,6 @@ export function TransactionStatementModal({
                   </tr>
                 </tfoot>
               </table>
-            </div>
-
-            {/* 특이사항 / 메모 */}
-            {record.memo && (
-              <div className="border border-gray-300 rounded-lg p-4 mb-6">
-                <h3 className="font-bold text-gray-900 mb-2">[특이사항]</h3>
-                <p className="text-sm text-gray-700 whitespace-pre-line">{record.memo}</p>
-              </div>
-            )}
-
-            {/* 결재 영역 */}
-            <div className="border border-gray-300 rounded-lg mb-6">
-              <div className="grid grid-cols-3">
-                <div className="border-r border-gray-300 p-4 text-center">
-                  <div className="font-semibold mb-8">담당자</div>
-                  <div className="h-16 flex items-center justify-center text-gray-400">(서명)</div>
-                </div>
-                <div className="border-r border-gray-300 p-4 text-center">
-                  <div className="font-semibold mb-8">검토</div>
-                  <div className="h-16 flex items-center justify-center text-gray-400">(서명)</div>
-                </div>
-                <div className="p-4 text-center">
-                  <div className="font-semibold mb-8">승인</div>
-                  <div className="h-16 flex items-center justify-center text-gray-400">(서명)</div>
-                </div>
-              </div>
             </div>
 
             {/* 푸터 */}

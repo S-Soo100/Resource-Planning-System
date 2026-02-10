@@ -22,6 +22,35 @@
 3. 단계적 사고 과정으로 답변
 4. 한국어로 응답
 
+## 기능별 참조 문서
+기능 수정 또는 확장 시 반드시 해당 문서를 먼저 확인:
+
+### 판매 & 구매 관리
+- **판매 관리**: `/docs/sales-management.md`
+  - 판매 내역 조회 및 분석
+  - 거래명세서 출력 (인쇄/PDF)
+  - 부가세 계산 로직 (10%)
+  - 엑셀 다운로드
+
+- **구매 관리**: `/docs/purchase-management.md`
+  - 구매 내역 조회 및 분석
+  - 원가 정보 관리
+  - 엑셀 다운로드
+
+### 발주 & 시연 관리
+- **발주 관리**: `/docs/order-management.md` (작성 필요)
+- **시연 관리**: `/docs/demonstration-management.md` (작성 필요)
+
+### 재고 관리
+- **입고 관리**: `/docs/inbound-management.md` (작성 필요)
+- **출고 관리**: `/docs/outbound-management.md` (작성 필요)
+- **재고 현황**: `/docs/inventory-management.md` (작성 필요)
+
+### 기준 정보
+- **품목 관리**: `/docs/item-management.md` (작성 필요)
+- **창고 관리**: `/docs/warehouse-management.md` (작성 필요)
+- **공급처 관리**: `/docs/supplier-management.md` (작성 필요)
+
 ## API 및 데이터 관리
 - React Query 사용: `['resource', params]` 키 구조
 - Axios로 API 통신

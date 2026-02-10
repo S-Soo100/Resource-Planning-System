@@ -404,7 +404,6 @@ export function TransactionStatementModal({
                       return (
                         <tr key={`copy-${item.id}`}>
                           <td className="border border-gray-300 px-1 py-0.5 text-center">{index + 1}</td>
-                          <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemCode || '-'}</td>
                           <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemName || '-'}</td>
                           <td className="border border-gray-300 px-1 py-0.5 text-center">{item.quantity}</td>
                           <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
@@ -416,7 +415,6 @@ export function TransactionStatementModal({
                           <td className="border border-gray-300 px-1 py-0.5 text-right font-medium text-[8px]">
                             {item.sellingPrice ? `₩${(item.quantity * item.sellingPrice + itemVat).toLocaleString()}` : '-'}
                           </td>
-                          <td className="border border-gray-300 px-1 py-0.5 text-[7px]">{item.memo || '-'}</td>
                         </tr>
                       );
                     })}

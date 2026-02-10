@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import CustomItemTable from "@/components/item/CustomItemTable";
 import { Button } from "@/components/ui";
 import { navigateByAuthStatus } from "@/utils/navigation";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 export default function ItemsPage() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function ItemsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+          <LoadingCentered size="lg" />
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>

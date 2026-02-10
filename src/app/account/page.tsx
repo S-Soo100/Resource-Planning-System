@@ -14,6 +14,7 @@ import {
 import { IUserTeam } from "@/types/team";
 import { useRouter } from "next/navigation";
 import { teamApi } from "@/api/team-api";
+import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
 // UI 컴포넌트 정의
 const Card = ({
@@ -200,7 +201,7 @@ export default function AccountPage() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="mx-auto mb-4 w-8 h-8 rounded-full border-b-2 border-blue-600 animate-spin"></div>
+          <LoadingCentered />
           <p className="text-gray-600">로딩 중...</p>
         </div>
       </div>

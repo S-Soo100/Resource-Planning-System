@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { WeekInfo } from '@/types/calendar/calendar';
 import { useWeeklyMemoWithAutoSave } from '@/hooks/calendar/useWeeklyMemo';
-import { FaStickyNote, FaSave, FaTrash, FaSpinner } from 'react-icons/fa';
+import { FaStickyNote, FaSave, FaTrash } from 'react-icons/fa';
+import { LoadingCentered, LoadingInline } from '@/components/ui/Loading';
 
 interface WeeklyMemoProps {
   weekInfo: WeekInfo;
@@ -35,7 +36,7 @@ const WeeklyMemo: React.FC<WeeklyMemoProps> = ({ weekInfo, className = '' }) => 
     return (
       <div className={`bg-white rounded-lg shadow-md p-4 md:p-6 ${className}`}>
         <div className="flex items-center justify-center py-6 md:py-8">
-          <FaSpinner className="text-xl md:text-2xl text-gray-400 animate-spin mr-2" />
+          <LoadingCentered className="mr-2" />
           <span className="text-sm md:text-base text-gray-600">메모를 불러오는 중...</span>
         </div>
       </div>
@@ -66,7 +67,7 @@ const WeeklyMemo: React.FC<WeeklyMemoProps> = ({ weekInfo, className = '' }) => 
             )}
             {isSaving && (
               <span className="text-xs text-blue-600 px-2 py-1 bg-blue-50 rounded flex items-center gap-1">
-                <FaSpinner className="animate-spin" />
+                <LoadingInline />
                 저장 중...
               </span>
             )}

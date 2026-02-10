@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getToken } from "@/api/cookie-api";
 import { navigateByAuthStatus } from "@/utils/navigation";
+import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
 interface LogItem {
   date: string;
@@ -57,7 +58,7 @@ export default function ItemLogPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto border-b-2 border-blue-500 rounded-full animate-spin"></div>
+          <LoadingCentered />
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>

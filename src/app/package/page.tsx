@@ -15,6 +15,7 @@ import { ArrowLeft, Package, Calendar, Edit2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { navigateByAuthStatus } from "@/utils/navigation";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 // 모달 컴포넌트
 interface ModalProps {
@@ -363,7 +364,7 @@ export default function PacakgePage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <LoadingCentered size="lg" />
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
 import { getDisplayFileName } from "@/utils/fileUtils";
 import { formatDateForDisplayFull, formatDateForDisplayFullUTC } from "@/utils/dateUtils";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 // 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
 
@@ -85,7 +86,7 @@ const OrderRecordPrint = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">로딩 중...</div>
+        <LoadingCentered size="lg" />
       </div>
     );
   }

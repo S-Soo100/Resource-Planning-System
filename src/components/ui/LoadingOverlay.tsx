@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { Loading } from "./Loading";
 
 interface LoadingOverlayProps {
   isVisible: boolean;
@@ -28,12 +29,7 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
         <div className="text-center">
           {/* 스피너 */}
           <div className="flex justify-center mb-4">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 bg-blue-600 rounded-full animate-pulse"></div>
-              </div>
-            </div>
+            <Loading size="lg" variant="primary" />
           </div>
 
           {/* 제목 */}

@@ -18,6 +18,7 @@ import { exportSalesToExcel } from '@/utils/exportSalesToExcel';
 import { ErrorState } from '@/components/common/ErrorState';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { TransactionStatementModal } from '@/components/sales/TransactionStatementModal';
+import { LoadingCentered } from '@/components/ui/Loading';
 import {
   SalesFilterParams,
   SalesSortField,
@@ -108,7 +109,7 @@ export default function SalesPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <LoadingCentered size="lg" />
         </div>
       </div>
     );

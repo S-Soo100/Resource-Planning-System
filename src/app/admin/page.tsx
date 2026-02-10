@@ -12,6 +12,7 @@ import { ArrowLeft } from "lucide-react";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import TeamMembers from "@/components/admin/TeamMembers";
 import { navigateByAuthStatus } from "@/utils/navigation";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function AdminPage() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-full border-b-2 border-purple-500 animate-spin"></div>
+          <LoadingCentered size="lg" />
           <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -135,7 +136,7 @@ export default function AdminPage() {
             {activeTab === "warehouse" && isWarehousesLoading ? (
               <div className="flex justify-center items-center p-10">
                 <div className="text-center">
-                  <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-purple-500 animate-spin"></div>
+                  <LoadingCentered size="lg" />
                   <p className="mt-2 text-gray-600">
                     창고 정보를 불러오는 중...
                   </p>

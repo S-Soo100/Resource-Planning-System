@@ -39,6 +39,7 @@ import {
   type DemoComment,
 } from "@/hooks/(useDemo)/useDemoComments";
 import DemoChangeHistory from "@/components/demonstration/DemoChangeHistory";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 // 로컬 formatDate 함수 제거 - dateUtils의 formatDateForDisplayUTC 사용
 
@@ -1055,7 +1056,7 @@ const DemoRecordDetail = () => {
                         title="시연 삭제"
                       >
                         {deleteDemoMutation.isPending ? (
-                          <div className="w-4 h-4 rounded-full border-2 border-white animate-spin border-t-transparent" />
+                          <LoadingCentered />
                         ) : (
                           <Trash2 className="w-4 h-4" />
                         )}
@@ -1204,7 +1205,7 @@ const DemoRecordDetail = () => {
                       </div>
                       {isUpdatingStatus && (
                         <div className="flex gap-2 items-center">
-                          <div className="w-4 h-4 rounded-full border-2 border-blue-500 animate-spin border-t-transparent"></div>
+                          <LoadingCentered size="sm" />
                           <span className="text-sm text-gray-500">
                             변경 중...
                           </span>

@@ -23,6 +23,7 @@ import { CreateDemoRequest, DemonstrationFormData } from "@/types/demo/demo";
 import { uploadMultipleDemoFileById, getDemoByTeamId } from "@/api/demo-api";
 import { getDisplayFileName, formatFileSize } from "@/utils/fileUtils";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
+import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
 const SimpleDemonstrationForm: React.FC = () => {
   const router = useRouter();
@@ -1368,7 +1369,7 @@ const SimpleDemonstrationForm: React.FC = () => {
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-5 h-5 rounded-full border-b-2 border-white animate-spin" />
+                  <LoadingInline />
                   <span>시연 신청 처리 중... (최대 1-2분 소요)</span>
                 </>
               ) : (

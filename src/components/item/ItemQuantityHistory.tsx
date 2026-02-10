@@ -5,7 +5,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Timeline, Pagination, Empty, Alert, Spin, Tag } from 'antd';
+import { Button, Timeline, Pagination, Empty, Alert, Tag } from 'antd';
+import { LoadingCentered } from '@/components/ui/Loading';
 import { StockOutlined, UpOutlined, DownOutlined, UserOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useItemQuantityHistory } from '@/hooks/useChangeHistory';
 import { useChangeHistorySSE } from '@/hooks/useChangeHistorySSE';
@@ -97,7 +98,7 @@ const ItemQuantityHistory: React.FC<ItemQuantityHistoryProps> = ({ itemId }) => 
           {/* 로딩 중 */}
           {isLoading && (
             <div className="text-center py-8">
-              <Spin />
+              <LoadingCentered />
               <p className="mt-2 text-gray-500">재고 변동 이력을 불러오는 중...</p>
             </div>
           )}

@@ -6,6 +6,7 @@ import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useTeamAdmin } from "@/hooks/admin/useTeamAdmin";
 import { Warehouse } from "@/types/warehouse";
 import { IMappingUser } from "@/types/mappingUser";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 interface UserEditModalProps {
   isOpen: boolean;
@@ -335,7 +336,7 @@ export default function UserEditModal({
       <div className="flex fixed inset-0 z-50 justify-center items-center bg-black bg-opacity-50">
         <div className="p-6 mx-4 w-full max-w-2xl bg-white rounded-lg shadow-xl">
           <div className="flex flex-col justify-center items-center py-10">
-            <div className="mx-auto w-10 h-10 rounded-full border-b-2 border-purple-500 animate-spin"></div>
+            <LoadingCentered size="lg" />
             <p className="mt-3 text-gray-600">
               {isLoadingUser && "사용자 정보를 불러오는 중..."}
               {!isLoadingUser && isLoadingWarehouses && "창고 목록을 불러오는 중..."}

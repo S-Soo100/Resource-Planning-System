@@ -5,7 +5,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Timeline, Pagination, Radio, Empty, Alert, Spin } from 'antd';
+import { Button, Timeline, Pagination, Radio, Empty, Alert } from 'antd';
+import { LoadingCentered } from '@/components/ui/Loading';
 import { HistoryOutlined, UpOutlined, DownOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useOrderChangeHistory } from '@/hooks/useChangeHistory';
 import { useChangeHistorySSE } from '@/hooks/useChangeHistorySSE';
@@ -110,7 +111,7 @@ const OrderChangeHistory: React.FC<OrderChangeHistoryProps> = ({ orderId }) => {
           {/* 로딩 중 */}
           {isLoading && (
             <div className="text-center py-8">
-              <Spin />
+              <LoadingCentered />
               <p className="mt-2 text-gray-500">변경 이력을 불러오는 중...</p>
             </div>
           )}

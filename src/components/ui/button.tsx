@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/utils/cn";
-import { Loader2 } from "lucide-react";
+import { LoadingInline } from "./Loading";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -68,7 +68,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={isDisabled}
         {...props}
       >
-        {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+        {loading && <LoadingInline className="mr-2" />}
         {!loading && icon && iconPosition === "left" && (
           <span className="mr-2">{icon}</span>
         )}

@@ -27,6 +27,7 @@ import { useRouter } from "next/navigation";
 // import { useDeleteDemo } from "@/hooks/(useDemo)/useDemoMutations"; // 제거됨
 import { DemoStatus } from "@/types/demo/demo";
 import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 type TabType = "ongoing" | "long-term" | "completed";
 type SortField = "createdAt" | "demoStartDate" | "demoTitle" | "demoStatus";
@@ -628,7 +629,7 @@ const DemonstrationRecordTabs = () => {
       {updateDemoStatusMutation.isPending && (
         <div className="flex absolute inset-0 z-10 justify-center items-center rounded-2xl backdrop-blur-sm bg-gray-900/30">
           <div className="flex flex-col gap-4 items-center p-8 rounded-2xl border border-gray-200 shadow-2xl backdrop-blur-sm bg-white/95">
-            <div className="w-12 h-12 rounded-full border-4 border-blue-600 animate-spin border-t-transparent"></div>
+            <LoadingCentered size="sm" />
             <div className="text-base font-semibold text-gray-800">
               상태 변경 중...
             </div>

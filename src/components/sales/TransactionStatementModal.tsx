@@ -74,184 +74,365 @@ export function TransactionStatementModal({
             </div>
           </div>
 
-          {/* 거래명세서 본문 */}
-          <div className="p-8 print:p-12" id="transaction-statement">
-            {/* 헤더 */}
-            <div className="text-center mb-8 pb-4 border-b-2 border-blue-600">
-              <h1 className="text-3xl font-bold text-gray-900">거래명세서</h1>
-            </div>
-
-            {/* 발행 정보 */}
-            <div className="flex justify-between mb-6 text-sm">
-              <div>
-                <span className="text-gray-600">발행일자:</span>{' '}
-                <span className="font-semibold">{today}</span>
+          {/* 거래명세서 본문 (2개 1세트) */}
+          <div className="print:p-0" id="transaction-statement">
+            {/* 첫 번째 명세서 */}
+            <div className="p-6 print:p-4 print:h-[48vh]">
+              {/* 헤더 */}
+              <div className="text-center mb-3 pb-2 border-b-2 border-blue-600">
+                <h1 className="text-xl font-bold text-gray-900">거래명세서</h1>
               </div>
-              <div>
-                <span className="text-gray-600">문서번호:</span>{' '}
-                <span className="font-semibold">KS_{format(new Date(), 'yyyyMMdd')}_{record.id.toString().padStart(4, '0')}</span>
-              </div>
-            </div>
 
-            {/* 거래 정보 (간소화) */}
-            <div className="border border-gray-300 rounded-lg p-4 mb-6">
-              <div className="flex justify-between text-sm">
+              {/* 발행 정보 */}
+              <div className="flex justify-between mb-3 text-xs">
                 <div>
-                  <span className="text-gray-600">DATE:</span>{' '}
-                  <span className="font-semibold">{formatDate(record.purchaseDate)}</span>
+                  <span className="text-gray-600">발행일자:</span>{' '}
+                  <span className="font-semibold">{today}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">수령인:</span>{' '}
-                  <span className="font-semibold">{originalOrder.receiver || '-'}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 공급자 & 공급받는자 정보 */}
-            <div className="grid grid-cols-2 gap-6 mb-6">
-              {/* 공급자 정보 */}
-              <div className="border border-gray-300 rounded-lg p-4">
-                <h3 className="font-bold text-gray-900 mb-3 pb-2 border-b border-gray-200">
-                  [공급자 정보]
-                </h3>
-                <div className="space-y-1 text-sm">
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">회사명:</span>
-                    <span className="font-medium">(주)강스터즈</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">사업자번호:</span>
-                    <span>XXX-XX-XXXXX</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">대표자:</span>
-                    <span>XXX</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">사업장주소:</span>
-                    <span>XXXXX</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">업태:</span>
-                    <span>제조업</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">종목:</span>
-                    <span>의료기기</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">담당자:</span>
-                    <span>{originalOrder.manager || 'XXX'}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">연락처:</span>
-                    <span>{originalOrder.supplier?.supplierPhoneNumber || 'XXX'}</span>
-                  </div>
+                  <span className="text-gray-600">문서번호:</span>{' '}
+                  <span className="font-semibold">KS_{format(new Date(), 'yyyyMMdd')}_{record.id.toString().padStart(4, '0')}</span>
                 </div>
               </div>
 
-              {/* 공급받는자 정보 */}
-              <div className="border border-gray-300 rounded-lg p-4">
-                <h3 className="font-bold text-gray-900 mb-3 pb-2 border-b border-gray-200">
-                  [공급받는자 정보]
-                </h3>
-                <div className="space-y-1 text-sm">
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">회사명:</span>
-                    <span className="font-medium">{record.supplierName}</span>
+              {/* 공급자 & 공급받는자 정보 */}
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                {/* 공급자 정보 */}
+                <div className="border border-gray-300 rounded p-2">
+                  <h3 className="text-xs font-bold text-gray-900 mb-1 pb-1 border-b border-gray-200">
+                    [공급자 정보]
+                  </h3>
+                  <div className="space-y-0.5 text-[10px]">
+                    <div className="flex">
+                      <span className="text-gray-600 w-16">회사명:</span>
+                      <span className="font-medium">(주)강스터즈</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div className="flex">
+                        <span className="text-gray-600 w-16">사업자번호:</span>
+                        <span className="text-[9px]">XXX-XX-XXXXX</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-gray-600 w-12">대표자:</span>
+                        <span>XXX</span>
+                      </div>
+                    </div>
+                    <div className="flex">
+                      <span className="text-gray-600 w-16">사업장주소:</span>
+                      <span className="text-[9px]">XXXXX</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div className="flex">
+                        <span className="text-gray-600 w-16">업태:</span>
+                        <span>제조업</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-gray-600 w-12">종목:</span>
+                        <span>의료기기</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div className="flex">
+                        <span className="text-gray-600 w-16">담당자:</span>
+                        <span>{originalOrder.manager || 'XXX'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-gray-600 w-12">연락처:</span>
+                        <span className="text-[9px]">{originalOrder.supplier?.supplierPhoneNumber || 'XXX'}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">사업자번호:</span>
-                    <span>-</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">대표자:</span>
-                    <span>-</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">사업장주소:</span>
-                    <span>{originalOrder.receiverAddress || '-'}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">담당자:</span>
-                    <span>{originalOrder.receiver || '-'}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-gray-600 w-24">연락처:</span>
-                    <span>{originalOrder.receiverPhone || '-'}</span>
+                </div>
+
+                {/* 공급받는자 정보 */}
+                <div className="border border-gray-300 rounded p-2">
+                  <h3 className="text-xs font-bold text-gray-900 mb-1 pb-1 border-b border-gray-200">
+                    [공급받는자 정보]
+                  </h3>
+                  <div className="space-y-0.5 text-[10px]">
+                    <div className="flex">
+                      <span className="text-gray-600 w-16">회사명:</span>
+                      <span className="font-medium">{record.supplierName}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div className="flex">
+                        <span className="text-gray-600 w-16">사업자번호:</span>
+                        <span className="text-[9px]">-</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-gray-600 w-12">대표자:</span>
+                        <span>-</span>
+                      </div>
+                    </div>
+                    <div className="flex">
+                      <span className="text-gray-600 w-16">사업장주소:</span>
+                      <span className="text-[9px]">{originalOrder.receiverAddress || '-'}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div className="flex">
+                        <span className="text-gray-600 w-16">담당자:</span>
+                        <span>{originalOrder.receiver || '-'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-gray-600 w-12">연락처:</span>
+                        <span className="text-[9px]">{originalOrder.receiverPhone || '-'}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* 품목 상세 테이블 */}
-            <div className="mb-6">
-              <table className="w-full border border-gray-300 text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="border border-gray-300 px-3 py-2 text-center w-12">No</th>
-                    <th className="border border-gray-300 px-3 py-2 text-left w-24">품목코드</th>
-                    <th className="border border-gray-300 px-3 py-2 text-left">품목명</th>
-                    <th className="border border-gray-300 px-3 py-2 text-center w-16">수량</th>
-                    <th className="border border-gray-300 px-3 py-2 text-right w-24">단가</th>
-                    <th className="border border-gray-300 px-3 py-2 text-right w-28">금액</th>
-                    <th className="border border-gray-300 px-3 py-2 text-left w-32">비고</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orderItems.map((item, index) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="border border-gray-300 px-3 py-2 text-center">{index + 1}</td>
-                      <td className="border border-gray-300 px-3 py-2">{item.item?.teamItem?.itemCode || '-'}</td>
-                      <td className="border border-gray-300 px-3 py-2">{item.item?.teamItem?.itemName || '-'}</td>
-                      <td className="border border-gray-300 px-3 py-2 text-center">{item.quantity}</td>
-                      <td className="border border-gray-300 px-3 py-2 text-right">
-                        {item.sellingPrice ? `₩${item.sellingPrice.toLocaleString()}` : '-'}
-                      </td>
-                      <td className="border border-gray-300 px-3 py-2 text-right font-medium">
-                        {item.sellingPrice ? `₩${(item.quantity * item.sellingPrice).toLocaleString()}` : '-'}
-                      </td>
-                      <td className="border border-gray-300 px-3 py-2 text-xs">{item.memo || '-'}</td>
+              {/* 품목 상세 테이블 */}
+              <div className="mb-2">
+                <table className="w-full border border-gray-300 text-[9px]">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="border border-gray-300 px-1 py-1 text-center w-8">No</th>
+                      <th className="border border-gray-300 px-1 py-1 text-left w-16">품목코드</th>
+                      <th className="border border-gray-300 px-1 py-1 text-left">품목명</th>
+                      <th className="border border-gray-300 px-1 py-1 text-center w-10">수량</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-16">단가</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-20">금액</th>
+                      <th className="border border-gray-300 px-1 py-1 text-left w-16">비고</th>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot className="bg-blue-50 font-semibold">
-                  <tr>
-                    <td colSpan={3} className="border border-gray-300 px-3 py-2 text-right">
-                      총 품목: {record.itemCount}종 {record.totalQuantity}개
-                    </td>
-                    <td colSpan={2} className="border border-gray-300 px-3 py-2 text-right">
-                      공급가액:
-                    </td>
-                    <td colSpan={2} className="border border-gray-300 px-3 py-2 text-right text-blue-600">
-                      ₩{supplyAmount.toLocaleString()}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colSpan={5} className="border border-gray-300 px-3 py-2 text-right">
-                      부가세(10%):
-                    </td>
-                    <td colSpan={2} className="border border-gray-300 px-3 py-2 text-right">
-                      ₩{vat.toLocaleString()}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colSpan={5} className="border border-gray-300 px-3 py-2 text-right">
-                      합계금액:
-                    </td>
-                    <td colSpan={2} className="border border-gray-300 px-3 py-2 text-right text-lg text-blue-600">
-                      ₩{totalAmount.toLocaleString()}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+                  </thead>
+                  <tbody>
+                    {orderItems.map((item, index) => (
+                      <tr key={item.id}>
+                        <td className="border border-gray-300 px-1 py-0.5 text-center">{index + 1}</td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemCode || '-'}</td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemName || '-'}</td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-center">{item.quantity}</td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                          {item.sellingPrice ? `₩${item.sellingPrice.toLocaleString()}` : '-'}
+                        </td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-right font-medium text-[8px]">
+                          {item.sellingPrice ? `₩${(item.quantity * item.sellingPrice).toLocaleString()}` : '-'}
+                        </td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[7px]">{item.memo || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-blue-50 font-semibold">
+                    <tr>
+                      <td colSpan={3} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        총 품목: {record.itemCount}종 {record.totalQuantity}개
+                      </td>
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        공급가액:
+                      </td>
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-blue-600 text-[9px]">
+                        ₩{supplyAmount.toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={5} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        부가세(10%):
+                      </td>
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        ₩{vat.toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={5} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        합계금액:
+                      </td>
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-blue-600 font-bold">
+                        ₩{totalAmount.toLocaleString()}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* 푸터 */}
+              <div className="text-center text-[8px] text-gray-500 pt-1">
+                <p>본 거래명세서는 KARS(Kangsters Auto Resource-management System)시스템으로 생성되었습니다.</p>
+                <p className="mt-0.5">발행일시: {format(new Date(), 'yyyy-MM-dd HH:mm:ss')} | © 2025 Kangsters. All rights reserved.</p>
+              </div>
             </div>
 
-            {/* 푸터 */}
-            <div className="text-center text-xs text-gray-500 pt-4 border-t border-gray-200">
-              <p>본 거래명세서는 KARS(Kangsters Auto Resource-management System)에서 자동 생성되었습니다.</p>
-              <p className="mt-1">발행일시: {format(new Date(), 'yyyy-MM-dd HH:mm:ss')}</p>
-              <p className="mt-1">© 2025 Kangsters. All rights reserved.</p>
+            {/* 절취선 (인쇄시에만) */}
+            <div className="print:block hidden border-t-2 border-dashed border-gray-400 my-2 relative">
+              <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[8px] text-gray-500">
+                ✂ 절 취 선 ✂
+              </span>
+            </div>
+
+            {/* 두 번째 명세서 (동일한 내용) */}
+            <div className="p-6 print:p-4 print:h-[48vh] print:block hidden">
+              {/* 헤더 */}
+              <div className="text-center mb-3 pb-2 border-b-2 border-blue-600">
+                <h1 className="text-xl font-bold text-gray-900">거래명세서</h1>
+              </div>
+
+              {/* 발행 정보 */}
+              <div className="flex justify-between mb-3 text-xs">
+                <div>
+                  <span className="text-gray-600">발행일자:</span>{' '}
+                  <span className="font-semibold">{today}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">문서번호:</span>{' '}
+                  <span className="font-semibold">KS_{format(new Date(), 'yyyyMMdd')}_{record.id.toString().padStart(4, '0')}</span>
+                </div>
+              </div>
+
+              {/* 공급자 & 공급받는자 정보 */}
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                {/* 공급자 정보 */}
+                <div className="border border-gray-300 rounded p-2">
+                  <h3 className="text-xs font-bold text-gray-900 mb-1 pb-1 border-b border-gray-200">
+                    [공급자 정보]
+                  </h3>
+                  <div className="space-y-0.5 text-[10px]">
+                    <div className="flex">
+                      <span className="text-gray-600 w-16">회사명:</span>
+                      <span className="font-medium">(주)강스터즈</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div className="flex">
+                        <span className="text-gray-600 w-16">사업자번호:</span>
+                        <span className="text-[9px]">XXX-XX-XXXXX</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-gray-600 w-12">대표자:</span>
+                        <span>XXX</span>
+                      </div>
+                    </div>
+                    <div className="flex">
+                      <span className="text-gray-600 w-16">사업장주소:</span>
+                      <span className="text-[9px]">XXXXX</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div className="flex">
+                        <span className="text-gray-600 w-16">업태:</span>
+                        <span>제조업</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-gray-600 w-12">종목:</span>
+                        <span>의료기기</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div className="flex">
+                        <span className="text-gray-600 w-16">담당자:</span>
+                        <span>{originalOrder.manager || 'XXX'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-gray-600 w-12">연락처:</span>
+                        <span className="text-[9px]">{originalOrder.supplier?.supplierPhoneNumber || 'XXX'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 공급받는자 정보 */}
+                <div className="border border-gray-300 rounded p-2">
+                  <h3 className="text-xs font-bold text-gray-900 mb-1 pb-1 border-b border-gray-200">
+                    [공급받는자 정보]
+                  </h3>
+                  <div className="space-y-0.5 text-[10px]">
+                    <div className="flex">
+                      <span className="text-gray-600 w-16">회사명:</span>
+                      <span className="font-medium">{record.supplierName}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div className="flex">
+                        <span className="text-gray-600 w-16">사업자번호:</span>
+                        <span className="text-[9px]">-</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-gray-600 w-12">대표자:</span>
+                        <span>-</span>
+                      </div>
+                    </div>
+                    <div className="flex">
+                      <span className="text-gray-600 w-16">사업장주소:</span>
+                      <span className="text-[9px]">{originalOrder.receiverAddress || '-'}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2">
+                      <div className="flex">
+                        <span className="text-gray-600 w-16">담당자:</span>
+                        <span>{originalOrder.receiver || '-'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-gray-600 w-12">연락처:</span>
+                        <span className="text-[9px]">{originalOrder.receiverPhone || '-'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 품목 상세 테이블 */}
+              <div className="mb-2">
+                <table className="w-full border border-gray-300 text-[9px]">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="border border-gray-300 px-1 py-1 text-center w-8">No</th>
+                      <th className="border border-gray-300 px-1 py-1 text-left w-16">품목코드</th>
+                      <th className="border border-gray-300 px-1 py-1 text-left">품목명</th>
+                      <th className="border border-gray-300 px-1 py-1 text-center w-10">수량</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-16">단가</th>
+                      <th className="border border-gray-300 px-1 py-1 text-right w-20">금액</th>
+                      <th className="border border-gray-300 px-1 py-1 text-left w-16">비고</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orderItems.map((item, index) => (
+                      <tr key={`copy-${item.id}`}>
+                        <td className="border border-gray-300 px-1 py-0.5 text-center">{index + 1}</td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemCode || '-'}</td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[8px]">{item.item?.teamItem?.itemName || '-'}</td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-center">{item.quantity}</td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                          {item.sellingPrice ? `₩${item.sellingPrice.toLocaleString()}` : '-'}
+                        </td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-right font-medium text-[8px]">
+                          {item.sellingPrice ? `₩${(item.quantity * item.sellingPrice).toLocaleString()}` : '-'}
+                        </td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[7px]">{item.memo || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-blue-50 font-semibold">
+                    <tr>
+                      <td colSpan={3} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        총 품목: {record.itemCount}종 {record.totalQuantity}개
+                      </td>
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        공급가액:
+                      </td>
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-blue-600 text-[9px]">
+                        ₩{supplyAmount.toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={5} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        부가세(10%):
+                      </td>
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        ₩{vat.toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan={5} className="border border-gray-300 px-1 py-0.5 text-right text-[8px]">
+                        합계금액:
+                      </td>
+                      <td colSpan={2} className="border border-gray-300 px-1 py-0.5 text-right text-blue-600 font-bold">
+                        ₩{totalAmount.toLocaleString()}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* 푸터 */}
+              <div className="text-center text-[8px] text-gray-500 pt-1">
+                <p>본 거래명세서는 KARS(Kangsters Auto Resource-management System)시스템으로 생성되었습니다.</p>
+                <p className="mt-0.5">발행일시: {format(new Date(), 'yyyy-MM-dd HH:mm:ss')} | © 2025 Kangsters. All rights reserved.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -260,21 +441,57 @@ export function TransactionStatementModal({
       {/* 인쇄 스타일 */}
       <style jsx global>{`
         @media print {
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
+
           body * {
             visibility: hidden;
           }
+
           #transaction-statement,
           #transaction-statement * {
             visibility: visible;
           }
+
           #transaction-statement {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
           }
+
           .print\\:hidden {
             display: none !important;
+          }
+
+          .print\\:block {
+            display: block !important;
+          }
+
+          .print\\:p-0 {
+            padding: 0 !important;
+          }
+
+          .print\\:p-4 {
+            padding: 1rem !important;
+          }
+
+          .print\\:h-\\[48vh\\] {
+            height: 48vh !important;
+            page-break-after: avoid;
+            page-break-inside: avoid;
+          }
+
+          /* 절취선 스타일 */
+          .border-dashed {
+            border-style: dashed !important;
           }
         }
       `}</style>

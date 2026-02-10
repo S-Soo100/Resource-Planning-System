@@ -69,6 +69,40 @@ export default function SalesPage() {
   // 데이터 조회
   const { data, isLoading, error } = useSalesData(filters);
 
+  // 정렬된 레코드
+  const sortedRecords = useMemo(() => {
+    if (!data?.records) return [];
+
+    // 요청, 반려, 출고자반려 상태 제외
+    const filtered = data.records.filter(
+      (record) =>
+        record.status !== '요청' &&
+        record.status !== '반려' &&
+        record.status !== '출고자반려'
+    );
+
+    const sorted = [...filtered].sort((a, b) => {
+      let aValue: any = a[sortField];
+      let bValue: any = b[sortField];
+
+      // null 값 처리
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+
+      // 문자열 비교
+      if (typeof aValue === 'string') {
+        return sortDirection === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      // 숫자 비교
+      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    });
+
+    return sorted;
+  }, [data?.records, sortField, sortDirection]);
+
   // 권한 체크: 로그인 및 사용자 로딩 상태
   if (isUserLoading) {
     return (
@@ -105,32 +139,6 @@ export default function SalesPage() {
     );
   }
 
-  // 정렬된 레코드
-  const sortedRecords = useMemo(() => {
-    if (!data?.records) return [];
-
-    const sorted = [...data.records].sort((a, b) => {
-      let aValue: any = a[sortField];
-      let bValue: any = b[sortField];
-
-      // null 값 처리
-      if (aValue === null) return 1;
-      if (bValue === null) return -1;
-
-      // 문자열 비교
-      if (typeof aValue === 'string') {
-        return sortDirection === 'asc'
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
-      }
-
-      // 숫자 비교
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-    });
-
-    return sorted;
-  }, [data?.records, sortField, sortDirection]);
-
   // 정렬 토글
   const handleSort = (field: SalesSortField) => {
     if (sortField === field) {
@@ -161,6 +169,35 @@ export default function SalesPage() {
     const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 02
     const day = date.getDate().toString().padStart(2, '0'); // 10
     return `${year}-${month}-${day}`;
+  };
+
+  // 판매 제목 자동 생성
+  const generateSalesTitle = (record: SalesRecord) => {
+    const { orderItems, originalOrder } = record;
+
+    // 패키지 판매인 경우
+    if (originalOrder.packageId && originalOrder.package) {
+      const packageName = originalOrder.package.packageName;
+      const totalQuantity = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+      return `${packageName} ${totalQuantity}개 판매`;
+    }
+
+    // 품목이 없는 경우
+    if (!orderItems || orderItems.length === 0) {
+      return '품목 정보 없음';
+    }
+
+    // 개별 품목 판매인 경우 (1개 품목)
+    if (orderItems.length === 1) {
+      const itemName = orderItems[0].item.teamItem.itemName;
+      const quantity = orderItems[0].quantity;
+      return `${itemName} ${quantity}개 판매`;
+    }
+
+    // 여러 품목인 경우 (2개 이상)
+    const firstItemName = orderItems[0].item.teamItem.itemName;
+    const totalQuantity = orderItems.reduce((sum, item) => sum + item.quantity, 0);
+    return `${firstItemName} 등 ${orderItems.length}개 품목 판매`;
   };
 
   // 메모 텍스트 처리 (최대 2줄, 이후 ... 처리)
@@ -195,6 +232,11 @@ export default function SalesPage() {
   const handleOpenStatement = (record: SalesRecord) => {
     setSelectedRecord(record);
     setIsStatementModalOpen(true);
+  };
+
+  // 제목 클릭 시 발주 상세 페이지로 이동
+  const handleTitleClick = (orderId: number) => {
+    router.push(`/orderRecord/${orderId}`);
   };
 
   if (error) {
@@ -236,7 +278,7 @@ export default function SalesPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">💰 판매 내역</h1>
         <p className="text-gray-500 mt-2">
-          발주 내역을 기반으로 판매 현황을 분석합니다
+          판매 내역을 기반으로 판매 현황을 분석합니다
         </p>
       </div>
 
@@ -327,7 +369,7 @@ export default function SalesPage() {
           <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-yellow-800">
             <strong>
-              판매가 미입력 발주: {data.summary.missingPriceCount}건
+              판매가 미입력 판매: {data.summary.missingPriceCount}건
             </strong>
             <br />
             정확한 판매 금액 분석을 위해 판매가 정보를 입력해주세요.
@@ -347,10 +389,18 @@ export default function SalesPage() {
               >
                 {/* 헤더: 제목 & 상태 */}
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 mr-3">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                      {record.title}
+                  <div
+                    className="flex-1 mr-3 cursor-pointer"
+                    onClick={() => handleTitleClick(record.id)}
+                  >
+                    <h3 className="text-sm font-semibold text-blue-600 hover:text-blue-700 mb-1">
+                      {generateSalesTitle(record)}
                     </h3>
+                    {record.title && (
+                      <p className="text-xs text-gray-500 mb-1">
+                        {record.title}
+                      </p>
+                    )}
                     <p className="text-xs text-gray-500">
                       {record.supplierName}
                     </p>
@@ -381,7 +431,7 @@ export default function SalesPage() {
                 {/* 상세 정보 */}
                 <div className="space-y-1 text-xs text-gray-600 mb-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">발주일자</span>
+                    <span className="text-gray-500">판매일자</span>
                     <span>{formatDate(record.purchaseDate)}</span>
                   </div>
                   <div className="flex justify-between">
@@ -448,15 +498,6 @@ export default function SalesPage() {
                     No
                   </th>
                   <th
-                    className="px-4 py-3 text-center text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('status')}
-                  >
-                    <div className="flex items-center justify-center">
-                      상태
-                      {renderSortIcon('status')}
-                    </div>
-                  </th>
-                  <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('supplierName')}
                   >
@@ -470,7 +511,7 @@ export default function SalesPage() {
                     onClick={() => handleSort('purchaseDate')}
                   >
                     <div className="flex items-center">
-                      발주일자
+                      판매일자
                       {renderSortIcon('purchaseDate')}
                     </div>
                   </th>
@@ -487,7 +528,7 @@ export default function SalesPage() {
                     품목 수
                   </th>
                   <th
-                    className="px-4 py-3 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-3 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100 w-32"
                     onClick={() => handleSort('totalPrice')}
                   >
                     <div className="flex items-center justify-end">
@@ -495,10 +536,7 @@ export default function SalesPage() {
                       {renderSortIcon('totalPrice')}
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    비고
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-24">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-28">
                     거래명세서
                   </th>
                 </tr>
@@ -509,36 +547,36 @@ export default function SalesPage() {
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {index + 1}
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
-                          record.status
-                        )}`}
-                      >
-                        {record.status}
-                      </span>
-                    </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {record.supplierName}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {formatDate(record.purchaseDate)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {record.title}
+                    <td
+                      className="px-4 py-3 text-sm text-gray-900 cursor-pointer hover:bg-blue-50 transition-colors"
+                      onClick={() => handleTitleClick(record.id)}
+                    >
+                      <div className="space-y-1">
+                        <div className="font-medium text-blue-600 hover:text-blue-700">
+                          {generateSalesTitle(record)}
+                        </div>
+                        {record.title && (
+                          <div className="text-xs text-gray-500">
+                            {record.title}
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-center text-gray-900">
                       {record.itemCount}종 {record.totalQuantity}개
                     </td>
-                    <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
+                    <td className="px-4 py-3 text-sm text-right font-medium text-gray-900 whitespace-nowrap">
                       {record.totalPrice !== null ? (
                         `₩${record.totalPrice.toLocaleString()}`
                       ) : (
                         <span className="text-gray-400">미입력</span>
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-pre-line">
-                      {truncateMemo(record.memo)}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button
@@ -556,7 +594,7 @@ export default function SalesPage() {
                 {data?.summary && (
                   <tr className="bg-blue-50 border-t-2 border-blue-200">
                     <td
-                      colSpan={5}
+                      colSpan={4}
                       className="px-4 py-3 text-sm font-bold text-right text-gray-900"
                     >
                       합계
@@ -567,7 +605,6 @@ export default function SalesPage() {
                     <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">
                       ₩{data.summary.totalSales.toLocaleString()}
                     </td>
-                    <td></td>
                     <td></td>
                   </tr>
                 )}

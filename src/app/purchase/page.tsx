@@ -420,15 +420,6 @@ export default function PurchasePage() {
                   </th>
                   <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('itemCode')}
-                  >
-                    <div className="flex items-center">
-                      품목코드
-                      {renderSortIcon('itemCode')}
-                    </div>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('itemName')}
                   >
                     <div className="flex items-center">
@@ -457,7 +448,7 @@ export default function PurchasePage() {
                       {renderSortIcon('totalPrice')}
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 w-[20%]">
                     비고
                   </th>
                 </tr>
@@ -476,9 +467,6 @@ export default function PurchasePage() {
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {formatDate(record.inboundDate)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {record.itemCode}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {record.itemName}
@@ -500,8 +488,10 @@ export default function PurchasePage() {
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-pre-line">
-                      {truncateRemarks(record.remarks)}
+                    <td className="px-4 py-3 text-sm text-gray-600 max-w-0">
+                      <div className="line-clamp-2 overflow-hidden text-ellipsis">
+                        {record.remarks || '-'}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -510,7 +500,7 @@ export default function PurchasePage() {
                 {data?.summary && (
                   <tr className="bg-blue-50 border-t-2 border-blue-200">
                     <td
-                      colSpan={5}
+                      colSpan={4}
                       className="px-4 py-3 text-sm font-bold text-right text-gray-900"
                     >
                       합계

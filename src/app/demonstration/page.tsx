@@ -69,7 +69,7 @@ export default function DemonstrationPage() {
   }
 
   return (
-    <div className="py-6">
+    <div className="py-6 pb-10">
       <SimpleDemonstrationForm />
     </div>
   );

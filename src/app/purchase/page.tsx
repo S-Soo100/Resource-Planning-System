@@ -158,7 +158,7 @@ export default function PurchasePage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 pb-10">
       {/* 헤더 */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">📦 구매 내역</h1>

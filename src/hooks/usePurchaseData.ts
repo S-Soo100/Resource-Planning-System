@@ -19,10 +19,8 @@ const transformToPurchaseRecord = (
     return null;
   }
 
-  const unitPrice = inventory.item?.teamItem?.costPrice ?? null;
-  const totalPrice =
-    unitPrice !== null ? inventory.inboundQuantity * unitPrice : null;
-
+  // unitPrice와 totalPrice는 동적으로 계산하도록 getter 제거
+  // 구매 페이지에서 직접 teamItem.costPrice 참조
   return {
     id: inventory.id,
     inboundDate: inventory.inboundDate || '',
@@ -31,8 +29,8 @@ const transformToPurchaseRecord = (
     categoryName: inventory.item?.teamItem?.category?.name || '미분류',
     categoryColor: undefined,
     quantity: inventory.inboundQuantity,
-    unitPrice,
-    totalPrice,
+    unitPrice: null, // 레거시 호환용, 실제로는 originalRecord.item.teamItem.costPrice 사용
+    totalPrice: null, // 레거시 호환용, 실제로는 동적 계산
     supplierName: inventory.supplier?.supplierName || null,
     warehouseName: inventory.inboundLocation || null,
     remarks: inventory.remarks || null,
@@ -41,16 +39,26 @@ const transformToPurchaseRecord = (
 };
 
 /**
- * 구매 요약 정보 계산
+ * 구매 요약 정보 계산 (동적으로 costPrice 참조)
  */
 const calculateSummary = (records: PurchaseRecord[]): PurchaseSummary => {
   const uniqueItems = new Set(records.map((r) => r.itemCode));
   const totalQuantity = records.reduce((sum, r) => sum + r.quantity, 0);
-  const totalAmount = records.reduce(
-    (sum, r) => (r.totalPrice !== null ? sum + r.totalPrice : sum),
-    0
-  );
-  const missingCostCount = records.filter((r) => r.unitPrice === null).length;
+
+  // 동적으로 costPrice를 참조하여 totalAmount 계산
+  const totalAmount = records.reduce((sum, r) => {
+    const costPrice = r.originalRecord.item?.teamItem?.costPrice;
+    if (costPrice !== null && costPrice !== undefined) {
+      return sum + (r.quantity * costPrice);
+    }
+    return sum;
+  }, 0);
+
+  // 동적으로 costPrice를 확인하여 미입력 건수 계산
+  const missingCostCount = records.filter((r) => {
+    const costPrice = r.originalRecord.item?.teamItem?.costPrice;
+    return costPrice === null || costPrice === undefined;
+  }).length;
 
   return {
     totalOrders: records.length,
@@ -113,9 +121,12 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
         );
       }
 
-      // 원가 미입력만 보기 필터
+      // 원가 미입력만 보기 필터 (동적으로 costPrice 확인)
       if (params.showMissingCostOnly) {
-        filteredRecords = filteredRecords.filter((r) => r.unitPrice === null);
+        filteredRecords = filteredRecords.filter((r) => {
+          const costPrice = r.originalRecord.item?.teamItem?.costPrice;
+          return costPrice === null || costPrice === undefined;
+        });
       }
 
       // 요약 정보 계산

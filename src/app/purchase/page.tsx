@@ -10,6 +10,7 @@ import { PurchaseSummary } from '@/components/purchase/PurchaseSummary';
 import { exportPurchaseToExcel } from '@/utils/exportPurchaseToExcel';
 import { ErrorState } from '@/components/common/ErrorState';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { LoadingCentered } from '@/components/ui/Loading';
 import {
   PurchaseFilterParams,
   PurchaseSortField,
@@ -88,7 +89,7 @@ export default function PurchasePage() {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <LoadingCentered size="lg" />
         </div>
       </div>
     );
@@ -328,11 +329,14 @@ export default function PurchasePage() {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <div className="text-sm font-bold text-gray-900">
-                      {record.totalPrice !== null ? (
-                        `₩${record.totalPrice.toLocaleString()}`
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
+                      {(() => {
+                        const costPrice = record.originalRecord.item?.teamItem?.costPrice;
+                        if (costPrice !== null && costPrice !== undefined) {
+                          const totalPrice = record.quantity * costPrice;
+                          return `₩${totalPrice.toLocaleString()}`;
+                        }
+                        return <span className="text-gray-400">-</span>;
+                      })()}
                     </div>
                     <div className="text-xs text-gray-500 mt-0.5">
                       {record.quantity.toLocaleString()}개
@@ -353,8 +357,9 @@ export default function PurchasePage() {
                   <div className="flex justify-between">
                     <span className="text-gray-500">단가</span>
                     <span>
-                      {record.unitPrice !== null ? (
-                        `₩${record.unitPrice.toLocaleString()}`
+                      {record.originalRecord.item?.teamItem?.costPrice !== null &&
+                       record.originalRecord.item?.teamItem?.costPrice !== undefined ? (
+                        `₩${record.originalRecord.item.teamItem.costPrice.toLocaleString()}`
                       ) : (
                         <span className="text-gray-400">미입력</span>
                       )}
@@ -485,18 +490,22 @@ export default function PurchasePage() {
                       {record.quantity.toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-sm text-right text-gray-900">
-                      {record.unitPrice !== null ? (
-                        `₩${record.unitPrice.toLocaleString()}`
+                      {record.originalRecord.item?.teamItem?.costPrice !== null &&
+                       record.originalRecord.item?.teamItem?.costPrice !== undefined ? (
+                        `₩${record.originalRecord.item.teamItem.costPrice.toLocaleString()}`
                       ) : (
                         <span className="text-gray-400">미입력</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm text-right font-medium text-gray-900">
-                      {record.totalPrice !== null ? (
-                        `₩${record.totalPrice.toLocaleString()}`
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
+                      {(() => {
+                        const costPrice = record.originalRecord.item?.teamItem?.costPrice;
+                        if (costPrice !== null && costPrice !== undefined) {
+                          const totalPrice = record.quantity * costPrice;
+                          return `₩${totalPrice.toLocaleString()}`;
+                        }
+                        return <span className="text-gray-400">-</span>;
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 max-w-0">
                       <div className="line-clamp-2 overflow-hidden text-ellipsis">

@@ -3,6 +3,7 @@
 import { X, Download } from 'lucide-react';
 import { SalesRecord } from '@/types/sales';
 import { format } from 'date-fns';
+import { useAuth } from '@/store/authStore';
 
 interface TransactionStatementModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export function TransactionStatementModal({
 }: TransactionStatementModalProps) {
   if (!isOpen) return null;
 
+  const { user } = useAuth();
   const { originalOrder, orderItems } = record;
 
   // 날짜 포맷팅
@@ -32,14 +34,30 @@ export function TransactionStatementModal({
   // 오늘 날짜
   const today = format(new Date(), 'yyyy년 MM월 dd일');
 
+  // 문서번호 생성
+  const documentNumber = `KS_${format(new Date(), 'yyyyMMdd')}_${record.id.toString().padStart(4, '0')}`;
+
   // 총액 계산
   const supplyAmount = record.totalPrice || 0;
   const vat = Math.round(supplyAmount * 0.1);
   const totalAmount = supplyAmount + vat;
 
-  // PDF 다운로드 (현재는 print 기능으로 대체)
+  // PDF 다운로드 (인쇄 기능 활용)
   const handleDownloadPDF = () => {
+    // 원래 제목 저장
+    const originalTitle = document.title;
+
+    // PDF 파일명 설정: 거래명세서_{문서번호}_{userId}
+    const pdfFileName = `거래명세서_${documentNumber}_${user?.id || 'unknown'}`;
+    document.title = pdfFileName;
+
+    // 인쇄 대화상자 열기
     window.print();
+
+    // 인쇄 후 원래 제목 복원 (약간의 딜레이 후)
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000);
   };
 
   return (
@@ -91,7 +109,7 @@ export function TransactionStatementModal({
                 </div>
                 <div>
                   <span className="text-gray-600">문서번호:</span>{' '}
-                  <span className="font-semibold">KS_{format(new Date(), 'yyyyMMdd')}_{record.id.toString().padStart(4, '0')}</span>
+                  <span className="font-semibold">{documentNumber}</span>
                 </div>
               </div>
 
@@ -266,7 +284,7 @@ export function TransactionStatementModal({
                 </div>
                 <div>
                   <span className="text-gray-600">문서번호:</span>{' '}
-                  <span className="font-semibold">KS_{format(new Date(), 'yyyyMMdd')}_{record.id.toString().padStart(4, '0')}</span>
+                  <span className="font-semibold">{documentNumber}</span>
                 </div>
               </div>
 

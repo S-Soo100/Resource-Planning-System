@@ -87,7 +87,7 @@ export default function MenuPage() {
 
   return (
     <>
-      <div className="pb-6 ">
+      <div className="pb-28">
         <MainMenu />
       </div>
 

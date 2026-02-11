@@ -25,6 +25,13 @@
 ## 기능별 참조 문서
 기능 수정 또는 확장 시 반드시 해당 문서를 먼저 확인:
 
+### 메인 페이지
+- **메인 페이지 탭 상태 관리**: `/docs/menu-tab-state-management.md`
+  - Zustand + localStorage 기반 탭 상태 영구 저장
+  - 뒤로가기 시 탭 복원
+  - 권한별 탭 표시 및 유효성 검사
+  - Framer Motion 애니메이션
+
 ### 판매 & 구매 관리
 - **판매 관리**: `/docs/sales-management.md`
   - 판매 내역 조회 및 분석
@@ -38,8 +45,18 @@
   - 엑셀 다운로드
 
 ### 발주 & 시연 관리
-- **발주 관리**: `/docs/order-management.md` (작성 필요)
-- **시연 관리**: `/docs/demonstration-management.md` (작성 필요)
+- **발주 관리**: `/docs/order-management.md`
+  - 발주 워크플로우 (요청 → 승인 → 출고)
+  - 권한별 기능 제한 및 상태 변경 규칙
+  - 휠체어 발주 시스템
+  - 첨부파일 관리
+  - 발주 수정/삭제 권한 제어
+
+- **시연 관리**: `/docs/demonstration-management.md`
+  - 시연 전용 프로세스 및 상태 관리
+  - 재고 연동 (출고/복귀)
+  - 권한 기반 접근 제어
+  - 유료/무료 시연 처리
 
 ### 재고 관리
 - **입고 관리**: `/docs/inbound-management.md` (작성 필요)

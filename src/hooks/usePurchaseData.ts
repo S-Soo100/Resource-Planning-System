@@ -98,6 +98,12 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
         .map(transformToPurchaseRecord)
         .filter((record): record is PurchaseRecord => record !== null);
 
+      // 시연품 창고 입고 내역 제외 (시연품은 여러번 들어갔다 나갔다 하므로 구매 금액 뻥튀기 방지)
+      purchaseRecords = purchaseRecords.filter((record) => {
+        const warehouseName = record.warehouseName || '';
+        return !warehouseName.includes('시연');
+      });
+
       // 클라이언트 사이드 날짜 필터링 (서버 필터링이 제대로 동작하지 않을 경우 대비)
       purchaseRecords = purchaseRecords.filter((record) => {
         const inboundDate = record.inboundDate;

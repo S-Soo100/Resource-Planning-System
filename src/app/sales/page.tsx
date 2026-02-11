@@ -385,7 +385,7 @@ export default function SalesPage() {
                       </p>
                     )}
                     <p className="text-xs text-gray-500">
-                      {record.supplierName}
+                      {record.supplierName || record.receiver}
                     </p>
                   </div>
                   <span
@@ -531,7 +531,7 @@ export default function SalesPage() {
                       {index + 1}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {record.supplierName}
+                      {record.supplierName || record.receiver}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {formatDate(record.purchaseDate)}

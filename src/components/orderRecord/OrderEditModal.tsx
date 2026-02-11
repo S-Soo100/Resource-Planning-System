@@ -436,6 +436,22 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   // 품목별 판매가 변경 핸들러
   const handleSellingPriceChange = useCallback(
     (index: number, value: string, isPackageItem: boolean = false) => {
+      // 입력값 검증: 빈 문자열 또는 양의 정수만 허용
+      if (value !== "" && !/^\d+$/.test(value)) {
+        return; // 음수, 소수점 등 유효하지 않은 값은 무시
+      }
+
+      // 숫자 범위 검증: PostgreSQL INT 최대값 (약 21억)
+      if (value !== "") {
+        const numValue = parseInt(value, 10);
+        const MAX_PRICE = 2147483647;
+
+        if (numValue > MAX_PRICE) {
+          toast.error(`판매가는 최대 ${MAX_PRICE.toLocaleString()}원까지 입력 가능합니다.`);
+          return;
+        }
+      }
+
       if (isPackageItem) {
         setPackageItems((prev) => {
           const updated = [...prev];
@@ -759,21 +775,35 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         return serverDate ? `${serverDate}T00:00:00.000Z` : "";
       };
 
-      // 총 판매가격 계산
+      // 총 판매가격 계산 (0원 포함)
       const calculatedTotalPrice = allOrderItems
-        .filter((item) => item.quantity > 0 && item.sellingPrice)
+        .filter((item) => item.quantity > 0 && item.sellingPrice !== undefined && item.sellingPrice !== "")
         .reduce((sum, item) => {
           const price = parseInt(item.sellingPrice || "0", 10);
           return sum + (price * item.quantity);
         }, 0);
 
+      // 모든 품목이 0원인 경우 확인
+      const itemsWithPrice = allOrderItems.filter(
+        (item) => item.quantity > 0 && item.sellingPrice !== undefined && item.sellingPrice !== ""
+      );
+      if (itemsWithPrice.length > 0 && calculatedTotalPrice === 0) {
+        const confirmZeroPrice = window.confirm(
+          "총 거래금액이 0원입니다.\n\n무상 제공 또는 샘플 발주인 경우 '확인'을 눌러주세요."
+        );
+        if (!confirmZeroPrice) {
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const orderData = {
         id: orderRecord.id.toString(),
         data: {
-          title: formData.title, // 제목 필드 추가
-          manager: formData.manager,
-          supplierId: formData.supplierId ?? null,
-          packageId: formData.packageId ?? null,
+          title: formData.title || undefined,
+          manager: formData.manager || undefined,
+          supplierId: formData.supplierId ?? undefined,
+          packageId: formData.packageId ?? undefined,
           warehouseId: formData.warehouseId ?? 0,
           requester: formData.requester,
           receiver: formData.receiver,
@@ -783,16 +813,18 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           purchaseDate: toUTCISOString(formData.requestDate),
           outboundDate: toUTCISOString(formData.requestDate),
           installationDate: toUTCISOString(formData.setupDate),
-          status: formData.status, // formData에서 상태 가져오기
-          memo: formData.notes,
-          totalPrice: calculatedTotalPrice > 0 ? calculatedTotalPrice : undefined,
+          status: formData.status,
+          memo: formData.notes || undefined,
+          totalPrice: calculatedTotalPrice >= 0 ? calculatedTotalPrice : undefined,
           orderItems: allOrderItems
             .filter((item) => item.quantity > 0)
             .map((item) => ({
               itemId: item.warehouseItemId,
               quantity: item.quantity,
               memo: item.memo || "",
-              sellingPrice: item.sellingPrice ? parseInt(item.sellingPrice, 10) : undefined,
+              sellingPrice: item.sellingPrice !== undefined && item.sellingPrice !== ""
+                ? parseInt(item.sellingPrice, 10)
+                : undefined,
             })),
         },
       };
@@ -919,6 +951,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
         {canEdit() ? (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <fieldset disabled={isSubmitting || isFileUploading}>
             {/* 제목 입력 */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -1099,9 +1132,13 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                             </button>
                             <button
                               type="button"
-                              onClick={() =>
-                                handleRemoveItem(item.warehouseItemId, true)
-                              }
+                              onClick={() => {
+                                if (window.confirm(
+                                  "패키지 품목을 삭제하시겠습니까?\n\n패키지에서 제외된 개별 품목으로 처리되며, 패키지 구성이 변경됩니다."
+                                )) {
+                                  handleRemoveItem(item.warehouseItemId, true);
+                                }
+                              }}
                               className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
                               title="품목 제거"
                             >
@@ -1115,18 +1152,25 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                             판매가:
                           </label>
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={item.sellingPrice || ""}
-                            onChange={(e) =>
-                              handleSellingPriceChange(index, e.target.value, true)
-                            }
+                            onChange={(e) => {
+                              const sanitized = e.target.value.replace(/[^0-9]/g, '');
+                              handleSellingPriceChange(index, sanitized, true);
+                            }}
+                            onPaste={(e) => {
+                              e.preventDefault();
+                              const pastedText = e.clipboardData.getData('text');
+                              const sanitized = pastedText.replace(/[^0-9]/g, '');
+                              handleSellingPriceChange(index, sanitized, true);
+                            }}
                             placeholder="0"
-                            min="0"
-                            step="1"
                             className="px-2 py-1 text-sm border border-gray-300 rounded w-32"
                           />
                           <span className="text-xs text-gray-500">원</span>
-                          {item.sellingPrice && (
+                          {item.sellingPrice !== undefined && item.sellingPrice !== "" && (
                             <span className="ml-auto text-sm font-medium text-blue-600">
                               소계: {subtotal.toLocaleString()}원
                             </span>
@@ -1225,21 +1269,25 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                             판매가:
                           </label>
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={item.sellingPrice || ""}
-                            onChange={(e) =>
-                              handleSellingPriceChange(
-                                actualIndex,
-                                e.target.value
-                              )
-                            }
+                            onChange={(e) => {
+                              const sanitized = e.target.value.replace(/[^0-9]/g, '');
+                              handleSellingPriceChange(index, sanitized, false);
+                            }}
+                            onPaste={(e) => {
+                              e.preventDefault();
+                              const pastedText = e.clipboardData.getData('text');
+                              const sanitized = pastedText.replace(/[^0-9]/g, '');
+                              handleSellingPriceChange(index, sanitized, false);
+                            }}
                             placeholder="0"
-                            min="0"
-                            step="1"
                             className="px-2 py-1 text-sm border border-gray-300 rounded w-32"
                           />
                           <span className="text-xs text-gray-500">원</span>
-                          {item.sellingPrice && (
+                          {item.sellingPrice !== undefined && item.sellingPrice !== "" && (
                             <span className="ml-auto text-sm font-medium text-blue-600">
                               소계: {subtotal.toLocaleString()}원
                             </span>
@@ -1265,22 +1313,29 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                   })}
                 </div>
                 {/* 총 거래금액 표시 */}
-                {allOrderItems.some((item) => item.sellingPrice) && (
+                {allOrderItems.some((item) => item.sellingPrice !== undefined && item.sellingPrice !== "") && (
                   <div className="mt-3 pt-3 border-t-2 border-gray-300">
-                    <div className="flex justify-between items-center">
-                      <span className="text-base font-bold text-gray-900">
-                        총 거래금액
-                      </span>
-                      <span className="text-lg font-bold text-blue-700">
-                        {allOrderItems
-                          .filter((item) => item.quantity > 0 && item.sellingPrice)
-                          .reduce((sum, item) => {
-                            const price = parseInt(item.sellingPrice || "0", 10);
-                            return sum + price * item.quantity;
-                          }, 0)
-                          .toLocaleString()}
-                        원
-                      </span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-base font-bold text-gray-900">
+                          총 거래금액
+                        </span>
+                        <span className="text-lg font-bold text-blue-700">
+                          {allOrderItems
+                            .filter((item) => item.quantity > 0 && item.sellingPrice !== undefined && item.sellingPrice !== "")
+                            .reduce((sum, item) => {
+                              const price = parseInt(item.sellingPrice || "0", 10);
+                              return sum + price * item.quantity;
+                            }, 0)
+                            .toLocaleString()}
+                          원
+                        </span>
+                      </div>
+                      {allOrderItems.some((item) => item.quantity > 0 && (item.sellingPrice === undefined || item.sellingPrice === "")) && (
+                        <p className="text-xs text-gray-500 text-right">
+                          * 판매가 미입력 품목 {allOrderItems.filter((item) => item.quantity > 0 && (item.sellingPrice === undefined || item.sellingPrice === "")).length}개 제외
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1723,6 +1778,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               </div>
             )}
 
+            </fieldset>
             {/* 버튼 영역 */}
             <div className="flex gap-3 justify-end pt-4">
               <button

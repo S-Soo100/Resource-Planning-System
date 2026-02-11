@@ -18,7 +18,12 @@ const isValidTabForUser = (tab: string, userAccessLevel: string) => {
   if (userAccessLevel === "supplier") {
     return tab === "order";
   }
-  return ["stock", "order", "admin"].includes(tab);
+  // admin/moderator는 모든 탭 접근 가능
+  if (userAccessLevel === "admin" || userAccessLevel === "moderator") {
+    return ["stock", "order", "analytics", "admin"].includes(tab);
+  }
+  // user는 stock, order 탭만 접근 가능
+  return ["stock", "order"].includes(tab);
 };
 
 export const menuTabStore = create<MenuTabState>()(

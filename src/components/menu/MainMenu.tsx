@@ -54,9 +54,11 @@ const MainMenu = () => {
     setHoveredCard(null);
   };
 
-  // 사용자 권한에 따른 탭 설정 (최초 로드 시에만)
+  // 사용자 권한에 따른 탭 유효성 검사 및 설정
   useEffect(() => {
     if (user?.accessLevel) {
+      // 현재 선택된 탭이 권한에 맞지 않으면 기본 탭으로 변경
+      // 권한에 맞으면 localStorage에 저장된 탭 유지
       setTabForUser(user.accessLevel);
     }
   }, [user?.accessLevel, setTabForUser]);

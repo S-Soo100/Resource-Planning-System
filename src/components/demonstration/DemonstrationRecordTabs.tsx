@@ -195,8 +195,12 @@ const DemonstrationRecordTabs = () => {
   // 현재 탭에 맞게 필터링된 시연 기록
   const demoRecords = useMemo((): DemoResponse[] => {
     if (activeTab === "ongoing") {
-      // '진행중' 탭인 경우 진행 중인 시연만 필터링
+      // '진행중' 탭인 경우 진행 중인 시연만 필터링 (장기시연 제외)
       return allDemoRecords.filter((record: DemoResponse) => {
+        // 장기시연은 제외
+        if (record.isLongTerm === true) {
+          return false;
+        }
         // 시연이 완료되지 않은 상태들 (rejected와 rejectedByShipper 제외)
         return ![
           "demoCompleted",

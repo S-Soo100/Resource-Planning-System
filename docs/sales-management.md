@@ -19,11 +19,13 @@
 ### 데이터 훅
 - **경로**: `src/hooks/useSalesData.ts`
 - **역할**: 판매 데이터 조회 및 캐싱
-- **API 엔드포인트**: `GET /api/sales`
-- **쿼리 키**: `['sales', filters]`
+- **데이터 소스**: 팀별 발주 데이터 (`getOrdersByTeamId`)
+- **쿼리 키**: `['sales', params, teamId]`
 - **반환 데이터**:
   - `records`: 판매 레코드 배열
   - `summary`: 판매 요약 정보
+- **데이터 변환**: Order → SalesRecord 자동 변환
+- **필터링**: 클라이언트 사이드에서 날짜, 판매처, 상태, 검색어 등 필터링
 
 ### 타입 정의
 - **경로**: `src/types/sales.ts`
@@ -56,18 +58,22 @@
   id: number;                    // 발주 ID
   purchaseDate: string;          // 발주일자 (YYYY-MM-DD)
   title: string;                 // 발주 제목
-  supplierName: string;          // 판매처명
+  supplierName: string;          // 판매처명 (없으면 receiver로 폴백)
   receiver: string;              // 수령인
   itemCount: number;             // 품목 종류 수
   totalQuantity: number;         // 총 수량
   totalPrice: number | null;     // 총 판매 금액 (null: 미입력)
-  status: string;                // 발주 상태
+  status: string;                // 발주 상태 (영문: requested, approved, etc.)
   manager: string;               // 담당자
   memo: string | null;           // 메모
   orderItems: OrderItem[];       // 품목 배열 (확장 행용)
   originalOrder: Order;          // 원본 발주 데이터
 }
 ```
+
+**참고**:
+- `supplierName`이 비어있을 경우 UI에서 `receiver`로 대체하여 표시
+- `status`는 영문 값으로 저장 (requested, approved, rejected, confirmedByShipper, shipmentCompleted, rejectedByShipper)
 
 ### SalesSummary
 ```typescript
@@ -189,33 +195,45 @@ const itemTotal = item.quantity * item.sellingPrice + itemVat;
 
 ## API 명세
 
-### GET /api/sales
-판매 내역 조회
+### 데이터 소스
+판매 관리는 별도의 API 엔드포인트가 없으며, 발주 API를 활용합니다.
 
-**쿼리 파라미터**:
-- `startDate`: 시작일 (YYYY-MM-DD)
-- `endDate`: 종료일 (YYYY-MM-DD)
+**사용 API**: `getOrdersByTeamId(teamId)` - 팀별 발주 데이터 조회
+
+**클라이언트 필터 파라미터** (`SalesFilterParams`):
+- `startDate`: 시작일 (YYYY-MM-DD, 기본값: 이번 달 시작일)
+- `endDate`: 종료일 (YYYY-MM-DD, 기본값: 이번 달 마지막일)
 - `supplierId`: 판매처 ID (선택)
-- `status`: 발주 상태 (선택)
+- `status`: 발주 상태 (선택, 영문값)
 - `orderType`: 발주 유형 (all/package/individual)
-- `searchQuery`: 검색어 (선택)
+- `searchQuery`: 검색어 (선택, 제목/판매처/수령인/담당자)
 - `showMissingPriceOnly`: 판매가 미입력만 보기 (선택)
 
-**응답**:
+**처리 흐름**:
+1. 팀별 전체 발주 데이터 조회
+2. 클라이언트에서 판매 레코드로 변환
+3. 필터링 및 정렬 적용
+4. 요약 정보 계산
+
+**반환 데이터**:
 ```typescript
 {
-  records: SalesRecord[];
-  summary: SalesSummary;
+  records: SalesRecord[];  // 필터링된 판매 레코드
+  summary: SalesSummary;   // 요약 정보
 }
 ```
 
 ## 주요 기능 상세
 
 ### 1. 필터링
-- **날짜 범위**: startDate ~ endDate
+- **날짜 범위**: startDate ~ endDate (기본값: 이번 달)
+- **상태 자동 제외**: 판매 집계에서 제외되는 상태
+  - `requested` (요청): 아직 승인되지 않은 발주
+  - `rejected` (반려): 반려된 발주
+  - `rejectedByShipper` (출고자 반려): 출고자가 반려한 발주
 - **판매처**: supplierId로 필터링
 - **상태**: 발주 상태로 필터링
-- **검색어**: 제목, 판매처명, 메모 검색
+- **검색어**: 제목, 판매처명, 수령인, 담당자 검색
 - **판매가 미입력**: totalPrice가 null인 건만 표시
 
 ### 2. 정렬
@@ -245,19 +263,23 @@ const itemTotal = item.quantity * item.sellingPrice + itemVat;
 ```
 1. 사용자가 필터 설정
    ↓
-2. useSalesData 훅이 API 호출
+2. useSalesData 훅이 팀별 발주 데이터 조회
    ↓
-3. React Query가 데이터 캐싱
+3. 발주 데이터를 판매 레코드로 변환
    ↓
-4. 페이지 컴포넌트가 데이터 정렬
+4. React Query가 데이터 캐싱
    ↓
-5. 테이블/카드로 렌더링
+5. 페이지 컴포넌트에서 요청/반려/출고자반려 상태 제외
    ↓
-6. 사용자가 거래명세서 버튼 클릭
+6. 정렬 및 필터링 적용
    ↓
-7. TransactionStatementModal 열림
+7. 테이블/카드로 렌더링
    ↓
-8. 인쇄 또는 PDF 다운로드
+8. 사용자가 거래명세서 버튼 클릭
+   ↓
+9. TransactionStatementModal 열림
+   ↓
+10. 인쇄 또는 PDF 다운로드
 ```
 
 ## 개선 필요 사항

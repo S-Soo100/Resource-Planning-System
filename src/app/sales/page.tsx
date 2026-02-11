@@ -78,9 +78,9 @@ export default function SalesPage() {
     // 요청, 반려, 출고자반려 상태 제외
     const filtered = data.records.filter(
       (record) =>
-        record.status !== '요청' &&
-        record.status !== '반려' &&
-        record.status !== '출고자반려'
+        record.status !== 'requested' &&
+        record.status !== 'rejected' &&
+        record.status !== 'rejectedByShipper'
     );
 
     const sorted = [...filtered].sort((a, b) => {

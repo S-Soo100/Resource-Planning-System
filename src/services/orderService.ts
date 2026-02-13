@@ -21,7 +21,7 @@ export const orderService = {
       userId: auth?.id ?? 0,
       title: formData.title, // 제목 필드 추가
       manager: formData.manager,
-      supplierId: formData.supplierId ?? null,
+      supplierId: formData.supplierId ?? 0, // 필수 필드
       packageId: formData.packageId ?? null, // null가능하게
       warehouseId: formData.warehouseId ?? 0, // 창고 ID 추가 (기본값 0)
       requester: formData.requester, // 현재 내 이름

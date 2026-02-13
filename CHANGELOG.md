@@ -5,6 +5,16 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## v2.3.1 (2026-02-13)
+
+### 수정됨 (Fixed)
+
+- **거래명세서 부가세 계산 오류 수정**: 실제 저장된 VAT 값 사용
+  - 기존: `record.totalPrice`를 공급액으로 간주하고 10% 자동 계산
+  - 수정: 각 품목의 실제 `item.vat` 값을 합산하여 정확한 부가세 계산
+  - VAT가 없는 경우(영세율 품목) 0원으로 처리
+  - 첫 번째/두 번째 명세서 모두 동일한 로직 적용
+
 ## v2.3.0 (2026-02-13)
 
 ### 추가됨 (Added)

@@ -1,7 +1,7 @@
 "use client";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import { authStore } from "@/store/authStore";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FaUsers, FaWarehouse, FaBuilding } from "react-icons/fa";
 import WarehouseManagement from "@/components/admin/WarehouseManagement";
 import TeamManagement from "@/components/admin/TeamManagement";
@@ -14,13 +14,23 @@ import TeamMembers from "@/components/admin/TeamMembers";
 import { navigateByAuthStatus } from "@/utils/navigation";
 import { LoadingCentered } from "@/components/ui/Loading";
 
-export default function AdminPage() {
+// AdminContent 컴포넌트 (useSearchParams 사용)
+function AdminContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const { isLoading: isTeamLoading } = useCurrentTeam();
   const { warehouses, isLoading: isWarehousesLoading } = useWarehouseItems();
   const zustandAuth = authStore((state) => state.user);
   const [activeTab, setActiveTab] = useState("team-members");
+
+  // URL 쿼리 파라미터에서 tab 읽기
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ["team-members", "warehouse", "team"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   // useEffect(() => {
   //   if (warehouses && warehouses.length > 0) {
@@ -88,66 +98,80 @@ export default function AdminPage() {
   };
 
   return (
-    <Suspense>
-      <div className="flex flex-col p-6 min-h-full">
-        <div className="mx-auto max-w-7xl w-full space-y-6">
-          <div className="p-6 bg-white rounded-lg border-2 border-purple-200 shadow-md">
-            <h1 className="mb-2 text-2xl font-bold text-gray-800">관리자 대시보드</h1>
-            <p className="text-gray-600">
-              환영합니다,{" "}
-              {user.accessLevel === "admin" ? "관리자" : "1차 승인권자"}{" "}
-              {zustandAuth?.name} 님
-            </p>
-            {isReadOnly && (
-              <div className="p-3 mt-3 text-sm text-yellow-700 bg-yellow-50 rounded-md border border-yellow-200">
-                1차 승인권자 권한으로는 조회만 가능하며, 수정은 불가능합니다.
-              </div>
-            )}
-          </div>
+    <div className="flex flex-col p-6 min-h-full">
+      <div className="mx-auto max-w-7xl w-full space-y-6">
+        <div className="p-6 bg-white rounded-lg border-2 border-purple-200 shadow-md">
+          <h1 className="mb-2 text-2xl font-bold text-gray-800">관리자 대시보드</h1>
+          <p className="text-gray-600">
+            환영합니다,{" "}
+            {user.accessLevel === "admin" ? "관리자" : "1차 승인권자"}{" "}
+            {zustandAuth?.name} 님
+          </p>
+          {isReadOnly && (
+            <div className="p-3 mt-3 text-sm text-yellow-700 bg-yellow-50 rounded-md border border-yellow-200">
+              1차 승인권자 권한으로는 조회만 가능하며, 수정은 불가능합니다.
+            </div>
+          )}
+        </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <MenuCard
-              title="팀 멤버 관리"
-              icon={<FaUsers />}
-              id="team-members"
-              description="팀원 초대 및 권한 관리"
-              isActive={activeTab === "team-members"}
-              onClick={setActiveTab}
-            />
-            <MenuCard
-              title="창고 관리"
-              icon={<FaWarehouse />}
-              id="warehouse"
-              description="창고 정보 및 위치 관리"
-              isActive={activeTab === "warehouse"}
-              onClick={setActiveTab}
-            />
-            <MenuCard
-              title="팀 관리"
-              icon={<FaBuilding />}
-              id="team"
-              description="팀 설정 관리"
-              isActive={activeTab === "team"}
-              onClick={setActiveTab}
-            />
-          </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <MenuCard
+            title="팀 멤버 관리"
+            icon={<FaUsers />}
+            id="team-members"
+            description="팀원 초대 및 권한 관리"
+            isActive={activeTab === "team-members"}
+            onClick={setActiveTab}
+          />
+          <MenuCard
+            title="창고 관리"
+            icon={<FaWarehouse />}
+            id="warehouse"
+            description="창고 정보 및 위치 관리"
+            isActive={activeTab === "warehouse"}
+            onClick={setActiveTab}
+          />
+          <MenuCard
+            title="팀 관리"
+            icon={<FaBuilding />}
+            id="team"
+            description="팀 설정 관리"
+            isActive={activeTab === "team"}
+            onClick={setActiveTab}
+          />
+        </div>
 
-          <div className="mt-6">
-            {activeTab === "warehouse" && isWarehousesLoading ? (
-              <div className="flex justify-center items-center p-10">
-                <div className="text-center">
-                  <LoadingCentered size="lg" />
-                  <p className="mt-2 text-gray-600">
-                    창고 정보를 불러오는 중...
-                  </p>
-                </div>
+        <div className="mt-6">
+          {activeTab === "warehouse" && isWarehousesLoading ? (
+            <div className="flex justify-center items-center p-10">
+              <div className="text-center">
+                <LoadingCentered size="lg" />
+                <p className="mt-2 text-gray-600">
+                  창고 정보를 불러오는 중...
+                </p>
               </div>
-            ) : (
-              renderTabContent()
-            )}
-          </div>
+            </div>
+          ) : (
+            renderTabContent()
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// 메인 AdminPage 컴포넌트 (Suspense로 감싸기)
+export default function AdminPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <LoadingCentered size="lg" />
+          <p className="mt-4 text-gray-600">페이지를 불러오는 중...</p>
+        </div>
+      </div>
+    }>
+      <AdminContent />
     </Suspense>
   );
 }

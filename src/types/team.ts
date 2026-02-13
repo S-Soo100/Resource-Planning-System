@@ -40,7 +40,6 @@ export interface CreateTeamRequest {
 
 export interface UpdateTeamRequest {
   teamName?: string;
-  description?: string;
   // 회사 정보 필드 (v2.2)
   companyName?: string;
   businessRegistrationNumber?: string;

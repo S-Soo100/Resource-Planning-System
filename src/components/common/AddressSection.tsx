@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 interface AddressSectionProps {
   address: string;
   detailAddress: string;
+  supplierId?: number | null;
   isAddressOpen: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onAddressChange: (data: Address) => void;
@@ -18,6 +19,7 @@ interface AddressSectionProps {
 const AddressSection: React.FC<AddressSectionProps> = ({
   address,
   detailAddress,
+  supplierId,
   isAddressOpen,
   onChange,
   onAddressChange,
@@ -53,7 +55,7 @@ const AddressSection: React.FC<AddressSectionProps> = ({
             value={address}
             onChange={onChange}
             className={`flex-1 px-3 py-2 rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent`}
-            placeholder="주소를 입력하세요"
+            placeholder="거래처 선택 시 자동으로 입력됩니다"
             required
           />
           <button
@@ -74,6 +76,11 @@ const AddressSection: React.FC<AddressSectionProps> = ({
           className={`px-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent`}
           placeholder="상세 주소"
         />
+        {!supplierId && address && (
+          <p className="mt-2 text-xs text-amber-600">
+            ⚠️ 거래처를 선택해주세요
+          </p>
+        )}
       </div>
 
       {/* 주소 검색 모달 */}

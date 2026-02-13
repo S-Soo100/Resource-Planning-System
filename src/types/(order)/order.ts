@@ -109,7 +109,7 @@ export enum OrderStatus {
 export interface CreateOrderDto {
   userId: number;
   title: string; // 제목 필드 추가
-  supplierId: number | null;
+  supplierId: number; // 필수 필드 (거래처 필터링용)
   packageId: number | null;
   warehouseId: number;
   requester: string;

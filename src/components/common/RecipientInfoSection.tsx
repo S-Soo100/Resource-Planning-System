@@ -3,6 +3,7 @@ import React from "react";
 interface RecipientInfoSectionProps {
   receiver: string;
   receiverPhone: string;
+  supplierId?: number | null;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   focusRingColor?: string;
 }
@@ -10,6 +11,7 @@ interface RecipientInfoSectionProps {
 const RecipientInfoSection: React.FC<RecipientInfoSectionProps> = ({
   receiver,
   receiverPhone,
+  supplierId,
   onChange,
   focusRingColor = "blue",
 }) => {
@@ -33,9 +35,15 @@ const RecipientInfoSection: React.FC<RecipientInfoSectionProps> = ({
           name="receiver"
           value={receiver}
           onChange={onChange}
+          placeholder="거래처 선택 시 자동으로 입력됩니다"
           className={`px-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent`}
           required
         />
+        {!supplierId && receiver && (
+          <p className="mt-1 text-xs text-amber-600">
+            ⚠️ 거래처를 선택해주세요
+          </p>
+        )}
       </div>
 
       <div className="p-4 bg-white rounded-lg border shadow-sm">
@@ -51,10 +59,15 @@ const RecipientInfoSection: React.FC<RecipientInfoSectionProps> = ({
           name="receiverPhone"
           value={receiverPhone}
           onChange={onChange}
-          placeholder="연락처를 입력해주세요"
+          placeholder="거래처 선택 시 자동으로 입력됩니다"
           className={`px-3 py-2 w-full rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent`}
           required
         />
+        {!supplierId && receiverPhone && (
+          <p className="mt-1 text-xs text-amber-600">
+            ⚠️ 거래처를 선택해주세요
+          </p>
+        )}
       </div>
     </div>
   );

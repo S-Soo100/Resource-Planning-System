@@ -24,6 +24,13 @@ export interface Team {
     supplierAddress: string;
     supplierPhoneNumber: string;
   }[];
+  // 회사 정보 필드 (v2.2)
+  companyName?: string;
+  businessRegistrationNumber?: string;
+  representativeName?: string;
+  businessAddress?: string;
+  email?: string;
+  phoneNumber?: string;
 }
 
 export interface CreateTeamRequest {
@@ -34,6 +41,13 @@ export interface CreateTeamRequest {
 export interface UpdateTeamRequest {
   name?: string;
   description?: string;
+  // 회사 정보 필드 (v2.2)
+  companyName?: string;
+  businessRegistrationNumber?: string;
+  representativeName?: string;
+  businessAddress?: string;
+  email?: string;
+  phoneNumber?: string;
 }
 
 export interface TeamResponse {

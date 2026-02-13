@@ -1,4 +1,13 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useTeamAdmin } from "@/hooks/admin/useTeamAdmin";
+import { authStore } from "@/store/authStore";
+import { UpdateTeamRequest } from "@/types/team";
+import { teamApi } from "@/api/team-api";
+import toast from "react-hot-toast";
+import { Button } from "@/components/ui";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 interface TeamManagementProps {
   isReadOnly?: boolean;
@@ -7,23 +16,342 @@ interface TeamManagementProps {
 const TeamManagement: React.FC<TeamManagementProps> = ({
   isReadOnly = false,
 }) => {
+  const selectedTeam = authStore((state) => state.selectedTeam);
+  const teamId = selectedTeam?.id;
+
+  const { teamUsers, isLoading, error } = useTeamAdmin(teamId || 0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [formData, setFormData] = useState<UpdateTeamRequest>({
+    name: "",
+    description: "",
+    companyName: "",
+    businessRegistrationNumber: "",
+    representativeName: "",
+    businessAddress: "",
+    email: "",
+    phoneNumber: "",
+  });
+
+  // 팀 데이터가 변경되면 폼 데이터 업데이트
+  useEffect(() => {
+    if (selectedTeam) {
+      setFormData({
+        name: selectedTeam.teamName || "",
+        description: selectedTeam.description || "",
+        companyName: selectedTeam.companyName || "",
+        businessRegistrationNumber: selectedTeam.businessRegistrationNumber || "",
+        representativeName: selectedTeam.representativeName || "",
+        businessAddress: selectedTeam.businessAddress || "",
+        email: selectedTeam.email || "",
+        phoneNumber: selectedTeam.phoneNumber || "",
+      });
+    }
+  }, [selectedTeam]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!teamId) {
+      toast.error("팀 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // undefined 필드 제거 (빈 문자열은 undefined로 변환)
+      const submitData: UpdateTeamRequest = {};
+      if (formData.name?.trim()) submitData.name = formData.name.trim();
+      if (formData.description?.trim()) submitData.description = formData.description.trim();
+      if (formData.companyName?.trim()) submitData.companyName = formData.companyName.trim();
+      if (formData.businessRegistrationNumber?.trim())
+        submitData.businessRegistrationNumber = formData.businessRegistrationNumber.trim();
+      if (formData.representativeName?.trim())
+        submitData.representativeName = formData.representativeName.trim();
+      if (formData.businessAddress?.trim())
+        submitData.businessAddress = formData.businessAddress.trim();
+      if (formData.email?.trim()) submitData.email = formData.email.trim();
+      if (formData.phoneNumber?.trim()) submitData.phoneNumber = formData.phoneNumber.trim();
+
+      const response = await teamApi.updateTeam(teamId, submitData);
+
+      if (response.success) {
+        toast.success("팀 정보가 성공적으로 수정되었습니다.");
+        setIsEditing(false);
+
+        // authStore의 selectedTeam 업데이트
+        if (response.data) {
+          authStore.getState().setTeam(response.data);
+        }
+      } else {
+        throw new Error(response.error || "팀 정보 수정에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("팀 정보 수정 오류:", error);
+      toast.error(
+        error instanceof Error ? error.message : "팀 정보 수정 중 오류가 발생했습니다."
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    // 원래 데이터로 되돌리기
+    if (selectedTeam) {
+      setFormData({
+        name: selectedTeam.teamName || "",
+        description: selectedTeam.description || "",
+        companyName: selectedTeam.companyName || "",
+        businessRegistrationNumber: selectedTeam.businessRegistrationNumber || "",
+        representativeName: selectedTeam.representativeName || "",
+        businessAddress: selectedTeam.businessAddress || "",
+        email: selectedTeam.email || "",
+        phoneNumber: selectedTeam.phoneNumber || "",
+      });
+    }
+    setIsEditing(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="bg-white p-5 rounded-lg shadow-sm">
+        <div className="flex justify-center items-center py-8">
+          <LoadingCentered />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white p-5 rounded-lg shadow-sm">
+        <div className="text-center text-red-500 py-8">
+          팀 정보를 불러오는데 실패했습니다.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white p-5 rounded-lg shadow-sm">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">팀 관리</h2>
-        {isReadOnly && (
-          <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
-            읽기 전용 모드
-          </div>
-        )}
+        <h2 className="text-xl font-bold">팀 정보 관리</h2>
+        <div className="flex gap-2 items-center">
+          {isReadOnly && (
+            <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+              읽기 전용 모드
+            </div>
+          )}
+          {!isReadOnly && !isEditing && (
+            <Button onClick={() => setIsEditing(true)} color="primary">
+              정보 수정
+            </Button>
+          )}
+        </div>
       </div>
-      <div className="border-b pb-4 mb-4">
+
+      <div className="border-b pb-4 mb-6">
         <p className="text-gray-600">
-          팀 생성, 설정 변경 및 권한 구조를 관리할 수 있습니다.
+          팀의 회사 정보를 관리할 수 있습니다.
         </p>
       </div>
-      <div className="bg-gray-100 p-4 rounded-lg">
-        <p className="text-center text-gray-500">팀 관리 기능 구현 예정</p>
+
+      <div className="space-y-6">
+        {/* 기본 정보 섹션 */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">기본 정보</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                팀 이름
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="팀 이름을 입력하세요"
+                />
+              ) : (
+                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  {selectedTeam?.teamName || "-"}
+                </div>
+              )}
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                설명
+              </label>
+              {isEditing ? (
+                <textarea
+                  name="description"
+                  value={formData.description || ""}
+                  onChange={handleInputChange}
+                  rows={2}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                  placeholder="팀 설명을 입력하세요"
+                />
+              ) : (
+                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  {selectedTeam?.description || "-"}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 회사 정보 섹션 */}
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">회사 정보</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                회사명
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="companyName"
+                  value={formData.companyName || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="회사명을 입력하세요"
+                />
+              ) : (
+                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  {selectedTeam?.companyName || "-"}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                대표자 이름
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="representativeName"
+                  value={formData.representativeName || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="대표자 이름을 입력하세요"
+                />
+              ) : (
+                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  {selectedTeam?.representativeName || "-"}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                사업자등록번호
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="businessRegistrationNumber"
+                  value={formData.businessRegistrationNumber || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="000-00-00000"
+                />
+              ) : (
+                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  {selectedTeam?.businessRegistrationNumber || "-"}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                이메일
+              </label>
+              {isEditing ? (
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="company@example.com"
+                />
+              ) : (
+                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  {selectedTeam?.email || "-"}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                대표 전화번호
+              </label>
+              {isEditing ? (
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="02-0000-0000"
+                />
+              ) : (
+                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  {selectedTeam?.phoneNumber || "-"}
+                </div>
+              )}
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                사업장 주소
+              </label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="businessAddress"
+                  value={formData.businessAddress || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="사업장 주소를 입력하세요"
+                />
+              ) : (
+                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
+                  {selectedTeam?.businessAddress || "-"}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 버튼 영역 */}
+        {isEditing && !isReadOnly && (
+          <div className="flex justify-end gap-3 pt-6 border-t">
+            <Button onClick={handleCancel} variant="default" disabled={isSaving}>
+              취소
+            </Button>
+            <Button
+              onClick={handleSave}
+              variant="primary"
+              loading={isSaving}
+              disabled={isSaving}
+            >
+              저장
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

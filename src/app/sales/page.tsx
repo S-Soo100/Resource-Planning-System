@@ -105,6 +105,35 @@ export default function SalesPage() {
     return sorted;
   }, [data?.records, sortField, sortDirection]);
 
+  // 필터링된 레코드 기반 요약 데이터 재계산
+  const actualSummary = useMemo(() => {
+    if (!sortedRecords || sortedRecords.length === 0) {
+      return {
+        totalOrders: 0,
+        totalItems: 0,
+        totalQuantity: 0,
+        totalSales: 0,
+        missingPriceCount: 0,
+      };
+    }
+
+    const totalItems = sortedRecords.reduce((sum, r) => sum + r.itemCount, 0);
+    const totalQuantity = sortedRecords.reduce((sum, r) => sum + r.totalQuantity, 0);
+    const totalSales = sortedRecords.reduce(
+      (sum, r) => (r.totalPrice !== null ? sum + r.totalPrice : sum),
+      0
+    );
+    const missingPriceCount = sortedRecords.filter((r) => r.totalPrice === null).length;
+
+    return {
+      totalOrders: sortedRecords.length,
+      totalItems,
+      totalQuantity,
+      totalSales,
+      missingPriceCount,
+    };
+  }, [sortedRecords]);
+
   // 권한 체크: 로그인 및 사용자 로딩 상태
   if (isUserLoading) {
     return (
@@ -344,15 +373,15 @@ export default function SalesPage() {
       </div>
 
       {/* 요약 카드 */}
-      {data?.summary && <SalesSummary summary={data.summary} />}
+      {actualSummary && <SalesSummary summary={actualSummary} />}
 
       {/* 판매가 미입력 경고 */}
-      {data?.summary && data.summary.missingPriceCount > 0 && (
+      {actualSummary && actualSummary.missingPriceCount > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex items-start">
           <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-yellow-800">
             <strong>
-              판매가 미입력 판매: {data.summary.missingPriceCount}건
+              판매가 미입력 판매: {actualSummary.missingPriceCount}건
             </strong>
             <br />
             정확한 판매 금액 분석을 위해 판매가 정보를 입력해주세요.
@@ -445,19 +474,19 @@ export default function SalesPage() {
             ))}
 
             {/* 합계 카드 */}
-            {data?.summary && sortedRecords.length > 0 && (
+            {actualSummary && sortedRecords.length > 0 && (
               <div className="p-4 bg-blue-50 border-t-2 border-blue-200">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-bold text-gray-900">합계</span>
                     <span className="text-sm font-bold text-blue-600">
-                      ₩{data.summary.totalSales.toLocaleString()}
+                      ₩{actualSummary.totalSales.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-xs text-gray-600">
                     <span>품목 수</span>
                     <span className="font-medium">
-                      {data.summary.totalItems}종 {data.summary.totalQuantity}개
+                      {actualSummary.totalItems}종 {actualSummary.totalQuantity}개
                     </span>
                   </div>
                 </div>
@@ -574,7 +603,7 @@ export default function SalesPage() {
                 ))}
 
                 {/* 합계 행 */}
-                {data?.summary && (
+                {actualSummary && (
                   <tr className="bg-blue-50 border-t-2 border-blue-200">
                     <td
                       colSpan={4}
@@ -583,10 +612,10 @@ export default function SalesPage() {
                       합계
                     </td>
                     <td className="px-4 py-3 text-sm font-bold text-center text-gray-900">
-                      {data.summary.totalItems}종 {data.summary.totalQuantity}개
+                      {actualSummary.totalItems}종 {actualSummary.totalQuantity}개
                     </td>
                     <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">
-                      ₩{data.summary.totalSales.toLocaleString()}
+                      ₩{actualSummary.totalSales.toLocaleString()}
                     </td>
                     <td></td>
                   </tr>

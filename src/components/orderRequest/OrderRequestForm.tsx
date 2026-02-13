@@ -472,6 +472,18 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     });
   };
 
+  // 품목별 VAT 변경 핸들러
+  const handleVatChange = (index: number, value: string) => {
+    setOrderItems((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        vat: value,
+      };
+      return updated;
+    });
+  };
+
   // 품목별 메모 변경 핸들러
   const handleMemoChange = (index: number, value: string) => {
     setOrderItems((prev) => {
@@ -719,12 +731,13 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         const serverDate = formatDateForServer(dateString);
         return serverDate ? `${serverDate}T00:00:00.000Z` : "";
       };
-      // 총 판매가격 계산
+      // 총 판매가격 계산 (VAT 포함)
       const calculatedTotalPrice = orderItems
-        .filter((item) => item.quantity > 0 && item.sellingPrice)
+        .filter((item) => item.quantity > 0)
         .reduce((sum, item) => {
-          const price = parseInt(item.sellingPrice || "0", 10);
-          return sum + (price * item.quantity);
+          const sellingPrice = parseInt(item.sellingPrice || "0", 10);
+          const vat = parseInt(item.vat || "0", 10);
+          return sum + ((sellingPrice + vat) * item.quantity);
         }, 0);
 
       const orderData: CreateOrderDto = {
@@ -751,6 +764,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             quantity: item.quantity,
             memo: item.memo || "",
             sellingPrice: item.sellingPrice ? parseInt(item.sellingPrice, 10) : undefined,
+            vat: item.vat ? parseInt(item.vat, 10) : undefined,
           })),
       };
 
@@ -1170,6 +1184,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">재고</th>
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">수량</th>
                       <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">단가 (원)</th>
+                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">VAT (원)</th>
                       <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">소계 (원)</th>
                       <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">메모</th>
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">작업</th>
@@ -1177,9 +1192,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   </thead>
                   <tbody>
                     {orderItems.map((item, index) => {
-                      const subtotal = item.sellingPrice && item.quantity > 0
-                        ? parseInt(item.sellingPrice) * item.quantity
-                        : 0;
+                      const sellingPrice = item.sellingPrice ? parseInt(item.sellingPrice) : 0;
+                      const vat = item.vat ? parseInt(item.vat) : 0;
+                      const subtotal = item.quantity > 0 ? (sellingPrice + vat) * item.quantity : 0;
                       return (
                         <tr key={item.warehouseItemId} className="border-b last:border-0 hover:bg-gray-50">
                           <td className="px-4 py-2">
@@ -1231,6 +1246,17 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                               className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                             />
                           </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              placeholder="0"
+                              value={item.vat || ""}
+                              onChange={(e) => handleVatChange(index, e.target.value)}
+                              className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          </td>
                           <td className="px-4 py-2 text-right text-sm font-medium">
                             {subtotal > 0 ? subtotal.toLocaleString() : "-"}
                           </td>
@@ -1258,18 +1284,19 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                     })}
                   </tbody>
                   {/* 총 판매가격 표시 */}
-                  {orderItems.some(item => item.sellingPrice && item.quantity > 0) && (
+                  {orderItems.some(item => item.quantity > 0) && (
                     <tfoot className="bg-blue-50 border-t-2 border-blue-200">
                       <tr>
-                        <td colSpan={6} className="px-4 py-3 text-right text-base font-bold text-gray-900">
+                        <td colSpan={7} className="px-4 py-3 text-right text-base font-bold text-gray-900">
                           총 거래금액
                         </td>
                         <td className="px-4 py-3 text-right text-lg font-bold text-blue-700">
                           {orderItems
-                            .filter(item => item.quantity > 0 && item.sellingPrice)
+                            .filter(item => item.quantity > 0)
                             .reduce((sum, item) => {
-                              const price = parseInt(item.sellingPrice || "0", 10);
-                              return sum + (price * item.quantity);
+                              const sellingPrice = parseInt(item.sellingPrice || "0", 10);
+                              const vat = parseInt(item.vat || "0", 10);
+                              return sum + ((sellingPrice + vat) * item.quantity);
                             }, 0)
                             .toLocaleString()}
                         </td>

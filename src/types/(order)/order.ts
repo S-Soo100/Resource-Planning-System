@@ -70,6 +70,7 @@ export interface OrderItem {
   quantity: number;
   memo: string;
   sellingPrice?: number | null; // 주문 품목 판매가
+  vat?: number | null; // 주문 품목 세금 (부가세)
   item: {
     id: number;
     itemQuantity: number;
@@ -130,6 +131,7 @@ export interface CreateOrderItemRequest {
   quantity: number;
   memo: string;
   sellingPrice?: number; // 주문 품목 판매가 (선택)
+  vat?: number; // 주문 품목 세금 (선택)
 }
 
 export interface UpdateOrderDto {

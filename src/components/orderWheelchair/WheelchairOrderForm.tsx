@@ -280,6 +280,18 @@ export default function WheelchairOrderForm() {
     });
   };
 
+  // 품목별 VAT 변경 핸들러
+  const handleVatChange = (index: number, value: string) => {
+    setOrderItems((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        vat: value,
+      };
+      return updated;
+    });
+  };
+
   // 품목별 메모 변경 핸들러
   const handleMemoChange = (index: number, value: string) => {
     setOrderItems((prev) => {
@@ -435,6 +447,7 @@ export default function WheelchairOrderForm() {
             quantity: item.quantity,
             memo: item.memo || "",
             sellingPrice: item.sellingPrice ? parseInt(item.sellingPrice, 10) : undefined,
+            vat: item.vat ? parseInt(item.vat, 10) : undefined,
           })),
       };
 

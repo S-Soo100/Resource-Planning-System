@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 // useWarehouseItems 훅 제거 - 발주 상세 페이지에서는 불필요
 import OrderEditModal from "@/components/orderRecord/OrderEditModal";
+import OrderPriceEditModal from "@/components/orderRecord/OrderPriceEditModal";
 import LoginModal from "@/components/login/LoginModal";
 import { IAuth } from "@/types/(auth)/auth";
 import { authService } from "@/services/authService";
@@ -374,6 +375,7 @@ const OrderRecordDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPriceEditModalOpen, setIsPriceEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState<number | null>(null);
@@ -671,6 +673,11 @@ const OrderRecordDetail = () => {
   // 삭제 권한 확인 (Admin만 가능)
   const canDeleteOrder = () => {
     return auth?.accessLevel === "admin";
+  };
+
+  // 가격 수정 권한 확인 (Moderator 이상)
+  const canEditPrice = () => {
+    return auth?.accessLevel === "moderator" || auth?.accessLevel === "admin";
   };
 
   // 발주 삭제 핸들러
@@ -1218,6 +1225,132 @@ const OrderRecordDetail = () => {
                   )}
                 </div>
 
+                {/* 가격 정보 */}
+                <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="flex gap-2 items-center text-lg font-semibold text-gray-900">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-5 h-5 text-gray-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      가격 정보
+                    </h2>
+                    {canEditPrice() && (
+                      <button
+                        onClick={() => setIsPriceEditModalOpen(true)}
+                        className="flex gap-2 items-center px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-4 h-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                        가격 수정
+                      </button>
+                    )}
+                  </div>
+
+                  {/* 주문 총 판매가격 */}
+                  <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">
+                        주문 총 판매가격
+                      </span>
+                      <span className="text-lg font-bold text-blue-700">
+                        {order.totalPrice != null
+                          ? `${order.totalPrice.toLocaleString()}원`
+                          : "미입력"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 품목별 가격 정보 */}
+                  {order.orderItems && order.orderItems.length > 0 && (
+                    <>
+                      <h3 className="mb-3 text-sm font-semibold text-gray-700">
+                        품목별 가격 상세
+                      </h3>
+                      <div className="overflow-hidden border border-gray-200 rounded-lg">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                품목명
+                              </th>
+                              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                수량
+                              </th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                판매가
+                              </th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                VAT (10%)
+                              </th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                소계
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {order.orderItems.map((item, index) => {
+                              const sellingPrice = item.sellingPrice ?? 0;
+                              const vat = item.vat ?? (sellingPrice > 0 ? Math.round(sellingPrice * 0.1) : 0);
+                              const subtotal = (sellingPrice + vat) * item.quantity;
+                              const hasPriceInfo = item.sellingPrice != null;
+
+                              return (
+                                <tr key={index} className={!hasPriceInfo ? "bg-yellow-50" : ""}>
+                                  <td className="px-4 py-3 text-sm text-gray-900">
+                                    {item.item?.teamItem?.itemName || "알 수 없는 품목"}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                                    {item.quantity}개
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                                    {hasPriceInfo
+                                      ? `${sellingPrice.toLocaleString()}원`
+                                      : <span className="text-yellow-600 font-medium">미입력</span>}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-600 text-right">
+                                    {hasPriceInfo
+                                      ? `${vat.toLocaleString()}원`
+                                      : <span className="text-yellow-600">-</span>}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
+                                    {hasPriceInfo
+                                      ? `${subtotal.toLocaleString()}원`
+                                      : <span className="text-yellow-600">-</span>}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      {order.orderItems.some(item => item.sellingPrice == null) && (
+                        <div className="mt-3 flex items-center gap-2 text-xs text-yellow-700 bg-yellow-50 px-3 py-2 rounded">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <span>일부 품목의 가격이 미입력 상태입니다. 가격 수정 버튼을 눌러 입력해주세요.</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
                 {/* 메모 */}
                 {order.memo && (
                   <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
@@ -1363,6 +1496,18 @@ const OrderRecordDetail = () => {
                     orderRecord={order}
                     onClose={() => {
                       setIsEditModalOpen(false);
+                      window.location.reload();
+                    }}
+                  />
+                )}
+
+                {/* 가격 수정 모달 */}
+                {isPriceEditModalOpen && order && (
+                  <OrderPriceEditModal
+                    isOpen={isPriceEditModalOpen}
+                    orderRecord={order}
+                    onClose={() => setIsPriceEditModalOpen(false)}
+                    onSuccess={() => {
                       window.location.reload();
                     }}
                   />

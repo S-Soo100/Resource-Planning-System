@@ -361,23 +361,12 @@ export default function WheelchairOrderForm() {
     });
   };
 
-  // 모달에서 고객 선택 핸들러 (supplierId만 설정)
+  // 모달에서 고객 선택 핸들러 (supplierId만 설정, 자동 채우기 비활성화)
   const handleSupplierSelect = (supplier: Supplier) => {
     setFormData({
       ...formData,
       supplierId: supplier.id,
-    });
-  };
-
-  // 정보 자동 채우기 핸들러
-  const handleSupplierSelectWithAutoFill = (supplier: Supplier) => {
-    setFormData({
-      ...formData,
-      supplierId: supplier.id,
-      receiver: supplier.supplierName,
-      receiverPhone: supplier.supplierPhoneNumber,
-      address: supplier.supplierAddress,
-      detailAddress: "",
+      // 자동 채우기 비활성화: 수령인 정보는 수동으로 입력
     });
   };
 
@@ -945,7 +934,6 @@ export default function WheelchairOrderForm() {
         onClose={() => setIsSelectSupplierModalOpen(false)}
         suppliers={suppliers || []}
         onSelect={handleSupplierSelect}
-        onSelectWithAutoFill={handleSupplierSelectWithAutoFill}
         selectedSupplierId={formData.supplierId}
         focusRingColor="purple"
       />

@@ -8,6 +8,9 @@ import { teamApi } from "@/api/team-api";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui";
 import { LoadingCentered } from "@/components/ui/Loading";
+import SearchAddressModal from "@/components/SearchAddressModal";
+import { Search } from "lucide-react";
+import { Address } from "react-daum-postcode";
 
 interface TeamManagementProps {
   isReadOnly?: boolean;
@@ -22,6 +25,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
   const { teamUsers, isLoading, error } = useTeamAdmin(teamId || 0);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
 
   const [formData, setFormData] = useState<UpdateTeamRequest>({
     teamName: "",
@@ -53,6 +57,12 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // 주소 검색 핸들러
+  const handleAddressComplete = (data: Address) => {
+    setFormData((prev) => ({ ...prev, businessAddress: data.address }));
+    setIsAddressOpen(false);
   };
 
   const handleSave = async () => {
@@ -295,14 +305,24 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                 사업장 주소
               </label>
               {isEditing ? (
-                <input
-                  type="text"
-                  name="businessAddress"
-                  value={formData.businessAddress || ""}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  placeholder="사업장 주소를 입력하세요"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="businessAddress"
+                    value={formData.businessAddress || ""}
+                    onChange={handleInputChange}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    placeholder="사업장 주소를 입력하세요"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsAddressOpen(true)}
+                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2"
+                  >
+                    <Search className="w-4 h-4" />
+                    <span className="hidden sm:inline">주소 검색</span>
+                  </button>
+                </div>
               ) : (
                 <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
                   {selectedTeam?.businessAddress || "-"}
@@ -329,6 +349,14 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
           </div>
         )}
       </div>
+
+      {/* 주소 검색 모달 */}
+      {isAddressOpen && (
+        <SearchAddressModal
+          onCompletePost={handleAddressComplete}
+          onClose={() => setIsAddressOpen(false)}
+        />
+      )}
     </div>
   );
 };

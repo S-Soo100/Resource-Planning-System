@@ -822,7 +822,7 @@ export default function WheelchairOrderForm() {
           focusRingColor="purple"
         />
 
-        {/* 납품처 선택 */}
+        {/* 고객사 선택 */}
         {user?.accessLevel !== "supplier" && (
           <SupplierSection
             suppliers={suppliers}
@@ -833,29 +833,45 @@ export default function WheelchairOrderForm() {
           />
         )}
 
-        {/* 수령인 정보 */}
-        <RecipientInfoSection
-          receiver={formData.receiver}
-          receiverPhone={formData.receiverPhone}
-          supplierId={formData.supplierId}
-          onChange={handleChange}
-          focusRingColor="purple"
-        />
+        {/* 고객사 선택 후 표시되는 섹션 */}
+        {formData.supplierId ? (
+          <>
+            {/* 수령인 정보 */}
+            <RecipientInfoSection
+              receiver={formData.receiver}
+              receiverPhone={formData.receiverPhone}
+              supplierId={formData.supplierId}
+              onChange={handleChange}
+              focusRingColor="purple"
+            />
 
-        {/* 수령지 주소 */}
-        <AddressSection
-          address={formData.address}
-          detailAddress={formData.detailAddress}
-          supplierId={formData.supplierId}
-          isAddressOpen={addressSearch.isAddressOpen}
-          onChange={handleChange}
-          onAddressChange={(data) =>
-            addressSearch.handleAddressChange(data, setFormData)
-          }
-          onToggleAddressModal={addressSearch.handleToggleAddressModal}
-          onCloseAddressModal={addressSearch.handleCloseAddressModal}
-          focusRingColor="purple"
-        />
+            {/* 수령지 주소 */}
+            <AddressSection
+              address={formData.address}
+              detailAddress={formData.detailAddress}
+              supplierId={formData.supplierId}
+              isAddressOpen={addressSearch.isAddressOpen}
+              onChange={handleChange}
+              onAddressChange={(data) =>
+                addressSearch.handleAddressChange(data, setFormData)
+              }
+              onToggleAddressModal={addressSearch.handleToggleAddressModal}
+              onCloseAddressModal={addressSearch.handleCloseAddressModal}
+              focusRingColor="purple"
+            />
+          </>
+        ) : (
+          <div className="p-8 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border-2 border-dashed border-purple-300">
+            <div className="text-center">
+              <p className="text-lg font-medium text-purple-700 mb-2">
+                👆 먼저 고객사를 선택해주세요
+              </p>
+              <p className="text-sm text-purple-600">
+                고객사를 선택하면 수령인 정보 입력 폼이 표시됩니다
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* 파일 업로드 */}
         <FileUploadSection

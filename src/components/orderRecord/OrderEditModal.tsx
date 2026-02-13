@@ -682,9 +682,9 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   }, [formData.requestDate, formData.setupDate]);
 
   const validateForm = useCallback((): boolean => {
-    // 거래처 선택 검증 (Supplier 계정이 아닌 경우에만 필수)
+    // 고객사 선택 검증 (Supplier 계정이 아닌 경우에만 필수)
     if (user?.accessLevel !== "supplier" && !formData.supplierId) {
-      toast.error("거래처를 선택해주세요.");
+      toast.error("고객사를 선택해주세요.");
       return false;
     }
 

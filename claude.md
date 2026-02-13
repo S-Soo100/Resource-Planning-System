@@ -74,6 +74,7 @@
 - **React Query**: `['resource', params]` 키 구조
 - **통신**: Axios
 - **인증**: JWT + Zustand 상태 관리
+- **캐시 무효화**: 데이터 변경 후 `queryClient.invalidateQueries`로 자동 UI 업데이트 (페이지 새로고침 금지)
 
 ### 날짜 처리
 | 규칙              | 설명                                     |
@@ -105,6 +106,70 @@
 | 일반 기능    | 파란색 (`blue-500`, `blue-600`)   |
 | 휠체어 발주  | 보라색 (`purple-500`, `purple-600`) |
 | 경고/에러    | 빨간색 (`red-500`, `red-600`)     |
+
+### 모달 & z-index 관리
+| 레이어       | z-index | 용도                              |
+| ------------ | ------- | --------------------------------- |
+| 기본 모달    | `z-50`  | SelectSupplierModal 등 1차 모달   |
+| 중첩 모달    | `z-[60]` | AddSupplierModal 등 2차 모달      |
+| 최상위 모달  | `z-[70]` | 알림, 긴급 다이얼로그             |
+
+**규칙:**
+- 모달 위에 다른 모달이 열릴 경우 z-index를 10 단위로 증가
+- 백드롭 클릭 방지가 필요한 경우 `e.stopPropagation()` 사용
+- 모달 닫기 시 하위 모달들도 함께 닫기
+
+### 검증 아키텍처 (3-레이어)
+필수 데이터 검증은 3개 레이어에서 수행:
+
+1. **UI 레이어**: 폼 제출 전 검증
+   ```typescript
+   if (!formData.supplierId) {
+     toast.error("고객을 선택해주세요");
+     return false;
+   }
+   ```
+
+2. **서비스 레이어**: 런타임 검증
+   ```typescript
+   if (!formData.supplierId) {
+     throw new Error("고객을 선택해주세요");
+   }
+   ```
+
+3. **타입 시스템**: 컴파일타임 검증
+   ```typescript
+   interface CreateOrderDto {
+     supplierId: number; // nullable 불가
+   }
+   ```
+
+### 자동 채우기 패턴
+사용자 경험과 데이터 정확성의 균형:
+
+**DO:**
+- 선택 시 관련 정보 자동 입력 (편의성)
+- 자동 입력 후 수동 수정 허용 (유연성)
+- 필수 필드는 명확히 검증 (정확성)
+
+**DON'T:**
+- 자동 입력 후 수정 불가능하게 만들기
+- 빈 값으로 덮어쓰기 (기존 입력값 손실)
+- 자동 채우기 실패 시 에러 발생
+
+**예시:**
+```typescript
+const handleSupplierSelect = (supplier: Supplier) => {
+  setFormData({
+    ...formData, // 기존 데이터 유지
+    supplierId: supplier.id, // 필수 필드
+    receiver: supplier.representativeName || supplier.supplierName || "",
+    receiverPhone: supplier.supplierPhoneNumber || "",
+    address: supplier.supplierAddress || "",
+    detailAddress: "", // 상세주소는 사용자가 직접 입력
+  });
+};
+```
 
 ---
 

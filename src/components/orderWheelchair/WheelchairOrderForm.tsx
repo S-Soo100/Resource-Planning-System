@@ -375,9 +375,9 @@ export default function WheelchairOrderForm() {
       toast.error("제목을 입력해주세요");
       return false;
     }
-    // Supplier 계정이 아닌 경우에만 거래처 선택 필수
-    if (user?.accessLevel !== "supplier" && !formData.supplierId) {
-      toast.error("거래처를 선택해주세요");
+    // 모든 계정에 대해 고객 선택 필수
+    if (!formData.supplierId) {
+      toast.error("고객을 선택해주세요");
       return false;
     }
     if (orderItems.length === 0) {
@@ -834,16 +834,14 @@ export default function WheelchairOrderForm() {
         />
 
         {/* 고객 선택 */}
-        {user?.accessLevel !== "supplier" && (
-          <SupplierSection
-            suppliers={suppliers}
-            selectedSupplierId={formData.supplierId}
-            onChange={handleSupplierChange}
-            focusRingColor="purple"
-            onAddSupplier={() => setIsAddSupplierModalOpen(true)}
-            onOpenSelectModal={() => setIsSelectSupplierModalOpen(true)}
-          />
-        )}
+        <SupplierSection
+          suppliers={suppliers}
+          selectedSupplierId={formData.supplierId}
+          onChange={handleSupplierChange}
+          focusRingColor="purple"
+          onAddSupplier={() => setIsAddSupplierModalOpen(true)}
+          onOpenSelectModal={() => setIsSelectSupplierModalOpen(true)}
+        />
 
         {/* 고객사 선택 후 표시되는 섹션 */}
         {formData.supplierId ? (

@@ -553,12 +553,15 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     });
   };
 
-  // 모달에서 고객 선택 핸들러 (supplierId만 설정, 자동 채우기 비활성화)
+  // 모달에서 고객 선택 핸들러 (고객 정보 자동 채우기)
   const handleSupplierSelect = (supplier: Supplier) => {
     setFormData({
       ...formData,
       supplierId: supplier.id,
-      // 자동 채우기 비활성화: 수령인 정보는 수동으로 입력
+      receiver: supplier.representativeName || supplier.supplierName || "",
+      receiverPhone: supplier.supplierPhoneNumber || "",
+      address: supplier.supplierAddress || "",
+      detailAddress: "", // 상세주소는 비워둠
     });
   };
 

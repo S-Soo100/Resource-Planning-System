@@ -348,23 +348,7 @@ export default function WheelchairOrderForm() {
 
     if (!selectedSupplier) return;
 
-    // 이미 수령인 정보가 입력되어 있으면 덮어쓸지 확인
-    const hasReceiverData =
-      formData.receiver || formData.receiverPhone || formData.address;
-
-    if (hasReceiverData) {
-      const shouldOverwrite = window.confirm(
-        "거래처 정보로 수령인 정보를 채우시겠습니까?\n(기존 입력 내용이 초기화됩니다)"
-      );
-
-      if (!shouldOverwrite) {
-        // supplierId만 업데이트
-        setFormData({ ...formData, supplierId });
-        return;
-      }
-    }
-
-    // Supplier 정보로 수령인 필드 채우기
+    // Supplier 정보로 수령인 필드 자동 채우기 (confirm 없이)
     setFormData({
       ...formData,
       supplierId,

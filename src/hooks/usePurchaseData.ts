@@ -19,6 +19,11 @@ const transformToPurchaseRecord = (
     return null;
   }
 
+  // recordPurpose가 'purchase'가 아닌 경우 제외 (null인 기존 데이터는 포함)
+  if (inventory.recordPurpose && inventory.recordPurpose !== 'purchase') {
+    return null;
+  }
+
   // unitPrice와 totalPrice는 동적으로 계산하도록 getter 제거
   // 구매 페이지에서 직접 teamItem.costPrice 참조
   return {

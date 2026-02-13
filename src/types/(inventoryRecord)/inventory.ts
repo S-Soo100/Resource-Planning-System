@@ -10,6 +10,7 @@ export interface InventoryRecord {
   inboundQuantity: number | null;
   outboundQuantity: number | null;
   remarks: string | null;
+  recordPurpose?: string | null;
   packageId: number | null;
   itemId: number;
   userId: number | null;

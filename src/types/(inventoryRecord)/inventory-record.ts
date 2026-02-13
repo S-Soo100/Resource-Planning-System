@@ -11,6 +11,7 @@ export interface InventoryRecord {
   inboundQuantity: number | null;
   outboundQuantity: number | null;
   remarks: string | null;
+  recordPurpose?: string | null;
   packageId: number | null;
   itemId: number;
   userId: number | null;
@@ -70,6 +71,7 @@ export interface CreateInventoryRecordDto {
   inboundLocation?: string;
   outboundLocation?: string;
   remarks?: string;
+  recordPurpose?: string;
   inboundDate?: string;
   outboundDate?: string;
   attachedFiles?: File[];
@@ -85,6 +87,7 @@ export interface UpdateInventoryRecordRequest {
   reason?: string;
   referenceId?: string;
   referenceType?: string;
+  recordPurpose?: string;
 }
 
 export interface InventoryRecordResponse extends ApiResponse {

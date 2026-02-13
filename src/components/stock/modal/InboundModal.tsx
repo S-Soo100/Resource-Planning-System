@@ -6,6 +6,7 @@ import { AttachedFile } from "@/types/common";
 import SearchAddressModal from "./SearchAddressModal";
 import { Category } from "@/types/(item)/category";
 import { getDisplayFileName } from "@/utils/fileUtils";
+import { MANUAL_RECORD_PURPOSES } from "@/constants/recordPurpose";
 
 interface InboundModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface InboundModalProps {
     inboundAddress: string;
     inboundAddressDetail: string;
     remarks: string;
+    recordPurpose?: string;
     warehouseId: number;
     attachedFiles: AttachedFile[];
     supplierId?: number;
@@ -391,6 +393,28 @@ export default function InboundModal({
                       rows={3}
                       className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                     />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      목적 구분
+                    </label>
+                    <select
+                      value={inboundValues.recordPurpose || ""}
+                      onChange={(e) =>
+                        onFormChange("recordPurpose", e.target.value || undefined)
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                    >
+                      <option value="">선택 안 함</option>
+                      {MANUAL_RECORD_PURPOSES.filter(
+                        (purpose) => purpose.value !== 'sale'
+                      ).map((purpose) => (
+                        <option key={purpose.value} value={purpose.value}>
+                          {purpose.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="mb-4">

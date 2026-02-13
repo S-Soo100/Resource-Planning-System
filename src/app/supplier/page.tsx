@@ -53,6 +53,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
     email: "",
     supplierAddress: "",
     supplierPhoneNumber: "",
+    representativeName: "", // 대표자 이름 (v2.2)
     registrationNumber: "",
     memo: "",
     teamId: Number(currentTeamId),
@@ -121,6 +122,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
           email: editingSupplier.email,
           supplierAddress: editingSupplier.supplierAddress,
           supplierPhoneNumber: editingSupplier.supplierPhoneNumber,
+          representativeName: editingSupplier.representativeName || "", // 대표자 이름 (v2.2)
           registrationNumber: editingSupplier.registrationNumber,
           memo: editingSupplier.memo,
           teamId: Number(currentTeamId),
@@ -132,6 +134,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
           email: "",
           supplierAddress: "",
           supplierPhoneNumber: "",
+          representativeName: "", // 대표자 이름 (v2.2)
           registrationNumber: "",
           memo: "",
           teamId: Number(currentTeamId),
@@ -250,6 +253,19 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
                 required
+              />
+            </div>
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                대표자 이름
+              </label>
+              <input
+                type="text"
+                name="representativeName"
+                value={formData.representativeName || ""}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
+                placeholder="대표자 이름을 입력하세요"
               />
             </div>
             <div>
@@ -563,6 +579,12 @@ export default function SupplierManagePage() {
                     scope="col"
                     className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                   >
+                    대표자
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+                  >
                     사업자등록번호
                   </th>
                   <th
@@ -596,6 +618,9 @@ export default function SupplierManagePage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                       {supplier.supplierPhoneNumber}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                      {supplier.representativeName || "-"}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
                       {supplier.registrationNumber}

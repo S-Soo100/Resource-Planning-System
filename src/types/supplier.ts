@@ -18,6 +18,7 @@ export interface Supplier {
   teamId: number;
   createdAt?: string;
   updatedAt?: string;
+  representativeName?: string; // 대표자 이름 (v2.2)
 }
 
 export interface CreateSupplierRequest {
@@ -28,6 +29,7 @@ export interface CreateSupplierRequest {
   registrationNumber?: string;
   memo?: string;
   teamId?: number;
+  representativeName?: string; // 대표자 이름 (v2.2)
 }
 
 export interface UpdateSupplierRequest {
@@ -38,6 +40,7 @@ export interface UpdateSupplierRequest {
   registrationNumber?: string;
   memo?: string;
   teamId?: number;
+  representativeName?: string; // 대표자 이름 (v2.2)
 }
 
 export interface SupplierResponse {

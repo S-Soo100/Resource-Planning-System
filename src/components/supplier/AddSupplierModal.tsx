@@ -26,6 +26,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
     supplierEmail: "",
     address: "",
     detailAddress: "",
+    representativeName: "", // 대표자 이름 (v2.2)
     registrationNumber: "",
     supplierNote: "",
   });
@@ -73,6 +74,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
         supplierPhoneNumber: formData.supplierPhone.trim() || undefined,
         email: formData.supplierEmail.trim() || undefined,
         supplierAddress: fullAddress || undefined,
+        representativeName: formData.representativeName.trim() || undefined, // 대표자 이름 (v2.2)
         registrationNumber: formData.registrationNumber.trim() || undefined,
         memo: formData.supplierNote.trim() || undefined,
         teamId: selectedTeam.id,
@@ -107,6 +109,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
       supplierEmail: "",
       address: "",
       detailAddress: "",
+      representativeName: "", // 대표자 이름 (v2.2)
       registrationNumber: "",
       supplierNote: "",
     });
@@ -214,6 +217,22 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="상세 주소"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {/* 대표자 이름 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              대표자 이름
+            </label>
+            <input
+              type="text"
+              name="representativeName"
+              value={formData.representativeName}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="대표자 이름을 입력하세요"
               disabled={isSubmitting}
             />
           </div>

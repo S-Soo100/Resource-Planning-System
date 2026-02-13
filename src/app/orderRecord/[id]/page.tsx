@@ -12,7 +12,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 // useWarehouseItems 훅 제거 - 발주 상세 페이지에서는 불필요
 import OrderEditModal from "@/components/orderRecord/OrderEditModal";
-import OrderPriceEditModal from "@/components/orderRecord/OrderPriceEditModal";
 import LoginModal from "@/components/login/LoginModal";
 import { IAuth } from "@/types/(auth)/auth";
 import { authService } from "@/services/authService";
@@ -375,7 +374,6 @@ const OrderRecordDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isPriceEditModalOpen, setIsPriceEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState<number | null>(null);
@@ -673,11 +671,6 @@ const OrderRecordDetail = () => {
   // 삭제 권한 확인 (Admin만 가능)
   const canDeleteOrder = () => {
     return auth?.accessLevel === "admin";
-  };
-
-  // 가격 수정 권한 확인 (Moderator 이상)
-  const canEditPrice = () => {
-    return auth?.accessLevel === "moderator" || auth?.accessLevel === "admin";
   };
 
   // 발주 삭제 핸들러
@@ -1244,22 +1237,6 @@ const OrderRecordDetail = () => {
                       </svg>
                       가격 정보
                     </h2>
-                    {canEditPrice() && (
-                      <button
-                        onClick={() => setIsPriceEditModalOpen(true)}
-                        className="flex gap-2 items-center px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-4 h-4"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                        </svg>
-                        가격 수정
-                      </button>
-                    )}
                   </div>
 
                   {/* 주문 총 판매가격 */}
@@ -1501,17 +1478,6 @@ const OrderRecordDetail = () => {
                   />
                 )}
 
-                {/* 가격 수정 모달 */}
-                {isPriceEditModalOpen && order && (
-                  <OrderPriceEditModal
-                    isOpen={isPriceEditModalOpen}
-                    orderRecord={order}
-                    onClose={() => setIsPriceEditModalOpen(false)}
-                    onSuccess={() => {
-                      window.location.reload();
-                    }}
-                  />
-                )}
               </div>
             </div>
           )}

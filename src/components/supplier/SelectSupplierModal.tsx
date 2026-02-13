@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { X, Search, Building2, Phone } from "lucide-react";
+import { X, Search, Building2, Phone, Plus } from "lucide-react";
 import { Supplier } from "@/types/supplier";
 
 interface SelectSupplierModalProps {
@@ -11,6 +11,7 @@ interface SelectSupplierModalProps {
   onSelect: (supplier: Supplier) => void;
   selectedSupplierId?: number | null;
   focusRingColor?: string;
+  onAddSupplier?: () => void; // 고객 추가 버튼 핸들러
 }
 
 const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
@@ -20,6 +21,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
   onSelect,
   selectedSupplierId,
   focusRingColor = "blue",
+  onAddSupplier,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [tempSelectedSupplier, setTempSelectedSupplier] = useState<Supplier | null>(null);
@@ -70,7 +72,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
       <div className="relative w-full max-w-3xl max-h-[90vh] bg-white rounded-lg shadow-2xl overflow-hidden">
         {/* 헤더 */}
         <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-gray-50 to-gray-100">
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-bold text-gray-800">고객 선택</h2>
             <p className="mt-1 text-sm text-gray-600">
               발주할 고객을 선택해주세요
@@ -78,7 +80,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-500 rounded-full transition-colors hover:bg-gray-200 hover:text-gray-700"
+            className="p-2 ml-4 text-gray-500 rounded-full transition-colors hover:bg-gray-200 hover:text-gray-700"
             aria-label="닫기"
           >
             <X size={24} />
@@ -108,6 +110,41 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
 
         {/* 고객 목록 */}
         <div className="overflow-y-auto max-h-[calc(90vh-240px)] p-6">
+          {/* 새 고객 등록 버튼 */}
+          {onAddSupplier && (
+            <button
+              onClick={onAddSupplier}
+              className={`w-full p-6 mb-4 rounded-lg border-2 border-dashed transition-all hover:shadow-lg ${
+                focusRingColor === "purple"
+                  ? "border-purple-300 bg-purple-50 hover:bg-purple-100 hover:border-purple-400"
+                  : "border-blue-300 bg-blue-50 hover:bg-blue-100 hover:border-blue-400"
+              }`}
+            >
+              <div className="flex items-center justify-center gap-3">
+                <Plus
+                  size={28}
+                  className={
+                    focusRingColor === "purple"
+                      ? "text-purple-600"
+                      : "text-blue-600"
+                  }
+                />
+                <span
+                  className={`text-lg font-bold ${
+                    focusRingColor === "purple"
+                      ? "text-purple-700"
+                      : "text-blue-700"
+                  }`}
+                >
+                  새 고객 등록
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-gray-600">
+                등록된 고객 목록에 없다면 새로 추가하세요
+              </p>
+            </button>
+          )}
+
           {filteredSuppliers.length === 0 ? (
             <div className="py-16 text-center">
               <Building2 className="mx-auto mb-4 text-gray-300" size={64} />
@@ -127,10 +164,10 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
               {filteredSuppliers.map((supplier) => {
                 const isSelected = supplier.id === selectedSupplierId;
                 return (
-                  <button
+                  <div
                     key={supplier.id}
                     onClick={() => handleSelect(supplier)}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                    className={`w-full p-4 rounded-lg border-2 transition-all cursor-pointer ${
                       isSelected
                         ? `${selectedBorderColor} bg-${
                             focusRingColor === "purple" ? "purple" : "blue"
@@ -181,6 +218,10 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
 
                       <div className="ml-4">
                         <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelect(supplier);
+                          }}
                           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                             isSelected
                               ? `${accentColor} border`
@@ -191,7 +232,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
                         </button>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>

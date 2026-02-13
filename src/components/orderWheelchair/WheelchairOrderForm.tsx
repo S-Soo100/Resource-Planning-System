@@ -922,9 +922,9 @@ export default function WheelchairOrderForm() {
       <AddSupplierModal
         isOpen={isAddSupplierModalOpen}
         onClose={() => setIsAddSupplierModalOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-          window.location.reload();
+        onSuccess={async () => {
+          // 고객 목록 새로고침
+          await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
         }}
       />
 
@@ -936,6 +936,7 @@ export default function WheelchairOrderForm() {
         onSelect={handleSupplierSelect}
         selectedSupplierId={formData.supplierId}
         focusRingColor="purple"
+        onAddSupplier={() => setIsAddSupplierModalOpen(true)}
       />
 
       {/* 하단 여백 */}

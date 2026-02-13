@@ -1450,6 +1450,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           onSelect={handleSupplierSelect}
           selectedSupplierId={formData.supplierId}
           focusRingColor="blue"
+          onAddSupplier={() => setIsAddSupplierModalOpen(true)}
         />
       </div>
     </>

@@ -13,6 +13,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { getRecordPurposeLabel } from "@/constants/recordPurpose";
 
 export default function ItemDetailPage() {
   const params = useParams();
@@ -41,7 +42,7 @@ export default function ItemDetailPage() {
 
   // 단가 편집 시작
   const handleCostPriceClick = () => {
-    if (user?.accessLevel !== "admin" || !item) return;
+    if ((user?.accessLevel !== "admin" && user?.accessLevel !== "moderator") || !item) return;
     setIsEditingCostPrice(true);
     setEditedCostPrice(
       item.teamItem.costPrice?.toString() || ""
@@ -216,8 +217,8 @@ export default function ItemDetailPage() {
               <p className="text-2xl font-bold text-green-700">{item.itemQuantity} <span className="text-base font-normal">개</span></p>
             </div>
 
-            {/* 단가 (Admin 전용) */}
-            {user?.accessLevel === "admin" && (
+            {/* 단가 (Admin/Moderator 전용) */}
+            {(user?.accessLevel === "admin" || user?.accessLevel === "moderator") && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200 hover:border-purple-300 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
                   <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,14 +294,15 @@ export default function ItemDetailPage() {
           </div>
         </div>
 
-        {/* 재고 변동 이력 (관리자 전용) */}
-        {user?.accessLevel === "admin" && (
+        {/* 재고 변동 이력 (Admin/Moderator 전용) */}
+        {(user?.accessLevel === "admin" || user?.accessLevel === "moderator") && (
           <div className="mb-6">
             <ItemQuantityHistory itemId={Number(itemId)} />
           </div>
         )}
 
-        {/* 입출고 내역 */}
+        {/* 입출고 내역 (Admin/Moderator 전용) */}
+        {(user?.accessLevel === "admin" || user?.accessLevel === "moderator") && (
         <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -327,6 +329,9 @@ export default function ItemDetailPage() {
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                         구분
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        목적
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                         수량
@@ -381,6 +386,9 @@ export default function ItemDetailPage() {
                             )}
                           </span>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                          {getRecordPurposeLabel(record.recordPurpose)}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                           {record.inboundQuantity !== null && (
                             <span className="text-green-600">+</span>
@@ -416,6 +424,7 @@ export default function ItemDetailPage() {
             </div>
           )}
         </div>
+        )}
       </div>
     </div>
   );

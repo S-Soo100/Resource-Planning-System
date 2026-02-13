@@ -25,7 +25,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
 
   const [formData, setFormData] = useState<UpdateTeamRequest>({
     teamName: "",
-    description: "",
     companyName: "",
     businessRegistrationNumber: "",
     representativeName: "",
@@ -39,7 +38,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
     if (selectedTeam) {
       setFormData({
         teamName: selectedTeam.teamName || "",
-        description: selectedTeam.description || "",
         companyName: selectedTeam.companyName || "",
         businessRegistrationNumber: selectedTeam.businessRegistrationNumber || "",
         representativeName: selectedTeam.representativeName || "",
@@ -68,7 +66,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
       // undefined 필드 제거 (빈 문자열은 undefined로 변환)
       const submitData: UpdateTeamRequest = {};
       if (formData.teamName?.trim()) submitData.teamName = formData.teamName.trim();
-      if (formData.description?.trim()) submitData.description = formData.description.trim();
       if (formData.companyName?.trim()) submitData.companyName = formData.companyName.trim();
       if (formData.businessRegistrationNumber?.trim())
         submitData.businessRegistrationNumber = formData.businessRegistrationNumber.trim();
@@ -107,7 +104,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
     if (selectedTeam) {
       setFormData({
         teamName: selectedTeam.teamName || "",
-        description: selectedTeam.description || "",
         companyName: selectedTeam.companyName || "",
         businessRegistrationNumber: selectedTeam.businessRegistrationNumber || "",
         representativeName: selectedTeam.representativeName || "",
@@ -184,26 +180,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
               ) : (
                 <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
                   {selectedTeam?.teamName || "-"}
-                </div>
-              )}
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                설명
-              </label>
-              {isEditing ? (
-                <textarea
-                  name="description"
-                  value={formData.description || ""}
-                  onChange={handleInputChange}
-                  rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
-                  placeholder="팀 설명을 입력하세요"
-                />
-              ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                  {selectedTeam?.description || "-"}
                 </div>
               )}
             </div>

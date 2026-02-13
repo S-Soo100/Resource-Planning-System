@@ -1,9 +1,10 @@
 import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { inventoryRecordApi } from "../api/inventory-record-api";
+import { inventoryRecordApi, updateInventoryRecord } from "../api/inventory-record-api";
 import {
   CreateInventoryRecordDto,
   InventoryRecord,
+  UpdateInventoryRecordRequest,
 } from "../types/(inventoryRecord)/inventory-record";
 import { ApiResponse } from "../types/common";
 
@@ -90,6 +91,42 @@ export function useUploadInventoryRecordFile() {
     uploadFile: mutation.mutate,
     uploadFileAsync: mutation.mutateAsync,
     isUploading: mutation.isPending,
+    ...mutation,
+  };
+}
+
+// 입출고 기록 수정 mutation 훅
+export function useUpdateInventoryRecord() {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation<
+    ApiResponse<InventoryRecord>,
+    Error,
+    { id: string; data: UpdateInventoryRecordRequest }
+  >({
+    mutationFn: ({ id, data }) => updateInventoryRecord(id, data),
+    onSuccess: (response) => {
+      if (response.success) {
+        toast.success("입출고 기록이 성공적으로 수정되었습니다.");
+
+        // 입출고 기록 캐시 무효화
+        queryClient.invalidateQueries({
+          queryKey: ["inventoryRecordsByTeam"],
+        });
+      } else {
+        toast.error(response.error || "수정 중 오류가 발생했습니다.");
+      }
+    },
+    onError: (error) => {
+      toast.error("수정 중 오류가 발생했습니다.");
+      console.error(error);
+    },
+  });
+
+  return {
+    updateInventoryRecord: mutation.mutate,
+    updateInventoryRecordAsync: mutation.mutateAsync,
+    isUpdating: mutation.isPending,
     ...mutation,
   };
 }

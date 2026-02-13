@@ -18,11 +18,13 @@ import { useSuppliers } from "@/hooks/useSupplier";
 import {
   useCreateInventoryRecord,
   useUploadInventoryRecordFile,
+  useUpdateInventoryRecord,
 } from "@/hooks/useInventoryRecord";
 import { useCategory } from "@/hooks/useCategory";
 import { useQueryClient } from "@tanstack/react-query";
 import { getTodayString, formatDateToLocalString, formatDateForDisplayUTC } from "@/utils/dateUtils";
 import { LoadingCentered } from "@/components/ui/Loading";
+import { getRecordPurposeLabel, MANUAL_RECORD_PURPOSES } from "@/constants/recordPurpose";
 
 // 로컬 formatDate 함수 완전 제거 - formatDateForDisplayUTC 직접 사용
 
@@ -72,6 +74,7 @@ export default function IoHistoryList() {
   // 입고/출고 모달 관련 상태
   const { createInventoryRecordAsync } = useCreateInventoryRecord();
   const { uploadFileAsync } = useUploadInventoryRecordFile();
+  const { updateInventoryRecordAsync } = useUpdateInventoryRecord();
   const { categories } = useCategory();
   const queryClient = useQueryClient();
   const [isInboundModalOpen, setIsInboundModalOpen] = useState(false);
@@ -96,6 +99,7 @@ export default function IoHistoryList() {
     inboundAddress: string;
     inboundAddressDetail: string;
     remarks: string;
+    recordPurpose?: string;
     warehouseId: number;
     attachedFiles: AttachedFile[];
     supplierId?: number;
@@ -124,6 +128,7 @@ export default function IoHistoryList() {
     outboundAddress: string;
     outboundAddressDetail: string;
     remarks: string;
+    recordPurpose?: string;
     warehouseId: number;
     attachedFiles: AttachedFile[];
     supplierId?: number;
@@ -490,6 +495,7 @@ export default function IoHistoryList() {
           .filter(Boolean)
           .join(" "),
         remarks: inboundValues.remarks,
+        recordPurpose: inboundValues.recordPurpose,
         supplierId: inboundValues.supplierId,
         warehouseId: inboundValues.warehouseId,
         userId: user?.id,
@@ -578,6 +584,7 @@ export default function IoHistoryList() {
           .filter(Boolean)
           .join(" "),
         remarks: outboundValues.remarks,
+        recordPurpose: outboundValues.recordPurpose,
         warehouseId: outboundValues.warehouseId,
         userId: user?.id,
         supplierId: outboundValues.supplierId,
@@ -648,6 +655,19 @@ export default function IoHistoryList() {
       currentQuantity: 0,
     });
     setSelectedOutboundItem(null);
+  };
+
+  const handleRecordPurposeChange = async (recordId: number, newPurpose: string) => {
+    try {
+      await updateInventoryRecordAsync({
+        id: String(recordId),
+        data: {
+          recordPurpose: newPurpose || undefined,
+        },
+      });
+    } catch (error) {
+      console.error("목적 변경 실패:", error);
+    }
   };
 
   const getWarehouseItems = (warehouseId: number) => {
@@ -862,19 +882,22 @@ export default function IoHistoryList() {
           <table className="overflow-hidden min-w-full bg-white rounded-lg shadow-md">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[13%]">
                   일자
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[8%]">
                   구분
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[35%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
+                  목적
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[30%]">
                   품목
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[8%]">
                   수량
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[34%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[31%]">
                   비고
                 </th>
               </tr>
@@ -906,6 +929,22 @@ export default function IoHistoryList() {
                         {record.inboundQuantity ? "입고" : "출고"}
                       </span>
                     </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap"
+                        onClick={(e) => e.stopPropagation()}>
+                      <select
+                        value={record.recordPurpose || ""}
+                        onChange={(e) => handleRecordPurposeChange(record.id, e.target.value)}
+                        className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <option value="">미분류</option>
+                        {MANUAL_RECORD_PURPOSES.map((purpose) => (
+                          <option key={purpose.value} value={purpose.value}>
+                            {purpose.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
                       {record.item?.teamItem ? (
                         <div className="space-y-1">
@@ -936,7 +975,7 @@ export default function IoHistoryList() {
                   </tr>
                   {expandedRecordId === record.id && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-3 bg-gray-50">
+                      <td colSpan={6} className="px-4 py-3 bg-gray-50">
                         <div className="mb-4">
                           <h3 className="text-lg font-semibold text-gray-800">
                             {record.item?.teamItem ? (

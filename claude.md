@@ -1,145 +1,149 @@
 # KARS - Claude Code 설정
 
-## 프로젝트 정보
-- **이름**: KARS (Kangsters Auto Resource-management System)
-- **기술 스택**: React 18.2.0, TypeScript, Next.js 15.1.3, Tailwind CSS, Ant Design
-- **상태 관리**: Zustand, React Query (@tanstack/react-query)
+## 📌 프로젝트 개요
+**KARS** (Kangsters Auto Resource-management System) - 보조기기 업체용 통합 자원 관리 시스템
 
-## 코딩 스타일
-- React 함수형 컴포넌트 사용
-- TypeScript strict 모드
-- PascalCase for 컴포넌트, camelCase for 훅, kebab-case for 타입 파일
+### 기술 스택
+- **프론트**: React 18.2 + Next.js 15.1.3 + TypeScript + Tailwind CSS
+- **상태 관리**: Zustand + React Query (TanStack Query)
+- **UI**: Ant Design + Framer Motion
+
+---
+
+## 🎨 코딩 규칙
+
+### 스타일
+- React 함수형 컴포넌트 + TypeScript strict 모드
 - Tailwind CSS 클래스 우선 사용
 
-## 명명 규칙
-- 컴포넌트: `OrderRequestForm.tsx`, `UserManagementModal.tsx`
-- 훅: `useOrder.ts`, `useAuth.ts` (use 접두사 필수)
-- 타입: `order-record.ts`, `inventory-record.ts`
+### 명명 규칙
+| 대상       | 규칙        | 예시                                |
+| ---------- | ----------- | ----------------------------------- |
+| 컴포넌트   | PascalCase  | `OrderRequestForm.tsx`              |
+| 훅         | camelCase   | `useOrder.ts` (use 접두사 필수)     |
+| 타입 파일  | kebab-case  | `order-record.ts`                   |
 
-## 중요 규칙
-1. 친근한 반말 어투로 대화
+### 대화 규칙
+1. 친근한 반말 어투
 2. 불확실한 내용은 명확히 표시
 3. 단계적 사고 과정으로 답변
 4. 한국어로 응답
 
-## 기능별 참조 문서
-기능 수정 또는 확장 시 반드시 해당 문서를 먼저 확인:
+---
 
-### 메인 페이지
-- **메인 페이지 탭 상태 관리**: `/docs/menu-tab-state-management.md`
-  - Zustand + localStorage 기반 탭 상태 영구 저장
-  - 뒤로가기 시 탭 복원
-  - 권한별 탭 표시 및 유효성 검사
-  - Framer Motion 애니메이션
+## 📚 기능별 참조 문서
+> **중요**: 기능 수정/확장 시 반드시 해당 문서를 먼저 확인할 것!
 
-### 판매 & 구매 관리
-- **판매 관리**: `/docs/sales-management.md`
-  - 판매 내역 조회 및 분석
-  - 거래명세서 출력 (인쇄/PDF)
-  - 부가세 계산 로직 (10%)
-  - 엑셀 다운로드
+### 🏠 메인 & UI
+| 문서                                 | 주요 내용                                 |
+| ------------------------------------ | ----------------------------------------- |
+| `/docs/menu-tab-state-management.md` | 메인 탭 상태 관리 (Zustand + localStorage) |
 
-- **구매 관리**: `/docs/purchase-management.md`
-  - 구매 내역 조회 및 분석
-  - 원가 정보 관리
-  - 엑셀 다운로드
+### 💰 판매 & 구매
+| 문서                           | 주요 내용                                |
+| ------------------------------ | ---------------------------------------- |
+| `/docs/sales-management.md`    | 판매 내역, 거래명세서, 부가세(10%), 엑셀 |
+| `/docs/purchase-management.md` | 구매 내역, 원가 정보, 엑셀               |
 
-### 발주 & 시연 관리
-- **발주 관리**: `/docs/order-management.md`
-  - 발주 워크플로우 (요청 → 승인 → 출고)
-  - 권한별 기능 제한 및 상태 변경 규칙
-  - 휠체어 발주 시스템
-  - 첨부파일 관리
-  - 발주 수정/삭제 권한 제어
-  - **가격 정보 관리** (v2.0.0)
-    - 주문 총 판매가격, 품목별 판매가/VAT 입력
-    - VAT 직접 입력 필수 (영세율 0% 품목 지원)
-    - 가격 전용 수정 모달 (중간관리자 이상)
-    - 출고완료 상태에서도 가격 수정 가능
+### 📦 발주 & 시연
+| 문서                               | 주요 내용                              | 주요 기능                            |
+| ---------------------------------- | -------------------------------------- | ------------------------------------ |
+| `/docs/order-management.md`        | 발주 워크플로우, 권한 제어, 휠체어 발주 | 가격 정보(v2.0): VAT 직접 입력, 가격 수정 모달 |
+| `/docs/demonstration-management.md` | 시연 프로세스, 재고 연동               | 유료/무료 시연, 출고/복귀            |
 
-- **시연 관리**: `/docs/demonstration-management.md`
-  - 시연 전용 프로세스 및 상태 관리
-  - 재고 연동 (출고/복귀)
-  - 권한 기반 접근 제어
-  - 유료/무료 시연 처리
+### 📊 재고 관리
+| 문서                                    | 주요 내용                                  | 버전  |
+| --------------------------------------- | ------------------------------------------ | ----- |
+| `/docs/inventory-record-purpose.md`     | recordPurpose 필드, 목적별 집계 필터링     | v2.1  |
+| `/docs/inbound-management.md`           | 입고 프로세스 (작성 필요)                  | -     |
+| `/docs/outbound-management.md`          | 출고 프로세스 (작성 필요)                  | -     |
+| `/docs/inventory-management.md`         | 재고 현황 (작성 필요)                      | -     |
 
-### 재고 관리
-- **입고 관리**: `/docs/inbound-management.md` (작성 필요)
-- **출고 관리**: `/docs/outbound-management.md` (작성 필요)
-- **재고 현황**: `/docs/inventory-management.md` (작성 필요)
+### 🗂️ 기준 정보
+| 문서                            | 상태       |
+| ------------------------------- | ---------- |
+| `/docs/item-management.md`      | 작성 필요  |
+| `/docs/warehouse-management.md` | 작성 필요  |
+| `/docs/supplier-management.md`  | 작성 필요  |
 
-### 기준 정보
-- **품목 관리**: `/docs/item-management.md` (작성 필요)
-- **창고 관리**: `/docs/warehouse-management.md` (작성 필요)
-- **공급처 관리**: `/docs/supplier-management.md` (작성 필요)
+---
 
-## API 및 데이터 관리
-- React Query 사용: `['resource', params]` 키 구조
-- Axios로 API 통신
-- JWT 인증, Zustand 상태 관리
+## 🔧 핵심 개발 규칙
 
-## 날짜 처리 규칙
-- 빈 값 입력 시 `undefined` 반환 (빈 문자열 금지)
-- 서버 전송 전 undefined 필드 제거
-- KST 시간대 형식: `YYYY-MM-DDTHH:MM:SS+09:00`
+### API & 데이터
+- **React Query**: `['resource', params]` 키 구조
+- **통신**: Axios
+- **인증**: JWT + Zustand 상태 관리
 
-## 가격 입력 규칙
-- **VAT 자동 계산 금지**: VAT는 사용자가 직접 입력해야 함 (영세율 0% 품목 존재)
-- 입력 타입: 폼에서는 문자열(`string`), 저장 시 숫자(`number`)로 변환
-- 빈 값 처리: `undefined`로 전송 (null이나 빈 문자열 금지)
-- 소계 계산: `(판매가 + VAT) × 수량`
-- 숫자 입력 검증: `e.target.value.replace(/[^0-9]/g, '')` 사용
+### 날짜 처리
+| 규칙              | 설명                                     |
+| ----------------- | ---------------------------------------- |
+| 빈 값             | `undefined` 반환 (빈 문자열 ❌)          |
+| 서버 전송         | `undefined` 필드 제거                    |
+| 형식              | `YYYY-MM-DDTHH:MM:SS+09:00` (KST)        |
 
-## 권한 시스템
-- Admin: 모든 기능 접근
-- Moderator: 읽기 전용 + 발주 승인
-- User: 기본 기능
-- Supplier: 발주 관련만
+### 가격 입력
+| 규칙              | 설명                                     |
+| ----------------- | ---------------------------------------- |
+| **VAT**           | **자동 계산 금지** (영세율 0% 품목 존재) |
+| 타입              | 폼: `string` → 저장: `number`            |
+| 빈 값             | `undefined` 전송 (null ❌, 빈 문자열 ❌) |
+| 소계              | `(판매가 + VAT) × 수량`                  |
+| 검증              | `e.target.value.replace(/[^0-9]/g, '')` |
 
-## 테마 색상
-- 일반 기능: 파란색 계열 (`blue-500`, `blue-600`)
-- 휠체어 발주: 보라색 계열 (`purple-500`, `purple-600`)
-- 경고/에러: 빨간색 계열 (`red-500`, `red-600`)
+### 권한 시스템
+| 등급       | 권한                        |
+| ---------- | --------------------------- |
+| Admin      | 모든 기능                   |
+| Moderator  | 읽기 + 발주 승인            |
+| User       | 기본 기능                   |
+| Supplier   | 발주 관련만                 |
 
-## 주요 명령어
+### 테마 색상
+| 용도         | 색상                              |
+| ------------ | --------------------------------- |
+| 일반 기능    | 파란색 (`blue-500`, `blue-600`)   |
+| 휠체어 발주  | 보라색 (`purple-500`, `purple-600`) |
+| 경고/에러    | 빨간색 (`red-500`, `red-600`)     |
+
+---
+
+## ⚙️ 주요 명령어
+
 ```bash
-# 개발 서버 실행
-npm run dev
-
-# 빌드
-npm run build
-
-# 타입 체크
-npm run type-check
-
-# 린트
-npm run lint
+npm run dev          # 개발 서버 실행
+npm run build        # 프로덕션 빌드
+npm run type-check   # TypeScript 타입 체크
+npm run lint         # ESLint 검사
 ```
 
-## 업데이트 관리
+---
 
-### 자동 업데이트 (권장)
-`/update-changelog` 커맨드 사용:
+## 🔄 업데이트 관리
+
+### 자동 업데이트 (권장) 🤖
+`/update-changelog` 슬래시 커맨드 사용:
+
 ```bash
-# 대화형 모드
-/update-changelog
-
-# 버전 유형 직접 지정
-/update-changelog patch    # 버그 수정 (1.16.1 → 1.16.2)
-/update-changelog minor    # 새 기능 (1.16.1 → 1.17.0)
-/update-changelog major    # 대규모 변경 (1.16.1 → 2.0.0)
+/update-changelog         # 대화형 모드
+/update-changelog patch   # 버그 수정 (1.16.1 → 1.16.2)
+/update-changelog minor   # 새 기능 (1.16.1 → 1.17.0)
+/update-changelog major   # 대규모 변경 (1.16.1 → 2.0.0)
 ```
 
-커맨드가 자동으로 처리:
-- 최근 커밋 분석 및 변경사항 분류
-- CHANGELOG.md에 새 버전 섹션 추가
-- src/constants/version.ts 버전 업데이트
-- /update 페이지는 CHANGELOG.md에서 자동 생성됨
+**자동 처리 항목**:
+1. ✅ 최근 커밋 분석 & 변경사항 분류
+2. ✅ `CHANGELOG.md`에 새 버전 섹션 추가
+3. ✅ `src/constants/version.ts` 버전 업데이트
+4. ✅ `/update` 페이지 자동 생성
 
-### 수동 업데이트
-변경 시 반드시 업데이트:
-1. `CHANGELOG.md` - Keep a Changelog 형식 준수
-2. `src/constants/version.ts` - APP_VERSION 업데이트
-3. `/update` 페이지는 자동 생성 (수정 불필요)
-4. `/docs` 폴더 문서 (비즈니스 로직 변경 시)
-5. 커밋 전 빌드 테스트 필수 (`npm run build`)
+### 수동 업데이트 체크리스트 ✋
+
+변경 시 **반드시** 업데이트:
+
+- [ ] `CHANGELOG.md` - [Keep a Changelog](https://keepachangelog.com) 형식
+- [ ] `src/constants/version.ts` - `APP_VERSION` 업데이트
+- [ ] `/docs` 폴더 문서 (비즈니스 로직 변경 시)
+- [ ] 커밋 전 **빌드 테스트 필수** (`npm run build`)
+
+> ⚠️ `/update` 페이지는 자동 생성되므로 직접 수정 금지!

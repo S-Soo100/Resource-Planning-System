@@ -4,6 +4,7 @@ import { getDisplayFileName } from "@/utils/fileUtils";
 import { formatDateForDisplayUTC } from "@/utils/dateUtils";
 import { InventoryRecord } from "@/types/(inventoryRecord)/inventory";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
+import { getRecordPurposeLabel } from "@/constants/recordPurpose";
 
 interface FileInfo {
   fileName: string;
@@ -62,6 +63,14 @@ export default function InventoryRecordDetail({
                   >
                     {record.inboundQuantity !== null ? "입고" : "출고"}
                   </span>
+                </span>
+              </div>
+              <div className="flex justify-between items-start">
+                <span className="text-gray-600 min-w-0 flex-shrink-0">
+                  목적
+                </span>
+                <span className="font-medium ml-4">
+                  {getRecordPurposeLabel(record.recordPurpose)}
                 </span>
               </div>
               <div className="flex justify-between items-start">

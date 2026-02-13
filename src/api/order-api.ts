@@ -378,3 +378,52 @@ export const deleteOrderComment = async (
     return { success: false, message: "댓글 삭제에 실패했습니다." };
   }
 };
+
+// # 주문 가격 수정 (moderator 이상 권한)
+// 출고완료 등 수정 불가능한 상태에서도 가격만 별도로 수정 가능
+export const updateOrderPrice = async (
+  id: string,
+  data: {
+    totalPrice?: number;
+    orderItems?: Array<{
+      itemId: number;
+      sellingPrice: number;
+      vat?: number;
+    }>;
+  }
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.patch<ApiResponse>(`/order/${id}/price`, data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error("[API] 주문 가격 수정 오류:", error);
+
+    if (error instanceof AxiosError) {
+      // 권한 오류 처리 (403 Forbidden)
+      if (error.response?.status === 403) {
+        return {
+          success: false,
+          message: "가격 수정 권한이 없습니다. (중간관리자 이상 필요)",
+        };
+      }
+
+      // 주문을 찾을 수 없는 경우 (404 Not Found)
+      if (error.response?.status === 404) {
+        return {
+          success: false,
+          message: "주문을 찾을 수 없습니다.",
+        };
+      }
+
+      // 서버 응답이 있는 경우
+      if (error.response?.data?.message) {
+        return {
+          success: false,
+          message: error.response.data.message,
+        };
+      }
+    }
+
+    return { success: false, message: "주문 가격 수정에 실패했습니다." };
+  }
+};

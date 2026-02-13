@@ -28,6 +28,7 @@ export type OrderItemWithDetails = {
   stockQuantity?: number;
   memo?: string; // 품목별 개별 메모
   sellingPrice?: string; // 주문 품목 판매가 (입력은 문자열로)
+  vat?: string; // 주문 품목 세금 (입력은 문자열로)
 };
 
 export interface OrderRequestFormProps {

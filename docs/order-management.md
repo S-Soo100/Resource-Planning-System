@@ -25,6 +25,7 @@ src/components/
 │   ├── OrderRecordTabs.tsx       # 발주 기록 탭 (데스크톱)
 │   ├── OrderRecordTabsMobile.tsx # 발주 기록 탭 (모바일)
 │   ├── OrderEditModal.tsx        # 발주 수정 모달
+│   ├── OrderPriceEditModal.tsx   # 가격 전용 수정 모달 (중간관리자 이상)
 │   └── OrderCommentModal.tsx     # 발주 댓글 모달 (예정)
 ├── demonstration/
 │   └── DemonstrationRequestForm.tsx # 시연 요청 폼
@@ -110,6 +111,7 @@ interface Order {
   manager: string;
   status: string;
   memo: string;
+  totalPrice?: number | null; // 주문 총 판매가격
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -121,12 +123,24 @@ interface Order {
   files: OrderFile[];
   comments?: OrderComment[]; // 발주 댓글 목록
 }
+
+interface OrderItem {
+  id: number;
+  orderId: number;
+  itemId: number;
+  quantity: number;
+  memo?: string;
+  sellingPrice?: number | null; // 품목별 판매가
+  vat?: number | null; // 품목별 VAT (부가가치세)
+  item: Item;
+}
 ```
 
 ### OrderRequestFormData
 
 ```typescript
 type OrderRequestFormData = {
+  title: string; // 발주 제목
   supplierId?: number | null;
   packageId?: number | null;
   warehouseId?: number | null;
@@ -139,6 +153,18 @@ type OrderRequestFormData = {
   setupDate: string;
   notes: string;
   manager: string;
+  demoCost?: string; // 시연 비용 (문자열 입력)
+  totalPrice?: string; // 주문 총 판매가격 (문자열 입력)
+};
+
+type OrderItemWithDetails = {
+  teamItem: TeamItem;
+  quantity: number;
+  stockAvailable?: boolean;
+  stockQuantity?: number;
+  memo?: string; // 품목별 개별 메모
+  sellingPrice?: string; // 주문 품목 판매가 (문자열 입력)
+  vat?: string; // 주문 품목 세금 (문자열 입력)
 };
 ```
 
@@ -179,12 +205,27 @@ type OrderRequestFormData = {
 ### OrderEditModal.tsx
 
 - **역할**: 발주 정보 수정 모달
-- **수정 가능**: 수령인 정보, 배송 정보, 품목/수량, 메모
+- **수정 가능**: 수령인 정보, 배송 정보, 품목/수량, 판매가, VAT, 메모
 - **권한**:
   - **Admin**: 모든 발주 수정 가능 (상태 무관)
   - **일반 사용자**: 자신의 requested 상태 발주만 수정 가능
 - **파일 관리**: 기존 파일 삭제/다운로드, 새 파일 업로드
 - **창고 제한**: 기존 발주의 창고 변경 불가 (비즈니스 규칙)
+- **품목 테이블 레이아웃**: 엑셀 스타일 그리드 테이블
+  - 컬럼: 품목명 | 품목코드 | 수량 | 판매가 | VAT | 메모 | 소계 | 작업
+  - 호버 효과, 테두리로 셀 구분 명확화
+  - 인라인 입력 필드로 즉시 수정 가능
+
+### OrderPriceEditModal.tsx
+
+- **역할**: 가격 정보만 별도로 수정하는 모달
+- **권한**: 중간관리자(Moderator) 이상만 접근 가능
+- **수정 가능**: 주문 총 판매가격, 품목별 판매가/VAT
+- **특징**:
+  - **모든 상태에서 수정 가능**: 출고완료 등 일반 수정이 불가능한 상태에서도 가격만 수정 가능
+  - **VAT 자동 계산 버튼**: 판매가의 10%를 자동 계산하는 편의 기능 제공
+  - **독립적 수정**: 총 판매가격과 품목별 가격을 독립적으로 수정 가능
+  - **변경 이력 자동 기록**: 모든 가격 수정 내역은 자동으로 변경이력에 기록됨
 
 ## 🔄 비즈니스 로직
 
@@ -537,6 +578,163 @@ const handleFileDelete = async (fileId: number) => {
 - 파일 추가 시 기존 발주 정보는 변경되지 않음
 - 대용량 파일 업로드 시 네트워크 상태에 따라 시간이 소요될 수 있음
 - 파일 삭제는 즉시 반영되며 복구 불가능
+
+## 💰 가격 정보 관리
+
+### 가격 필드 구조 (v2.0.0)
+
+발주 시스템에 가격 정보 관리 기능이 추가되었습니다.
+
+#### 가격 필드 정의
+
+**Order 레벨:**
+- `totalPrice`: 주문 총 판매가격 (선택 입력)
+  - 타입: `number | null`
+  - 용도: 전체 주문의 최종 판매 금액
+  - 입력: 발주 요청 시 또는 가격 수정 모달에서 입력 가능
+
+**OrderItem 레벨:**
+- `sellingPrice`: 품목별 판매가 (단가)
+  - 타입: `number | null`
+  - 용도: 해당 품목의 단위당 판매 가격
+- `vat`: 품목별 VAT (부가가치세)
+  - 타입: `number | null`
+  - 용도: 해당 품목의 단위당 부가세
+  - **중요**: 자동 계산 없음, 사용자 직접 입력 필수
+  - 이유: 영세율(0%) 품목 등 다양한 세율 적용 가능
+
+#### VAT 처리 정책
+
+**자동 계산 금지:**
+- VAT는 절대 자동으로 10% 계산하지 않음
+- 모든 VAT는 사용자가 직접 입력해야 함
+- 영세율(0%) 품목: VAT를 0으로 입력
+- 일반 과세 품목: 판매가의 10%를 수동 계산하여 입력
+
+**VAT 자동 계산 버튼 (편의 기능):**
+- OrderPriceEditModal에서만 제공
+- 모든 품목의 VAT를 판매가의 10%로 일괄 계산
+- 사용자가 버튼을 명시적으로 클릭해야 실행됨
+- 계산 후에도 개별 품목의 VAT는 수정 가능
+
+#### 소계 계산 로직
+
+```typescript
+// 품목별 소계 = (판매가 + VAT) × 수량
+const sellingPrice = item.sellingPrice ?? 0;
+const vat = item.vat ?? 0;
+const subtotal = (sellingPrice + vat) * item.quantity;
+```
+
+### 가격 입력 방식
+
+#### 1. 발주 요청 시 입력
+
+**OrderRequestForm / WheelchairOrderForm:**
+- 품목 테이블에 판매가, VAT 컬럼 표시
+- 각 품목별로 판매가, VAT 직접 입력
+- 입력 타입: 문자열 (`string`)
+- 제출 시 `parseInt()`로 숫자 변환
+
+```typescript
+// API 제출 데이터
+orderItems: orderItems.map((item) => ({
+  itemId: item.warehouseItemId,
+  quantity: item.quantity,
+  memo: item.memo || "",
+  sellingPrice: item.sellingPrice ? parseInt(item.sellingPrice, 10) : undefined,
+  vat: item.vat ? parseInt(item.vat, 10) : undefined,
+}))
+```
+
+#### 2. 발주 수정 시 입력
+
+**OrderEditModal:**
+- 엑셀 스타일 테이블 레이아웃
+- 품목별 판매가, VAT 인라인 수정
+- 기존 가격 정보가 있으면 초기값으로 표시
+- 수정 권한: Admin (모든 발주) / 일반 사용자 (자신의 requested 발주만)
+
+#### 3. 가격 전용 수정
+
+**OrderPriceEditModal (중간관리자 이상):**
+- 가격 정보만 수정하는 전용 모달
+- 모든 발주 상태에서 수정 가능 (출고완료 포함)
+- 주문 총 판매가격 입력
+- 품목별 판매가, VAT 입력
+- VAT 자동 계산 (10%) 버튼 제공
+- 권한: Moderator 이상
+
+### 가격 수정 권한
+
+#### OrderEditModal (일반 수정)
+- **Admin**: 모든 발주의 가격 수정 가능 (상태 무관)
+- **일반 사용자**: 자신의 requested 상태 발주만 수정 가능
+- **제한 사항**: approved 이상의 상태에서는 일반 사용자 수정 불가
+
+#### OrderPriceEditModal (가격 전용 수정)
+- **Moderator 이상**: 모든 발주의 가격 수정 가능 (상태 무관)
+- **일반 사용자**: 접근 불가 (모달 자체가 표시되지 않음)
+- **장점**: 출고완료 등 일반 수정이 불가능한 상태에서도 가격만 수정 가능
+
+### 가격 정보 표시
+
+#### 발주 상세 페이지
+
+**가격 정보 섹션:**
+- 주문 총 판매가격 표시 (파란색 배경 강조)
+- 품목별 가격 상세 테이블
+  - 품목명, 수량, 판매가, VAT, 소계
+  - 가격 미입력 시 노란색 배경으로 경고 표시
+- 가격 수정 버튼 (중간관리자 이상에게만 표시)
+
+**VAT 표시 로직:**
+```typescript
+const sellingPrice = item.sellingPrice ?? 0;
+const vat = item.vat ?? (sellingPrice > 0 ? Math.round(sellingPrice * 0.1) : 0);
+// 주의: 표시용 폴백 로직일 뿐, 실제 저장은 사용자 입력값만 사용
+```
+
+### API 엔드포인트
+
+#### 가격 수정 전용 API
+
+```typescript
+PATCH /order/:id/price
+
+// 요청 바디
+{
+  totalPrice?: number;
+  orderItems?: Array<{
+    itemId: number;
+    sellingPrice: number;
+    vat?: number;
+  }>;
+}
+
+// 권한: Moderator 이상
+// 상태: 모든 상태에서 수정 가능
+```
+
+### 주의사항
+
+1. **VAT 자동 계산 금지**
+   - 폼 제출 시 자동으로 VAT를 계산하지 않음
+   - 사용자가 직접 입력한 값만 저장
+   - 영세율(0%) 품목 처리 가능
+
+2. **입력 타입 변환**
+   - 폼: 문자열 타입 (`string`)
+   - 저장: 숫자 타입 (`number`)
+   - 빈 값: `undefined`로 처리 (null이나 빈 문자열 금지)
+
+3. **소계 계산**
+   - 소계 = (판매가 + VAT) × 수량
+   - 판매가만 있고 VAT가 없는 경우: vat를 0으로 계산
+
+4. **폴백 표시**
+   - 가격 표시 시 vat가 없으면 판매가의 10%로 표시 (폴백)
+   - 단, 저장은 사용자 입력값만 사용
 
 ## 💰 거래금액 관리 (개발 중)
 

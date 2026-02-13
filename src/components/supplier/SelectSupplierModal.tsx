@@ -9,6 +9,7 @@ interface SelectSupplierModalProps {
   onClose: () => void;
   suppliers: Supplier[];
   onSelect: (supplier: Supplier) => void;
+  onSelectWithAutoFill?: (supplier: Supplier) => void; // 정보 자동 채우기용
   selectedSupplierId?: number | null;
   focusRingColor?: string;
 }
@@ -18,10 +19,12 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
   onClose,
   suppliers,
   onSelect,
+  onSelectWithAutoFill,
   selectedSupplierId,
   focusRingColor = "blue",
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [tempSelectedSupplier, setTempSelectedSupplier] = useState<Supplier | null>(null);
 
   const focusRingClass =
     focusRingColor === "purple"
@@ -52,7 +55,21 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
   if (!isOpen) return null;
 
   const handleSelect = (supplier: Supplier) => {
+    // supplierId만 설정 (수령인 정보는 채우지 않음)
+    setTempSelectedSupplier(supplier);
     onSelect(supplier);
+  };
+
+  const handleAutoFill = () => {
+    // "정보 자동 채우기" 버튼 클릭 시
+    if (tempSelectedSupplier && onSelectWithAutoFill) {
+      onSelectWithAutoFill(tempSelectedSupplier);
+    }
+    onClose();
+  };
+
+  const handleConfirm = () => {
+    // 자동 채우기 없이 그냥 확인
     onClose();
   };
 
@@ -190,13 +207,45 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
         </div>
 
         {/* 푸터 */}
-        <div className="flex justify-end gap-3 p-6 border-t bg-gray-50">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 text-gray-700 bg-white rounded-md border border-gray-300 transition-colors hover:bg-gray-100"
-          >
-            취소
-          </button>
+        <div className="flex justify-between items-center p-6 border-t bg-gray-50">
+          <div>
+            {tempSelectedSupplier && (
+              <p className="text-sm text-gray-600">
+                <span className="font-semibold">{tempSelectedSupplier.supplierName}</span> 선택됨
+              </p>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 text-gray-700 bg-white rounded-md border border-gray-300 transition-colors hover:bg-gray-100"
+            >
+              취소
+            </button>
+            {onSelectWithAutoFill && tempSelectedSupplier && (
+              <button
+                onClick={handleAutoFill}
+                className={`px-6 py-2 text-white rounded-md transition-colors ${
+                  focusRingColor === "purple"
+                    ? "bg-purple-600 hover:bg-purple-700"
+                    : "bg-blue-600 hover:bg-blue-700"
+                }`}
+              >
+                정보 자동 채우기
+              </button>
+            )}
+            <button
+              onClick={handleConfirm}
+              disabled={!tempSelectedSupplier}
+              className={`px-6 py-2 rounded-md transition-colors ${
+                tempSelectedSupplier
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              확인
+            </button>
+          </div>
         </div>
       </div>
     </div>

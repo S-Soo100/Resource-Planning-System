@@ -564,14 +564,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
   // 납품처 추가 성공 핸들러
   const handleAddSupplierSuccess = async () => {
-    // 폼 데이터 저장
-    saveFormDataToLocalStorage();
-
-    // 납품처 목록 새로고침
+    // 납품처 목록 새로고침 (React Query가 자동으로 UI 업데이트)
     await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-
-    // 페이지 새로고침하여 업데이트된 납품처 목록 가져오기
-    window.location.reload();
   };
 
   // 창고 선택 핸들러

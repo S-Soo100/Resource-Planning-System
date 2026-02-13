@@ -43,7 +43,7 @@ export function TransactionStatementModal({
   }, 0);
 
   const vat = orderItems.reduce((sum, item) => {
-    const unitVat = item.vat ?? (item.sellingPrice ? Math.round(item.sellingPrice * 0.1) : 0);
+    const unitVat = item.vat ?? 0; // VAT가 없으면 0원
     return sum + (unitVat * item.quantity);
   }, 0);
 
@@ -222,8 +222,8 @@ export function TransactionStatementModal({
                   </thead>
                   <tbody>
                     {orderItems.map((item, index) => {
-                      // VAT: item.vat가 있으면 우선 사용, 없으면 sellingPrice * 0.1로 계산
-                      const unitVat = item.vat ?? (item.sellingPrice ? Math.round(item.sellingPrice * 0.1) : 0);
+                      // VAT: item.vat가 없으면 0원
+                      const unitVat = item.vat ?? 0;
                       const itemVat = unitVat * item.quantity;
                       const itemTotal = item.sellingPrice
                         ? (item.sellingPrice * item.quantity) + itemVat
@@ -413,8 +413,8 @@ export function TransactionStatementModal({
                   </thead>
                   <tbody>
                     {orderItems.map((item, index) => {
-                      // VAT: item.vat가 있으면 우선 사용, 없으면 sellingPrice * 0.1로 계산
-                      const unitVat = item.vat ?? (item.sellingPrice ? Math.round(item.sellingPrice * 0.1) : 0);
+                      // VAT: item.vat가 없으면 0원
+                      const unitVat = item.vat ?? 0;
                       const itemVat = unitVat * item.quantity;
                       const itemTotal = item.sellingPrice
                         ? (item.sellingPrice * item.quantity) + itemVat

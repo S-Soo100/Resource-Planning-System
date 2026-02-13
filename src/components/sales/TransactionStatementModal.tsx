@@ -37,9 +37,16 @@ export function TransactionStatementModal({
   // 문서번호 생성
   const documentNumber = `KS_${format(new Date(), 'yyyyMMdd')}_${record.id.toString().padStart(4, '0')}`;
 
-  // 총액 계산
-  const supplyAmount = record.totalPrice || 0;
-  const vat = Math.round(supplyAmount * 0.1);
+  // 총액 계산: 각 품목의 실제 VAT를 합산
+  const supplyAmount = orderItems.reduce((sum, item) => {
+    return sum + (item.sellingPrice ? item.sellingPrice * item.quantity : 0);
+  }, 0);
+
+  const vat = orderItems.reduce((sum, item) => {
+    const unitVat = item.vat ?? (item.sellingPrice ? Math.round(item.sellingPrice * 0.1) : 0);
+    return sum + (unitVat * item.quantity);
+  }, 0);
+
   const totalAmount = supplyAmount + vat;
 
   // PDF 다운로드 (인쇄 기능 활용)
@@ -406,7 +413,13 @@ export function TransactionStatementModal({
                   </thead>
                   <tbody>
                     {orderItems.map((item, index) => {
-                      const itemVat = item.sellingPrice ? Math.round(item.quantity * item.sellingPrice * 0.1) : 0;
+                      // VAT: item.vat가 있으면 우선 사용, 없으면 sellingPrice * 0.1로 계산
+                      const unitVat = item.vat ?? (item.sellingPrice ? Math.round(item.sellingPrice * 0.1) : 0);
+                      const itemVat = unitVat * item.quantity;
+                      const itemTotal = item.sellingPrice
+                        ? (item.sellingPrice * item.quantity) + itemVat
+                        : 0;
+
                       return (
                         <tr key={`copy-${item.id}`}>
                           <td className="border border-gray-300 px-1 py-0.5 text-center text-[9px]">{index + 1}</td>
@@ -416,10 +429,10 @@ export function TransactionStatementModal({
                             {item.sellingPrice ? `₩${item.sellingPrice.toLocaleString()}` : '-'}
                           </td>
                           <td className="border border-gray-300 px-1 py-0.5 text-right text-[9px]">
-                            {item.sellingPrice ? `₩${itemVat.toLocaleString()}` : '-'}
+                            {item.sellingPrice ? `₩${unitVat.toLocaleString()}` : '-'}
                           </td>
                           <td className="border border-gray-300 px-1 py-0.5 text-right font-medium text-[9px]">
-                            {item.sellingPrice ? `₩${(item.quantity * item.sellingPrice + itemVat).toLocaleString()}` : '-'}
+                            {item.sellingPrice ? `₩${itemTotal.toLocaleString()}` : '-'}
                           </td>
                         </tr>
                       );

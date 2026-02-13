@@ -43,6 +43,7 @@ import {
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import AddSupplierModal from "../supplier/AddSupplierModal";
+import SelectSupplierModal from "../supplier/SelectSupplierModal";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
@@ -71,6 +72,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const addressSearch = useAddressSearch();
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
+  const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] = useState(false);
   const auth = authStore((state) => state.user);
   const { user } = useCurrentUser();
   const { team: currentTeam } = useCurrentTeam();
@@ -548,6 +550,18 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       receiverPhone: selectedSupplier.supplierPhoneNumber,
       address: selectedSupplier.supplierAddress,
       detailAddress: "", // 상세주소는 비우기
+    });
+  };
+
+  // 모달에서 고객 선택 핸들러
+  const handleSupplierSelect = (supplier: Supplier) => {
+    setFormData({
+      ...formData,
+      supplierId: supplier.id,
+      receiver: supplier.supplierName,
+      receiverPhone: supplier.supplierPhoneNumber,
+      address: supplier.supplierAddress,
+      detailAddress: "",
     });
   };
 
@@ -1336,7 +1350,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             focusRingColor="blue"
           />
 
-          {/* 고객사 선택 */}
+          {/* 고객 선택 */}
           {user?.accessLevel !== "supplier" && (
             <SupplierSection
               suppliers={suppliers}
@@ -1344,6 +1358,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               onChange={handleSupplierChange}
               focusRingColor="blue"
               onAddSupplier={() => setIsAddSupplierModalOpen(true)}
+              onOpenSelectModal={() => setIsSelectSupplierModalOpen(true)}
             />
           )}
 
@@ -1423,11 +1438,21 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           title="품목 추가"
         />
 
-        {/* 납품처 추가 모달 */}
+        {/* 고객 추가 모달 */}
         <AddSupplierModal
           isOpen={isAddSupplierModalOpen}
           onClose={() => setIsAddSupplierModalOpen(false)}
           onSuccess={handleAddSupplierSuccess}
+        />
+
+        {/* 고객 선택 모달 */}
+        <SelectSupplierModal
+          isOpen={isSelectSupplierModalOpen}
+          onClose={() => setIsSelectSupplierModalOpen(false)}
+          suppliers={suppliers || []}
+          onSelect={handleSupplierSelect}
+          selectedSupplierId={formData.supplierId}
+          focusRingColor="blue"
         />
       </div>
     </>

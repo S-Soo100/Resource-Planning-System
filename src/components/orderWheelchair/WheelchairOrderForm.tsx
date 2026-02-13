@@ -35,6 +35,7 @@ import {
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import AddSupplierModal from "../supplier/AddSupplierModal";
+import SelectSupplierModal from "../supplier/SelectSupplierModal";
 
 // 휠체어 전용 창고 ID
 const WHEELCHAIR_WAREHOUSE_ID = 54;
@@ -52,6 +53,7 @@ export default function WheelchairOrderForm() {
   const addressSearch = useAddressSearch();
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
+  const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] = useState(false);
   const auth = authStore((state) => state.user);
 
   // 아이템 관련 상태
@@ -356,6 +358,18 @@ export default function WheelchairOrderForm() {
       receiverPhone: selectedSupplier.supplierPhoneNumber,
       address: selectedSupplier.supplierAddress,
       detailAddress: "", // 상세주소는 비우기
+    });
+  };
+
+  // 모달에서 고객 선택 핸들러
+  const handleSupplierSelect = (supplier: Supplier) => {
+    setFormData({
+      ...formData,
+      supplierId: supplier.id,
+      receiver: supplier.supplierName,
+      receiverPhone: supplier.supplierPhoneNumber,
+      address: supplier.supplierAddress,
+      detailAddress: "",
     });
   };
 
@@ -822,7 +836,7 @@ export default function WheelchairOrderForm() {
           focusRingColor="purple"
         />
 
-        {/* 고객사 선택 */}
+        {/* 고객 선택 */}
         {user?.accessLevel !== "supplier" && (
           <SupplierSection
             suppliers={suppliers}
@@ -830,6 +844,7 @@ export default function WheelchairOrderForm() {
             onChange={handleSupplierChange}
             focusRingColor="purple"
             onAddSupplier={() => setIsAddSupplierModalOpen(true)}
+            onOpenSelectModal={() => setIsSelectSupplierModalOpen(true)}
           />
         )}
 
@@ -906,7 +921,7 @@ export default function WheelchairOrderForm() {
         title="휠체어 품목 추가"
       />
 
-      {/* 납품처 추가 모달 */}
+      {/* 고객 추가 모달 */}
       <AddSupplierModal
         isOpen={isAddSupplierModalOpen}
         onClose={() => setIsAddSupplierModalOpen(false)}
@@ -914,6 +929,16 @@ export default function WheelchairOrderForm() {
           queryClient.invalidateQueries({ queryKey: ["suppliers"] });
           window.location.reload();
         }}
+      />
+
+      {/* 고객 선택 모달 */}
+      <SelectSupplierModal
+        isOpen={isSelectSupplierModalOpen}
+        onClose={() => setIsSelectSupplierModalOpen(false)}
+        suppliers={suppliers || []}
+        onSelect={handleSupplierSelect}
+        selectedSupplierId={formData.supplierId}
+        focusRingColor="purple"
       />
 
       {/* 하단 여백 */}

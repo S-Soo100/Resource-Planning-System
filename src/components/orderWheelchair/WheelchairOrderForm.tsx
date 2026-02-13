@@ -336,34 +336,53 @@ export default function WheelchairOrderForm() {
 
   const handleSupplierChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const supplierId = parseInt(e.target.value);
-    if (supplierId === 0) {
-      setFormData({
-        ...formData,
-        supplierId: null,
-        receiver: "",
-        receiverPhone: "",
-        address: "",
-      });
+
+    // 빈 값 선택 무시
+    if (!supplierId || isNaN(supplierId)) {
       return;
     }
 
     const selectedSupplier = suppliers?.find(
       (supplier: Supplier) => supplier.id === supplierId
     );
-    if (selectedSupplier) {
-      setFormData({
-        ...formData,
-        supplierId,
-        receiver: selectedSupplier.supplierName,
-        receiverPhone: selectedSupplier.supplierPhoneNumber,
-        address: selectedSupplier.supplierAddress,
-      });
+
+    if (!selectedSupplier) return;
+
+    // 이미 수령인 정보가 입력되어 있으면 덮어쓸지 확인
+    const hasReceiverData =
+      formData.receiver || formData.receiverPhone || formData.address;
+
+    if (hasReceiverData) {
+      const shouldOverwrite = window.confirm(
+        "거래처 정보로 수령인 정보를 채우시겠습니까?\n(기존 입력 내용이 초기화됩니다)"
+      );
+
+      if (!shouldOverwrite) {
+        // supplierId만 업데이트
+        setFormData({ ...formData, supplierId });
+        return;
+      }
     }
+
+    // Supplier 정보로 수령인 필드 채우기
+    setFormData({
+      ...formData,
+      supplierId,
+      receiver: selectedSupplier.supplierName,
+      receiverPhone: selectedSupplier.supplierPhoneNumber,
+      address: selectedSupplier.supplierAddress,
+      detailAddress: "", // 상세주소는 비우기
+    });
   };
 
   const validateForm = (): boolean => {
     if (!formData.title.trim()) {
       toast.error("제목을 입력해주세요");
+      return false;
+    }
+    // Supplier 계정이 아닌 경우에만 거래처 선택 필수
+    if (user?.accessLevel !== "supplier" && !formData.supplierId) {
+      toast.error("거래처를 선택해주세요");
       return false;
     }
     if (orderItems.length === 0) {
@@ -427,7 +446,7 @@ export default function WheelchairOrderForm() {
         userId: auth?.id ?? 0,
         title: formData.title, // 제목 필드 추가
         manager: formData.manager,
-        supplierId: formData.supplierId ?? null,
+        supplierId: formData.supplierId ?? 0, // Supplier 계정은 0으로 전송 (백엔드에서 처리)
         packageId: formData.packageId ?? null,
         warehouseId: formData.warehouseId ?? 0,
         requester: formData.requester,
@@ -823,6 +842,7 @@ export default function WheelchairOrderForm() {
         {user?.accessLevel !== "supplier" && (
           <SupplierSection
             suppliers={suppliers}
+            selectedSupplierId={formData.supplierId}
             onChange={handleSupplierChange}
             focusRingColor="purple"
             onAddSupplier={() => setIsAddSupplierModalOpen(true)}
@@ -833,6 +853,7 @@ export default function WheelchairOrderForm() {
         <RecipientInfoSection
           receiver={formData.receiver}
           receiverPhone={formData.receiverPhone}
+          supplierId={formData.supplierId}
           onChange={handleChange}
           focusRingColor="purple"
         />
@@ -841,6 +862,7 @@ export default function WheelchairOrderForm() {
         <AddressSection
           address={formData.address}
           detailAddress={formData.detailAddress}
+          supplierId={formData.supplierId}
           isAddressOpen={addressSearch.isAddressOpen}
           onChange={handleChange}
           onAddressChange={(data) =>

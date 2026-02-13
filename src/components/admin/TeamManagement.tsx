@@ -24,7 +24,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState<UpdateTeamRequest>({
-    name: "",
+    teamName: "",
     description: "",
     companyName: "",
     businessRegistrationNumber: "",
@@ -38,7 +38,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
   useEffect(() => {
     if (selectedTeam) {
       setFormData({
-        name: selectedTeam.teamName || "",
+        teamName: selectedTeam.teamName || "",
         description: selectedTeam.description || "",
         companyName: selectedTeam.companyName || "",
         businessRegistrationNumber: selectedTeam.businessRegistrationNumber || "",
@@ -67,7 +67,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
     try {
       // undefined 필드 제거 (빈 문자열은 undefined로 변환)
       const submitData: UpdateTeamRequest = {};
-      if (formData.name?.trim()) submitData.name = formData.name.trim();
+      if (formData.teamName?.trim()) submitData.teamName = formData.teamName.trim();
       if (formData.description?.trim()) submitData.description = formData.description.trim();
       if (formData.companyName?.trim()) submitData.companyName = formData.companyName.trim();
       if (formData.businessRegistrationNumber?.trim())
@@ -106,7 +106,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
     // 원래 데이터로 되돌리기
     if (selectedTeam) {
       setFormData({
-        name: selectedTeam.teamName || "",
+        teamName: selectedTeam.teamName || "",
         description: selectedTeam.description || "",
         companyName: selectedTeam.companyName || "",
         businessRegistrationNumber: selectedTeam.businessRegistrationNumber || "",
@@ -175,8 +175,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
               {isEditing ? (
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name || ""}
+                  name="teamName"
+                  value={formData.teamName || ""}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="팀 이름을 입력하세요"

@@ -39,7 +39,7 @@ export interface CreateTeamRequest {
 }
 
 export interface UpdateTeamRequest {
-  name?: string;
+  teamName?: string;
   description?: string;
   // 회사 정보 필드 (v2.2)
   companyName?: string;

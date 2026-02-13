@@ -667,9 +667,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       toast.error("제목을 입력해주세요");
       return false;
     }
-    // Supplier 계정이 아닌 경우에만 고객사 선택 필수
+    // Supplier 계정이 아닌 경우에만 고객 선택 필수
     if (user?.accessLevel !== "supplier" && !formData.supplierId) {
-      toast.error("고객사를 선택해주세요");
+      toast.error("고객을 선택해주세요");
       return false;
     }
     if (orderItems.length === 0) {
@@ -1378,10 +1378,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             <div className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300">
               <div className="text-center">
                 <p className="text-lg font-medium text-gray-600 mb-2">
-                  👆 먼저 고객사를 선택해주세요
+                  👆 먼저 고객을 선택해주세요
                 </p>
                 <p className="text-sm text-gray-500">
-                  고객사를 선택하면 수령인 정보 입력 폼이 표시됩니다
+                  고객을 선택하면 수령인 정보 입력 폼이 표시됩니다
                 </p>
               </div>
             </div>

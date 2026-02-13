@@ -864,10 +864,10 @@ export default function WheelchairOrderForm() {
           <div className="p-8 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border-2 border-dashed border-purple-300">
             <div className="text-center">
               <p className="text-lg font-medium text-purple-700 mb-2">
-                👆 먼저 고객사를 선택해주세요
+                👆 먼저 고객을 선택해주세요
               </p>
               <p className="text-sm text-purple-600">
-                고객사를 선택하면 수령인 정보 입력 폼이 표시됩니다
+                고객을 선택하면 수령인 정보 입력 폼이 표시됩니다
               </p>
             </div>
           </div>

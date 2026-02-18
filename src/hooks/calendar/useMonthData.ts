@@ -62,7 +62,7 @@ export function useMonthData(monthInfo: MonthInfo) {
 
   if (Array.isArray(demosResponse?.data)) {
     demosResponse.data
-      .filter((demo) => demo.demoStartDate) // 날짜가 있는 것만 필터링
+      .filter((demo) => demo.demoStartDate && !demo.isLongTerm) // 날짜가 있는 것만, 장기시연 제외
       .forEach((demo) => {
         const isMultipleDays = isDemoMultipleDays(demo.demoStartDate, demo.demoEndDate);
 

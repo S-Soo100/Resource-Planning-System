@@ -60,7 +60,7 @@ export function useCalendarData(weekInfo: WeekInfo) {
   // 시연 데이터를 캘린더 이벤트로 변환 - 시작일부터 종료일까지 각 날짜에 이벤트 생성
   const demoEvents: CalendarEvent[] = Array.isArray(demosResponse?.data)
     ? demosResponse.data
-        .filter((demo) => demo.demoStartDate && demo.demoEndDate) // 시작일과 종료일이 있는 것만 필터링
+        .filter((demo) => demo.demoStartDate && demo.demoEndDate && !demo.isLongTerm) // 시작일과 종료일이 있는 것만, 장기시연 제외
         .flatMap((demo) => {
           // 시연이 진행되는 모든 날짜 가져오기
           const spanDates = getDemoSpanDates(demo.demoStartDate, demo.demoEndDate);

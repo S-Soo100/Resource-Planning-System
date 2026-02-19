@@ -125,9 +125,13 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
     setIsEditing(false);
   };
 
+  const fieldClass = isEditing
+    ? "w-full px-4 py-2 border border-Outline-Variant rounded-md focus:ring-2 focus:ring-Primary-Main/20 focus:border-Primary-Main outline-none text-Text-Highest-100 bg-white"
+    : "px-4 py-2 bg-Back-Low-10 rounded-md text-Text-Highest-100";
+
   if (isLoading) {
     return (
-      <div className="bg-white p-5 rounded-lg shadow-sm">
+      <div className="bg-white rounded-2xl shadow-sm p-6">
         <div className="flex justify-center items-center py-8">
           <LoadingCentered />
         </div>
@@ -137,8 +141,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
 
   if (error) {
     return (
-      <div className="bg-white p-5 rounded-lg shadow-sm">
-        <div className="text-center text-red-500 py-8">
+      <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="text-center text-Error-Main py-8">
           팀 정보를 불러오는데 실패했습니다.
         </div>
       </div>
@@ -146,36 +150,34 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
   }
 
   return (
-    <div className="bg-white p-5 rounded-lg shadow-sm">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">팀 정보 관리</h2>
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      {/* 헤더 */}
+      <div className="flex justify-between items-center px-6 py-4 border-b border-Outline-Variant">
+        <div>
+          <h2 className="text-lg font-semibold text-Text-Highest-100">팀 정보 관리</h2>
+          <p className="text-sm text-Text-Low-70 mt-0.5">팀의 회사 정보를 관리할 수 있습니다.</p>
+        </div>
         <div className="flex gap-2 items-center">
           {isReadOnly && (
-            <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
-              읽기 전용 모드
-            </div>
+            <span className="px-3 py-1 text-xs font-medium text-Primary-Main bg-Primary-Container rounded-full">
+              읽기 전용
+            </span>
           )}
           {!isReadOnly && !isEditing && (
-            <Button onClick={() => setIsEditing(true)} color="primary">
+            <Button onClick={() => setIsEditing(true)} variant="primary">
               정보 수정
             </Button>
           )}
         </div>
       </div>
 
-      <div className="border-b pb-4 mb-6">
-        <p className="text-gray-600">
-          팀의 회사 정보를 관리할 수 있습니다.
-        </p>
-      </div>
-
-      <div className="space-y-6">
+      <div className="p-6 space-y-6">
         {/* 기본 정보 섹션 */}
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">기본 정보</h3>
+          <h3 className="text-sm font-semibold text-Text-Low-70 uppercase tracking-wider mb-4">기본 정보</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-Text-Highest-100 mb-1">
                 팀 이름
               </label>
               {isEditing ? (
@@ -184,24 +186,22 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                   name="teamName"
                   value={formData.teamName || ""}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className={fieldClass}
                   placeholder="팀 이름을 입력하세요"
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                  {selectedTeam?.teamName || "-"}
-                </div>
+                <div className={fieldClass}>{selectedTeam?.teamName || "-"}</div>
               )}
             </div>
           </div>
         </div>
 
         {/* 회사 정보 섹션 */}
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">회사 정보</h3>
+        <div className="border-t border-Outline-Variant pt-6">
+          <h3 className="text-sm font-semibold text-Text-Low-70 uppercase tracking-wider mb-4">회사 정보</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-Text-Highest-100 mb-1">
                 회사명
               </label>
               {isEditing ? (
@@ -210,18 +210,16 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                   name="companyName"
                   value={formData.companyName || ""}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className={fieldClass}
                   placeholder="회사명을 입력하세요"
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                  {selectedTeam?.companyName || "-"}
-                </div>
+                <div className={fieldClass}>{selectedTeam?.companyName || "-"}</div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-Text-Highest-100 mb-1">
                 대표자 이름
               </label>
               {isEditing ? (
@@ -230,18 +228,16 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                   name="representativeName"
                   value={formData.representativeName || ""}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className={fieldClass}
                   placeholder="대표자 이름을 입력하세요"
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                  {selectedTeam?.representativeName || "-"}
-                </div>
+                <div className={fieldClass}>{selectedTeam?.representativeName || "-"}</div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-Text-Highest-100 mb-1">
                 사업자등록번호
               </label>
               {isEditing ? (
@@ -250,18 +246,16 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                   name="businessRegistrationNumber"
                   value={formData.businessRegistrationNumber || ""}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className={fieldClass}
                   placeholder="000-00-00000"
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                  {selectedTeam?.businessRegistrationNumber || "-"}
-                </div>
+                <div className={fieldClass}>{selectedTeam?.businessRegistrationNumber || "-"}</div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-Text-Highest-100 mb-1">
                 이메일
               </label>
               {isEditing ? (
@@ -270,18 +264,16 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                   name="email"
                   value={formData.email || ""}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className={fieldClass}
                   placeholder="company@example.com"
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                  {selectedTeam?.email || "-"}
-                </div>
+                <div className={fieldClass}>{selectedTeam?.email || "-"}</div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-Text-Highest-100 mb-1">
                 대표 전화번호
               </label>
               {isEditing ? (
@@ -290,18 +282,16 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                   name="phoneNumber"
                   value={formData.phoneNumber || ""}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className={fieldClass}
                   placeholder="02-0000-0000"
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                  {selectedTeam?.phoneNumber || "-"}
-                </div>
+                <div className={fieldClass}>{selectedTeam?.phoneNumber || "-"}</div>
               )}
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-Text-Highest-100 mb-1">
                 사업장 주소
               </label>
               {isEditing ? (
@@ -311,22 +301,20 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                     name="businessAddress"
                     value={formData.businessAddress || ""}
                     onChange={handleInputChange}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className={`flex-1 px-4 py-2 border border-Outline-Variant rounded-md focus:ring-2 focus:ring-Primary-Main/20 focus:border-Primary-Main outline-none text-Text-Highest-100 bg-white`}
                     placeholder="사업장 주소를 입력하세요"
                   />
                   <button
                     type="button"
                     onClick={() => setIsAddressOpen(true)}
-                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2"
+                    className="px-4 py-2 bg-Primary-Main hover:bg-Primary-Main/90 text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-Primary-Main/20 flex items-center gap-2"
                   >
                     <Search className="w-4 h-4" />
                     <span className="hidden sm:inline">주소 검색</span>
                   </button>
                 </div>
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
-                  {selectedTeam?.businessAddress || "-"}
-                </div>
+                <div className={fieldClass}>{selectedTeam?.businessAddress || "-"}</div>
               )}
             </div>
           </div>
@@ -334,7 +322,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
 
         {/* 버튼 영역 */}
         {isEditing && !isReadOnly && (
-          <div className="flex justify-end gap-3 pt-6 border-t">
+          <div className="flex justify-end gap-3 pt-6 border-t border-Outline-Variant">
             <Button onClick={handleCancel} variant="default" disabled={isSaving}>
               취소
             </Button>

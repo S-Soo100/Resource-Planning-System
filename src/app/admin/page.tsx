@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FaUsers, FaWarehouse, FaBuilding } from "react-icons/fa";
 import WarehouseManagement from "@/components/admin/WarehouseManagement";
 import TeamManagement from "@/components/admin/TeamManagement";
-import { MenuCard, Button } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { ArrowLeft } from "lucide-react";
@@ -114,31 +114,25 @@ function AdminContent() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <MenuCard
-            title="팀 멤버 관리"
-            icon={<FaUsers />}
-            id="team-members"
-            description="팀원 초대 및 권한 관리"
-            isActive={activeTab === "team-members"}
-            onClick={setActiveTab}
-          />
-          <MenuCard
-            title="창고 관리"
-            icon={<FaWarehouse />}
-            id="warehouse"
-            description="창고 정보 및 위치 관리"
-            isActive={activeTab === "warehouse"}
-            onClick={setActiveTab}
-          />
-          <MenuCard
-            title="팀 관리"
-            icon={<FaBuilding />}
-            id="team"
-            description="팀 설정 관리"
-            isActive={activeTab === "team"}
-            onClick={setActiveTab}
-          />
+        <div className="flex p-1.5 bg-Back-Mid-20 rounded-2xl shadow-inner">
+          {[
+            { id: "team-members", title: "팀 멤버 관리", icon: <FaUsers /> },
+            { id: "warehouse", title: "창고 관리", icon: <FaWarehouse /> },
+            { id: "team", title: "팀 관리", icon: <FaBuilding /> },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
+                activeTab === tab.id
+                  ? "bg-white text-Primary-Main shadow-md"
+                  : "text-Text-Low-70 hover:bg-white/50 hover:text-Text-High-90"
+              }`}
+            >
+              {tab.icon}
+              {tab.title}
+            </button>
+          ))}
         </div>
 
         <div className="mt-6">

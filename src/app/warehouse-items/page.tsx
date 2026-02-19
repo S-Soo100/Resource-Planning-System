@@ -53,15 +53,15 @@ export default function ItemsPage() {
   const isReadOnly = user.accessLevel === "moderator";
 
   return (
-    <div className="p-4">
+    <div className="p-4 min-h-screen bg-Back-Low-10">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">창고별 품목 관리</h1>
-            <p className="text-sm text-gray-500">창고 ID: {user.restrictedWhs}</p>
+            <h1 className="text-2xl font-bold text-Text-Highest-100">창고별 품목 관리</h1>
+            <p className="text-sm text-Text-Low-70">창고 ID: {user.restrictedWhs}</p>
           </div>
           {isReadOnly && (
-            <div className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+            <div className="px-4 py-2 bg-Primary-Container text-Primary-Main rounded-full text-sm">
               1차 승인권자 권한으로는 조회만 가능합니다
             </div>
           )}

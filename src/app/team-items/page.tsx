@@ -258,23 +258,23 @@ export default function TeamItemsPage() {
       <div className="p-4">
         <div className="mx-auto max-w-7xl animate-pulse">
           {/* 헤더 스켈레톤 */}
-          <div className="mb-6 w-1/3 h-8 bg-purple-200 rounded"></div>
+          <div className="mb-6 w-1/3 h-8 bg-Back-Mid-20 rounded-full"></div>
 
           {/* 카테고리 그리드 스켈레톤 */}
           <div className="mb-8">
-            <div className="mb-4 w-32 h-6 bg-purple-200 rounded"></div>
+            <div className="mb-4 w-32 h-6 bg-Back-Mid-20 rounded-full"></div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="p-4 h-24 bg-purple-100 rounded-lg"></div>
+                <div key={i} className="p-4 h-24 bg-white rounded-xl shadow-sm"></div>
               ))}
             </div>
           </div>
 
           {/* 아이템 목록 스켈레톤 */}
           <div>
-            <div className="mb-4 w-32 h-6 bg-purple-200 rounded"></div>
-            <div className="p-4 mb-4 h-16 bg-purple-100 rounded-lg"></div>
-            <div className="h-64 bg-purple-50 rounded-lg"></div>
+            <div className="mb-4 w-32 h-6 bg-Back-Mid-20 rounded-full"></div>
+            <div className="p-4 mb-4 h-16 bg-white rounded-xl shadow-sm"></div>
+            <div className="h-64 bg-white rounded-xl shadow-sm"></div>
           </div>
         </div>
       </div>
@@ -350,14 +350,14 @@ export default function TeamItemsPage() {
   }
 
   return (
-    <div className="p-4">
+    <div className="p-4 min-h-screen bg-Back-Low-10">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-bold text-gray-800">
+          <h1 className="text-2xl font-bold text-Text-Highest-100">
             팀 카테고리, 품목 관리
           </h1>
           {isReadOnly && (
-            <div className="px-4 py-2 text-sm text-yellow-700 bg-yellow-50 rounded-md">
+            <div className="px-4 py-2 text-sm text-Primary-Main bg-Primary-Container rounded-full">
               1차 승인권자 권한으로는 조회만 가능합니다
             </div>
           )}
@@ -405,10 +405,10 @@ export default function TeamItemsPage() {
                     <div
                       key={category.id}
                       onClick={() => handleCategoryCardClick(category.id)}
-                      className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${
+                      className={`relative p-4 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${
                         isSelected
-                          ? "border-purple-500 bg-purple-50 shadow-md"
-                          : "border-purple-200 bg-white hover:border-purple-300"
+                          ? "bg-Primary-Container shadow-md ring-2 ring-Primary-Main/40"
+                          : "bg-white shadow-sm hover:shadow-md"
                       }`}
                     >
                       <div className="flex justify-between items-start mb-2">
@@ -422,7 +422,7 @@ export default function TeamItemsPage() {
                                 e.stopPropagation();
                                 handleEditCategoryModal(category);
                               }}
-                              className="p-1 text-gray-400 transition-colors rounded hover:text-purple-600 hover:bg-purple-100"
+                              className="p-1 text-Text-Low-70 transition-colors rounded-full hover:text-Primary-Main hover:bg-Primary-Container"
                               title="카테고리 수정"
                             >
                               <Edit className="w-4 h-4" />
@@ -432,7 +432,7 @@ export default function TeamItemsPage() {
                                 e.stopPropagation();
                                 handleDeleteCategory(category.id);
                               }}
-                              className="p-1 text-gray-400 transition-colors rounded hover:text-red-600 hover:bg-red-100"
+                              className="p-1 text-Text-Low-70 transition-colors rounded-full hover:text-Error-Main hover:bg-Error-Container"
                               title="카테고리 삭제"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -447,8 +447,8 @@ export default function TeamItemsPage() {
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${
                             isSelected
-                              ? "bg-purple-200 text-purple-800"
-                              : "bg-purple-100 text-purple-600"
+                              ? "bg-Primary-Main text-white"
+                              : "bg-Primary-Container text-Primary-Main"
                           }`}
                         >
                           {itemCount}개 품목
@@ -481,9 +481,9 @@ export default function TeamItemsPage() {
             )}
           </>
         ) : (
-          <div className="p-8 text-center bg-purple-50 rounded-lg border-2 border-purple-200 shadow-sm">
-            <Package className="mx-auto mb-4 w-12 h-12 text-purple-400" />
-            <p className="text-gray-500">등록된 팀 카테고리가 없습니다.</p>
+          <div className="p-8 text-center bg-Primary-Container/40 rounded-xl shadow-sm">
+            <Package className="mx-auto mb-4 w-12 h-12 text-Primary-Main" />
+            <p className="text-Text-Low-70">등록된 팀 카테고리가 없습니다.</p>
           </div>
         )}
       </div>
@@ -510,7 +510,7 @@ export default function TeamItemsPage() {
 
       {/* 검색 및 필터 바 */}
       {teamItems.length > 0 && (
-        <div className="p-4 mb-4 space-y-4 bg-purple-50 rounded-lg border border-purple-200">
+        <div className="p-4 mb-4 space-y-4 bg-white rounded-xl shadow-sm">
           {/* 검색 Input */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="flex-1">
@@ -519,7 +519,7 @@ export default function TeamItemsPage() {
                 value={searchQuery}
                 onChange={handleSearchChange}
                 placeholder="품목 코드, 품목명, 메모로 검색..."
-                className="w-full px-4 py-2 text-sm border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 text-sm border border-Outline-Variant rounded-full focus:outline-none focus:ring-2 focus:ring-Primary-Main/20 focus:border-Primary-Main"
               />
             </div>
             <div className="flex gap-2 items-center">
@@ -549,7 +549,7 @@ export default function TeamItemsPage() {
                   setSelectedCategoryId(null);
                   setCurrentPage(1);
                 }}
-                className="px-3 py-1 text-sm font-medium text-purple-700 bg-purple-200 rounded-full transition-colors hover:bg-purple-300"
+                className="px-3 py-1 text-sm font-medium text-Primary-Main bg-Primary-Container rounded-full transition-colors hover:brightness-95"
               >
                 {selectedCategoryId === "none"
                   ? "카테고리 없음"
@@ -709,10 +709,10 @@ export default function TeamItemsPage() {
                         <button
                           key={page}
                           onClick={() => handlePageChange(page)}
-                          className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                          className={`px-3 py-1 text-sm font-medium rounded-full transition-colors ${
                             currentPage === page
-                              ? "bg-purple-600 text-white"
-                              : "bg-white text-gray-700 border border-gray-300 hover:bg-purple-50"
+                              ? "bg-Primary-Main text-white"
+                              : "bg-white text-Text-Low-70 border border-Outline-Variant hover:bg-Primary-Container"
                           }`}
                         >
                           {page}
@@ -745,8 +745,8 @@ export default function TeamItemsPage() {
 
           {/* 필터링된 결과가 없을 때 */}
           {filteredTeamItems.length === 0 && (selectedCategoryId || searchQuery) && (
-            <div className="p-8 text-center bg-purple-50 rounded-lg border-2 border-purple-200 shadow-sm">
-              <Package className="mx-auto mb-4 w-12 h-12 text-purple-400" />
+            <div className="p-8 text-center bg-Primary-Container/40 rounded-xl shadow-sm">
+              <Package className="mx-auto mb-4 w-12 h-12 text-Primary-Main" />
               <p className="mb-2 text-gray-500">
                 {searchQuery
                   ? `'${searchQuery}'에 대한 검색 결과가 없습니다.`
@@ -766,8 +766,8 @@ export default function TeamItemsPage() {
           )}
         </>
       ) : (
-        <div className="p-12 text-center bg-purple-50 rounded-lg border-2 border-purple-200 shadow-sm">
-          <Package className="mx-auto mb-4 w-16 h-16 text-purple-400" />
+        <div className="p-12 text-center bg-Primary-Container/40 rounded-xl shadow-sm">
+          <Package className="mx-auto mb-4 w-16 h-16 text-Primary-Main" />
           <p className="mb-2 text-gray-500">등록된 팀 아이템이 없습니다.</p>
           <p className="mb-6 text-sm text-gray-400">
             아이템을 추가하여 팀의 품목을 관리해보세요.

@@ -98,17 +98,17 @@ function AdminContent() {
   };
 
   return (
-    <div className="flex flex-col p-6 min-h-full">
+    <div className="flex flex-col p-6 min-h-full bg-Back-Low-10">
       <div className="mx-auto max-w-7xl w-full space-y-6">
-        <div className="p-6 bg-white rounded-lg border-2 border-purple-200 shadow-md">
-          <h1 className="mb-2 text-2xl font-bold text-gray-800">관리자 대시보드</h1>
-          <p className="text-gray-600">
+        <div className="p-6 bg-white rounded-2xl shadow-sm">
+          <h1 className="mb-2 text-2xl font-bold text-Text-Highest-100">관리자 대시보드</h1>
+          <p className="text-Text-Low-70">
             환영합니다,{" "}
             {user.accessLevel === "admin" ? "관리자" : "1차 승인권자"}{" "}
             {zustandAuth?.name} 님
           </p>
           {isReadOnly && (
-            <div className="p-3 mt-3 text-sm text-yellow-700 bg-yellow-50 rounded-md border border-yellow-200">
+            <div className="p-3 mt-3 text-sm text-Primary-Main bg-Primary-Container rounded-xl">
               1차 승인권자 권한으로는 조회만 가능하며, 수정은 불가능합니다.
             </div>
           )}

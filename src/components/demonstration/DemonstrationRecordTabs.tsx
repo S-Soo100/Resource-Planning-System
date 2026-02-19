@@ -678,7 +678,7 @@ const DemonstrationRecordTabs = () => {
             placeholder="제목, 요청자, 담당자, 전화번호, 주소, 품목명 등으로 검색..."
             value={searchTerm}
             onChange={handleSearch}
-            className="py-2 pr-4 pl-11 w-full text-base bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            className="py-2 pr-4 pl-11 w-full text-base bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-Primary-Main"
           />
         </div>
         <div className="flex items-center space-x-2">
@@ -686,7 +686,7 @@ const DemonstrationRecordTabs = () => {
           <select
             value={statusFilter}
             onChange={handleStatusFilterChange}
-            className="px-4 py-2 text-base bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+            className="px-4 py-2 text-base bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-400 focus:border-Primary-Main"
           >
             <option value="">모든 상태</option>
             <option value="requested">요청</option>

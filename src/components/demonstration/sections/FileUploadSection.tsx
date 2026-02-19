@@ -37,7 +37,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
         <button
           type="button"
           onClick={handleFileSelection}
-          className="flex gap-2 items-center px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50"
+          className="flex gap-2 items-center px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-50"
         >
           <Paperclip className="w-4 h-4" />
           파일 선택

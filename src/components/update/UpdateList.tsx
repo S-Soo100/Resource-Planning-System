@@ -39,7 +39,7 @@ export default function UpdateList({
         <div className="flex justify-center pt-4">
           <button
             onClick={handleLoadMore}
-            className="px-6 py-3 text-sm font-medium text-blue-600 bg-white border border-blue-200 rounded-lg transition-colors hover:bg-blue-50 hover:border-blue-300"
+            className="px-6 py-3 text-sm font-medium text-blue-600 bg-white border border-blue-200 rounded-full transition-colors hover:bg-blue-50 hover:border-blue-300"
           >
             이전 업데이트 {remainingCount}개 더 보기
           </button>

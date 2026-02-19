@@ -248,7 +248,7 @@ export default function StockTableDesktop({
             <td className="px-6 py-4 text-right">
               {showEditButton ? (
                 <button
-                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   onClick={(e) => {
                     e.stopPropagation();
                     onEditQuantity(item);

@@ -32,10 +32,10 @@ export const Loading: React.FC<LoadingProps> = ({
     lg: 'w-3 h-3',
   };
 
-  // 색상 테마
+  // 색상 테마 — 디자인 토큰 사용
   const variantStyles = {
-    primary: 'bg-blue-500',
-    purple: 'bg-purple-500',
+    primary: 'bg-Primary-Main',
+    purple: 'bg-Primary-Main',
   };
 
   return (

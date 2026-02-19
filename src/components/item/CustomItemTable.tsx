@@ -467,14 +467,14 @@ export default function CustomItemTable({
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="px-4 py-2 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors font-medium"
                 >
                   취소
                 </button>
                 <button
                   onClick={handleFormSubmit}
                   disabled={formValues.teamItemId === 0}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-full font-medium transition-colors ${
                     formValues.teamItemId === 0
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : "bg-purple-600 hover:bg-purple-700 text-white"

@@ -257,52 +257,26 @@ const MainMenu = () => {
       id: "stock",
       title: "재고 관리",
       items: stockMenuItems,
-      bgColor: "bg-blue-50",
-      textColor: "text-blue-800",
-      borderColor: "border-blue-500",
-      iconBg: "bg-blue-600",
-      hoverBg: "hover:bg-blue-50",
-      hoverBorder: "hover:border-blue-200",
     },
     {
       id: "order",
       title: "발주 & 시연",
       items: orderMenuItems,
-      bgColor: "bg-green-50",
-      textColor: "text-green-800",
-      borderColor: "border-green-500",
-      iconBg: "bg-green-600",
-      hoverBg: "hover:bg-green-50",
-      hoverBorder: "hover:border-green-200",
     },
   ];
 
   // 관리자 또는 1차 승인권자인 경우 판매&구매, 관리 탭 추가
   if (user?.accessLevel === "admin" || user?.accessLevel === "moderator") {
-    // 판매&구매 탭
     tabs.push({
       id: "analytics",
       title: "판매 & 구매",
       items: analyticsMenuItems,
-      bgColor: "bg-orange-50",
-      textColor: "text-orange-800",
-      borderColor: "border-orange-500",
-      iconBg: "bg-orange-600",
-      hoverBg: "hover:bg-orange-50",
-      hoverBorder: "hover:border-orange-200",
     });
 
-    // 관리 탭
     tabs.push({
       id: "admin",
       title: "관리",
       items: adminMenuItems,
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-800",
-      borderColor: "border-purple-500",
-      iconBg: "bg-purple-600",
-      hoverBg: "hover:bg-purple-50",
-      hoverBorder: "hover:border-purple-200",
     });
   }
 
@@ -340,7 +314,7 @@ const MainMenu = () => {
   const currentTab = tabs.find((tab) => tab.id === activeTab) || tabs[0];
 
   return (
-    <div className="p-6">
+    <div className="p-6 min-h-screen bg-Back-Low-10">
       {/* 헤더 애니메이션 */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -359,7 +333,7 @@ const MainMenu = () => {
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <FaUser className="mr-3 text-2xl md:text-3xl lg:text-4xl text-blue-600" />
+              <FaUser className="mr-3 text-2xl md:text-3xl lg:text-4xl text-Primary-Main" />
             </motion.div>
             {user.name}님, 환영합니다!
           </motion.h1>
@@ -367,26 +341,26 @@ const MainMenu = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex gap-3 items-center"
+            className="flex gap-2 items-center"
           >
             {user.accessLevel !== "supplier" && (
               <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.04, y: -1 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => router.push("/calendar")}
-                className="flex gap-2 items-center px-4 md:px-5 py-2 md:py-3 text-base md:text-lg font-medium text-green-600 bg-green-50 rounded-lg transition-colors duration-200 hover:bg-green-100 shadow-sm hover:shadow-md"
+                className="flex gap-1.5 items-center px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base font-medium text-Primary-Main rounded-full transition-all duration-200 hover:bg-Primary-Container/60"
               >
-                <FaCalendarAlt className="text-lg md:text-xl" />
+                <FaCalendarAlt className="text-base md:text-lg" />
                 캘린더
               </motion.button>
             )}
             <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.04, y: -1 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => router.push("/how-to-use")}
-              className="flex gap-2 items-center px-4 md:px-5 py-2 md:py-3 text-base md:text-lg font-medium text-blue-600 bg-blue-50 rounded-lg transition-colors duration-200 hover:bg-blue-100 shadow-sm hover:shadow-md"
+              className="flex gap-1.5 items-center px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base font-medium text-Text-Low-70 rounded-full transition-all duration-200 hover:text-Text-High-90 hover:bg-Back-Mid-20"
             >
-              <FaQuestionCircle className="text-lg md:text-xl" />
+              <FaQuestionCircle className="text-base md:text-lg" />
               사용법 안내
             </motion.button>
           </motion.div>
@@ -401,12 +375,12 @@ const MainMenu = () => {
         </motion.p>
       </motion.div>
 
-      {/* 탭 네비게이션 애니메이션 */}
+      {/* 탭 네비게이션 — MD3 Segment Control */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="flex p-1 mb-6 bg-gray-100 rounded-lg"
+        className="flex p-1.5 mb-6 bg-Back-Mid-20 rounded-2xl shadow-inner"
       >
         {tabs.map((tab, index) => (
           <motion.button
@@ -414,21 +388,19 @@ const MainMenu = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-3 md:py-4 px-4 md:px-6 text-base md:text-lg lg:text-xl rounded-md font-medium transition-all duration-200 relative overflow-hidden ${
+            className={`relative flex-1 py-2.5 md:py-3 px-3 md:px-5 text-sm md:text-base lg:text-lg rounded-xl font-medium transition-all duration-200 ${
               activeTab === tab.id
-                ? `${tab.bgColor} ${tab.textColor} shadow-sm`
-                : "text-gray-600 hover:text-gray-800 hover:bg-white"
+                ? "text-Primary-Main bg-white shadow-md"
+                : "text-Text-Low-70 hover:text-Text-High-90 hover:bg-white/50"
             }`}
           >
             {activeTab === tab.id && (
               <motion.div
-                layoutId="activeTab"
-                className="absolute inset-0 rounded-md -z-10"
-                style={{ backgroundColor: tab.bgColor.replace('bg-', '') }}
-                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                layoutId="activeTabBg"
+                className="absolute inset-0 rounded-xl bg-white shadow-md -z-10"
+                transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
               />
             )}
             <span className="relative z-10">{tab.title}</span>
@@ -451,15 +423,15 @@ const MainMenu = () => {
             .map((item, index) => (
               <motion.button
                 key={index}
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{
                   opacity: 1,
                   y: 0,
-                  scale: hoveredCard === index ? 1.05 : 1,
-                  rotateX: hoveredCard === index ? (mousePosition.y - 0.5) * -15 : 0,
-                  rotateY: hoveredCard === index ? (mousePosition.x - 0.5) * 15 : 0,
+                  scale: hoveredCard === index ? 1.03 : 1,
+                  rotateX: hoveredCard === index ? (mousePosition.y - 0.5) * -8 : 0,
+                  rotateY: hoveredCard === index ? (mousePosition.x - 0.5) * 8 : 0,
                 }}
-                exit={{ opacity: 0, scale: 0.9 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 transition={{
                   opacity: { duration: 0.13, delay: index * 0.033 },
                   y: { duration: 0.13, delay: index * 0.033, type: "spring", stiffness: 300, damping: 25 },
@@ -467,7 +439,7 @@ const MainMenu = () => {
                   rotateX: { duration: 0.15, ease: "easeOut" },
                   rotateY: { duration: 0.15, ease: "easeOut" },
                 }}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={item.onClick}
                 onMouseMove={(e) => handleMouseMove(e, index)}
                 onMouseLeave={handleMouseLeave}
@@ -475,40 +447,44 @@ const MainMenu = () => {
                   transformStyle: "preserve-3d",
                   perspective: "1000px",
                 }}
-                className={`group relative overflow-hidden p-6 md:p-8 text-left bg-white rounded-xl border-2 shadow-md transition-shadow duration-300 ${hoveredCard === index ? 'shadow-2xl' : ''} ${currentTab.hoverBorder} border-gray-200`}
+                className={`group relative overflow-hidden p-6 md:p-8 text-left bg-white rounded-2xl transition-all duration-300 ${
+                  hoveredCard === index
+                    ? "shadow-2xl"
+                    : "shadow-sm hover:shadow-md"
+                }`}
               >
                 {/* 배경 장식 원 */}
-                <div
-                  className={`absolute top-0 right-0 w-20 h-20 ${currentTab.bgColor} rounded-bl-full opacity-50 transition-all duration-300 group-hover:w-32 group-hover:h-32`}
-                ></div>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-Primary-Container rounded-bl-full opacity-40 transition-all duration-300 group-hover:w-36 group-hover:h-36" />
 
-                <div className="relative flex flex-col gap-3">
+                <div className="relative flex flex-col gap-4">
                   {/* 첫 번째 줄: 아이콘 + 타이틀 */}
                   <div className="flex items-center gap-4">
                     <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ duration: 0.3 }}
-                      className={`flex justify-center items-center flex-shrink-0 w-14 h-14 md:w-16 md:h-16 ${currentTab.bgColor} rounded-lg transition-all duration-300`}
+                      whileHover={{ scale: 1.08 }}
+                      transition={{ duration: 0.25 }}
+                      className="flex justify-center items-center flex-shrink-0 w-14 h-14 md:w-16 md:h-16 bg-Primary-Container rounded-2xl transition-all duration-300 group-hover:bg-Primary-Main/10"
                     >
-                      <div className="text-4xl md:text-5xl">
+                      <div className="text-3xl md:text-4xl text-Primary-Main">
                         {item.icon}
                       </div>
                     </motion.div>
-                    <h4 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 leading-tight">
+                    <h4 className="text-lg md:text-xl lg:text-2xl font-bold text-Text-Highest-100 leading-tight">
                       {item.title}
                     </h4>
                   </div>
 
                   {/* 두 번째 줄: 서브타이틀 */}
-                  <p className="text-base md:text-lg text-gray-600 leading-relaxed pl-0">
-                    {item.subtitle}
-                  </p>
+                  {item.subtitle && (
+                    <p className="text-sm md:text-base text-Text-Low-70 leading-relaxed">
+                      {item.subtitle}
+                    </p>
+                  )}
 
-                  {/* 세 번째 줄: 시작하기 버튼 (오른쪽 정렬) */}
-                  <div className={`flex gap-2 items-center justify-end text-base md:text-lg font-semibold ${currentTab.textColor}`}>
+                  {/* 시작하기 */}
+                  <div className="flex gap-1.5 items-center justify-end text-sm md:text-base font-semibold text-Primary-Main">
                     <span>시작하기</span>
                     <motion.svg
-                      className="w-5 h-5 md:w-6 md:h-6"
+                      className="w-4 h-4 md:w-5 md:h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"

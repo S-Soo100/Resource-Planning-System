@@ -34,7 +34,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-Text-High-90"
           >
             {label}
           </label>
@@ -42,7 +42,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
         <div className="relative">
           {leftIcon && (
-            <div className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2">
+            <div className="absolute text-Text-Lowest-60 transform -translate-y-1/2 left-3 top-1/2">
               {leftIcon}
             </div>
           )}
@@ -51,11 +51,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             id={inputId}
             className={cn(
-              "block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50",
+              "block w-full rounded-md border border-Outline-Variant bg-white px-3 py-2 text-sm text-Text-Highest-100 placeholder:text-Text-Lowest-60 focus:border-Primary-Main focus:outline-none focus:ring-2 focus:ring-Primary-Main/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-Back-Mid-20",
               leftIcon && "pl-10",
               rightIcon && "pr-10",
               error &&
-                "border-red-500 focus:border-red-500 focus:ring-red-500/20",
+                "border-Error-Main focus:border-Error-Main focus:ring-Error-Main/20",
               className
             )}
             ref={ref}
@@ -63,13 +63,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           />
 
           {rightIcon && (
-            <div className="absolute text-gray-400 transform -translate-y-1/2 right-3 top-1/2">
+            <div className="absolute text-Text-Lowest-60 transform -translate-y-1/2 right-3 top-1/2">
               {rightIcon}
             </div>
           )}
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-Error-Main">{error}</p>}
 
         {helperText && !error && (
           <p className="text-sm text-gray-500">{helperText}</p>

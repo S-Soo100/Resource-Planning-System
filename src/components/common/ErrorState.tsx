@@ -26,7 +26,7 @@ export function ErrorState({
         {showRetry && onRetry && (
           <button
             onClick={onRetry}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             다시 시도

@@ -311,7 +311,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
                 }
               }}
               placeholder="댓글을 입력해주세요... (Ctrl+Enter로 작성)"
-              className="p-2 w-full text-xs rounded-md border border-gray-300 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="p-2 w-full text-xs rounded-md border border-gray-300 resize-none focus:ring-2 focus:ring-Primary-Main focus:border-Primary-Main"
               rows={2}
               disabled={isCreating}
               aria-label="댓글 입력"
@@ -326,7 +326,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
               <button
                 onClick={handleSubmitComment}
                 disabled={!newComment.trim() || isCreating}
-                className="px-3 py-1 text-xs text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="px-3 py-1 text-xs text-white bg-blue-500 rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 aria-label={isCreating ? "댓글 작성 중" : "댓글 작성"}
               >
                 {isCreating ? "작성 중..." : "댓글 작성"}
@@ -440,7 +440,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
               handleStatusChange(record.id, e.target.value as OrderStatus)
             }
             disabled={isUpdatingStatus === record.id}
-            className="px-3 py-1.5 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white border border-gray-300 hover:border-gray-400 transition-colors"
+            className="px-3 py-1.5 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-Primary-Main bg-white border border-gray-300 hover:border-gray-400 transition-colors"
             aria-label={`주문 상태 변경 (현재: ${getStatusText(
               record.status
             )})`}

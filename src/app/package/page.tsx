@@ -509,7 +509,7 @@ export default function PacakgePage() {
         <h1 className="text-2xl font-bold">패키지 관리</h1>
         <button
           onClick={openAddModal}
-          className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 flex items-center"
+          className="px-4 py-2 bg-gray-800 text-white rounded-full hover:bg-gray-900 flex items-center"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

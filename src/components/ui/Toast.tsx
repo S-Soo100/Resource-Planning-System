@@ -60,11 +60,11 @@ const Toast: React.FC<ToastProps> = ({
       case "success":
         return `${baseStyles} bg-green-50 border-green-400 text-green-800`;
       case "error":
-        return `${baseStyles} bg-red-50 border-red-400 text-red-800`;
+        return `${baseStyles} bg-Error-Container border-Error-Main text-On-Error-Container`;
       case "warning":
         return `${baseStyles} bg-yellow-50 border-yellow-400 text-yellow-800`;
       case "info":
-        return `${baseStyles} bg-blue-50 border-blue-400 text-blue-800`;
+        return `${baseStyles} bg-Primary-Container border-Primary-Main text-Text-Highest-100`;
     }
   };
 
@@ -73,18 +73,18 @@ const Toast: React.FC<ToastProps> = ({
       case "success":
         return "text-green-500";
       case "error":
-        return "text-red-500";
+        return "text-Error-Main";
       case "warning":
         return "text-yellow-500";
       case "info":
-        return "text-blue-500";
+        return "text-Primary-Main";
     }
   };
 
   return (
     <div
       className={`
-        w-96 max-w-[calc(100vw-2rem)] p-4 rounded-lg transition-all duration-300 ease-in-out
+        w-96 max-w-[calc(100vw-2rem)] p-4 rounded-md transition-all duration-300 ease-in-out
         ${getStyles()}
         ${
           isVisible && !isLeaving

@@ -620,7 +620,7 @@ export default function WheelchairOrderForm() {
 
   return (
     <div className="p-4 mx-auto max-w-4xl">
-      <div className="p-2 mb-6 text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg">
+      <div className="p-2 mb-6 text-white bg-gradient-to-r bg-Primary-Main rounded-lg shadow-lg">
         <h1 className="mb-2 text-2xl font-bold text-center">
           휠체어 발주 요청
         </h1>
@@ -671,7 +671,7 @@ export default function WheelchairOrderForm() {
               type="button"
               onClick={handleOpenItemModal}
               disabled={!formData.warehouseId}
-              className="px-4 py-2 text-white bg-purple-500 rounded-md transition-colors hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-white bg-purple-500 rounded-full transition-colors hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus size={16} className="inline mr-1" />
               품목 추가

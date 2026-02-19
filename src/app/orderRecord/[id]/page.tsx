@@ -351,7 +351,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
               <button
                 onClick={handleSubmitComment}
                 disabled={!newComment.trim() || isCreating}
-                className="px-4 py-2 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm text-white bg-blue-500 rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 {isCreating ? "작성 중..." : "댓글 작성"}
               </button>
@@ -848,7 +848,7 @@ const OrderRecordDetail = () => {
                     {canDeleteOrder() && (
                       <button
                         onClick={handleDeleteOrder}
-                        className="flex gap-2 items-center px-4 py-2 text-white bg-red-500 rounded-lg transition-colors hover:bg-red-600"
+                        className="flex gap-2 items-center px-4 py-2 text-white bg-red-500 rounded-full transition-colors hover:bg-red-600"
                         title="발주 삭제 (관리자 전용)"
                       >
                         <Trash2 size={16} />
@@ -1005,7 +1005,7 @@ const OrderRecordDetail = () => {
                           selectedStatus === null ||
                           selectedStatus === order.status
                         }
-                        className="px-4 py-2 text-sm text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm text-white bg-blue-500 rounded-full hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
                       >
                         {isUpdatingStatus ? "변경 중..." : "상태 변경"}
                       </button>

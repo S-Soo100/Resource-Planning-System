@@ -60,7 +60,7 @@ const AddressSection: React.FC<AddressSectionProps> = ({
           />
           <button
             type="button"
-            className={`px-3 md:px-4 py-2 text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${buttonColor}`}
+            className={`px-3 md:px-4 py-2 text-white rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${buttonColor}`}
             onClick={onToggleAddressModal}
           >
             <Search className="w-4 h-4 md:hidden" />

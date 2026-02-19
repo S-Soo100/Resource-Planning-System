@@ -1041,7 +1041,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               <button
                 type="button"
                 onClick={fillTestData}
-                className="px-3 py-1 text-xs font-medium text-yellow-800 bg-yellow-200 rounded-md hover:bg-yellow-300 transition-colors"
+                className="px-3 py-1 text-xs font-medium text-yellow-800 bg-yellow-200 rounded-full hover:bg-yellow-300 transition-colors"
               >
                 지금 채우기
               </button>
@@ -1059,7 +1059,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-Primary-Main"
               placeholder="발주 제목을 입력하세요"
               required
             />
@@ -1164,7 +1164,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   type="button"
                   onClick={handleOpenItemModal}
                   disabled={!formData.warehouseId}
-                  className="px-4 py-2 text-white bg-blue-500 rounded-md transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-white bg-blue-500 rounded-full transition-colors hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-Primary-Main focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Plus size={16} className="inline mr-1" />
                   품목 추가
@@ -1254,7 +1254,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                               placeholder="0"
                               value={item.sellingPrice || ""}
                               onChange={(e) => handleSellingPriceChange(index, e.target.value)}
-                              className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main focus:border-Primary-Main"
                             />
                           </td>
                           <td className="px-4 py-2">
@@ -1265,7 +1265,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                               placeholder="0"
                               value={item.vat || ""}
                               onChange={(e) => handleVatChange(index, e.target.value)}
-                              className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main focus:border-Primary-Main"
                             />
                           </td>
                           <td className="px-4 py-2 text-right text-sm font-medium">
@@ -1277,14 +1277,14 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                               placeholder="메모 입력"
                               value={item.memo || ""}
                               onChange={(e) => handleMemoChange(index, e.target.value)}
-                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main focus:border-Primary-Main"
                             />
                           </td>
                           <td className="px-4 py-2 text-center">
                             <button
                               type="button"
                               onClick={() => handleRemoveItem(item.warehouseItemId)}
-                              className="p-1 text-red-600 bg-red-50 rounded hover:bg-red-100"
+                              className="p-1 text-red-600 bg-red-50 rounded hover:bg-Error-Container"
                               title="품목 제거"
                             >
                               <X size={16} />

@@ -810,7 +810,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                 <button
                   type="button"
                   onClick={fillTestData}
-                  className="px-3 py-1 text-xs font-medium text-yellow-800 bg-yellow-200 rounded-md transition-colors hover:bg-yellow-300"
+                  className="px-3 py-1 text-xs font-medium text-yellow-800 bg-yellow-200 rounded-full transition-colors hover:bg-yellow-300"
                 >
                   지금 채우기
                 </button>
@@ -841,7 +841,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                       warehouseId: Number(e.target.value),
                     }))
                   }
-                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-Primary-Main"
                   required
                 >
                   {availableWarehouses.map((warehouse) => (
@@ -958,7 +958,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                     name="demoNationType"
                     value={formData.demoNationType}
                     onChange={handleInputChange}
-                    className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-Primary-Main"
                     required
                   >
                     <option value="국내">국내 시연</option>
@@ -974,7 +974,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                     name="demoPaymentType"
                     value={formData.demoPaymentType}
                     onChange={handleInputChange}
-                    className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-Primary-Main"
                     required
                   >
                     <option value="">선택해주세요</option>
@@ -1017,7 +1017,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                         name="demoCurrencyUnit"
                         value={formData.demoCurrencyUnit}
                         onChange={handleInputChange}
-                        className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-Primary-Main"
                       >
                         <option value="KRW">KRW (원)</option>
                         <option value="USD">USD (달러)</option>
@@ -1348,7 +1348,7 @@ const SimpleDemonstrationForm: React.FC = () => {
                 onChange={handleInputChange}
                 placeholder="시연과 관련된 특이사항이나 요청사항을 입력하세요"
                 rows={3}
-                className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-Primary-Main"
               />
             </div>
           </Card>

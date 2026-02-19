@@ -959,7 +959,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
           </h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 rounded-lg hover:text-gray-600 hover:bg-gray-100"
+            className="p-2 text-gray-400 rounded-full hover:text-gray-600 hover:bg-gray-100"
           >
             <X className="w-5 h-5" />
           </button>
@@ -997,7 +997,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                         warehouseId: Number(e.target.value),
                       }))
                     }
-                    className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-Primary-Main"
                     required
                   >
                     {availableWarehouses.map((warehouse) => (
@@ -1115,7 +1115,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                       name="demoNationType"
                       value={formData.demoNationType}
                       onChange={handleInputChange}
-                      className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-Primary-Main"
                       required
                     >
                       <option value="국내">국내 시연</option>
@@ -1131,7 +1131,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                       name="demoPaymentType"
                       value={formData.demoPaymentType}
                       onChange={handleInputChange}
-                      className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-Primary-Main"
                       required
                     >
                       <option value="">선택해주세요</option>
@@ -1608,7 +1608,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                   onChange={handleInputChange}
                   placeholder="시연과 관련된 특이사항이나 요청사항을 입력하세요"
                   rows={3}
-                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="p-2 w-full rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-Primary-Main"
                 />
               </div>
             </Card>

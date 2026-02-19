@@ -69,21 +69,21 @@ const Modal: React.FC<ModalProps> = ({
       {/* 모달 콘텐츠 */}
       <div
         className={cn(
-          "relative w-full mx-4 bg-white rounded-2xl shadow-2xl transform transition-all max-h-[90vh] overflow-hidden",
+          "relative w-full mx-4 bg-white rounded-3xl shadow-2xl transform transition-all max-h-[90vh] overflow-hidden",
           sizeClasses[size],
           className
         )}
       >
         {/* 헤더 */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-Back-Highest-30">
             {title && (
-              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+              <h2 className="text-lg font-semibold text-Text-Highest-100">{title}</h2>
             )}
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-1 text-Text-Low-70 hover:text-Text-High-90 hover:bg-Back-Mid-20 rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>

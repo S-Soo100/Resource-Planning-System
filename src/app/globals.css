@@ -3,6 +3,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── KARS 디자인 시스템 토큰 (CSS Custom Properties) ── */
+:root {
+  /* Surface / 배경 계열 */
+  --Back-Lowest-00:  #FFFFFF;
+  --Back-Low-10:     #F9FAFD;
+  --Back-Mid-20:     #F3F6F8;
+  --Back-High-25:    #ECF0F4;
+  --Back-Highest-30: #E3E9ED;
+
+  /* On Surface / 텍스트·아이콘 계열 */
+  --Text-Highest-100: #171725;
+  --Text-High-90:     #434E58;
+  --Text-Low-70:      #78828A;
+  --Text-Lowest-60:   #9CA4AB;
+
+  /* Primary */
+  --Primary-Main:      #5B5BD6;
+  --Primary-Container: #E8E8FF;
+
+  /* Error */
+  --Error-Main:          #BA1A1A;
+  --Error-Container:     #FFDAD6;
+  --On-Error:            #FFFFFF;
+  --On-Error-Container:  #410002;
+
+  /* Outline */
+  --Outline:         #78818A;
+  --Outline-Variant: #C2C8CE;
+
+  /* Gray Sub */
+  --Gray-Sub-High-80:     #66707A;
+  --Gray-Sub-Low-50:      #BFC6CC;
+  --Gray-Sub-Disabled-40: #CED1D3;
+
+  /* Neutral */
+  --Neutral-White: #FFFFFF;
+  --Neutral-Black: #0C0B17;
+}
+
 /* Global UI Scale - Reduce overall size to 87.5% */
 html {
   font-size: 87.5%;

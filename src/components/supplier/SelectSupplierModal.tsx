@@ -106,7 +106,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
           {onAddSupplier && (
             <button
               onClick={onAddSupplier}
-              className={`w-full p-6 mb-4 rounded-lg border-2 border-dashed transition-all hover:shadow-lg ${
+              className={`w-full p-6 mb-4 rounded-full border-2 border-dashed transition-all hover:shadow-lg ${
                 focusRingColor === "purple"
                   ? "border-purple-300 bg-purple-50 hover:bg-purple-100 hover:border-purple-400"
                   : "border-blue-300 bg-blue-50 hover:bg-blue-100 hover:border-blue-400"
@@ -222,7 +222,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
           </p>
           <button
             onClick={onClose}
-            className="px-6 py-2 text-gray-700 bg-white rounded-md border border-gray-300 transition-colors hover:bg-gray-100"
+            className="px-6 py-2 text-gray-700 bg-white rounded-full border border-gray-300 transition-colors hover:bg-gray-100"
           >
             취소
           </button>

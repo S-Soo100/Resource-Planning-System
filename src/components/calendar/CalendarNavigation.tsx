@@ -35,7 +35,7 @@ const CalendarNavigation: React.FC<CalendarNavigationProps> = ({
           {!isCurrentWeek && (
             <button
               onClick={onToday}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors duration-200"
             >
               <FaCalendarDay className="text-sm" />
               오늘로
@@ -55,7 +55,7 @@ const CalendarNavigation: React.FC<CalendarNavigationProps> = ({
         {/* 이전 주 버튼 */}
         <button
           onClick={onPreviousWeek}
-          className="flex items-center justify-center w-12 h-10 md:w-10 md:h-10 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-all duration-200"
+          className="flex items-center justify-center w-12 h-10 md:w-10 md:h-10 text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 hover:text-gray-800 transition-all duration-200"
           title="이전 주"
         >
           <FaChevronLeft className="text-sm md:text-lg" />
@@ -70,7 +70,7 @@ const CalendarNavigation: React.FC<CalendarNavigationProps> = ({
           {!isCurrentWeek && (
             <button
               onClick={onToday}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors duration-200"
             >
               <FaCalendarDay className="text-sm" />
               오늘로
@@ -87,7 +87,7 @@ const CalendarNavigation: React.FC<CalendarNavigationProps> = ({
         {/* 다음 주 버튼 */}
         <button
           onClick={onNextWeek}
-          className="flex items-center justify-center w-12 h-10 md:w-10 md:h-10 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-all duration-200"
+          className="flex items-center justify-center w-12 h-10 md:w-10 md:h-10 text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 hover:text-gray-800 transition-all duration-200"
           title="다음 주"
         >
           <FaChevronRight className="text-sm md:text-lg" />

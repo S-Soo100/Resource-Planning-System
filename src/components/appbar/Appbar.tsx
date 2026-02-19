@@ -59,14 +59,14 @@ const Appbar = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.back()}
-            className="flex items-center justify-center bg-blue-500 text-white rounded-full p-2 shadow-sm focus:outline-none hover:bg-blue-600 transition-colors"
+            className="flex items-center justify-center bg-Primary-Main text-white rounded-full p-2 shadow-sm focus:outline-none hover:brightness-90 transition-colors"
             title="뒤로가기"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <button
             onClick={() => router.push("/menu")}
-            className="flex items-center justify-center bg-gray-100 text-gray-600 rounded-full p-2 shadow-sm focus:outline-none hover:bg-gray-200 hover:text-blue-500 transition-colors"
+            className="flex items-center justify-center bg-gray-100 text-gray-600 rounded-full p-2 shadow-sm focus:outline-none hover:bg-gray-200 hover:text-Primary-Main transition-colors"
             title="메인으로"
           >
             <Home className="w-5 h-5" />
@@ -79,7 +79,7 @@ const Appbar = () => {
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2">
           <div className="bg-gray-100 rounded-full p-1.5 shadow-sm">
-            <User className="w-5 h-5 text-blue-500" />
+            <User className="w-5 h-5 text-Primary-Main" />
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-medium text-gray-800">
@@ -123,7 +123,7 @@ const Appbar = () => {
             className="flex items-center justify-center bg-gray-100 rounded-full p-1.5 shadow-sm focus:outline-none"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <User className="w-5 h-5 text-blue-500" />
+            <User className="w-5 h-5 text-Primary-Main" />
           </button>
           {isMenuOpen && (
             <div className="overflow-hidden absolute right-0 z-50 mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg">
@@ -135,19 +135,19 @@ const Appbar = () => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  <UserCircle className="mr-2 w-4 h-4 text-blue-500" />내 계정
+                  <UserCircle className="mr-2 w-4 h-4 text-Primary-Main" />내 계정
                 </li>
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={handleTeamReset}
                 >
-                  <RefreshCcw className="mr-2 w-4 h-4 text-blue-500" />팀 변경
+                  <RefreshCcw className="mr-2 w-4 h-4 text-Primary-Main" />팀 변경
                 </li>
                 <li
-                  className="flex items-center text-sm text-red-500 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center text-sm text-Error-Main px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={logout}
                 >
-                  <LogOut className="mr-2 w-4 h-4 text-red-500" />
+                  <LogOut className="mr-2 w-4 h-4 text-Error-Main" />
                   로그아웃
                 </li>
               </ul>
@@ -162,7 +162,7 @@ const Appbar = () => {
             className="flex items-center justify-center bg-gray-100 rounded-full p-1.5 shadow-sm focus:outline-none"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <User className="w-5 h-5 text-blue-500" />
+            <User className="w-5 h-5 text-Primary-Main" />
           </button>
           {isMenuOpen && (
             <div className="overflow-hidden absolute right-0 z-50 mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg">
@@ -174,19 +174,19 @@ const Appbar = () => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  <UserCircle className="mr-2 w-4 h-4 text-blue-500" />내 계정
+                  <UserCircle className="mr-2 w-4 h-4 text-Primary-Main" />내 계정
                 </li>
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={handleTeamReset}
                 >
-                  <RefreshCcw className="mr-2 w-4 h-4 text-blue-500" />팀 변경
+                  <RefreshCcw className="mr-2 w-4 h-4 text-Primary-Main" />팀 변경
                 </li>
                 <li
-                  className="flex items-center text-sm text-red-500 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center text-sm text-Error-Main px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={logout}
                 >
-                  <LogOut className="mr-2 w-4 h-4 text-red-500" />
+                  <LogOut className="mr-2 w-4 h-4 text-Error-Main" />
                   로그아웃
                 </li>
               </ul>

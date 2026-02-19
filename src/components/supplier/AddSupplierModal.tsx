@@ -203,7 +203,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
               <button
                 type="button"
                 onClick={handleToggleAddressModal}
-                className="px-3 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isSubmitting}
               >
                 <Search className="w-4 h-4 md:hidden" />
@@ -274,14 +274,14 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
               disabled={isSubmitting}
             >
               취소
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
               disabled={isSubmitting}
             >
               {isSubmitting ? "추가 중..." : "추가"}

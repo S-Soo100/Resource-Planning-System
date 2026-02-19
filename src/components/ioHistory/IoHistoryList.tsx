@@ -810,7 +810,7 @@ export default function IoHistoryList() {
           <div className="flex items-end">
             <button
               onClick={resetAllFilters}
-              className="flex gap-2 items-center px-4 py-2 w-full text-gray-700 bg-gray-100 rounded-md transition-colors hover:bg-gray-200"
+              className="flex gap-2 items-center px-4 py-2 w-full text-gray-700 bg-gray-100 rounded-full transition-colors hover:bg-gray-200"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

@@ -20,15 +20,15 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
 }) => {
   const colorClasses =
     color === "purple"
-      ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-      : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700";
+      ? "bg-Primary-Main hover:brightness-90"
+      : "bg-Primary-Main hover:brightness-90";
 
   return (
     <div className="flex justify-center pt-4">
       <button
         type="submit"
         disabled={isSubmitting || isProcessing}
-        className={`w-full max-w-md text-white py-3 px-6 rounded-lg font-medium shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center ${colorClasses} ${
+        className={`w-full max-w-md text-white py-2.5 px-6 rounded-full font-medium shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center ${colorClasses} ${
           isSubmitting || isProcessing
             ? "opacity-70 cursor-not-allowed hover:scale-100"
             : ""

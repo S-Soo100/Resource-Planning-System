@@ -1001,7 +1001,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-Primary-Main"
                 placeholder="발주 제목을 입력하세요"
                 required
               />
@@ -1096,7 +1096,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 type="button"
                 onClick={() => setIsItemModalOpen(true)}
                 disabled={!formData.warehouseId}
-                className="px-4 py-2 w-full text-left bg-white rounded-md border transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 w-full text-left bg-white rounded-md border transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-Primary-Main"
               >
                 <span className="text-gray-500">클릭하여 품목 선택</span>
               </button>
@@ -1205,7 +1205,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                   handleSellingPriceChange(index, sanitized, true);
                                 }}
                                 placeholder="0"
-                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                               />
                             </td>
                             <td className="px-3 py-2 whitespace-nowrap">
@@ -1225,7 +1225,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                   handleVatChange(index, sanitized, true);
                                 }}
                                 placeholder="0"
-                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                               />
                             </td>
                             <td className="px-3 py-2">
@@ -1234,7 +1234,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                 value={item.memo || ""}
                                 onChange={(e) => handleMemoChange(index, e.target.value, true)}
                                 placeholder="메모 입력"
-                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                               />
                             </td>
                             <td className="px-3 py-2 whitespace-nowrap text-right">
@@ -1326,7 +1326,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                   handleSellingPriceChange(index, sanitized, false);
                                 }}
                                 placeholder="0"
-                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                               />
                             </td>
                             <td className="px-3 py-2 whitespace-nowrap">
@@ -1346,7 +1346,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                   handleVatChange(index, sanitized, false);
                                 }}
                                 placeholder="0"
-                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                               />
                             </td>
                             <td className="px-3 py-2">
@@ -1355,7 +1355,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                 value={item.memo || ""}
                                 onChange={(e) => handleMemoChange(index, e.target.value, false)}
                                 placeholder="메모 입력"
-                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                               />
                             </td>
                             <td className="px-3 py-2 whitespace-nowrap text-right">
@@ -1596,7 +1596,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 />
                 <button
                   type="button"
-                  className="p-2 ml-3 text-black rounded border transition-colors duration-200 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="p-2 ml-3 text-black rounded border transition-colors duration-200 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-Primary-Main focus:ring-offset-2"
                   onClick={() => setIsAddressOpen(!isAddressOpen)}
                 >
                   주소 검색

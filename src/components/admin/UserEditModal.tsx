@@ -318,7 +318,7 @@ export default function UserEditModal({
             <p className="mb-6 text-sm text-gray-600">{loadError}</p>
             <button
               onClick={onClose}
-              className="px-4 py-2 text-white bg-purple-600 rounded-md hover:bg-purple-700"
+              className="px-4 py-2 text-white bg-purple-600 rounded-full hover:bg-purple-700"
             >
               닫기
             </button>

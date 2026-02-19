@@ -364,7 +364,7 @@ export default function SalesPage() {
           <button
             onClick={handleExportExcel}
             disabled={!data?.records.length}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4 mr-2" />
             엑셀 다운로드

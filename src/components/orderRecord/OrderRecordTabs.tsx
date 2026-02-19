@@ -962,7 +962,7 @@ const OrderRecordTabs = () => {
   //             handleStatusChange(record.id, e.target.value as OrderStatus)
   //           }
   //           disabled={isUpdatingStatus === record.id}
-  //           className="px-3 py-1.5 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white border border-gray-300 hover:border-gray-400 transition-colors"
+  //           className="px-3 py-1.5 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-Primary-Main bg-white border border-gray-300 hover:border-gray-400 transition-colors"
   //         >
   //           {/* 권한에 따라 다른 선택지 표시 */}
   //           {userAccessLevel === "moderator" ? (
@@ -1142,7 +1142,7 @@ const OrderRecordTabs = () => {
           <div className="flex gap-1 items-center sm:gap-4">
             {/* <button
               onClick={handleBack}
-              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs sm:text-sm transition-colors"
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-xs sm:text-sm transition-colors"
             >
               <ArrowLeft size={14} className="sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">메인 메뉴로</span>
@@ -1156,7 +1156,7 @@ const OrderRecordTabs = () => {
           </div>
           <button
             onClick={handleRefresh}
-            className="mt-2 md:mt-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-md flex items-center text-xs sm:text-sm transition-colors"
+            className="mt-2 md:mt-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center text-xs sm:text-sm transition-colors"
           >
             <RefreshCw
               size={14}
@@ -1186,7 +1186,7 @@ const OrderRecordTabs = () => {
               placeholder="제목, 요청자, 수령인, 전화번호, 주소 등으로 검색..."
               value={searchTerm}
               onChange={handleSearch}
-              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-Primary-Main focus:border-Primary-Main transition-all shadow-sm"
             />
           </div>
 
@@ -1196,7 +1196,7 @@ const OrderRecordTabs = () => {
             <select
               value={statusFilter}
               onChange={handleStatusFilterChange}
-              className="px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm min-w-[120px]"
+              className="px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-Primary-Main focus:border-Primary-Main transition-all shadow-sm min-w-[120px]"
             >
               <option value="">모든 상태</option>
               {shipmentTab === "pending" ? (
@@ -1238,7 +1238,7 @@ const OrderRecordTabs = () => {
                 <select
                   value={supplierId}
                   onChange={handleSupplierChange}
-                  className="px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm min-w-[150px]"
+                  className="px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-Primary-Main focus:border-Primary-Main transition-all shadow-sm min-w-[150px]"
                 >
                   <option value="">납품처 선택</option>
                   {suppliers.map((supplier) => (
@@ -1417,7 +1417,7 @@ const OrderRecordTabs = () => {
               {errorModal.shouldRefresh && (
                 <button
                   onClick={handleErrorModalRefresh}
-                  className="px-6 py-3 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-xl shadow-sm transition-colors duration-200 hover:bg-blue-100 hover:border-blue-300 active:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-6 py-3 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-xl shadow-sm transition-colors duration-200 hover:bg-blue-100 hover:border-blue-300 active:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-Primary-Main focus:ring-offset-2"
                 >
                   <RefreshCw size={16} className="inline mr-2" />
                   새로고침
@@ -1469,7 +1469,7 @@ const getStatusHoverClass = (status: string): string => {
     case OrderStatus.rejected:
       return "hover:bg-red-100 focus:ring-red-400";
     case OrderStatus.confirmedByShipper:
-      return "hover:bg-blue-100 focus:ring-blue-400";
+      return "hover:bg-blue-100 focus:ring-Primary-Main";
     case OrderStatus.shipmentCompleted:
       return "hover:bg-purple-100 focus:ring-purple-400";
     case OrderStatus.rejectedByShipper:

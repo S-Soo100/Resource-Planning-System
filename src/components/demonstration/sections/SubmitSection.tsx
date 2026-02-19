@@ -15,14 +15,14 @@ const SubmitSection: React.FC<SubmitSectionProps> = ({
       <button
         type="button"
         onClick={onCancel}
-        className="px-6 py-2 text-gray-700 rounded-md border border-gray-300 hover:bg-gray-50"
+        className="px-6 py-2 text-gray-700 rounded-full border border-gray-300 hover:bg-gray-50"
       >
         취소
       </button>
       <button
         type="submit"
         disabled={isSubmitting}
-        className="flex gap-2 items-center px-6 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        className="flex gap-2 items-center px-6 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
         title="⚠️ API 미개발 상태 - 데모용으로만 동작합니다"
       >
         {isSubmitting && <LoadingInline />}

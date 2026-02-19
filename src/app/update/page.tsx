@@ -31,7 +31,7 @@ export default function UpdatePage() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleBack}
-                className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+                className="p-2 rounded-full transition-colors hover:bg-gray-100"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>

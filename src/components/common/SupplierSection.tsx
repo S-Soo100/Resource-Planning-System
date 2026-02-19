@@ -51,7 +51,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
           <button
             type="button"
             onClick={onAddSupplier}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-white rounded-md hover:bg-blue-50 transition-colors border border-blue-200"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-white rounded-full hover:bg-blue-50 transition-colors border border-blue-200"
           >
             <Plus className="w-3 h-3" />
             새 고객 등록
@@ -99,7 +99,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
                 <button
                   type="button"
                   onClick={onOpenSelectModal}
-                  className={`flex items-center gap-1 px-3 py-2 text-sm font-medium text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${buttonColorClass}`}
+                  className={`flex items-center gap-1 px-3 py-2 text-sm font-medium text-white rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${buttonColorClass}`}
                 >
                   <Edit2 size={14} />
                   변경
@@ -120,7 +120,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
             <button
               type="button"
               onClick={onOpenSelectModal}
-              className={`w-full px-4 py-4 text-base font-semibold text-white rounded-lg transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-offset-2 shadow-md animate-pulse ${buttonColorClass}`}
+              className={`w-full px-4 py-4 text-base font-semibold text-white rounded-full transition-all transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-offset-2 shadow-md animate-pulse ${buttonColorClass}`}
             >
               <div className="flex items-center justify-center gap-2">
                 <Building2 size={20} />

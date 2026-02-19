@@ -1025,9 +1025,10 @@ const OrderRecordTabs = () => {
     // supplier인 경우 '내 발주 기록' 탭만 표시
     if (userAccessLevel === "supplier") {
       return (
-        <div className="flex gap-2 mb-4 sm:mb-6">
-          <div className="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
-            <User size={18} className="mr-2" />내 발주 기록
+        <div className="flex p-1.5 mb-4 sm:mb-6 bg-Back-Mid-20 rounded-2xl shadow-inner">
+          <div className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-white text-Primary-Main shadow-md">
+            <User size={16} />
+            <span className="whitespace-nowrap">내 발주 기록</span>
           </div>
         </div>
       );
@@ -1035,40 +1036,25 @@ const OrderRecordTabs = () => {
 
     // supplier가 아닌 경우 모든 탭 표시
     return (
-      <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-6">
-        <button
-          onClick={() => handleTabChange("all")}
-          className={`group inline-flex items-center px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 transform ${
-            activeTab === "all"
-              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg scale-105"
-              : "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:scale-105 border border-gray-200"
-          }`}
-        >
-          <Package size={16} className={`mr-1 sm:mr-2 transition-transform duration-300 sm:w-[18px] sm:h-[18px] ${activeTab === "all" ? "" : "group-hover:rotate-12"}`} />
-          <span className="whitespace-nowrap">전체</span>
-        </button>
-        <button
-          onClick={() => handleTabChange("user")}
-          className={`group inline-flex items-center px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 transform ${
-            activeTab === "user"
-              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg scale-105"
-              : "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:scale-105 border border-gray-200"
-          }`}
-        >
-          <User size={16} className={`mr-1 sm:mr-2 transition-transform duration-300 sm:w-[18px] sm:h-[18px] ${activeTab === "user" ? "" : "group-hover:scale-110"}`} />
-          <span className="whitespace-nowrap">내 발주</span>
-        </button>
-        <button
-          onClick={() => handleTabChange("supplier")}
-          className={`group inline-flex items-center px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 transform ${
-            activeTab === "supplier"
-              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg scale-105"
-              : "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:scale-105 border border-gray-200"
-          }`}
-        >
-          <Truck size={16} className={`mr-1 sm:mr-2 transition-transform duration-300 sm:w-[18px] sm:h-[18px] ${activeTab === "supplier" ? "" : "group-hover:translate-x-1"}`} />
-          <span className="whitespace-nowrap">납품처별</span>
-        </button>
+      <div className="flex p-1.5 mb-4 sm:mb-6 bg-Back-Mid-20 rounded-2xl shadow-inner">
+        {[
+          { id: "all" as TabType, label: "전체", icon: <Package size={15} /> },
+          { id: "user" as TabType, label: "내 발주", icon: <User size={15} /> },
+          { id: "supplier" as TabType, label: "납품처별", icon: <Truck size={15} /> },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => handleTabChange(tab.id)}
+            className={`relative flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all duration-200 ${
+              activeTab === tab.id
+                ? "bg-white text-Primary-Main shadow-md"
+                : "text-Text-Low-70 hover:bg-white/50 hover:text-Text-High-90"
+            }`}
+          >
+            {tab.icon}
+            <span className="whitespace-nowrap">{tab.label}</span>
+          </button>
+        ))}
       </div>
     );
   };
@@ -1076,59 +1062,40 @@ const OrderRecordTabs = () => {
   // 출고 상태 탭 렌더링
   const renderShipmentTabs = () => {
     return (
-      <div className="flex gap-2 sm:gap-3 mb-4 sm:mb-6">
-        <button
-          onClick={() => handleShipmentTabChange("pending")}
-          className={`group flex-1 px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 transform hover:scale-[1.02] ${
-            shipmentTab === "pending"
-              ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-200"
-              : "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 hover:from-orange-100 hover:to-amber-100 border border-orange-200"
-          }`}
-        >
-          <div className="flex gap-1.5 sm:gap-2 justify-center items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-transform duration-300 ${shipmentTab === "pending" ? "animate-pulse" : "group-hover:rotate-12"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span className="whitespace-nowrap">출고 전</span>
-          </div>
-        </button>
-        <button
-          onClick={() => handleShipmentTabChange("completed")}
-          className={`group flex-1 px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 transform hover:scale-[1.02] ${
-            shipmentTab === "completed"
-              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-200"
-              : "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 hover:from-green-100 hover:to-emerald-100 border border-green-200"
-          }`}
-        >
-          <div className="flex gap-1.5 sm:gap-2 justify-center items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-transform duration-300 ${shipmentTab === "completed" ? "" : "group-hover:scale-110"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span className="whitespace-nowrap">출고 완료</span>
-          </div>
-        </button>
+      <div className="flex p-1.5 mb-4 sm:mb-6 bg-Back-Mid-20 rounded-2xl shadow-inner">
+        {[
+          {
+            id: "pending" as ShipmentTabType,
+            label: "출고 전",
+            icon: (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ),
+          },
+          {
+            id: "completed" as ShipmentTabType,
+            label: "출고 완료",
+            icon: (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ),
+          },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => handleShipmentTabChange(tab.id)}
+            className={`relative flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
+              shipmentTab === tab.id
+                ? "bg-white text-Primary-Main shadow-md"
+                : "text-Text-Low-70 hover:bg-white/50 hover:text-Text-High-90"
+            }`}
+          >
+            {tab.icon}
+            <span className="whitespace-nowrap">{tab.label}</span>
+          </button>
+        ))}
       </div>
     );
   };

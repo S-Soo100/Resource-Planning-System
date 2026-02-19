@@ -100,8 +100,8 @@ const MainMenu = () => {
     //   accessLevel: ["user", "admin", "moderator"],
     // },
     {
-      title: "업체 관리",
-      subtitle: "협력업체 정보를 등록하고 관리합니다",
+      title: "고객 관리",
+      subtitle: "고객 정보를 등록하고 관리합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () => checkAccess(`/supplier`, ["admin", "user", "moderator", "supplier"]),
       accessLevel: ["user", "admin", "moderator", "supplier"],
@@ -255,7 +255,7 @@ const MainMenu = () => {
   tabs = [
     {
       id: "stock",
-      title: "재고 관리",
+      title: "재고&고객 관리",
       items: stockMenuItems,
     },
     {
@@ -319,19 +319,19 @@ const MainMenu = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.25 }}
         className="mb-8"
       >
         <div className="flex justify-between items-center">
           <motion.h1
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={{ duration: 0.3, delay: 0.05 }}
             className="flex items-center text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900"
           >
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 0.8, delay: 0.3 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
             >
               <FaUser className="mr-3 text-2xl md:text-3xl lg:text-4xl text-Primary-Main" />
             </motion.div>
@@ -340,7 +340,7 @@ const MainMenu = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
             className="flex gap-2 items-center"
           >
             {user.accessLevel !== "supplier" && (
@@ -368,7 +368,7 @@ const MainMenu = () => {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.25, delay: 0.15 }}
           className="mt-2 text-base md:text-xl lg:text-2xl text-gray-600"
         >
           팀: <span className="font-semibold">{selectedTeam.teamName}</span>
@@ -379,7 +379,7 @@ const MainMenu = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
+        transition={{ duration: 0.25, delay: 0.2 }}
         className="flex p-1.5 mb-6 bg-Back-Mid-20 rounded-2xl shadow-inner"
       >
         {tabs.map((tab, index) => (
@@ -387,7 +387,7 @@ const MainMenu = () => {
             key={tab.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
+            transition={{ duration: 0.2, delay: 0.25 + index * 0.05 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => setActiveTab(tab.id)}
             className={`relative flex-1 py-2.5 md:py-3 px-3 md:px-5 text-sm md:text-base lg:text-lg rounded-xl font-medium transition-all duration-200 ${
@@ -400,7 +400,7 @@ const MainMenu = () => {
               <motion.div
                 layoutId="activeTabBg"
                 className="absolute inset-0 rounded-xl bg-white shadow-md -z-10"
-                transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                transition={{ type: "spring", bounce: 0.15, duration: 0.25 }}
               />
             )}
             <span className="relative z-10">{tab.title}</span>
@@ -415,7 +415,7 @@ const MainMenu = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.15 }}
           className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2"
         >
           {currentTab.items
@@ -433,8 +433,8 @@ const MainMenu = () => {
                 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{
-                  opacity: { duration: 0.13, delay: index * 0.033 },
-                  y: { duration: 0.13, delay: index * 0.033, type: "spring", stiffness: 300, damping: 25 },
+                  opacity: { duration: 0.065, delay: index * 0.0165 },
+                  y: { duration: 0.065, delay: index * 0.0165, type: "spring", stiffness: 300, damping: 25 },
                   scale: { duration: 0.2 },
                   rotateX: { duration: 0.15, ease: "easeOut" },
                   rotateY: { duration: 0.15, ease: "easeOut" },
@@ -489,7 +489,7 @@ const MainMenu = () => {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                       animate={{ x: [0, 4, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                      transition={{ duration: 0.75, repeat: Infinity, ease: "easeInOut" }}
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </motion.svg>

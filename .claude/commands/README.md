@@ -55,6 +55,49 @@
 
 ---
 
+### `/design-review` - 디자인 패턴 검토 및 수정
+
+파일의 하드코딩된 색상, 잘못된 shape, 구버전 패턴을 감지하여 KARS MD3 디자인 토큰으로 수정합니다.
+
+#### 사용 방법
+
+```bash
+/design-review                               # 대화형 모드
+/design-review src/app/some/page.tsx         # 특정 파일 검토
+/design-review src/components/admin/         # 디렉토리 내 전체 검토
+```
+
+#### 감지 항목
+
+- `bg-gray-*`, `bg-blue-*`, `bg-purple-*` → Primary/Back 토큰
+- `text-gray-*` → Text-Highest-100 / Text-Low-70
+- `rounded-lg` (카드) → `rounded-2xl` / `rounded-full` / `rounded-3xl`
+- 그라디언트 탭 → Segment Control 패턴
+- `bg-yellow-50` (폼) → `bg-Back-Low-10`
+
+---
+
+### `/design-apply` - 디자인 패턴 보일러플레이트 생성
+
+새 파일 작성 시 KARS MD3 디자인 시스템이 적용된 보일러플레이트를 생성합니다.
+
+#### 사용 방법
+
+```bash
+/design-apply                  # 대화형 (유형 선택)
+/design-apply page             # 기본 페이지
+/design-apply page admin       # Admin/Moderator 전용 페이지
+/design-apply card             # 카드 컴포넌트
+/design-apply table            # Excel-style 테이블
+/design-apply modal            # 모달 컴포넌트
+/design-apply segment          # Segment Control
+/design-apply form             # 입력 폼
+/design-apply empty            # 빈 상태(Empty State)
+/design-apply badge            # 배지/태그 모음
+```
+
+---
+
 ## 🔧 커맨드 추가 방법
 
 새로운 커스텀 커맨드를 추가하려면:

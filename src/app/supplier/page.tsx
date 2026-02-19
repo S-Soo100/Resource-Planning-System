@@ -10,10 +10,9 @@ import dynamic from "next/dynamic";
 import { Address } from "react-daum-postcode";
 import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
-import { navigateByAuthStatus } from "@/utils/navigation";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 // Daum 주소 검색 모달 동적 임포트
@@ -22,7 +21,7 @@ const SearchAddressModal = dynamic(
   { ssr: false }
 );
 
-// 납품처 추가/수정 모달 컴포넌트
+// 고객 추가/수정 모달 컴포넌트
 interface SupplierFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -30,6 +29,11 @@ interface SupplierFormModalProps {
   onSubmit: (data: CreateSupplierRequest | UpdateSupplierRequest) => void;
   isProcessing: boolean;
 }
+
+const inputCls =
+  "w-full px-4 py-2.5 bg-Back-Mid-20 border border-Outline-Variant rounded-xl text-sm font-normal text-Text-Highest-100 placeholder:text-Text-Lowest-60 focus:border-Primary-Main focus:ring-2 focus:ring-Primary-Main/20 focus:outline-none transition-all";
+
+const labelCls = "block mb-1.5 text-sm font-medium text-Text-High-90";
 
 const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
   isOpen,
@@ -42,7 +46,6 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
   const [baseAddress, setBaseAddress] = useState<string>("");
   const [detailAddress, setDetailAddress] = useState<string>("");
 
-  // 현재 선택된 팀 ID 가져오기
   const currentTeamId =
     Number(authStore((state) => state.selectedTeam?.id)) || 1;
 
@@ -53,32 +56,24 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
     email: "",
     supplierAddress: "",
     supplierPhoneNumber: "",
-    representativeName: "", // 대표자 이름 (v2.2)
+    representativeName: "",
     registrationNumber: "",
     memo: "",
     teamId: Number(currentTeamId),
   });
 
-  // 주소 검색 완료 핸들러
   const handleAddressComplete = (data: Address) => {
-    // 기본 주소 설정 (도로명 주소 우선, 없으면 지번 주소)
     const selectedAddress = data.roadAddress || data.jibunAddress;
     setBaseAddress(selectedAddress);
-
-    // 주소 모달 닫기
     setShowAddressModal(false);
-
-    // 전체 주소 업데이트 (상세 주소와 합치기)
     updateFullAddress(selectedAddress, detailAddress);
   };
 
-  // 전체 주소 업데이트 함수
   const updateFullAddress = (base: string, detail: string) => {
     const fullAddress = detail ? `${base} ${detail}` : base;
     setFormData((prev) => ({ ...prev, supplierAddress: fullAddress }));
   };
 
-  // 상세 주소 변경 핸들러
   const handleDetailAddressChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -87,7 +82,6 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
     updateFullAddress(baseAddress, detail);
   };
 
-  // 입력 필드 변경 처리
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -95,46 +89,34 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 폼 제출 처리
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 팀 ID 설정
-    const submitData = {
-      ...formData,
-      teamId: Number(currentTeamId),
-    };
-
-    onSubmit(submitData);
+    onSubmit({ ...formData, teamId: Number(currentTeamId) });
   };
 
-  // 초기화 효과
   useEffect(() => {
     if (isOpen) {
       if (editingSupplier) {
-        // 수정 모드: 납품처 데이터로 폼 초기화
         const address = editingSupplier.supplierAddress || "";
         setBaseAddress(address);
         setDetailAddress("");
-
         setFormData({
           supplierName: editingSupplier.supplierName,
           email: editingSupplier.email,
           supplierAddress: editingSupplier.supplierAddress,
           supplierPhoneNumber: editingSupplier.supplierPhoneNumber,
-          representativeName: editingSupplier.representativeName || "", // 대표자 이름 (v2.2)
+          representativeName: editingSupplier.representativeName || "",
           registrationNumber: editingSupplier.registrationNumber,
           memo: editingSupplier.memo,
           teamId: Number(currentTeamId),
         });
       } else {
-        // 추가 모드: 폼 초기화
         setFormData({
           supplierName: "",
           email: "",
           supplierAddress: "",
           supplierPhoneNumber: "",
-          representativeName: "", // 대표자 이름 (v2.2)
+          representativeName: "",
           registrationNumber: "",
           memo: "",
           teamId: Number(currentTeamId),
@@ -148,197 +130,160 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl mx-4 transform transition-all animate-modal-slide-up">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">
-              {editingSupplier ? "납품처 정보 수정" : "신규 납품처 추가"}
-            </h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-gray-500 transition-colors hover:text-gray-700"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl mx-4 animate-modal-slide-up">
+        {/* 모달 헤더 */}
+        <div className="px-6 py-5 border-b border-Outline-Variant flex items-center justify-between">
+          <h2 className="text-xl font-medium text-Text-Highest-100">
+            {editingSupplier ? "고객 정보 수정" : "신규 고객 추가"}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-full text-Text-Low-70 hover:text-Text-High-90 hover:bg-Back-Mid-20 transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                업체명
-              </label>
+              <label className={labelCls}>고객명</label>
               <input
                 type="text"
                 name="supplierName"
                 value={formData.supplierName}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
+                className={inputCls}
+                placeholder="고객명을 입력하세요"
                 required
               />
             </div>
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                이메일
-              </label>
+              <label className={labelCls}>이메일</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
+                className={inputCls}
+                placeholder="이메일을 입력하세요"
                 required
               />
             </div>
 
-            {/* 주소 검색 */}
+            {/* 기본 주소 */}
             <div className="md:col-span-2">
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                기본 주소
-              </label>
-              <div className="flex gap-3">
+              <label className={labelCls}>기본 주소</label>
+              <div className="flex gap-2">
                 <input
                   type="text"
                   value={baseAddress}
-                  className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
+                  className={inputCls}
                   readOnly
                   placeholder="주소 검색 버튼을 클릭하세요"
                 />
-                <Button
+                <button
+                  type="button"
                   onClick={() => setShowAddressModal(true)}
-                  color="primary"
+                  className="h-10 px-4 bg-Primary-Main text-white rounded-full text-sm font-medium whitespace-nowrap hover:brightness-90 active:brightness-85 transition-all"
                 >
                   주소 검색
-                </Button>
+                </button>
               </div>
             </div>
 
             <div className="md:col-span-2">
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                상세 주소
-              </label>
+              <label className={labelCls}>상세 주소</label>
               <input
                 type="text"
                 value={detailAddress}
                 onChange={handleDetailAddressChange}
-                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
+                className={inputCls}
                 placeholder="상세 주소를 입력하세요"
               />
             </div>
 
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                전화번호
-              </label>
+              <label className={labelCls}>전화번호</label>
               <input
                 type="text"
                 name="supplierPhoneNumber"
                 value={formData.supplierPhoneNumber}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
+                className={inputCls}
+                placeholder="전화번호를 입력하세요"
                 required
               />
             </div>
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                대표자 이름
-              </label>
+              <label className={labelCls}>대표자 이름</label>
               <input
                 type="text"
                 name="representativeName"
                 value={formData.representativeName || ""}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
+                className={inputCls}
                 placeholder="대표자 이름을 입력하세요"
               />
             </div>
             <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                사업자등록번호
-              </label>
+              <label className={labelCls}>사업자등록번호</label>
               <input
                 type="text"
                 name="registrationNumber"
                 value={formData.registrationNumber}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
+                className={inputCls}
+                placeholder="예: 123-45-67890"
                 required
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                메모
-              </label>
+              <label className={labelCls}>메모</label>
               <textarea
                 name="memo"
                 value={formData.memo || ""}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 transition-colors bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none"
+                className={inputCls}
                 rows={3}
-              ></textarea>
+                placeholder="추가 정보를 입력하세요"
+              />
             </div>
           </div>
-          <div className="flex justify-end gap-3 mt-8">
-            <Button onClick={onClose} variant="default">
-              취소
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={isProcessing}
-              loading={isProcessing}
+
+          <div className="flex justify-end gap-2 mt-6 pt-5 border-t border-Outline-Variant">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-10 px-6 bg-transparent text-Text-High-90 border border-Outline-Variant rounded-full text-sm font-medium hover:bg-Back-Mid-20 transition-all"
             >
-              저장
-            </Button>
+              취소
+            </button>
+            <button
+              type="submit"
+              disabled={isProcessing}
+              className="h-10 px-6 bg-Primary-Main text-white rounded-full text-sm font-medium hover:brightness-90 active:brightness-85 disabled:bg-Gray-Sub-Disabled-40 disabled:text-Text-Low-70 disabled:cursor-not-allowed transition-all"
+            >
+              {isProcessing ? "저장 중..." : "저장"}
+            </button>
           </div>
         </form>
 
         {/* 주소 검색 모달 */}
         {showAddressModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="w-full max-w-lg mx-4 transition-all transform bg-white shadow-2xl rounded-2xl animate-modal-slide-up">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    주소 검색
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddressModal(false)}
-                    className="text-gray-500 transition-colors hover:text-gray-700"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-6 h-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="w-full max-w-lg mx-4 bg-white shadow-2xl rounded-3xl animate-modal-slide-up">
+              <div className="px-6 py-5 border-b border-Outline-Variant flex items-center justify-between">
+                <h3 className="text-base font-medium text-Text-Highest-100">주소 검색</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowAddressModal(false)}
+                  className="p-1.5 rounded-full text-Text-Low-70 hover:text-Text-High-90 hover:bg-Back-Mid-20 transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
               <div className="p-4">
                 <SearchAddressModal onCompletePost={handleAddressComplete} />
@@ -360,7 +305,6 @@ export default function SupplierManagePage() {
   const [isFormModalOpen, setIsFormModalOpen] = useState<boolean>(false);
   const [suppliersList, setSuppliersList] = useState<Supplier[]>([]);
 
-  // useSupplier 훅에서 필요한 함수들 가져오기
   const {
     useGetSuppliers,
     useCreateSupplier,
@@ -368,17 +312,14 @@ export default function SupplierManagePage() {
     useDeleteSupplier,
   } = useSuppliers();
 
-  // 납품처 목록 조회
   const {
     suppliers: suppliersResponse,
     isLoading,
     refetch,
   } = useGetSuppliers(searchName);
 
-  // API 응답 데이터 구조에 맞게 처리
   useEffect(() => {
     if (suppliersResponse) {
-      // API 응답이 중첩된 구조로 올 경우 처리
       if (
         typeof suppliersResponse === "object" &&
         "data" in suppliersResponse
@@ -390,93 +331,71 @@ export default function SupplierManagePage() {
     }
   }, [suppliersResponse]);
 
-  // 납품처 생성
   const { createSupplier, isPending: isCreating } = useCreateSupplier();
-
-  // 납품처 수정
   const { updateSupplier, isPending: isUpdating } = useUpdateSupplier();
-
-  // 납품처 삭제
   const { deleteSupplier, isPending: isDeleting } = useDeleteSupplier();
 
-  // 신규 납품처 추가 모달 열기
   const handleAddNewClick = () => {
     setEditingSupplier(null);
     setIsFormModalOpen(true);
   };
 
-  // 수정 모달 열기
   const handleEditClick = (supplier: Supplier) => {
     setEditingSupplier(supplier);
     setIsFormModalOpen(true);
   };
 
-  // 모달 닫기
   const handleCloseModal = () => {
     setIsFormModalOpen(false);
     setEditingSupplier(null);
   };
 
-  // 폼 제출 처리 (추가 또는 수정)
   const handleFormSubmit = (
     data: CreateSupplierRequest | UpdateSupplierRequest
   ) => {
     if (!editingSupplier) {
-      // 새 납품처 추가
       createSupplier(data as CreateSupplierRequest);
     } else {
-      // 기존 납품처 수정
       updateSupplier({
         id: String(editingSupplier.id),
         data: data as UpdateSupplierRequest,
       });
     }
-
-    // 모달 닫기
     setIsFormModalOpen(false);
     setEditingSupplier(null);
   };
 
-  // 삭제 처리
   const handleDelete = (id: number) => {
-    if (window.confirm("정말로 이 납품처를 삭제하시겠습니까?")) {
+    if (window.confirm("정말로 이 고객을 삭제하시겠습니까?")) {
       deleteSupplier(String(id));
     }
   };
 
-  // 디버깅 용도
-  useEffect(() => {
-    if (suppliersResponse) {
-      console.log("API 응답:", suppliersResponse);
-    }
-  }, [suppliersResponse]);
-
   if (isUserLoading || isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-Back-Low-10">
         <div className="text-center">
           <LoadingCentered />
-          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
+          <p className="mt-4 text-sm text-Text-Low-70">데이터를 불러오는 중...</p>
         </div>
       </div>
     );
   }
 
-  // 권한 체크: Admin, Moderator만 접근 가능
-  if (!user || (user.accessLevel !== 'admin' && user.accessLevel !== 'moderator')) {
+  if (!user || (user.accessLevel !== "admin" && user.accessLevel !== "moderator" && user.accessLevel !== "user" && user.accessLevel !== "supplier")) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-Back-Low-10">
+        <div className="text-center max-w-md p-8 bg-white rounded-3xl shadow-sm">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-medium text-Text-Highest-100 mb-3">
             접근 권한이 필요합니다
           </h2>
-          <p className="text-gray-600 mb-6">
-            업체 관리 페이지는 관리자 또는 1차 승인권자만 접근할 수 있습니다.
+          <p className="text-sm text-Text-Low-70 mb-6">
+            고객 관리 페이지는 관리자 또는 1차 승인권자만 접근할 수 있습니다.
           </p>
           <Button
             variant="default"
-            onClick={() => router.push('/menu')}
+            onClick={() => router.push("/menu")}
             icon={<ArrowLeft className="w-4 h-4" />}
             iconPosition="left"
           >
@@ -488,163 +407,118 @@ export default function SupplierManagePage() {
   }
 
   return (
-    <div className="w-full p-6">
-      <div className="mt-4 mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">납품처 관리</h1>
+    <div className="min-h-screen bg-Back-Low-10 p-6">
+      {/* 페이지 헤더 */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-normal leading-10 text-Text-Highest-100">고객 관리</h1>
+        <p className="mt-1 text-sm text-Text-Low-70">고객 정보를 등록하고 관리합니다</p>
       </div>
 
-      {/* 검색 및 추가 버튼 */}
-      <div className="w-full p-4 mb-8 bg-white shadow-md rounded-2xl">
-        <div className="flex flex-col items-stretch gap-4 sm:flex-row">
+      {/* 검색 & 추가 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant p-4 mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-grow">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-Text-Lowest-60"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
               type="text"
-              placeholder="납품처 이름으로 검색"
+              placeholder="고객 이름으로 검색"
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
-              className="w-full py-3 pl-10 pr-4 transition-colors border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-blue-500 focus:ring-2 focus:outline-none bg-gray-50"
+              onKeyDown={(e) => e.key === "Enter" && refetch()}
+              className="w-full pl-9 pr-4 py-2.5 bg-Back-Mid-20 border border-Outline-Variant rounded-full text-sm text-Text-Highest-100 placeholder:text-Text-Lowest-60 focus:border-Primary-Main focus:ring-2 focus:ring-Primary-Main/20 focus:outline-none transition-all"
             />
-            <div className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
           </div>
-          <div className="flex gap-3">
-            <Button
+          <div className="flex gap-2 shrink-0">
+            <button
               onClick={() => refetch()}
-              color="primary"
-              className="whitespace-nowrap"
+              className="h-10 px-5 bg-transparent text-Primary-Main border border-Primary-Main rounded-full text-sm font-medium hover:bg-Primary-Container/30 transition-all"
             >
               검색
-            </Button>
-            <Button
+            </button>
+            <button
               onClick={handleAddNewClick}
-              color="success"
-              className="whitespace-nowrap"
+              className="h-10 px-5 bg-Primary-Main text-white rounded-full text-sm font-medium hover:brightness-90 active:brightness-85 transition-all"
             >
-              신규 업체 추가
-            </Button>
+              + 고객 추가
+            </button>
           </div>
         </div>
       </div>
 
-      {/* 납품처 목록 */}
-      <div className="w-full overflow-hidden bg-white shadow-md rounded-2xl">
+      {/* 고객 목록 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant overflow-hidden">
         {isLoading ? (
-          <div className="flex justify-center p-8">
+          <div className="flex justify-center p-12">
             <LoadingCentered size="lg" />
           </div>
         ) : suppliersList && suppliersList.length > 0 ? (
-          <div className="w-full overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    업체명
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    이메일
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    주소
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    전화번호
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    대표자
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    사업자등록번호
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    메모
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
-                  >
-                    작업
-                  </th>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="bg-Back-Low-10 border-b border-Outline-Variant">
+                  {["고객명", "이메일", "주소", "전화번호", "대표자", "사업자등록번호", "메모", ""].map(
+                    (h) => (
+                      <th
+                        key={h}
+                        scope="col"
+                        className="px-5 py-3.5 text-left text-sm font-medium text-Text-High-90 whitespace-nowrap"
+                      >
+                        {h}
+                      </th>
+                    )
+                  )}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-Outline-Variant">
                 {suppliersList.map((supplier) => (
                   <tr
                     key={supplier.id}
-                    className="transition-colors hover:bg-gray-50"
+                    className="hover:bg-Back-Low-10 transition-colors"
                   >
-                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                    <td className="px-5 py-4 text-sm font-medium text-Text-Highest-100 whitespace-nowrap">
                       {supplier.supplierName}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {supplier.email}
+                    <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
+                      {supplier.email || "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {supplier.supplierAddress}
+                    <td className="px-5 py-4 text-sm text-Text-High-90 max-w-[200px] truncate">
+                      {supplier.supplierAddress || "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {supplier.supplierPhoneNumber}
+                    <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
+                      {supplier.supplierPhoneNumber || "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                    <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
                       {supplier.representativeName || "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {supplier.registrationNumber}
+                    <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
+                      {supplier.registrationNumber || "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {supplier.memo}
+                    <td className="px-5 py-4 text-sm text-Text-Low-70 max-w-[160px] truncate">
+                      {supplier.memo || "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm whitespace-nowrap">
-                      <div className="flex gap-2">
-                        <Button
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <div className="flex gap-1.5">
+                        <button
                           onClick={() => handleEditClick(supplier)}
-                          color="primary"
-                          size="sm"
+                          className="h-8 px-3 bg-Primary-Container text-Primary-Main rounded-lg text-xs font-medium hover:bg-Primary-Container/70 transition-all"
                         >
                           수정
-                        </Button>
-                        <Button
+                        </button>
+                        <button
                           onClick={() => handleDelete(supplier.id)}
-                          color="danger"
-                          size="sm"
                           disabled={isDeleting}
+                          className="h-8 px-3 bg-Error-Container text-Error-Main rounded-lg text-xs font-medium hover:bg-Error-Container/70 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                         >
                           삭제
-                        </Button>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -653,13 +527,15 @@ export default function SupplierManagePage() {
             </table>
           </div>
         ) : (
-          <div className="p-8 text-center text-gray-500">
-            등록된 납품처가 없습니다.
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="text-4xl mb-3">👥</div>
+            <p className="text-base font-medium text-Text-High-90">등록된 고객이 없습니다</p>
+            <p className="mt-1 text-sm text-Text-Low-70">오른쪽 상단의 버튼으로 고객을 추가해보세요</p>
           </div>
         )}
       </div>
 
-      {/* 납품처 추가/수정 모달 */}
+      {/* 고객 추가/수정 모달 */}
       <SupplierFormModal
         isOpen={isFormModalOpen}
         onClose={handleCloseModal}
@@ -668,21 +544,13 @@ export default function SupplierManagePage() {
         isProcessing={isCreating || isUpdating}
       />
 
-      {/* iOS 스타일 애니메이션을 위한 스타일 */}
       <style jsx global>{`
         @keyframes modal-slide-up {
-          from {
-            transform: translateY(20px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
+          from { transform: translateY(16px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
         }
-
         .animate-modal-slide-up {
-          animation: modal-slide-up 0.2s ease-out forwards;
+          animation: modal-slide-up 0.18s ease-out forwards;
         }
       `}</style>
     </div>

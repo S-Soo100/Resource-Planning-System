@@ -74,17 +74,16 @@ export default function TeamMembers({
   };
 
   const handleUserUpdated = () => {
-    // 사용자 정보가 업데이트되면 모달을 닫고 상태를 초기화
     setIsEditModalOpen(false);
     setSelectedUserId(null);
   };
 
   if (isLoading) {
     return (
-      <div className="p-5 bg-white rounded-lg border-2 border-purple-200 shadow-md">
+      <div className="p-6 bg-white rounded-2xl shadow-sm">
         <div className="py-10 text-center">
-          <LoadingCentered size="lg" variant="purple" />
-          <p className="mt-2 text-gray-600">팀 멤버 정보를 불러오는 중...</p>
+          <LoadingCentered size="lg" />
+          <p className="mt-2 text-Text-Low-70">팀 멤버 정보를 불러오는 중...</p>
         </div>
       </div>
     );
@@ -92,9 +91,9 @@ export default function TeamMembers({
 
   if (error) {
     return (
-      <div className="p-5 bg-white rounded-lg border-2 border-purple-200 shadow-md">
+      <div className="p-6 bg-white rounded-2xl shadow-sm">
         <div className="py-10 text-center">
-          <p className="text-red-600">
+          <p className="text-Error-Main">
             오류가 발생했습니다: {error.toString()}
           </p>
         </div>
@@ -102,15 +101,39 @@ export default function TeamMembers({
     );
   }
 
+  const accessLevelLabel = (level: string) => {
+    return level === "admin"
+      ? "관리자"
+      : level === "moderator"
+      ? "1차승인권자"
+      : level === "supplier"
+      ? "납품처"
+      : "일반 사용자";
+  };
+
+  const accessLevelColor = (level: string) => {
+    return level === "admin"
+      ? "bg-Primary-Container text-Primary-Main"
+      : level === "moderator"
+      ? "bg-Back-Mid-20 text-Text-High-90"
+      : level === "supplier"
+      ? "bg-Back-Mid-20 text-Text-Low-70"
+      : "bg-Back-Low-10 text-Text-Low-70";
+  };
+
   return (
-    <div className="p-5 bg-white rounded-lg border-2 border-purple-200 shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-800">팀 멤버 관리</h2>
-        <div className="flex items-center space-x-2">
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      {/* 헤더 */}
+      <div className="flex justify-between items-center px-6 py-4 border-b border-Outline-Variant">
+        <div>
+          <h2 className="text-lg font-semibold text-Text-Highest-100">팀 멤버 관리</h2>
+          <p className="text-sm text-Text-Low-70 mt-0.5">팀원 초대 및 권한 관리</p>
+        </div>
+        <div className="flex items-center gap-2">
           {isReadOnly && (
-            <div className="px-4 py-2 text-sm text-yellow-700 bg-yellow-50 rounded-md border border-yellow-200">
-              읽기 전용 모드
-            </div>
+            <span className="px-3 py-1 text-xs font-medium text-Primary-Main bg-Primary-Container rounded-full">
+              읽기 전용
+            </span>
           )}
           {!isReadOnly && (
             <Button
@@ -124,89 +147,102 @@ export default function TeamMembers({
         </div>
       </div>
 
-      <div className="pb-4 mb-4 border-b border-purple-200">
-        <p className="text-gray-600">
-          팀원을 추가하거나 제거하고, 권한을 관리할 수 있습니다.
-        </p>
-      </div>
-
-      {/* 팀 멤버 목록 */}
-      <div className="space-y-3">
-        {teamUsers.length > 0 ? (
-          teamUsers.map((member: IMappingUser) => (
-            <div
-              key={member.id}
-              className="flex justify-between items-center p-4 rounded-lg border-2 border-purple-200 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200"
-            >
-              <div className="flex-1">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="flex justify-center items-center w-10 h-10 bg-purple-100 rounded-full">
-                      <span className="font-medium text-purple-600">
-                        {member.user.name.charAt(0)}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">
-                      {member.user.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">{member.user.email}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                  {(() => {
-                    const accessLevel =
-                      (member.user as { accessLevel?: string }).accessLevel ||
-                      "user";
-                    return accessLevel === "admin"
-                      ? "관리자"
-                      : accessLevel === "moderator"
-                      ? "1차승인권자"
-                      : accessLevel === "supplier"
-                      ? "납품처"
-                      : "일반 사용자";
-                  })()}
-                </span>
-                {!isReadOnly && (
-                  <>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleEditUser(member.user as IUser)}
-                    >
-                      수정
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleRemoveUser(member.user.id)}
-                      disabled={isRemovingUser}
-                    >
-                      제거
-                    </Button>
-                  </>
-                )}
-                {isReadOnly && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleEditUser(member.user as IUser)}
+      {/* 테이블 */}
+      {teamUsers.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-Back-Low-10 border-b border-Outline-Variant">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                  멤버
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                  이메일
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                  권한
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                  관리
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-Outline-Variant">
+              {teamUsers.map((member: IMappingUser) => {
+                const level =
+                  (member.user as { accessLevel?: string }).accessLevel || "user";
+                return (
+                  <tr
+                    key={member.id}
+                    className="hover:bg-Back-Low-10 transition-colors duration-150"
                   >
-                    조회
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="py-10 text-center bg-purple-50 rounded-lg border-2 border-purple-200">
-            <p className="text-gray-500">등록된 팀 멤버가 없습니다.</p>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-Primary-Container rounded-full">
+                          <span className="text-sm font-semibold text-Primary-Main">
+                            {member.user.name.charAt(0)}
+                          </span>
+                        </div>
+                        <span className="font-medium text-Text-Highest-100">
+                          {member.user.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-Text-Low-70">
+                      {member.user.email}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${accessLevelColor(level)}`}
+                      >
+                        {accessLevelLabel(level)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        {!isReadOnly ? (
+                          <>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleEditUser(member.user as IUser)}
+                            >
+                              수정
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleRemoveUser(member.user.id)}
+                              disabled={isRemovingUser}
+                            >
+                              제거
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleEditUser(member.user as IUser)}
+                          >
+                            조회
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="py-16 text-center">
+          <div className="w-12 h-12 bg-Primary-Container rounded-full flex items-center justify-center mx-auto mb-3">
+            <span className="text-xl">👥</span>
           </div>
-        )}
-      </div>
+          <p className="text-Text-Low-70">등록된 팀 멤버가 없습니다.</p>
+        </div>
+      )}
 
       {/* 사용자 관리 모달 */}
       <UserManagementModal

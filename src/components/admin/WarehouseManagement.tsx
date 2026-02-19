@@ -135,14 +135,18 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
   };
 
   return (
-    <div className="p-5 bg-white rounded-lg shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">창고 관리</h2>
-        <div className="flex items-center space-x-2">
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-Outline-Variant">
+        <div>
+          <h2 className="text-lg font-semibold text-Text-Highest-100">창고 관리</h2>
+          <p className="text-sm text-Text-Low-70 mt-0.5">창고 정보 관리, 재고 상태 확인 및 위치 설정</p>
+        </div>
+        <div className="flex items-center gap-2">
           {isReadOnly && (
-            <div className="px-4 py-2 text-sm text-yellow-700 rounded-md bg-yellow-50">
-              읽기 전용 모드
-            </div>
+            <span className="px-3 py-1 text-xs font-medium text-Primary-Main bg-Primary-Container rounded-full">
+              읽기 전용
+            </span>
           )}
           {!isReadOnly && (
             <Button
@@ -156,26 +160,25 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
           )}
         </div>
       </div>
-      <div className="pb-4 mb-4 border-b">
-        <p className="text-gray-600">
-          창고 정보 관리, 재고 상태 확인 및 위치 설정을 할 수 있습니다.
-        </p>
-      </div>
 
-      {warehouses.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {warehouses.map((warehouse) => (
-            <div
-              key={warehouse.id}
-              className="flex flex-col p-4 text-left transition-colors duration-200 border-2 border-purple-200 rounded-lg shadow-md bg-purple-50 hover:bg-purple-100 hover:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-300"
-            >
-              <div className="flex-grow">
-                <h3 className="font-semibold text-purple-800">
-                  {warehouse.warehouseName}
-                </h3>
-                <div className="mt-2 text-sm text-gray-600">
-                  <p className="break-words">
-                    <span className="font-medium">위치:</span>{" "}
+      <div className="p-6">
+        {warehouses.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {warehouses.map((warehouse) => (
+              <div
+                key={warehouse.id}
+                className="flex flex-col p-4 bg-Back-Low-10 rounded-xl border border-Outline-Variant hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex-grow">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 flex items-center justify-center bg-Primary-Container rounded-lg flex-shrink-0">
+                      <span className="text-sm text-Primary-Main">🏭</span>
+                    </div>
+                    <h3 className="font-semibold text-Text-Highest-100">
+                      {warehouse.warehouseName}
+                    </h3>
+                  </div>
+                  <p className="text-sm text-Text-Low-70 break-words pl-10">
                     {warehouse &&
                     warehouse.warehouseAddress &&
                     warehouse.warehouseAddress.trim() !== ""
@@ -183,36 +186,39 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
                       : "주소 정보 없음"}
                   </p>
                 </div>
+                {!isReadOnly && (
+                  <div className="flex justify-end pt-3 mt-3 gap-2 border-t border-Outline-Variant">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditWarehouse(warehouse)}
+                      icon={<Edit className="w-3 h-3" />}
+                      iconPosition="left"
+                    >
+                      수정
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      icon={<Trash2 className="w-3 h-3" />}
+                      iconPosition="left"
+                    >
+                      삭제
+                    </Button>
+                  </div>
+                )}
               </div>
-              {!isReadOnly && (
-                <div className="flex justify-end pt-3 mt-4 space-x-2 border-t border-purple-200">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditWarehouse(warehouse)}
-                    icon={<Edit className="w-3 h-3" />}
-                    iconPosition="left"
-                  >
-                    수정
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    icon={<Trash2 className="w-3 h-3" />}
-                    iconPosition="left"
-                  >
-                    삭제
-                  </Button>
-                </div>
-              )}
+            ))}
+          </div>
+        ) : (
+          <div className="py-16 text-center">
+            <div className="w-12 h-12 bg-Primary-Container rounded-full flex items-center justify-center mx-auto mb-3">
+              <span className="text-xl">🏭</span>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="p-4 bg-gray-100 rounded-lg">
-          <p className="text-center text-gray-500">등록된 창고가 없습니다</p>
-        </div>
-      )}
+            <p className="text-Text-Low-70">등록된 창고가 없습니다</p>
+          </div>
+        )}
+      </div>
 
       {/* 창고 관리 모달 */}
       <WarehouseModal
@@ -224,6 +230,7 @@ const WarehouseManagement: React.FC<WarehouseManagementProps> = ({
       />
     </div>
   );
+
 };
 
 export default WarehouseManagement;

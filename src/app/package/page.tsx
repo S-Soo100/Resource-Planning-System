@@ -279,7 +279,7 @@ export default function PacakgePage() {
 
       return (
         <div>
-          <div className="flex flex-wrap gap-1.5 mt-2">
+          <div className="flex flex-wrap gap-1.5">
             {packageItems
               .slice(0, displayCount)
               .filter((pkgItem) => pkgItem.deletedAt === null) // 삭제되지 않은 아이템만
@@ -317,7 +317,7 @@ export default function PacakgePage() {
 
       return (
         <div>
-          <div className="flex flex-wrap gap-1.5 mt-2">
+          <div className="flex flex-wrap gap-1.5">
             {itemCodes.slice(0, displayCount).map((itemCode, index) => {
               const teamItem = teamItems.find(item => item.itemCode === itemCode);
               return (
@@ -660,50 +660,45 @@ export default function PacakgePage() {
                     draggedPackageId === pkg.id ? "opacity-50 scale-95" : ""
                   }`}
                 >
-                  {/* 카드 헤더 */}
-                  <div className="bg-Primary-Container px-4 py-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0 pr-2">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Package className="text-Primary-Main flex-shrink-0" size={16} />
-                          <h3 className="font-semibold text-sm text-Primary-Main truncate">
+                  <div className="p-4 flex flex-col gap-3">
+                    {/* 타이틀 행 */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 flex items-center justify-center bg-Primary-Container rounded-xl flex-shrink-0">
+                          <Package className="text-Primary-Main" size={15} />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-sm text-Text-Highest-100 truncate">
                             {pkg.packageName}
                           </h3>
-                        </div>
-                        <div className="flex items-center gap-1 text-Primary-Main/60 text-xs">
-                          <Calendar size={12} />
-                          <span>
-                            {new Date(pkg.createdAt as string).toLocaleDateString(
-                              "ko-KR"
-                            )}
-                          </span>
+                          <div className="flex items-center gap-1 text-Text-Low-70 text-xs mt-0.5">
+                            <Calendar size={11} />
+                            <span>
+                              {new Date(pkg.createdAt as string).toLocaleDateString("ko-KR")}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       {/* 아이콘 버튼들 */}
-                      <div className="flex gap-1 flex-shrink-0">
+                      <div className="flex gap-0.5 flex-shrink-0">
                         <button
                           onClick={() => handleStartEdit(pkg)}
-                          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-Primary-Main/10 text-Primary-Main transition-colors"
+                          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-Primary-Container text-Text-Low-70 hover:text-Primary-Main transition-colors"
                           title="수정"
                         >
                           <Edit2 size={14} />
                         </button>
                         <button
                           onClick={() => handleDeletePackage(pkg.id)}
-                          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-Error-Container text-Error-Main transition-colors"
+                          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-Error-Container text-Text-Low-70 hover:text-Error-Main transition-colors"
                           title="삭제"
                         >
                           <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
-                  </div>
 
-                  {/* 카드 본문 */}
-                  <div className="p-4">
-                    <p className="text-xs font-semibold text-Text-Low-70 uppercase tracking-wider mb-2">
-                      포함 아이템
-                    </p>
+                    {/* 아이템 배지 */}
                     {renderPackageItems(pkg)}
                   </div>
                 </div>

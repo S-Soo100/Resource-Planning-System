@@ -8,7 +8,7 @@ import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { CreateItemApiRequest } from "@/types/(item)/item";
 import { useCategory } from "@/hooks/useCategory";
-import { Package } from "lucide-react";
+import { ChevronDown, Package } from "lucide-react";
 
 interface CustomItemTableProps {
   isReadOnly?: boolean;
@@ -164,11 +164,8 @@ export default function CustomItemTable({
     addItemMutation.mutate(newItemData, {
       onSuccess: async (response) => {
         if (response.success) {
-          // 아이템 추가 성공 메시지
           alert(`아이템이 추가되었습니다.`);
           handleCloseModal();
-
-          // 데이터 리페치
           await refetchItems();
         } else {
           alert(
@@ -234,197 +231,258 @@ export default function CustomItemTable({
   return (
     <>
       <div className="space-y-4">
-        {warehouses.map((warehouse) => (
-          <div
-            key={warehouse.id}
-            className="bg-white rounded-lg border-2 border-purple-200 shadow-md hover:shadow-lg transition-all duration-200"
-          >
-            <div
-              className="p-5 flex justify-between items-center cursor-pointer hover:bg-purple-50 transition-colors rounded-t-lg"
-              onClick={() => toggleWarehouse(warehouse.id)}
-            >
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {warehouse.warehouseName}
-                </h3>
-                <p className="text-sm text-gray-500">창고 ID: {warehouse.id}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                {!isReadOnly && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenModal(warehouse.id);
-                    }}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-                  >
-                    아이템 추가
-                  </button>
-                )}
-                <svg
-                  className={`w-5 h-5 text-purple-600 transform transition-transform ${
-                    expandedWarehouses.includes(warehouse.id)
-                      ? "rotate-180"
-                      : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
+        {warehouses.map((warehouse) => {
+          const isExpanded = expandedWarehouses.includes(warehouse.id);
+          const warehouseItems = Array.isArray(items)
+            ? items.filter((item) => item.warehouseId === warehouse.id)
+            : [];
 
-            {expandedWarehouses.includes(warehouse.id) && (
-              <div className="p-5 border-t border-purple-100 bg-purple-50/30">
-                <div className="mb-4">
-                  <input
-                    type="text"
-                    placeholder="품목 코드나 품목명으로 검색..."
-                    value={searchQueries[warehouse.id] || ""}
-                    onChange={(e) =>
-                      handleSearchChange(warehouse.id, e.target.value)
-                    }
-                    className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+          return (
+            <div
+              key={warehouse.id}
+              className="bg-white rounded-2xl shadow-sm overflow-hidden transition-shadow duration-200 hover:shadow-md"
+            >
+              {/* 창고 헤더 */}
+              <div
+                className="flex justify-between items-center px-6 py-4 cursor-pointer select-none"
+                onClick={() => toggleWarehouse(warehouse.id)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 flex items-center justify-center bg-Primary-Container rounded-xl flex-shrink-0">
+                    <span className="text-base text-Primary-Main">🏭</span>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-Text-Highest-100">
+                      {warehouse.warehouseName}
+                    </h3>
+                    <p className="text-xs text-Text-Low-70">
+                      창고 ID: {warehouse.id} · {warehouseItems.length}개 품목
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {!isReadOnly && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenModal(warehouse.id);
+                      }}
+                      className="px-4 py-1.5 bg-Primary-Main text-white rounded-full text-sm font-medium hover:bg-Primary-Main/90 transition-colors"
+                    >
+                      아이템 추가
+                    </button>
+                  )}
+                  <ChevronDown
+                    className={`w-5 h-5 text-Text-Low-70 transition-transform duration-200 ${
+                      isExpanded ? "rotate-180" : ""
+                    }`}
                   />
                 </div>
+              </div>
 
-                <div className="overflow-x-auto bg-white rounded-lg border border-purple-200">
-                  <table className="min-w-full divide-y divide-purple-200">
-                    <thead className="bg-purple-50">
-                      <tr>
-                        <th className="px-4 py-3 w-20 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          이미지
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          품목 코드
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          품목명
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          카테고리
-                        </th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          수량
-                        </th>
-                        {!isReadOnly && (
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                            관리
+              {/* 확장 영역 */}
+              {isExpanded && (
+                <div className="border-t border-Outline-Variant">
+                  {/* 검색 바 */}
+                  <div className="px-6 py-3 bg-Back-Low-10">
+                    <input
+                      type="text"
+                      placeholder="품목 코드나 품목명으로 검색..."
+                      value={searchQueries[warehouse.id] || ""}
+                      onChange={(e) =>
+                        handleSearchChange(warehouse.id, e.target.value)
+                      }
+                      className="w-full px-4 py-2 text-sm border border-Outline-Variant rounded-full bg-white focus:outline-none focus:ring-2 focus:ring-Primary-Main/20 focus:border-Primary-Main"
+                    />
+                  </div>
+
+                  {/* 테이블 */}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                      <thead>
+                        <tr className="bg-Back-Low-10 border-b border-Outline-Variant">
+                          <th className="px-4 py-3 w-20 text-center text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                            이미지
                           </th>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {Array.isArray(items) &&
-                        items
-                          .filter(
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                            품목 코드
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                            품목명
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                            카테고리
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                            수량
+                          </th>
+                          {!isReadOnly && (
+                            <th className="px-4 py-3 text-right text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                              관리
+                            </th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-Outline-Variant">
+                        {Array.isArray(items) &&
+                          items
+                            .filter(
+                              (item) =>
+                                item.warehouseId === warehouse.id &&
+                                (!searchQueries[warehouse.id] ||
+                                  item.teamItem.itemCode
+                                    .toLowerCase()
+                                    .includes(
+                                      searchQueries[warehouse.id].toLowerCase()
+                                    ) ||
+                                  item.teamItem.itemName
+                                    .toLowerCase()
+                                    .includes(
+                                      searchQueries[warehouse.id].toLowerCase()
+                                    ))
+                            )
+                            .sort((a, b) => {
+                              const categoryA = getCategoryNameById(
+                                a.teamItem.categoryId
+                              );
+                              const categoryB = getCategoryNameById(
+                                b.teamItem.categoryId
+                              );
+                              if (categoryA !== categoryB) {
+                                return categoryA.localeCompare(categoryB);
+                              }
+                              return a.teamItem.itemCode.localeCompare(
+                                b.teamItem.itemCode
+                              );
+                            })
+                            .map((item) => (
+                              <tr
+                                key={item.id}
+                                className="hover:bg-Back-Low-10 transition-colors duration-150"
+                              >
+                                <td className="px-4 py-3 text-center">
+                                  {item.teamItem.imageUrl ? (
+                                    <img
+                                      src={item.teamItem.imageUrl}
+                                      alt={item.teamItem.itemName}
+                                      className="w-12 h-12 object-cover rounded-md border border-Outline-Variant mx-auto"
+                                    />
+                                  ) : (
+                                    <div className="w-12 h-12 bg-Back-Mid-20 rounded-md flex items-center justify-center mx-auto">
+                                      <Package className="w-6 h-6 text-Text-Low-70" />
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 font-medium text-Text-Highest-100">
+                                  {item.teamItem.itemCode}
+                                </td>
+                                <td className="px-4 py-3 text-Text-High-90">
+                                  {item.teamItem.itemName}
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className="px-2 py-0.5 bg-Primary-Container text-Primary-Main rounded-full text-xs font-medium">
+                                    {getCategoryNameById(
+                                      item.teamItem.categoryId
+                                    )}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-right font-semibold text-Text-Highest-100">
+                                  {item.itemQuantity}
+                                </td>
+                                {!isReadOnly && (
+                                  <td className="px-4 py-3 text-right">
+                                    <button
+                                      onClick={() =>
+                                        handleDeleteItem(
+                                          item.id,
+                                          item.warehouseId
+                                        )
+                                      }
+                                      className="px-3 py-1 text-Error-Main bg-Error-Container rounded-full text-xs font-medium hover:brightness-95 transition-all"
+                                    >
+                                      삭제
+                                    </button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                        {/* 검색 결과 없음 */}
+                        {searchQueries[warehouse.id] &&
+                          Array.isArray(items) &&
+                          items.filter(
                             (item) =>
                               item.warehouseId === warehouse.id &&
-                              (!searchQueries[warehouse.id] ||
-                                item.teamItem.itemCode
-                                  .toLowerCase()
-                                  .includes(
-                                    searchQueries[warehouse.id].toLowerCase()
-                                  ) ||
+                              (item.teamItem.itemCode
+                                .toLowerCase()
+                                .includes(
+                                  searchQueries[warehouse.id].toLowerCase()
+                                ) ||
                                 item.teamItem.itemName
                                   .toLowerCase()
                                   .includes(
                                     searchQueries[warehouse.id].toLowerCase()
                                   ))
-                          )
-                          .sort((a, b) => {
-                            // 먼저 카테고리로 정렬
-                            const categoryA = getCategoryNameById(
-                              a.teamItem.categoryId
-                            );
-                            const categoryB = getCategoryNameById(
-                              b.teamItem.categoryId
-                            );
-                            if (categoryA !== categoryB) {
-                              return categoryA.localeCompare(categoryB);
-                            }
-                            // 카테고리가 같으면 품목코드로 정렬
-                            return a.teamItem.itemCode.localeCompare(
-                              b.teamItem.itemCode
-                            );
-                          })
-                          .map((item) => (
-                            <tr key={item.id} className="hover:bg-purple-50 transition-colors">
-                              <td className="px-4 py-3 text-center">
-                                {item.teamItem.imageUrl ? (
-                                  <img
-                                    src={item.teamItem.imageUrl}
-                                    alt={item.teamItem.itemName}
-                                    className="w-12 h-12 object-cover rounded-md border border-gray-200 mx-auto"
-                                  />
-                                ) : (
-                                  <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center mx-auto">
-                                    <Package className="w-6 h-6 text-gray-400" />
-                                  </div>
-                                )}
+                          ).length === 0 && (
+                            <tr>
+                              <td
+                                colSpan={isReadOnly ? 5 : 6}
+                                className="px-4 py-10 text-center text-Text-Low-70"
+                              >
+                                검색 결과가 없습니다.
                               </td>
-                              <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                {item.teamItem.itemCode}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-700">
-                                {item.teamItem.itemName}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-600">
-                                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                                  {getCategoryNameById(item.teamItem.categoryId)}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-900 text-right font-semibold">
-                                {item.itemQuantity}
-                              </td>
-                              {!isReadOnly && (
-                                <td className="px-4 py-3 text-right">
-                                  <button
-                                    onClick={() =>
-                                      handleDeleteItem(
-                                        item.id,
-                                        item.warehouseId
-                                      )
-                                    }
-                                    className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-xs font-medium"
-                                  >
-                                    삭제
-                                  </button>
-                                </td>
-                              )}
                             </tr>
-                          ))}
-                    </tbody>
-                  </table>
+                          )}
+                      </tbody>
+                    </table>
+
+                    {/* 아이템 없음 */}
+                    {warehouseItems.length === 0 &&
+                      !searchQueries[warehouse.id] && (
+                        <div className="py-12 text-center">
+                          <div className="w-10 h-10 bg-Primary-Container rounded-full flex items-center justify-center mx-auto mb-2">
+                            <Package className="w-5 h-5 text-Primary-Main" />
+                          </div>
+                          <p className="text-Text-Low-70 text-sm">
+                            등록된 아이템이 없습니다.
+                          </p>
+                        </div>
+                      )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          );
+        })}
+
+        {/* 창고 없음 */}
+        {warehouses.length === 0 && (
+          <div className="py-16 text-center bg-white rounded-2xl shadow-sm">
+            <div className="w-12 h-12 bg-Primary-Container rounded-full flex items-center justify-center mx-auto mb-3">
+              <span className="text-xl">🏭</span>
+            </div>
+            <p className="text-Text-Low-70">등록된 창고가 없습니다.</p>
           </div>
-        ))}
+        )}
       </div>
 
+      {/* 아이템 추가 모달 */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div
             ref={modalRef}
-            className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl border-2 border-purple-200"
+            className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"
           >
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-800">아이템 추가</h2>
+              <h2 className="text-lg font-semibold text-Text-Highest-100">
+                아이템 추가
+              </h2>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  팀 아이템 선택 <span className="text-red-500">*</span>
+              <div>
+                <label className="block text-sm font-medium text-Text-Highest-100 mb-1.5">
+                  팀 아이템 선택 <span className="text-Error-Main">*</span>
                 </label>
                 <select
-                  className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-4 py-2 border border-Outline-Variant rounded-md focus:outline-none focus:ring-2 focus:ring-Primary-Main/20 focus:border-Primary-Main text-Text-Highest-100 bg-white"
                   value={formValues.teamItemId}
                   onChange={(e) => handleTeamItemSelect(e.target.value)}
                 >
@@ -446,12 +504,12 @@ export default function CustomItemTable({
                 </select>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div>
+                <label className="block text-sm font-medium text-Text-Highest-100 mb-1.5">
                   수량
                 </label>
                 <input
-                  className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full px-4 py-2 border border-Outline-Variant rounded-md focus:outline-none focus:ring-2 focus:ring-Primary-Main/20 focus:border-Primary-Main text-Text-Highest-100 bg-white"
                   type="number"
                   min={0}
                   value={formValues.itemQuantity}
@@ -464,20 +522,20 @@ export default function CustomItemTable({
                 />
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors font-medium"
+                  className="px-4 py-2 border border-Outline-Variant rounded-full text-Text-High-90 hover:bg-Back-Low-10 transition-colors text-sm font-medium"
                 >
                   취소
                 </button>
                 <button
                   onClick={handleFormSubmit}
                   disabled={formValues.teamItemId === 0}
-                  className={`px-4 py-2 rounded-full font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     formValues.teamItemId === 0
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-purple-600 hover:bg-purple-700 text-white"
+                      ? "bg-Back-Mid-20 text-Text-Low-70 cursor-not-allowed"
+                      : "bg-Primary-Main hover:bg-Primary-Main/90 text-white"
                   }`}
                 >
                   추가

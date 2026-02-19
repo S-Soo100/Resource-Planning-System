@@ -701,89 +701,53 @@ const DemonstrationRecordTabs = () => {
       </div>
 
       {/* 탭 */}
-      <div className="flex mb-4 gap-1.5 sm:gap-2">
-        <button
-          onClick={() => handleTabChange("ongoing")}
-          className={`group flex-1 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-base transition-all duration-300 transform hover:scale-[1.02] ${
-            activeTab === "ongoing"
-              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200"
-              : "bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 hover:from-gray-100 hover:to-gray-200 border border-gray-200"
-          }`}
-        >
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-transform duration-300 ${activeTab === "ongoing" ? "animate-pulse" : "group-hover:rotate-12"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-            <span className="whitespace-nowrap">진행중</span>
-          </div>
-        </button>
-        <button
-          onClick={() => handleTabChange("long-term")}
-          className={`group flex-1 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-base transition-all duration-300 transform hover:scale-[1.02] ${
-            activeTab === "long-term"
-              ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-200"
-              : "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 hover:from-purple-100 hover:to-purple-200 border border-purple-200"
-          }`}
-        >
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-transform duration-300 ${activeTab === "long-term" ? "" : "group-hover:scale-110"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span className="whitespace-nowrap">장기 시연</span>
-          </div>
-        </button>
-        <button
-          onClick={() => handleTabChange("completed")}
-          className={`group flex-1 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-base transition-all duration-300 transform hover:scale-[1.02] ${
-            activeTab === "completed"
-              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-200"
-              : "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 hover:from-green-100 hover:to-emerald-100 border border-green-200"
-          }`}
-        >
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-transform duration-300 ${activeTab === "completed" ? "" : "group-hover:scale-110"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span className="whitespace-nowrap">시연종료</span>
-          </div>
-        </button>
+      <div className="flex p-1.5 mb-4 bg-Back-Mid-20 rounded-2xl shadow-inner">
+        {[
+          {
+            id: "ongoing" as TabType,
+            label: "진행중",
+            icon: (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            ),
+          },
+          {
+            id: "long-term" as TabType,
+            label: "장기 시연",
+            icon: (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ),
+          },
+          {
+            id: "completed" as TabType,
+            label: "시연종료",
+            icon: (
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ),
+          },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => handleTabChange(tab.id)}
+            className={`relative flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-base font-medium transition-all duration-200 ${
+              activeTab === tab.id
+                ? "bg-white text-Primary-Main shadow-md"
+                : "text-Text-Low-70 hover:bg-white/50 hover:text-Text-High-90"
+            }`}
+          >
+            {tab.icon}
+            <span className="whitespace-nowrap">{tab.label}</span>
+          </button>
+        ))}
       </div>
 
       {/* 탭별 기록 수 표시 */}
-      <div className="mb-4 p-4 bg-gray-50 rounded-xl">
+      <div className="mb-4 p-4 bg-Back-Low-10 rounded-xl">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
             {activeTab === "ongoing" ? "진행중" : activeTab === "long-term" ? "장기 시연" : "시연종료"} 시연:{" "}

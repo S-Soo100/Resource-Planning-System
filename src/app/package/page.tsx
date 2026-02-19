@@ -11,7 +11,7 @@ import {
 import { TeamItem } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { ArrowLeft, Package, Calendar, Edit2, Trash2 } from "lucide-react";
+import { ArrowLeft, Package, Calendar, Edit2, Trash2, X, Plus, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { navigateByAuthStatus } from "@/utils/navigation";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
@@ -30,30 +30,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-lg mx-4">
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-semibold">{title}</h2>
+      <div className="bg-white rounded-3xl w-full max-w-lg mx-4 overflow-hidden shadow-xl">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-Outline-Variant">
+          <h2 className="text-lg font-semibold text-Text-Highest-100">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-Back-Low-10 text-Text-Low-70 transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X size={18} />
           </button>
         </div>
-        <div className="p-4">{children}</div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );
@@ -292,14 +279,14 @@ export default function PacakgePage() {
 
       return (
         <div>
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-1.5 mt-2">
             {packageItems
               .slice(0, displayCount)
               .filter((pkgItem) => pkgItem.deletedAt === null) // 삭제되지 않은 아이템만
               .map((pkgItem) => (
                 <span
                   key={pkgItem.id}
-                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-Primary-Container text-Primary-Main"
                   title={`${pkgItem.item.teamItem.itemName} (${pkgItem.item.teamItem.itemCode})`}
                 >
                   {pkgItem.item.teamItem.itemName}
@@ -310,7 +297,7 @@ export default function PacakgePage() {
           {hasMore && (
             <button
               onClick={() => togglePackageExpand(pkg.id)}
-              className="mt-2 text-sm text-gray-600 hover:text-gray-800 focus:outline-none font-medium"
+              className="mt-2 text-xs text-Primary-Main hover:text-Primary-Main/80 focus:outline-none font-medium"
             >
               {isExpanded ? "접기" : `+ ${packageItems.length - 5}개 더 보기`}
             </button>
@@ -330,13 +317,13 @@ export default function PacakgePage() {
 
       return (
         <div>
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-1.5 mt-2">
             {itemCodes.slice(0, displayCount).map((itemCode, index) => {
               const teamItem = teamItems.find(item => item.itemCode === itemCode);
               return (
                 <span
                   key={index}
-                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-Primary-Container text-Primary-Main"
                   title={teamItem ? `${teamItem.itemName} (${itemCode})` : itemCode}
                 >
                   {teamItem ? teamItem.itemName : itemCode}
@@ -348,7 +335,7 @@ export default function PacakgePage() {
           {hasMore && (
             <button
               onClick={() => togglePackageExpand(pkg.id)}
-              className="mt-2 text-sm text-gray-600 hover:text-gray-800 focus:outline-none font-medium"
+              className="mt-2 text-xs text-Primary-Main hover:text-Primary-Main/80 focus:outline-none font-medium"
             >
               {isExpanded ? "접기" : `+ ${itemCodes.length - 5}개 더 보기`}
             </button>
@@ -357,7 +344,7 @@ export default function PacakgePage() {
       );
     }
 
-    return <p className="text-gray-500">아이템 없음</p>;
+    return <p className="text-sm text-Text-Low-70">아이템 없음</p>;
   };
 
   if (isUserLoading || isLoading || isTeamItemsLoading || isWarehouseItemsLoading) {
@@ -365,7 +352,7 @@ export default function PacakgePage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <LoadingCentered size="lg" />
-          <p className="mt-4 text-gray-600">데이터를 불러오는 중...</p>
+          <p className="mt-4 text-Text-Low-70">데이터를 불러오는 중...</p>
         </div>
       </div>
     );
@@ -374,20 +361,20 @@ export default function PacakgePage() {
   // 권한 체크: Admin, Moderator만 접근 가능
   if (!user || (user.accessLevel !== 'admin' && user.accessLevel !== 'moderator')) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-Back-Low-10">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="text-2xl font-bold text-Text-Highest-100 mb-4">
             접근 권한이 필요합니다
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-Text-Low-70 mb-6">
             패키지 관리 페이지는 관리자 또는 1차 승인권자만 접근할 수 있습니다.
           </p>
           <button
             onClick={() => router.push('/menu')}
-            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-Primary-Main text-white rounded-full hover:bg-Primary-Main/90 transition-colors font-medium"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
             메인으로 돌아가기
           </button>
         </div>
@@ -397,25 +384,25 @@ export default function PacakgePage() {
 
   if (error) {
     return (
-      <div className="p-4 text-center text-red-500">오류: {error.message}</div>
+      <div className="p-4 text-center text-Error-Main">오류: {error.message}</div>
     );
   }
 
   if (!selectedTeamId) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-Back-Low-10">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+          <h2 className="text-2xl font-bold text-Text-Highest-100 mb-4">
             팀을 선택해주세요
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-Text-Low-70 mb-6">
             패키지 관리를 위해서는 팀을 먼저 선택해야 합니다.
           </p>
           <button
             onClick={() => navigateByAuthStatus(router)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-Back-Mid-20 text-Text-High-90 rounded-full hover:bg-Back-Mid-20/80 transition-colors"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
             뒤로가기
           </button>
         </div>
@@ -427,36 +414,38 @@ export default function PacakgePage() {
   const renderAddPackageForm = () => (
     <form onSubmit={handleAddPackage}>
       <div className="mb-4">
-        <label className="block mb-2">패키지 이름</label>
+        <label className="block mb-1.5 text-sm font-medium text-Text-Highest-100">패키지 이름</label>
         <input
           type="text"
           value={newPackageName}
           onChange={(e) => setNewPackageName(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full px-4 py-2 border border-Outline-Variant rounded-xl focus:ring-2 focus:ring-Primary-Main/20 focus:border-Primary-Main outline-none text-Text-Highest-100"
+          placeholder="패키지 이름을 입력하세요"
           required
         />
       </div>
       <div className="mb-4">
-        <label className="block mb-2">
-          아이템 선택 ({selectedItems.length}개 선택됨)
+        <label className="block mb-1.5 text-sm font-medium text-Text-Highest-100">
+          아이템 선택 <span className="text-Primary-Main font-normal">({selectedItems.length}개 선택됨)</span>
         </label>
-        <div className="max-h-60 overflow-y-auto border rounded p-2">
+        <div className="max-h-60 overflow-y-auto border border-Outline-Variant rounded-xl p-3 bg-Back-Low-10">
           {teamItems.length === 0 ? (
-            <p className="text-gray-500">등록된 팀 아이템이 없습니다.</p>
+            <p className="text-Text-Low-70 text-sm">등록된 팀 아이템이 없습니다.</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               {teamItems.map((item) => (
-                <li key={item.id} className="flex items-center">
+                <li key={item.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white cursor-pointer" onClick={() => handleItemSelect(item.itemCode)}>
                   <input
                     type="checkbox"
                     id={`item-${item.id}`}
                     checked={selectedItems.includes(item.itemCode)}
                     onChange={() => handleItemSelect(item.itemCode)}
-                    className="mr-2"
+                    className="accent-Primary-Main"
+                    onClick={(e) => e.stopPropagation()}
                   />
-                  <label htmlFor={`item-${item.id}`} className="cursor-pointer">
+                  <label htmlFor={`item-${item.id}`} className="cursor-pointer text-sm text-Text-Highest-100">
                     {item.itemName}{" "}
-                    <span className="text-gray-500 text-sm">
+                    <span className="text-Text-Low-70">
                       ({item.itemCode})
                     </span>
                   </label>
@@ -466,16 +455,16 @@ export default function PacakgePage() {
           )}
         </div>
         {selectedItems.length > 0 && (
-          <div className="mt-2 text-sm">
-            <p className="font-semibold">선택된 아이템:</p>
-            <div className="flex flex-wrap gap-2 mt-1">
+          <div className="mt-2.5">
+            <p className="text-xs font-semibold text-Text-Low-70 mb-1.5">선택된 아이템:</p>
+            <div className="flex flex-wrap gap-1.5">
               {selectedItems
                 .map((itemCode) => findItemByCode(itemCode))
                 .filter((item) => item !== undefined) // 미등록 아이템 제외
                 .map((item) => (
                   <span
                     key={item.itemCode}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-Primary-Container text-Primary-Main"
                   >
                     {item.itemName}
                   </span>
@@ -488,13 +477,13 @@ export default function PacakgePage() {
         <button
           type="button"
           onClick={closeAddModal}
-          className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          className="px-4 py-2 bg-Back-Mid-20 text-Text-High-90 rounded-full hover:bg-Back-Mid-20/80 transition-colors text-sm font-medium"
         >
           취소
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-Primary-Main text-white rounded-full hover:bg-Primary-Main/90 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={selectedItems.length === 0}
         >
           패키지 추가
@@ -504,205 +493,225 @@ export default function PacakgePage() {
   );
 
   return (
-    <div className="px-6 py-4 md:p-8 lg:p-12">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">패키지 관리</h1>
-        <button
-          onClick={openAddModal}
-          className="px-4 py-2 bg-gray-800 text-white rounded-full hover:bg-gray-900 flex items-center"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+    <div className="p-4 md:p-6 lg:p-8 min-h-screen bg-Back-Low-10">
+      <div className="mx-auto max-w-7xl">
+
+        {/* 페이지 헤더 */}
+        <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-Text-Highest-100">패키지 관리</h1>
+            <p className="text-sm text-Text-Low-70 mt-0.5">자주 사용하는 품목 묶음을 패키지로 저장하고 발주 시 빠르게 활용하세요</p>
+          </div>
+          <button
+            onClick={openAddModal}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-Primary-Main text-white rounded-full hover:bg-Primary-Main/90 transition-colors text-sm font-medium self-start sm:self-auto flex-shrink-0"
           >
-            <path
-              fillRule="evenodd"
-              d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          새 패키지 추가
-        </button>
-      </div>
+            <Plus size={16} />
+            새 패키지 추가
+          </button>
+        </div>
 
-      {/* 패키지 추가 모달 */}
-      <Modal
-        isOpen={isAddModalOpen}
-        onClose={closeAddModal}
-        title="새 패키지 추가"
-      >
-        {renderAddPackageForm()}
-      </Modal>
+        {/* 패키지 개념 설명 카드 */}
+        <div className="mb-6 bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="flex items-start gap-3 px-6 py-5">
+            <div className="w-9 h-9 flex items-center justify-center bg-Primary-Container rounded-xl flex-shrink-0 mt-0.5">
+              <Info size={18} className="text-Primary-Main" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-Text-Highest-100 mb-1">패키지란?</h2>
+              <p className="text-sm text-Text-Low-70 leading-relaxed">
+                패키지는 <span className="font-medium text-Text-High-90">자주 함께 발주되는 품목들을 하나의 묶음으로 저장한 템플릿</span>입니다.
+                예를 들어 &quot;휠체어 기본 세트&quot;처럼 반복적으로 주문하는 구성을 패키지로 등록해두면,
+                발주 시 패키지를 선택하는 것만으로 품목들을 한 번에 추가할 수 있어 업무 효율을 높일 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </div>
 
-      {/* 패키지 수정 폼 */}
-      {editMode && (
-        <div className="mb-8 p-4 bg-yellow-50 rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">패키지 수정</h2>
-          <form onSubmit={handleUpdatePackage}>
-            <div className="mb-4">
-              <label className="block mb-2">패키지 이름</label>
-              <input
-                type="text"
-                value={editPackageName}
-                onChange={(e) => setEditPackageName(e.target.value)}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2">
-                아이템 선택 ({editSelectedItems.length}개 선택됨)
-              </label>
-              <div className="max-h-60 overflow-y-auto border rounded p-2">
-                {teamItems.length === 0 ? (
-                  <p className="text-gray-500">등록된 팀 아이템이 없습니다.</p>
-                ) : (
-                  <ul className="space-y-2">
-                    {teamItems.map((item) => (
-                      <li key={item.id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`edit-item-${item.id}`}
-                          checked={editSelectedItems.includes(item.itemCode)}
-                          onChange={() => handleEditItemSelect(item.itemCode)}
-                          className="mr-2"
-                        />
-                        <label
-                          htmlFor={`edit-item-${item.id}`}
-                          className="cursor-pointer"
-                        >
-                          {item.itemName}{" "}
-                          <span className="text-gray-500 text-sm">
-                            ({item.itemCode})
-                          </span>
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              {editSelectedItems.length > 0 && (
-                <div className="mt-2 text-sm">
-                  <p className="font-semibold">선택된 아이템:</p>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {editSelectedItems
-                      .map((itemCode) => findItemByCode(itemCode))
-                      .filter((item) => item !== undefined) // 미등록 아이템 제외
-                      .map((item) => (
-                        <span
-                          key={item.itemCode}
-                          className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"
-                        >
-                          {item.itemName}
-                        </span>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                disabled={editSelectedItems.length === 0}
-              >
-                수정 완료
-              </button>
+        {/* 패키지 추가 모달 */}
+        <Modal
+          isOpen={isAddModalOpen}
+          onClose={closeAddModal}
+          title="새 패키지 추가"
+        >
+          {renderAddPackageForm()}
+        </Modal>
+
+        {/* 패키지 수정 폼 (inline) */}
+        {editMode && (
+          <div className="mb-6 p-6 bg-white rounded-2xl shadow-sm border border-Outline-Variant">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold text-Text-Highest-100">패키지 수정</h2>
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-Back-Low-10 text-Text-Low-70 transition-colors"
               >
-                취소
+                <X size={16} />
               </button>
             </div>
-          </form>
-        </div>
-      )}
-
-      {/* 패키지 목록 */}
-      <div>
-        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-          <Package className="text-gray-700" size={24} />
-          패키지 목록
-          <span className="text-sm font-normal text-gray-500 ml-2">
-            ({packages.length}개)
-          </span>
-        </h2>
-        {packages.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-            <Package className="mx-auto text-gray-400 mb-3" size={48} />
-            <p className="text-gray-500 text-lg">등록된 패키지가 없습니다</p>
-            <p className="text-gray-400 text-sm mt-2">
-              새 패키지를 추가해보세요
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {packages.map((pkg: PackageApi) => (
-              <div
-                key={pkg.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, pkg.id)}
-                onDragEnd={handleDragEnd}
-                className={`bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden group cursor-move ${
-                  draggedPackageId === pkg.id ? "opacity-50 scale-95" : ""
-                }`}
-              >
-                {/* 카드 헤더 */}
-                <div className="bg-gray-800 p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0 pr-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Package className="text-white flex-shrink-0" size={20} />
-                        <h3 className="font-bold text-lg text-white truncate">
-                          {pkg.packageName}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-1 text-gray-300 text-xs">
-                        <Calendar size={14} />
-                        <span>
-                          {new Date(pkg.createdAt as string).toLocaleDateString(
-                            "ko-KR"
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                    {/* 아이콘 버튼들 */}
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => handleStartEdit(pkg)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-                        title="수정"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeletePackage(pkg.id)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-                        title="삭제"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+            <form onSubmit={handleUpdatePackage}>
+              <div className="mb-4">
+                <label className="block mb-1.5 text-sm font-medium text-Text-Highest-100">패키지 이름</label>
+                <input
+                  type="text"
+                  value={editPackageName}
+                  onChange={(e) => setEditPackageName(e.target.value)}
+                  className="w-full px-4 py-2 border border-Outline-Variant rounded-xl focus:ring-2 focus:ring-Primary-Main/20 focus:border-Primary-Main outline-none text-Text-Highest-100"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-1.5 text-sm font-medium text-Text-Highest-100">
+                  아이템 선택 <span className="text-Primary-Main font-normal">({editSelectedItems.length}개 선택됨)</span>
+                </label>
+                <div className="max-h-60 overflow-y-auto border border-Outline-Variant rounded-xl p-3 bg-Back-Low-10">
+                  {teamItems.length === 0 ? (
+                    <p className="text-Text-Low-70 text-sm">등록된 팀 아이템이 없습니다.</p>
+                  ) : (
+                    <ul className="space-y-1.5">
+                      {teamItems.map((item) => (
+                        <li key={item.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white cursor-pointer" onClick={() => handleEditItemSelect(item.itemCode)}>
+                          <input
+                            type="checkbox"
+                            id={`edit-item-${item.id}`}
+                            checked={editSelectedItems.includes(item.itemCode)}
+                            onChange={() => handleEditItemSelect(item.itemCode)}
+                            className="accent-Primary-Main"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <label
+                            htmlFor={`edit-item-${item.id}`}
+                            className="cursor-pointer text-sm text-Text-Highest-100"
+                          >
+                            {item.itemName}{" "}
+                            <span className="text-Text-Low-70">
+                              ({item.itemCode})
+                            </span>
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {editSelectedItems.length > 0 && (
+                  <div className="mt-2.5">
+                    <p className="text-xs font-semibold text-Text-Low-70 mb-1.5">선택된 아이템:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {editSelectedItems
+                        .map((itemCode) => findItemByCode(itemCode))
+                        .filter((item) => item !== undefined) // 미등록 아이템 제외
+                        .map((item) => (
+                          <span
+                            key={item.itemCode}
+                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-Primary-Container text-Primary-Main"
+                          >
+                            {item.itemName}
+                          </span>
+                        ))}
                     </div>
                   </div>
-                </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-Primary-Main text-white rounded-full hover:bg-Primary-Main/90 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={editSelectedItems.length === 0}
+                >
+                  수정 완료
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 bg-Back-Mid-20 text-Text-High-90 rounded-full hover:bg-Back-Mid-20/80 transition-colors text-sm font-medium"
+                >
+                  취소
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
-                {/* 카드 본문 */}
-                <div className="p-4">
-                  <div className="mb-3">
-                    <p className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
+        {/* 패키지 목록 */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Package className="text-Primary-Main" size={20} />
+            <h2 className="text-base font-semibold text-Text-Highest-100">패키지 목록</h2>
+            <span className="text-sm text-Text-Low-70">({packages.length}개)</span>
+          </div>
+          {packages.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
+              <div className="w-14 h-14 bg-Primary-Container rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Package className="text-Primary-Main" size={28} />
+              </div>
+              <p className="text-Text-High-90 font-medium">등록된 패키지가 없습니다</p>
+              <p className="text-Text-Low-70 text-sm mt-1.5">새 패키지를 추가해보세요</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {packages.map((pkg: PackageApi) => (
+                <div
+                  key={pkg.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, pkg.id)}
+                  onDragEnd={handleDragEnd}
+                  className={`bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden cursor-move ${
+                    draggedPackageId === pkg.id ? "opacity-50 scale-95" : ""
+                  }`}
+                >
+                  {/* 카드 헤더 */}
+                  <div className="bg-Primary-Container px-4 py-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0 pr-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Package className="text-Primary-Main flex-shrink-0" size={16} />
+                          <h3 className="font-semibold text-sm text-Primary-Main truncate">
+                            {pkg.packageName}
+                          </h3>
+                        </div>
+                        <div className="flex items-center gap-1 text-Primary-Main/60 text-xs">
+                          <Calendar size={12} />
+                          <span>
+                            {new Date(pkg.createdAt as string).toLocaleDateString(
+                              "ko-KR"
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                      {/* 아이콘 버튼들 */}
+                      <div className="flex gap-1 flex-shrink-0">
+                        <button
+                          onClick={() => handleStartEdit(pkg)}
+                          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-Primary-Main/10 text-Primary-Main transition-colors"
+                          title="수정"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDeletePackage(pkg.id)}
+                          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-Error-Container text-Error-Main transition-colors"
+                          title="삭제"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 카드 본문 */}
+                  <div className="p-4">
+                    <p className="text-xs font-semibold text-Text-Low-70 uppercase tracking-wider mb-2">
                       포함 아이템
                     </p>
                     {renderPackageItems(pkg)}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

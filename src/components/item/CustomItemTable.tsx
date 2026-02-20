@@ -29,6 +29,7 @@ export default function CustomItemTable({
   const [searchQueries, setSearchQueries] = useState<{ [key: number]: string }>(
     {}
   );
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // React Query 훅 사용
   const { useGetTeamItems } = useTeamItems();
@@ -365,7 +366,8 @@ export default function CustomItemTable({
                                     <img
                                       src={item.teamItem.imageUrl}
                                       alt={item.teamItem.itemName}
-                                      className="w-12 h-12 object-cover rounded-md border border-Outline-Variant mx-auto"
+                                      className="w-12 h-12 object-cover rounded-md border border-Outline-Variant mx-auto cursor-pointer hover:opacity-80 transition-opacity"
+                                      onClick={() => setLightboxUrl(item.teamItem.imageUrl)}
                                     />
                                   ) : (
                                     <div className="w-12 h-12 bg-Back-Mid-20 rounded-md flex items-center justify-center mx-auto">
@@ -543,6 +545,29 @@ export default function CustomItemTable({
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 이미지 라이트박스 */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[80] bg-black/75 flex items-center justify-center"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/70 transition-colors"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="확대 이미지"
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </>

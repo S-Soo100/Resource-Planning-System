@@ -44,6 +44,9 @@ export default function TeamItemsPage() {
   const { data: teamItems = [], isLoading, error } = useGetTeamItems();
   const { deleteTeamItem, isPending: deleteLoading } = useDeleteTeamItem();
 
+  // 라이트박스 상태
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
   // 모달 상태
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isTeamItemModalOpen, setIsTeamItemModalOpen] = useState(false);
@@ -603,7 +606,8 @@ export default function TeamItemsPage() {
                           <img
                             src={item.imageUrl}
                             alt={item.itemName}
-                            className="w-12 h-12 object-cover rounded-md border border-gray-200 mx-auto"
+                            className="w-12 h-12 object-cover rounded-md border border-gray-200 mx-auto cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => setLightboxUrl(item.imageUrl ?? null)}
                           />
                         ) : (
                           <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center mx-auto">
@@ -807,6 +811,29 @@ export default function TeamItemsPage() {
         categories={categories}
         editItem={editingTeamItem}
       />
+
+      {/* 이미지 라이트박스 */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[80] bg-black/75 flex items-center justify-center"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/70 transition-colors"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="확대 이미지"
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
       </div>
     </div>
   );

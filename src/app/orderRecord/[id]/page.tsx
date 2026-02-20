@@ -1270,13 +1270,13 @@ const OrderRecordDetail = () => {
                                 수량
                               </th>
                               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                판매가
+                                공급가
                               </th>
                               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                VAT (10%)
+                                세금
                               </th>
                               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                소계
+                                총 판매가
                               </th>
                             </tr>
                           </thead>

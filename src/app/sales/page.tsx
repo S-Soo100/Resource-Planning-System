@@ -9,6 +9,7 @@ import {
   Download,
   AlertCircle,
   FileText,
+  Info,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSalesData } from '@/hooks/useSalesData';
@@ -309,8 +310,32 @@ export default function SalesPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">💰 판매 내역</h1>
         <p className="text-gray-500 mt-2">
-          판매 내역을 기반으로 판매 현황을 분석합니다
+          승인된 발주를 기반으로 판매 현황을 분석합니다
         </p>
+      </div>
+
+      {/* 상태 안내 카드 */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="flex items-start">
+          <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-blue-800">
+            <strong className="block mb-1">📊 어떤 발주가 판매 내역에 포함되나요?</strong>
+            <div className="space-y-1">
+              <div>
+                <span className="font-medium">✅ 포함되는 발주:</span>{' '}
+                <span className="text-blue-700">
+                  승인된 발주, 출고 확인된 발주, 출고 완료된 발주
+                </span>
+              </div>
+              <div>
+                <span className="font-medium">❌ 제외되는 발주:</span>{' '}
+                <span className="text-blue-600">
+                  승인 대기 중인 발주, 반려된 발주
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 필터 */}

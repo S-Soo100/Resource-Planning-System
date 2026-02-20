@@ -3,7 +3,7 @@
 import { X, Download } from 'lucide-react';
 import { SalesRecord } from '@/types/sales';
 import { format } from 'date-fns';
-import { useAuth } from '@/store/authStore';
+import { useAuth, useSelectedTeam } from '@/store/authStore';
 
 interface TransactionStatementModalProps {
   isOpen: boolean;
@@ -19,6 +19,7 @@ export function TransactionStatementModal({
   if (!isOpen) return null;
 
   const { user } = useAuth();
+  const { selectedTeam } = useSelectedTeam();
   const { originalOrder, orderItems } = record;
 
   // 날짜 포맷팅
@@ -130,21 +131,21 @@ export function TransactionStatementModal({
                   <div className="space-y-0.5 text-[10px]">
                     <div className="flex">
                       <span className="text-gray-600 w-16">회사명:</span>
-                      <span className="font-medium">내법인명</span>
+                      <span className="font-medium">{selectedTeam?.companyName || '-'}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-2">
                       <div className="flex">
                         <span className="text-gray-600 w-16">사업자번호:</span>
-                        <span className="text-[9px]">XXX-XX-XXXXX</span>
+                        <span className="text-[9px]">{selectedTeam?.businessRegistrationNumber || '-'}</span>
                       </div>
                       <div className="flex">
                         <span className="text-gray-600 w-12">대표자:</span>
-                        <span>XXX</span>
+                        <span>{selectedTeam?.representativeName || '-'}</span>
                       </div>
                     </div>
                     <div className="flex">
                       <span className="text-gray-600 w-16">사업장주소:</span>
-                      <span className="text-[9px]">XXXXX</span>
+                      <span className="text-[9px]">{selectedTeam?.businessAddress || '-'}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-2">
                       <div className="flex">
@@ -159,11 +160,11 @@ export function TransactionStatementModal({
                     <div className="grid grid-cols-2 gap-x-2">
                       <div className="flex">
                         <span className="text-gray-600 w-16">담당자:</span>
-                        <span>{originalOrder.manager || 'XXX'}</span>
+                        <span>{originalOrder.manager || '-'}</span>
                       </div>
                       <div className="flex">
                         <span className="text-gray-600 w-12">연락처:</span>
-                        <span className="text-[9px]">{originalOrder.supplier?.supplierPhoneNumber || 'XXX'}</span>
+                        <span className="text-[9px]">{selectedTeam?.phoneNumber || '-'}</span>
                       </div>
                     </div>
                   </div>
@@ -321,21 +322,21 @@ export function TransactionStatementModal({
                   <div className="space-y-0.5 text-[10px]">
                     <div className="flex">
                       <span className="text-gray-600 w-16">회사명:</span>
-                      <span className="font-medium">내법인명</span>
+                      <span className="font-medium">{selectedTeam?.companyName || '-'}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-2">
                       <div className="flex">
                         <span className="text-gray-600 w-16">사업자번호:</span>
-                        <span className="text-[9px]">XXX-XX-XXXXX</span>
+                        <span className="text-[9px]">{selectedTeam?.businessRegistrationNumber || '-'}</span>
                       </div>
                       <div className="flex">
                         <span className="text-gray-600 w-12">대표자:</span>
-                        <span>XXX</span>
+                        <span>{selectedTeam?.representativeName || '-'}</span>
                       </div>
                     </div>
                     <div className="flex">
                       <span className="text-gray-600 w-16">사업장주소:</span>
-                      <span className="text-[9px]">XXXXX</span>
+                      <span className="text-[9px]">{selectedTeam?.businessAddress || '-'}</span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-2">
                       <div className="flex">
@@ -350,11 +351,11 @@ export function TransactionStatementModal({
                     <div className="grid grid-cols-2 gap-x-2">
                       <div className="flex">
                         <span className="text-gray-600 w-16">담당자:</span>
-                        <span>{originalOrder.manager || 'XXX'}</span>
+                        <span>{originalOrder.manager || '-'}</span>
                       </div>
                       <div className="flex">
                         <span className="text-gray-600 w-12">연락처:</span>
-                        <span className="text-[9px]">{originalOrder.supplier?.supplierPhoneNumber || 'XXX'}</span>
+                        <span className="text-[9px]">{selectedTeam?.phoneNumber || '-'}</span>
                       </div>
                     </div>
                   </div>

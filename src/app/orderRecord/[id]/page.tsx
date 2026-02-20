@@ -1458,8 +1458,10 @@ const OrderRecordDetail = () => {
                   )}
                 </div>
 
-                {/* 변경 이력 */}
-                {order && <OrderChangeHistory orderId={order.id} />}
+                {/* 변경 이력 - Admin/Moderator만 */}
+                {order && (auth?.accessLevel === 'admin' || auth?.accessLevel === 'moderator') && (
+                  <OrderChangeHistory orderId={order.id} />
+                )}
 
                 {/* 댓글 섹션 */}
                 {order && (

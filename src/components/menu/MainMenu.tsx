@@ -14,6 +14,10 @@ import {
   FaQuestionCircle,
   FaCalendarAlt,
   FaChartLine,
+  FaLock,
+  FaUsers,
+  FaWarehouse,
+  FaBuilding,
 } from "react-icons/fa";
 import {
   PiNewspaperClippingFill,
@@ -22,7 +26,7 @@ import {
   PiClipboardTextFill,
 } from "react-icons/pi";
 import { BiSolidPurchaseTag } from "react-icons/bi";
-import { MdPointOfSale } from "react-icons/md";
+import { MdPointOfSale, MdAnalytics } from "react-icons/md";
 import { useCategory } from "@/hooks/useCategory";
 import { LoadingCentered } from "@/components/ui/Loading";
 
@@ -62,6 +66,32 @@ const MainMenu = () => {
       setTabForUser(user.accessLevel);
     }
   }, [user?.accessLevel, setTabForUser]);
+
+  // 권한 레벨을 한글로 변환하는 함수
+  const formatAccessLevel = (accessLevels: string[]): string => {
+    const levelMap: Record<string, string> = {
+      admin: "관리자",
+      moderator: "중급 관리자",
+      user: "일반 사용자",
+      supplier: "공급업체",
+    };
+
+    // 권한 레벨을 우선순위 순으로 정렬 (admin > moderator > user > supplier)
+    const priority = ["admin", "moderator", "user", "supplier"];
+    const sortedLevels = accessLevels.sort(
+      (a, b) => priority.indexOf(a) - priority.indexOf(b)
+    );
+
+    // 최소 권한 레벨 표시
+    const lowestLevel = sortedLevels[sortedLevels.length - 1];
+
+    if (sortedLevels.length === 1) {
+      return `${levelMap[lowestLevel]} 전용`;
+    }
+
+    // 여러 권한이 있을 경우 "최소 권한" 이상 표시
+    return `${levelMap[lowestLevel]} 이상`;
+  };
 
   // 권한 체크 함수
   const checkAccess = (
@@ -207,6 +237,13 @@ const MainMenu = () => {
       onClick: () => checkAccess(`/sales`, ["admin", "moderator"]),
       accessLevel: ["admin", "moderator"],
     },
+    {
+      title: "마진 분석",
+      subtitle: "품목별 원가 대비 마진율을 분석합니다",
+      icon: <MdAnalytics className="text-3xl" />,
+      onClick: () => checkAccess(`/margin-analysis`, ["admin", "moderator"]),
+      accessLevel: ["admin", "moderator"],
+    },
   ];
 
   // 관리자 메뉴
@@ -233,19 +270,33 @@ const MainMenu = () => {
       accessLevel: ["user", "admin", "moderator"],
     },
     {
-      title: "4. 관리 - 팀멤버, 창고 관리",
-      subtitle: "팀 구성원 추가, 창고 추가",
-      icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/admin`, ["admin", "moderator"]),
+      title: "4. 팀 멤버 관리",
+      subtitle: "팀 구성원을 추가하고 권한을 관리합니다",
+      icon: <FaUsers className="text-3xl" />,
+      onClick: () => checkAccess(`/admin/team-members`, ["admin", "moderator"]),
       accessLevel: ["admin", "moderator"],
     },
     {
-      title: "5. 팀 활동 모니터링",
-      subtitle: "팀 전체의 실시간 변경 이력을 확인합니다",
-      icon: <FaChartLine className="text-3xl" />,
-      onClick: () => checkAccess(`/team-dashboard`, ["admin", "moderator"]),
+      title: "5. 창고 관리",
+      subtitle: "창고를 추가하고 정보를 관리합니다",
+      icon: <FaWarehouse className="text-3xl" />,
+      onClick: () => checkAccess(`/admin/warehouses`, ["admin", "moderator"]),
       accessLevel: ["admin", "moderator"],
     },
+    {
+      title: "6. 팀 정보 관리",
+      subtitle: "팀의 기본 정보와 사업장 정보를 관리합니다",
+      icon: <FaBuilding className="text-3xl" />,
+      onClick: () => checkAccess(`/admin/team-info`, ["admin", "moderator"]),
+      accessLevel: ["admin", "moderator"],
+    },
+    // {
+    //   title: "7. 팀 활동 모니터링",
+    //   subtitle: "팀 전체의 실시간 변경 이력을 확인합니다",
+    //   icon: <FaChartLine className="text-3xl" />,
+    //   onClick: () => checkAccess(`/team-dashboard`, ["admin", "moderator"]),
+    //   accessLevel: ["admin", "moderator"],
+    // },
   ];
 
   // 탭 설정
@@ -415,46 +466,64 @@ const MainMenu = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: 0.1 }}
           className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2"
         >
-          {currentTab.items
-            .filter((item) => item.accessLevel.includes(user.accessLevel))
-            .map((item, index) => (
+          {currentTab.items.map((item, index) => {
+            const hasAccess = item.accessLevel.includes(user.accessLevel);
+            return (
               <motion.button
                 key={index}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
                 animate={{
-                  opacity: 1,
+                  opacity: hasAccess ? 1 : 0.5,
                   y: 0,
-                  scale: hoveredCard === index ? 1.03 : 1,
-                  rotateX: hoveredCard === index ? (mousePosition.y - 0.5) * -8 : 0,
-                  rotateY: hoveredCard === index ? (mousePosition.x - 0.5) * 8 : 0,
+                  scale: hasAccess && hoveredCard === index ? 1.015 : 1,
+                  rotateX: hasAccess && hoveredCard === index ? (mousePosition.y - 0.5) * -4 : 0,
+                  rotateY: hasAccess && hoveredCard === index ? (mousePosition.x - 0.5) * 4 : 0,
                 }}
-                exit={{ opacity: 0, scale: 0.95 }}
+                exit={{ opacity: 0, scale: 0.98 }}
                 transition={{
-                  opacity: { duration: 0.065, delay: index * 0.0165 },
-                  y: { duration: 0.065, delay: index * 0.0165, type: "spring", stiffness: 300, damping: 25 },
-                  scale: { duration: 0.2 },
-                  rotateX: { duration: 0.15, ease: "easeOut" },
-                  rotateY: { duration: 0.15, ease: "easeOut" },
+                  opacity: { duration: 0.04, delay: index * 0.01 },
+                  y: { duration: 0.04, delay: index * 0.01, type: "spring", stiffness: 300, damping: 25 },
+                  scale: { duration: 0.12 },
+                  rotateX: { duration: 0.1, ease: "easeOut" },
+                  rotateY: { duration: 0.1, ease: "easeOut" },
                 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={item.onClick}
-                onMouseMove={(e) => handleMouseMove(e, index)}
+                whileTap={hasAccess ? { scale: 0.97 } : {}}
+                onClick={hasAccess ? item.onClick : () => toast.error(`접근 권한이 없습니다. 필요 권한: ${formatAccessLevel(item.accessLevel)}`)}
+                onMouseMove={(e) => hasAccess && handleMouseMove(e, index)}
                 onMouseLeave={handleMouseLeave}
                 style={{
                   transformStyle: "preserve-3d",
                   perspective: "1000px",
+                  cursor: hasAccess ? "pointer" : "not-allowed",
                 }}
                 className={`group relative overflow-hidden p-6 md:p-8 text-left bg-white rounded-2xl transition-all duration-300 ${
-                  hoveredCard === index
-                    ? "shadow-2xl"
-                    : "shadow-sm hover:shadow-md"
+                  hasAccess
+                    ? hoveredCard === index
+                      ? "shadow-2xl"
+                      : "shadow-sm hover:shadow-md"
+                    : "shadow-sm"
                 }`}
               >
                 {/* 배경 장식 원 */}
                 <div className="absolute top-0 right-0 w-24 h-24 bg-Primary-Container rounded-bl-full opacity-40 transition-all duration-300 group-hover:w-36 group-hover:h-36" />
+
+                {/* 자물쇠 아이콘 (권한 없는 경우만) */}
+                {!hasAccess && (
+                  <div className="group/lock absolute top-3 right-3 z-10">
+                    <div className="flex justify-center items-center p-2 bg-Back-Mid-20 rounded-full">
+                      <FaLock className="text-sm text-Outline-Variant" />
+                    </div>
+                    {/* 툴팁 */}
+                    <div className="invisible group-hover/lock:visible absolute top-full right-0 mt-2 px-3 py-2 text-xs font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap transition-all duration-200">
+                      필요 권한: {formatAccessLevel(item.accessLevel)}
+                      {/* 툴팁 화살표 */}
+                      <div className="absolute bottom-full right-3 w-2 h-2 bg-gray-900 transform rotate-45 translate-y-1" />
+                    </div>
+                  </div>
+                )}
 
                 <div className="relative flex flex-col gap-4">
                   {/* 첫 번째 줄: 아이콘 + 타이틀 */}
@@ -496,7 +565,8 @@ const MainMenu = () => {
                   </div>
                 </div>
               </motion.button>
-            ))}
+            );
+          })}
         </motion.div>
       </AnimatePresence>
     </div>

@@ -149,18 +149,8 @@ export function TransactionStatementModal({
                     </div>
                     <div className="grid grid-cols-2 gap-x-2">
                       <div className="flex">
-                        <span className="text-gray-600 w-16">업태:</span>
-                        <span>제조업</span>
-                      </div>
-                      <div className="flex">
-                        <span className="text-gray-600 w-12">종목:</span>
-                        <span>의료기기</span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-2">
-                      <div className="flex">
                         <span className="text-gray-600 w-16">담당자:</span>
-                        <span>{originalOrder.manager || '-'}</span>
+                        <span>{originalOrder.requester || '-'}</span>
                       </div>
                       <div className="flex">
                         <span className="text-gray-600 w-12">연락처:</span>
@@ -340,18 +330,8 @@ export function TransactionStatementModal({
                     </div>
                     <div className="grid grid-cols-2 gap-x-2">
                       <div className="flex">
-                        <span className="text-gray-600 w-16">업태:</span>
-                        <span>제조업</span>
-                      </div>
-                      <div className="flex">
-                        <span className="text-gray-600 w-12">종목:</span>
-                        <span>의료기기</span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-2">
-                      <div className="flex">
                         <span className="text-gray-600 w-16">담당자:</span>
-                        <span>{originalOrder.manager || '-'}</span>
+                        <span>{originalOrder.requester || '-'}</span>
                       </div>
                       <div className="flex">
                         <span className="text-gray-600 w-12">연락처:</span>

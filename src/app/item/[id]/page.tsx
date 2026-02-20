@@ -32,6 +32,9 @@ export default function ItemDetailPage() {
   const [isEditingCostPrice, setIsEditingCostPrice] = useState(false);
   const [editedCostPrice, setEditedCostPrice] = useState<string>("");
 
+  // 라이트박스 상태
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
   const item = itemResponse?.data as Item | undefined;
   const warehouse = warehouses.find((w) => w.id === item?.warehouseId);
 
@@ -155,7 +158,7 @@ export default function ItemDetailPage() {
           {/* 이미지 섹션 */}
           {item.teamItem.imageUrl && (
             <div className="mb-8 flex justify-center">
-              <div className="relative group">
+              <div className="relative group cursor-pointer" onClick={() => setLightboxUrl(item.teamItem.imageUrl)}>
                 <img
                   src={item.teamItem.imageUrl}
                   alt={item.teamItem.itemName}
@@ -425,6 +428,29 @@ export default function ItemDetailPage() {
           )}
         </div>
         )}
+
+      {/* 이미지 라이트박스 */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[80] bg-black/75 flex items-center justify-center"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/70 transition-colors"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="확대 이미지"
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
@@ -36,7 +36,7 @@ interface TeamItem {
   };
 }
 
-export default function TeamItemsPage() {
+function TeamItemsContent() {
   const { team } = useCurrentTeam();
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
@@ -850,5 +850,37 @@ export default function TeamItemsPage() {
       )}
       </div>
     </div>
+  );
+}
+
+export default function TeamItemsPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-4">
+        <div className="mx-auto max-w-7xl animate-pulse">
+          {/* 헤더 스켈레톤 */}
+          <div className="mb-6 w-1/3 h-8 bg-Back-Mid-20 rounded-full"></div>
+
+          {/* 카테고리 그리드 스켈레톤 */}
+          <div className="mb-8">
+            <div className="mb-4 w-32 h-6 bg-Back-Mid-20 rounded-full"></div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="p-4 h-24 bg-white rounded-xl shadow-sm"></div>
+              ))}
+            </div>
+          </div>
+
+          {/* 아이템 목록 스켈레톤 */}
+          <div>
+            <div className="mb-4 w-32 h-6 bg-Back-Mid-20 rounded-full"></div>
+            <div className="p-4 mb-4 h-16 bg-white rounded-xl shadow-sm"></div>
+            <div className="h-64 bg-white rounded-xl shadow-sm"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <TeamItemsContent />
+    </Suspense>
   );
 }

@@ -12,7 +12,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { authStore } from "@/store/authStore";
 import { useCategory } from "@/hooks/useCategory";
@@ -78,6 +78,7 @@ export default function TeamItemsPage() {
 
   const selectedTeam = authStore((state) => state.selectedTeam);
   const categoryModalRef = useRef<CategoryManagementModalRef>(null);
+  const searchParams = useSearchParams();
 
   // 새로운 useCategory 훅 사용
   const {
@@ -115,6 +116,19 @@ export default function TeamItemsPage() {
       console.log("team.warehouses:", JSON.stringify(team.warehouses, null, 2));
     }
   }, [team]);
+
+  // URL 파라미터에서 editId를 확인하고 자동으로 모달 열기
+  useEffect(() => {
+    const editId = searchParams.get('editId');
+    if (editId && teamItems.length > 0) {
+      const itemToEdit = teamItems.find((item) => item.id === parseInt(editId, 10));
+      if (itemToEdit) {
+        handleOpenTeamItemModal(itemToEdit);
+        // URL 파라미터 제거 (재진입 방지)
+        window.history.replaceState({}, '', '/team-items');
+      }
+    }
+  }, [searchParams, teamItems]);
 
   // 카테고리 모달 열기 (추가 모드)
   const handleOpenCategoryModal = () => {

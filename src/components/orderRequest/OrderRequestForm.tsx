@@ -372,35 +372,39 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     if (!selectedPackage) return;
 
     // packageItems 또는 itemlist에서 아이템 코드 추출
-    let itemCodes: string[] = [];
+    let itemsWithMemo: Array<{ code: string; memo?: string }> = [];
 
     // 1. packageItems 배열이 있고 비어있지 않은 경우
     if (selectedPackage.packageItems && selectedPackage.packageItems.length > 0) {
-      itemCodes = selectedPackage.packageItems
+      itemsWithMemo = selectedPackage.packageItems
         .filter((pkgItem) => pkgItem.deletedAt === null) // 삭제되지 않은 아이템만
-        .map((pkgItem) => pkgItem.item.teamItem.itemCode);
+        .map((pkgItem) => ({
+          code: pkgItem.item.teamItem.itemCode,
+          memo: pkgItem.item.teamItem.memo || undefined  // 패키지 아이템의 메모 포함
+        }));
     }
     // 2. packageItems가 비어있고 itemlist가 있는 경우 (구버전 데이터)
     else if (selectedPackage.itemlist) {
-      itemCodes = selectedPackage.itemlist
+      itemsWithMemo = selectedPackage.itemlist
         .split(',')
         .map(code => code.trim())
-        .filter(code => code);
+        .filter(code => code)
+        .map(code => ({ code, memo: undefined }));  // 구버전은 메모 없음
     }
 
-    if (itemCodes.length === 0) {
+    if (itemsWithMemo.length === 0) {
       toast.error("패키지에 포함된 아이템이 없습니다");
       return;
     }
 
     // 추출된 아이템 코드로 창고 아이템 찾기
-    const newItems = itemCodes
-      .map((itemCode) => {
+    const newItems = itemsWithMemo
+      .map(({ code, memo }) => {
         const warehouseItem = currentWarehouseItems.find(
-          (item) => item.teamItem.itemCode === itemCode
+          (item) => item.teamItem.itemCode === code
         );
         if (!warehouseItem) {
-          console.warn(`창고에서 품목 코드 '${itemCode}'를 찾을 수 없습니다`);
+          console.warn(`창고에서 품목 코드 '${code}'를 찾을 수 없습니다`);
           return null;
         }
 
@@ -410,6 +414,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           stockAvailable: warehouseItem.itemQuantity >= packageQuantity,
           stockQuantity: warehouseItem.itemQuantity,
           warehouseItemId: warehouseItem.id,
+          memo: memo,  // 패키지 아이템의 메모 할당
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);

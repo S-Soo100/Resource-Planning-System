@@ -158,7 +158,7 @@ export default function ItemDetailPage() {
           {/* 이미지 섹션 */}
           {item.teamItem.imageUrl && (
             <div className="mb-8 flex justify-center">
-              <div className="relative group cursor-pointer" onClick={() => setLightboxUrl(item.teamItem.imageUrl)}>
+              <div className="relative group cursor-pointer" onClick={() => setLightboxUrl(item.teamItem.imageUrl || null)}>
                 <img
                   src={item.teamItem.imageUrl}
                   alt={item.teamItem.itemName}
@@ -220,7 +220,7 @@ export default function ItemDetailPage() {
               <p className="text-2xl font-bold text-green-700">{item.itemQuantity} <span className="text-base font-normal">개</span></p>
             </div>
 
-            {/* 단가 (Admin/Moderator 전용) */}
+            {/* 단가 (Admin/Moderator 전용 - User/Supplier 제외) */}
             {(user?.accessLevel === "admin" || user?.accessLevel === "moderator") && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200 hover:border-purple-300 transition-colors">
                 <div className="flex items-center gap-2 mb-2">

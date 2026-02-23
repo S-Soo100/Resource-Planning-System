@@ -14,9 +14,9 @@ import {
 } from "react-icons/fa";
 import {
   PiNewspaperClippingFill,
-  // PiShoppingCartFill,
   PiHandCoinsFill,
   PiClipboardTextFill,
+  PiChartLineUpFill,
 } from "react-icons/pi";
 import { Accessibility } from "lucide-react";
 
@@ -27,17 +27,33 @@ const HowToUsePage = () => {
   const accessLevelInfo = {
     admin: {
       title: "관리자",
-      description: "시스템의 모든 기능에 대한 완전한 접근 권한",
+      description:
+        "시스템의 모든 기능에 대한 완전한 접근 권한, 모든 창고 접근 가능",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       icon: <FaShieldAlt className="text-2xl" />,
+      details: [
+        "모든 메뉴 및 기능 접근",
+        "팀 멤버 관리 및 권한 설정",
+        "발주/시연 모든 상태 변경",
+        "재무 데이터 접근 (판매/구매/마진)",
+        "원가 정보 열람 및 수정",
+      ],
     },
     moderator: {
       title: "1차승인권자",
-      description: "관리자 권한의 제한된 버전, 주로 조회와 승인 기능",
+      description:
+        "발주/시연 승인 권한, 재무 데이터 조회, 팀 멤버 관리 가능",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       icon: <FaUser className="text-2xl" />,
+      details: [
+        "발주/시연 초기 승인 (요청→승인/반려)",
+        "재무 데이터 조회 (판매/구매/마진)",
+        "팀 멤버 추가 및 권한 수정",
+        "원가 정보 열람 가능",
+        "출고 단계 이후 상태 변경 불가",
+      ],
     },
     user: {
       title: "일반 사용자",
@@ -45,6 +61,13 @@ const HowToUsePage = () => {
       color: "text-green-600",
       bgColor: "bg-green-50",
       icon: <FaUser className="text-2xl" />,
+      details: [
+        "재고 조회 및 입출고 내역 확인",
+        "발주 요청 및 시연 신청",
+        "자신이 작성한 발주/시연 수정",
+        "재무 데이터 접근 불가",
+        "원가 정보 열람 불가",
+      ],
     },
     supplier: {
       title: "외부업체",
@@ -52,6 +75,13 @@ const HowToUsePage = () => {
       color: "text-orange-600",
       bgColor: "bg-orange-50",
       icon: <FaTruck className="text-2xl" />,
+      details: [
+        "발주 요청 및 조회만 가능",
+        "자신의 발주 건만 확인",
+        "입출고 내역 접근 불가",
+        "재무 데이터 접근 불가",
+        "시연 기능 접근 불가",
+      ],
     },
   };
 
@@ -69,6 +99,13 @@ const HowToUsePage = () => {
           icon: <FaBox className="text-lg" />,
         },
         {
+          title: "재고 자산 가치 표시",
+          description:
+            "총 재고 자산 및 카테고리별 자산 분포를 확인합니다 (원가 기반)",
+          accessLevels: ["admin", "moderator"],
+          icon: <PiChartLineUpFill className="text-lg" />,
+        },
+        {
           title: "재고 수량 수정",
           description: "재고 수량을 직접 수정합니다 (관리자만)",
           accessLevels: ["admin"],
@@ -76,16 +113,11 @@ const HowToUsePage = () => {
         },
         {
           title: "입출고 내역",
-          description: "품목별 입출고 기록을 조회합니다",
+          description:
+            "품목별 입출고 기록을 조회합니다 (목적 구분: 구매/판매/창고이동/재고조정)",
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <FaClipboardList className="text-lg" />,
         },
-        // {
-        //   title: "품목 관리",
-        //   description: "품목 정보를 조회하고 관리합니다",
-        //   accessLevels: ["admin", "moderator", "user", "supplier"],
-        //   icon: <PiPackageFill className="text-lg" />,
-        // },
         {
           title: "업체 관리",
           description: "협력업체 정보를 등록하고 관리합니다",
@@ -120,19 +152,22 @@ const HowToUsePage = () => {
         },
         {
           title: "개별 품목 발주",
-          description: "원하는 품목을 개별적으로 선택하여 발주합니다",
+          description:
+            "원하는 품목을 개별적으로 선택하여 발주합니다 (판매가/VAT 직접 입력)",
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <FaBox className="text-lg" />,
         },
         {
           title: "발주 기록",
-          description: "발주건의 기록과 상태를 확인합니다",
+          description:
+            "발주건의 기록과 상태를 확인합니다 (거래처 필수 선택)",
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <PiNewspaperClippingFill className="text-lg" />,
         },
         {
           title: "시연 요청",
-          description: "제품 시연을 위한 전용 발주를 요청합니다",
+          description:
+            "제품 시연을 위한 전용 발주를 요청합니다 (일반/장기시연 구분)",
           accessLevels: ["admin", "moderator", "user"],
           icon: <PiHandCoinsFill className="text-lg" />,
         },
@@ -141,6 +176,41 @@ const HowToUsePage = () => {
           description: "시연품 출고 및 복귀 기록을 확인합니다",
           accessLevels: ["admin", "moderator", "user"],
           icon: <PiClipboardTextFill className="text-lg" />,
+        },
+      ],
+    },
+    {
+      category: "재무 & 분석",
+      icon: <PiChartLineUpFill className="text-2xl" />,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      items: [
+        {
+          title: "판매 관리",
+          description:
+            "발주 기반 판매 내역 조회, 거래명세서 출력 (2장 1세트 PDF)",
+          accessLevels: ["admin", "moderator"],
+          icon: <PiChartLineUpFill className="text-lg" />,
+        },
+        {
+          title: "구매 관리",
+          description:
+            "입고 기반 구매 내역 조회, 원가 관리 (시연품 창고 자동 제외)",
+          accessLevels: ["admin", "moderator"],
+          icon: <PiClipboardTextFill className="text-lg" />,
+        },
+        {
+          title: "마진 분석",
+          description:
+            "판매가/원가 비교, 역마진 식별, 품목별 수익성 분석",
+          accessLevels: ["admin", "moderator"],
+          icon: <PiChartLineUpFill className="text-lg" />,
+        },
+        {
+          title: "거래명세서",
+          description: "판매 거래 증빙 문서 출력, 공급가액/부가세 자동 계산",
+          accessLevels: ["admin", "moderator"],
+          icon: <PiNewspaperClippingFill className="text-lg" />,
         },
       ],
     },
@@ -169,8 +239,15 @@ const HowToUsePage = () => {
           icon: <FaBox className="text-lg" />,
         },
         {
-          title: "관리 - 팀멤버, 창고 관리",
-          description: "팀 구성원 추가, 창고 추가",
+          title: "팀 멤버 관리",
+          description:
+            "팀 구성원 추가, 팀별 역할/권한 설정 (v2.3 신규)",
+          accessLevels: ["admin", "moderator"],
+          icon: <FaUser className="text-lg" />,
+        },
+        {
+          title: "창고 관리",
+          description: "창고 추가 및 정렬 순서 관리",
           accessLevels: ["admin", "moderator"],
           icon: <PiNewspaperClippingFill className="text-lg" />,
         },
@@ -240,14 +317,78 @@ const HowToUsePage = () => {
               }
             </h2>
           </div>
-          <p className="text-gray-600">
+          <p className="mb-3 text-gray-600">
             {
               accessLevelInfo[user.accessLevel as keyof typeof accessLevelInfo]
                 ?.description
             }
           </p>
+          <ul className="space-y-1 text-sm text-gray-700">
+            {accessLevelInfo[
+              user.accessLevel as keyof typeof accessLevelInfo
+            ]?.details.map((detail, idx) => (
+              <li key={idx}>• {detail}</li>
+            ))}
+          </ul>
         </div>
       )}
+
+      {/* 권한 시스템 상세 */}
+      <div className="p-6 mb-8 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200">
+        <h2 className="mb-4 text-2xl font-bold text-gray-900">
+          🔐 팀별 역할/권한 시스템 (v2.3)
+        </h2>
+        <p className="mb-4 text-gray-700">
+          KARS는 팀마다 다른 권한을 설정할 수 있는 유연한 권한 시스템을
+          제공합니다. 동일한 사용자라도 팀 A에서는 관리자, 팀 B에서는 일반
+          사용자로 활동할 수 있습니다.
+        </p>
+
+        <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-4">
+          {Object.entries(accessLevelInfo).map(([level, info]) => (
+            <div
+              key={level}
+              className={`p-4 rounded-lg border-2 ${info.bgColor} border-gray-200`}
+            >
+              <div className="flex gap-2 items-center mb-2">
+                {info.icon}
+                <h3 className="font-semibold text-gray-800">{info.title}</h3>
+              </div>
+              <p className="mb-3 text-xs text-gray-600">{info.description}</p>
+              <ul className="space-y-1 text-xs text-gray-700">
+                {info.details.map((detail, idx) => (
+                  <li key={idx} className="flex items-start gap-1">
+                    <span className="mt-1 text-[8px]">•</span>
+                    <span>{detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-4 bg-white rounded-lg border border-indigo-200">
+          <h3 className="mb-2 font-semibold text-gray-800">
+            💡 권한 우선순위 규칙
+          </h3>
+          <ol className="space-y-1 text-sm text-gray-700 list-decimal list-inside">
+            <li>
+              <strong>팀별 권한</strong>이 설정되어 있으면 → 팀별 권한 사용
+            </li>
+            <li>
+              팀별 권한이 없으면 → <strong>기본 사용자 권한</strong>으로 폴백
+            </li>
+            <li>
+              <strong>팀 관리자(isAdmin)</strong> 플래그가 true이면 → 모든
+              창고 접근 가능
+            </li>
+            <li>
+              <strong>창고 접근 제한(restrictedWhs)</strong>이 설정되어 있으면
+              → 지정된 창고만 접근
+            </li>
+          </ol>
+        </div>
+      </div>
 
       {/* 시스템 콘셉트 */}
       <div className="p-6 mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
@@ -566,6 +707,8 @@ const HowToUsePage = () => {
               <ul className="space-y-1 text-sm text-blue-700">
                 <li>• 개별 품목 및 패키지 발주</li>
                 <li>• 실시간 재고 확인</li>
+                <li>• 판매가/VAT 직접 입력 (v2.0)</li>
+                <li>• 거래처 필수 선택 (v2.3)</li>
                 <li>• 권한별 승인 워크플로우</li>
                 <li>• 댓글을 통한 소통 및 협업</li>
                 <li>• 파일 첨부 지원</li>
@@ -593,6 +736,7 @@ const HowToUsePage = () => {
               </h4>
               <ul className="space-y-1 text-sm text-green-700">
                 <li>• 제품 시연 전용 프로세스</li>
+                <li>• 일반 시연 vs 장기시연 구분 (v2.0)</li>
                 <li>• 시연 출고 시 자동 재고 차감</li>
                 <li>• 시연 완료 후 재고 자동 복구</li>
                 <li>• 시연 전용 상태 관리</li>
@@ -613,6 +757,91 @@ const HowToUsePage = () => {
                 <li>• 권한별 접근 제어</li>
               </ul>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 재무 관리 시스템 */}
+      <div className="mb-8">
+        <h2 className="mb-4 text-2xl font-bold text-gray-800">
+          💰 재무 관리 시스템 (v2.2+)
+        </h2>
+        <div className="p-6 bg-white rounded-lg shadow-md">
+          <h3 className="mb-3 text-xl font-semibold text-gray-700">
+            재무 관리 시스템 개요
+          </h3>
+          <p className="mb-4 text-gray-600">
+            발주 및 입고 데이터를 기반으로 판매/구매 내역을 분석하고, 품목별
+            마진율을 추적하여 수익성을 관리합니다. Admin 및 Moderator 권한만
+            접근 가능합니다.
+          </p>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* 판매 관리 */}
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h4 className="mb-2 text-lg font-semibold text-blue-800">
+                📊 판매 관리
+              </h4>
+              <ul className="space-y-1 text-sm text-blue-700">
+                <li>• 발주 데이터 기반 판매 내역</li>
+                <li>• 거래명세서 출력 (2장 1세트 PDF)</li>
+                <li>• 공급가액/부가세 자동 계산</li>
+                <li>• 판매처별 필터링 및 집계</li>
+                <li>• 엑셀 다운로드</li>
+              </ul>
+            </div>
+
+            {/* 구매 관리 */}
+            <div className="p-4 bg-green-50 rounded-lg">
+              <h4 className="mb-2 text-lg font-semibold text-green-800">
+                🛒 구매 관리
+              </h4>
+              <ul className="space-y-1 text-sm text-green-700">
+                <li>• 입고 데이터 기반 구매 내역</li>
+                <li>• 원가(costPrice) 정보 관리</li>
+                <li>• 시연품 창고 자동 제외</li>
+                <li>• 공급처별 필터링 및 집계</li>
+                <li>• 원가 미입력 품목 추적</li>
+              </ul>
+            </div>
+
+            {/* 마진 분석 */}
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <h4 className="mb-2 text-lg font-semibold text-purple-800">
+                📈 마진 분석
+              </h4>
+              <ul className="space-y-1 text-sm text-purple-700">
+                <li>• 품목별 마진율 분석</li>
+                <li>• 역마진 품목 자동 식별</li>
+                <li>• 원가/판매가 미입력 추적</li>
+                <li>• 수익성 분석 리포트</li>
+                <li>• 3개 시트 엑셀 다운로드</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="p-4 mt-6 bg-yellow-50 rounded-lg border border-yellow-200">
+            <h4 className="mb-2 font-semibold text-yellow-800">
+              ⚠️ 재무 데이터 정확성 유지
+            </h4>
+            <ul className="space-y-1 text-sm text-yellow-700">
+              <li>
+                • <strong>판매가</strong>: 발주 시 sellingPrice 필드에 정확히
+                입력
+              </li>
+              <li>
+                • <strong>원가</strong>: 팀 물품 관리에서 costPrice 필드에
+                정확히 입력
+              </li>
+              <li>
+                • <strong>VAT</strong>: 영세율 품목(0%)이 있으므로 자동 계산
+                금지, 직접 입력
+              </li>
+              <li>
+                • <strong>시연품</strong>: 시연품 창고 입고는 구매 집계에서
+                자동 제외
+              </li>
+            </ul>
           </div>
         </div>
       </div>

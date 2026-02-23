@@ -145,6 +145,7 @@ export default function IoHistoryList() {
     outboundAddress: "",
     outboundAddressDetail: "",
     remarks: "",
+    recordPurpose: "sale", // 기본값: 판매 출고
     warehouseId: 0,
     attachedFiles: [],
   });
@@ -300,6 +301,7 @@ export default function IoHistoryList() {
       itemCode: "",
       itemName: "",
       currentQuantity: 0,
+      recordPurpose: "sale", // 기본값: 판매 출고
     });
     setSelectedOutboundItem(null);
     setIsOutboundModalOpen(true);

@@ -114,6 +114,7 @@ export default function IoHistoryList() {
     inboundAddress: "",
     inboundAddressDetail: "",
     remarks: "",
+    recordPurpose: "purchase", // 기본값: 구매 입고
     warehouseId: 0,
     attachedFiles: [],
   });
@@ -280,6 +281,7 @@ export default function IoHistoryList() {
       itemId: null,
       itemCode: "",
       itemName: "",
+      recordPurpose: "purchase", // 기본값: 구매 입고
     });
     setSelectedInboundItem(null);
     setIsInboundModalOpen(true);
@@ -530,6 +532,9 @@ export default function IoHistoryList() {
           queryClient.invalidateQueries({
             queryKey: ["inventoryRecordsByTeam"],
           }),
+          queryClient.invalidateQueries({
+            queryKey: ["teamItems"],
+          }),
         ]);
 
         alert("입고가 성공적으로 처리되었습니다.");
@@ -544,6 +549,7 @@ export default function IoHistoryList() {
           inboundAddress: "",
           inboundAddressDetail: "",
           remarks: "",
+          recordPurpose: "purchase", // 기본값: 구매 입고
           warehouseId: inboundValues.warehouseId,
           attachedFiles: [],
           supplierId: undefined,
@@ -620,6 +626,9 @@ export default function IoHistoryList() {
           invalidateInventory(),
           queryClient.invalidateQueries({
             queryKey: ["inventoryRecordsByTeam"],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ["teamItems"],
           }),
         ]);
 

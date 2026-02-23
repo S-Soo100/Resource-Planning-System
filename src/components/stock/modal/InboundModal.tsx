@@ -4,9 +4,12 @@
 import React, { useRef, useState, useEffect } from "react";
 import { AttachedFile } from "@/types/common";
 import SearchAddressModal from "./SearchAddressModal";
+import SelectSupplierModal from "../../supplier/SelectSupplierModal";
 import { Category } from "@/types/(item)/category";
 import { getDisplayFileName } from "@/utils/fileUtils";
 import { MANUAL_RECORD_PURPOSES } from "@/constants/recordPurpose";
+import { Supplier } from "@/types/supplier";
+import toast from "react-hot-toast";
 
 interface InboundModalProps {
   isOpen: boolean;
@@ -32,14 +35,11 @@ interface InboundModalProps {
   selectedItem: any;
   onFileUpload: (files: FileList | null) => void;
   onFileDelete: (index: number) => void;
-  suppliers: {
-    id: number;
-    supplierName: string;
-    supplierAddress: string;
-  }[];
+  suppliers: Supplier[];
   categories: Category[];
   selectedCategoryId: number | null;
   onCategoryChange: (categoryId: number | null) => void;
+  onSupplierSelect?: (supplier: Supplier) => void;
 }
 
 export default function InboundModal({
@@ -56,9 +56,11 @@ export default function InboundModal({
   categories,
   selectedCategoryId,
   onCategoryChange,
+  onSupplierSelect,
 }: InboundModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] = useState(false);
 
   useEffect(() => {
     // console.log 제거
@@ -155,8 +157,22 @@ export default function InboundModal({
     return baseAddress;
   };
 
-  // 폼 제출 시 주소 합치기 처리
+  // 고객 선택 핸들러
+  const handleSupplierSelect = (supplier: Supplier) => {
+    if (onSupplierSelect) {
+      onSupplierSelect(supplier);
+    }
+    setIsSelectSupplierModalOpen(false);
+  };
+
+  // 폼 제출 시 주소 합치기 처리 및 고객 필수 검증
   const handleSubmit = () => {
+    // 고객 필수 검증
+    if (!inboundValues.supplierId) {
+      toast.error("고객을 선택해주세요");
+      return;
+    }
+
     // 전체 주소를 inboundAddress에 임시 저장 (서버로 전송용)
     const fullAddress = getFullAddress();
     if (fullAddress) {
@@ -293,25 +309,21 @@ export default function InboundModal({
 
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-gray-700">
-                      납품처 선택(미리 등록한 경우만)
+                      고객 선택 <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      value={inboundValues.supplierId || ""}
-                      onChange={(e) => {
-                        const selectedSupplierId = e.target.value
-                          ? parseInt(e.target.value)
-                          : null;
-                        onFormChange("supplierId", selectedSupplierId);
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                    <button
+                      type="button"
+                      onClick={() => setIsSelectSupplierModalOpen(true)}
+                      className="w-full px-4 py-2 text-left border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                     >
-                      <option value="">납품처를 선택하세요</option>
-                      {suppliers.map((supplier) => (
-                        <option key={supplier.id} value={supplier.id}>
-                          {supplier.supplierName}
-                        </option>
-                      ))}
-                    </select>
+                      {inboundValues.supplierId ? (
+                        <span className="text-gray-900">
+                          {suppliers.find((s) => s.id === inboundValues.supplierId)?.supplierName || "고객 선택"}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">고객을 선택하세요</span>
+                      )}
+                    </button>
                   </div>
 
                   <div className="mb-4">
@@ -533,6 +545,12 @@ export default function InboundModal({
         isOpen={isAddressModalOpen}
         onClose={closeAddressModal}
         onAddressSelect={handleAddressSelect}
+      />
+      <SelectSupplierModal
+        isOpen={isSelectSupplierModalOpen}
+        onClose={() => setIsSelectSupplierModalOpen(false)}
+        onSelect={handleSupplierSelect}
+        suppliers={suppliers}
       />
     </>
   );

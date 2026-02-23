@@ -15,6 +15,7 @@ import { AttachedFile } from "@/types/common";
 import InboundModal from "../stock/modal/InboundModal";
 import OutboundModal from "../stock/modal/OutboundModal";
 import { useSuppliers } from "@/hooks/useSupplier";
+import { Supplier } from "@/types/supplier";
 import {
   useCreateInventoryRecord,
   useUploadInventoryRecordFile,
@@ -149,13 +150,7 @@ export default function IoHistoryList() {
 
   const { useGetSuppliers } = useSuppliers();
   const { suppliers: suppliersResponse } = useGetSuppliers();
-  const [suppliersList, setSuppliersList] = useState<
-    {
-      id: number;
-      supplierName: string;
-      supplierAddress: string;
-    }[]
-  >([]);
+  const [suppliersList, setSuppliersList] = useState<Supplier[]>([]);
 
   const {
     records,
@@ -270,21 +265,9 @@ export default function IoHistoryList() {
         typeof suppliersResponse === "object" &&
         "data" in suppliersResponse
       ) {
-        setSuppliersList(
-          suppliersResponse.data as {
-            id: number;
-            supplierName: string;
-            supplierAddress: string;
-          }[]
-        );
+        setSuppliersList(suppliersResponse.data as Supplier[]);
       } else {
-        setSuppliersList(
-          suppliersResponse as {
-            id: number;
-            supplierName: string;
-            supplierAddress: string;
-          }[]
-        );
+        setSuppliersList(suppliersResponse as Supplier[]);
       }
     }
   }, [suppliersResponse]);
@@ -323,6 +306,17 @@ export default function IoHistoryList() {
   const handleCloseOutboundModal = () => {
     setIsOutboundModalOpen(false);
     setSelectedOutboundItem(null);
+  };
+
+  // 입고 고객 선택 핸들러
+  const handleInboundSupplierSelect = (supplier: Supplier) => {
+    setInboundValues({
+      ...inboundValues,
+      supplierId: supplier.id,
+      inboundPlace: supplier.supplierName || "",
+      inboundAddress: supplier.supplierAddress || "",
+      inboundAddressDetail: "", // 상세주소는 사용자가 직접 입력
+    });
   };
 
   const handleInboundFormChange = (
@@ -364,6 +358,17 @@ export default function IoHistoryList() {
         [field]: value,
       });
     }
+  };
+
+  // 출고 고객 선택 핸들러
+  const handleOutboundSupplierSelect = (supplier: Supplier) => {
+    setOutboundValues({
+      ...outboundValues,
+      supplierId: supplier.id,
+      outboundPlace: supplier.supplierName || "",
+      outboundAddress: supplier.supplierAddress || "",
+      outboundAddressDetail: "", // 상세주소는 사용자가 직접 입력
+    });
   };
 
   const handleOutboundFormChange = (
@@ -1062,6 +1067,7 @@ export default function IoHistoryList() {
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onCategoryChange={handleInboundCategoryChange}
+        onSupplierSelect={handleInboundSupplierSelect}
       />
 
       {/* 출고 모달 */}
@@ -1079,6 +1085,7 @@ export default function IoHistoryList() {
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onCategoryChange={handleOutboundCategoryChange}
+        onSupplierSelect={handleOutboundSupplierSelect}
       />
     </div>
   );

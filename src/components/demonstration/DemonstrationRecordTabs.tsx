@@ -210,9 +210,18 @@ const DemonstrationRecordTabs = () => {
         ].includes(record.demoStatus);
       });
     } else if (activeTab === "long-term") {
-      // '장기 시연' 탭인 경우 - 장기시연만 표시 (진행 여부 무관)
+      // '장기 시연' 탭인 경우 - 장기시연 중 진행 중인 것만 표시 (완료 상태 제외)
       return allDemoRecords.filter((record: DemoResponse) => {
-        return record.isLongTerm === true;
+        if (record.isLongTerm !== true) {
+          return false;
+        }
+        // 시연이 완료되지 않은 상태들만 표시 (rejected와 rejectedByShipper 제외)
+        return ![
+          "demoCompleted",
+          "demoCompletedAndReturned",
+          "rejected",
+          "rejectedByShipper",
+        ].includes(record.demoStatus);
       });
     } else {
       // '시연종료' 탭인 경우 완료된 시연만 필터링

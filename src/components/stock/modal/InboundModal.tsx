@@ -198,7 +198,7 @@ export default function InboundModal({
             &#8203;
           </span>
 
-          <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div className="sm:flex sm:items-start">
                 <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
@@ -309,6 +309,58 @@ export default function InboundModal({
 
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-gray-700">
+                      목적 구분
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onFormChange("recordPurpose", "purchase")}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          inboundValues.recordPurpose === "purchase"
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        구매 입고
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onFormChange("recordPurpose", "transfer")}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          inboundValues.recordPurpose === "transfer"
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        창고 간 이동
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onFormChange("recordPurpose", "adjustment")}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          inboundValues.recordPurpose === "adjustment"
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        재고 조정
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onFormChange("recordPurpose", "other")}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          inboundValues.recordPurpose === "other"
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        기타
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
                       고객 선택 <span className="text-red-500">*</span>
                     </label>
                     <button
@@ -326,73 +378,89 @@ export default function InboundModal({
                     </button>
                   </div>
 
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-gray-700">
-                      입고처
-                    </label>
-                    <input
-                      type="text"
-                      value={inboundValues.inboundPlace || ""}
-                      onChange={(e) =>
-                        onFormChange("inboundPlace", e.target.value)
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-                      placeholder="입고처를 입력하세요"
-                    />
-                  </div>
+                  {/* 고객 선택 후 표시되는 섹션 */}
+                  {inboundValues.supplierId ? (
+                    <>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2 text-gray-700">
+                          입고처
+                        </label>
+                        <input
+                          type="text"
+                          value={inboundValues.inboundPlace || ""}
+                          onChange={(e) =>
+                            onFormChange("inboundPlace", e.target.value)
+                          }
+                          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                          placeholder="입고처를 입력하세요"
+                        />
+                      </div>
 
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-gray-700">
-                      입고 주소
-                    </label>
-                    <div className="flex space-x-2">
-                      <input
-                        type="text"
-                        value={inboundValues.inboundAddress || ""}
-                        onChange={(e) =>
-                          onFormChange("inboundAddress", e.target.value)
-                        }
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-                        placeholder="주소를 검색하세요"
-                        readOnly
-                      />
-                      <button
-                        type="button"
-                        onClick={openAddressModal}
-                        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors"
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          ></path>
-                        </svg>
-                      </button>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2 text-gray-700">
+                          입고 주소
+                        </label>
+                        <div className="flex space-x-2">
+                          <input
+                            type="text"
+                            value={inboundValues.inboundAddress || ""}
+                            onChange={(e) =>
+                              onFormChange("inboundAddress", e.target.value)
+                            }
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                            placeholder="주소를 검색하세요"
+                            readOnly
+                          />
+                          <button
+                            type="button"
+                            onClick={openAddressModal}
+                            className="px-3 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-colors"
+                          >
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                              ></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2 text-gray-700">
+                          기타주소 (상세주소)
+                        </label>
+                        <input
+                          type="text"
+                          value={inboundValues.inboundAddressDetail || ""}
+                          onChange={(e) =>
+                            onFormChange("inboundAddressDetail", e.target.value)
+                          }
+                          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                          placeholder="상세주소를 입력하세요 (동/호수 등)"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300 mb-4">
+                      <div className="text-center">
+                        <p className="text-lg font-medium text-gray-600 mb-2">
+                          👆 먼저 고객을 선택해주세요
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          고객을 선택하면 입고처 정보 입력 폼이 표시됩니다
+                        </p>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-gray-700">
-                      기타주소 (상세주소)
-                    </label>
-                    <input
-                      type="text"
-                      value={inboundValues.inboundAddressDetail || ""}
-                      onChange={(e) =>
-                        onFormChange("inboundAddressDetail", e.target.value)
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-                      placeholder="상세주소를 입력하세요 (동/호수 등)"
-                    />
-                  </div>
+                  )}
 
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-gray-700">
@@ -405,28 +473,6 @@ export default function InboundModal({
                       rows={3}
                       className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
                     />
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2 text-gray-700">
-                      목적 구분
-                    </label>
-                    <select
-                      value={inboundValues.recordPurpose || ""}
-                      onChange={(e) =>
-                        onFormChange("recordPurpose", e.target.value || undefined)
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-                    >
-                      <option value="">선택 안 함</option>
-                      {MANUAL_RECORD_PURPOSES.filter(
-                        (purpose) => purpose.value !== 'sale'
-                      ).map((purpose) => (
-                        <option key={purpose.value} value={purpose.value}>
-                          {purpose.label}
-                        </option>
-                      ))}
-                    </select>
                   </div>
 
                   <div className="mb-4">

@@ -3,6 +3,8 @@ import { Item } from "@/types/(item)/item";
 import { useCategory } from "@/hooks/useCategory";
 import { useRouter } from "next/navigation";
 import { authStore } from "@/store/authStore";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { formatCurrency } from "@/utils/stockAssetCalculator";
 
 interface StockItemCardProps {
   items: Item[];
@@ -18,6 +20,10 @@ export default function StockItemCard({
   const selectedTeam = authStore((state) => state.selectedTeam);
   const { categories } = useCategory(selectedTeam?.id);
   const router = useRouter();
+  const { user } = useCurrentUser();
+
+  // 권한 체크: Admin, Moderator만 원가 정보 열람 가능
+  const canViewCostPrice = user?.accessLevel === 'admin' || user?.accessLevel === 'moderator';
 
   const [openCategories, setOpenCategories] = useState<{
     [key: string]: boolean;
@@ -164,6 +170,31 @@ export default function StockItemCard({
                             메모: {truncateMemo(item.teamItem.memo, 20)}
                           </div>
                         )}
+                        {/* 원가/자산 가치 (권한 있는 사용자만) */}
+                        {canViewCostPrice && (
+                          <div className="flex justify-between items-center text-xs border-t border-gray-100 pt-1 mt-1">
+                            <div className="text-gray-600">
+                              원가:{" "}
+                              {item.teamItem?.costPrice ? (
+                                <span className="font-medium text-gray-900">
+                                  {formatCurrency(item.teamItem.costPrice)}
+                                </span>
+                              ) : (
+                                <span className="text-yellow-600">미입력</span>
+                              )}
+                            </div>
+                            <div className="text-gray-600">
+                              재고 가치:{" "}
+                              {item.teamItem?.costPrice ? (
+                                <span className="font-semibold text-green-600">
+                                  {formatCurrency(item.teamItem.costPrice * item.itemQuantity)}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                         {/* 최종수정일 */}
                         <div className="text-xs text-gray-400 text-right">
                           수정:{" "}
@@ -236,6 +267,31 @@ export default function StockItemCard({
                   {item.teamItem.memo && (
                     <div className="text-xs text-gray-500 mb-1">
                       메모: {truncateMemo(item.teamItem.memo, 20)}
+                    </div>
+                  )}
+                  {/* 원가/자산 가치 (권한 있는 사용자만) */}
+                  {canViewCostPrice && (
+                    <div className="flex justify-between items-center text-xs border-t border-gray-100 pt-1 mt-1">
+                      <div className="text-gray-600">
+                        원가:{" "}
+                        {item.teamItem?.costPrice ? (
+                          <span className="font-medium text-gray-900">
+                            {formatCurrency(item.teamItem.costPrice)}
+                          </span>
+                        ) : (
+                          <span className="text-yellow-600">미입력</span>
+                        )}
+                      </div>
+                      <div className="text-gray-600">
+                        재고 가치:{" "}
+                        {item.teamItem?.costPrice ? (
+                          <span className="font-semibold text-green-600">
+                            {formatCurrency(item.teamItem.costPrice * item.itemQuantity)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </div>
                     </div>
                   )}
                   {/* 최종수정일 */}

@@ -4,6 +4,8 @@ import { Item } from "@/types/(item)/item";
 import { Package, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useCategory } from "@/hooks/useCategory";
 import { authStore } from "@/store/authStore";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { formatCurrency } from "@/utils/stockAssetCalculator";
 
 interface StockTableDesktopProps {
   items: Item[];
@@ -11,7 +13,7 @@ interface StockTableDesktopProps {
   showEditButton?: boolean;
 }
 
-type SortField = "category" | "itemName" | "itemCode" | "quantity";
+type SortField = "category" | "itemName" | "itemCode" | "quantity" | "costPrice" | "assetValue";
 type SortOrder = "asc" | "desc" | null;
 
 // 카테고리별 색상 매핑
@@ -48,8 +50,12 @@ export default function StockTableDesktop({
   const router = useRouter();
   const selectedTeam = authStore((state) => state.selectedTeam);
   const { categories } = useCategory(selectedTeam?.id);
+  const { user } = useCurrentUser();
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>(null);
+
+  // 권한 체크: Admin, Moderator만 원가 정보 열람 가능
+  const canViewCostPrice = user?.accessLevel === 'admin' || user?.accessLevel === 'moderator';
 
   // 카테고리 ID로 카테고리 이름 찾기
   const getCategoryName = (categoryId?: number | null): string => {
@@ -116,6 +122,14 @@ export default function StockTableDesktop({
           aValue = a.itemQuantity;
           bValue = b.itemQuantity;
           break;
+        case "costPrice":
+          aValue = a.teamItem?.costPrice ?? 0;
+          bValue = b.teamItem?.costPrice ?? 0;
+          break;
+        case "assetValue":
+          aValue = (a.teamItem?.costPrice ?? 0) * a.itemQuantity;
+          bValue = (b.teamItem?.costPrice ?? 0) * b.itemQuantity;
+          break;
         default:
           return 0;
       }
@@ -139,7 +153,7 @@ export default function StockTableDesktop({
   if (items.length === 0) {
     return (
       <tr>
-        <td colSpan={5} className="px-6 py-12 text-center">
+        <td colSpan={canViewCostPrice ? 7 : 5} className="px-6 py-12 text-center">
           <p className="text-gray-400">창고가 비었습니다.</p>
         </td>
       </tr>
@@ -187,6 +201,28 @@ export default function StockTableDesktop({
             {renderSortIcon("quantity")}
           </div>
         </th>
+        {canViewCostPrice && (
+          <>
+            <th
+              className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+              onClick={() => handleSort("costPrice")}
+            >
+              <div className="flex items-center justify-end">
+                단가(원가)
+                {renderSortIcon("costPrice")}
+              </div>
+            </th>
+            <th
+              className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none"
+              onClick={() => handleSort("assetValue")}
+            >
+              <div className="flex items-center justify-end">
+                재고 가치
+                {renderSortIcon("assetValue")}
+              </div>
+            </th>
+          </>
+        )}
       </tr>
 
       {/* 테이블 본문 */}
@@ -262,6 +298,34 @@ export default function StockTableDesktop({
                 </span>
               )}
             </td>
+
+            {canViewCostPrice && (
+              <>
+                {/* 단가(원가) */}
+                <td className="px-6 py-4 text-right">
+                  {item.teamItem?.costPrice ? (
+                    <span className="text-sm text-gray-900">
+                      {formatCurrency(item.teamItem.costPrice)}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">
+                      미입력
+                    </span>
+                  )}
+                </td>
+
+                {/* 재고 가치 */}
+                <td className="px-6 py-4 text-right">
+                  {item.teamItem?.costPrice ? (
+                    <span className="text-sm font-semibold text-green-600">
+                      {formatCurrency(item.teamItem.costPrice * item.itemQuantity)}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-400">-</span>
+                  )}
+                </td>
+              </>
+            )}
           </tr>
         );
       })}

@@ -4,7 +4,7 @@ import {
   MarginSummary,
   MarginFilterParams,
 } from '@/types/margin-analysis';
-import { Order, OrderItem } from '@/types/(order)/order';
+import { Order } from '@/types/(order)/order';
 import { getOrdersByTeamId } from '@/api/order-api';
 import { authStore } from '@/store/authStore';
 
@@ -93,8 +93,14 @@ const aggregateItemSalesData = (orders: Order[]): Map<string, ItemSalesData> => 
 const transformToMarginRecord = (
   itemData: ItemSalesData
 ): MarginAnalysisRecord => {
+  // 원가 입력 여부 체크: null, undefined는 미입력으로 간주 (0원은 유효한 원가)
   const hasCost = itemData.costPrice !== null && itemData.costPrice !== undefined;
-  const costAmount = hasCost && itemData.costPrice !== null && itemData.costPrice !== undefined ? itemData.costPrice * itemData.salesQuantity : null;
+
+  // 원가 합계 계산 (원가가 있을 때만)
+  let costAmount: number | null = null;
+  if (hasCost && itemData.costPrice !== null) {
+    costAmount = itemData.costPrice * itemData.salesQuantity;
+  }
 
   // 마진 계산: (판매가 - 원가) / 판매가 × 100
   let marginAmount: number | null = null;

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui";
 import { LoadingCentered } from "@/components/ui/Loading";
 import UserManagementModal from "./UserManagementModal";
 import UserEditModal from "./UserEditModal";
+import TeamRoleEditModal from "./TeamRoleEditModal";
 
 export default function TeamMembers({
   isReadOnly = false,
@@ -40,6 +41,10 @@ export default function TeamMembers({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [isRoleEditModalOpen, setIsRoleEditModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<IMappingUser | null>(
+    null
+  );
 
   const handleAddUser = async (userId: number) => {
     await addUser(userId);
@@ -121,6 +126,21 @@ export default function TeamMembers({
       : "bg-Back-Low-10 text-Text-Low-70";
   };
 
+  const handleEditRole = (member: IMappingUser) => {
+    setSelectedMember(member);
+    setIsRoleEditModalOpen(true);
+  };
+
+  const handleCloseRoleEditModal = () => {
+    setIsRoleEditModalOpen(false);
+    setSelectedMember(null);
+  };
+
+  const handleRoleUpdated = () => {
+    setIsRoleEditModalOpen(false);
+    setSelectedMember(null);
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
       {/* 헤더 */}
@@ -160,7 +180,10 @@ export default function TeamMembers({
                   이메일
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
-                  권한
+                  기본 권한
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
+                  팀 권한
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
                   관리
@@ -169,8 +192,10 @@ export default function TeamMembers({
             </thead>
             <tbody className="divide-y divide-Outline-Variant">
               {teamUsers.map((member: IMappingUser) => {
-                const level =
+                const userLevel =
                   (member.user as { accessLevel?: string }).accessLevel || "user";
+                const teamLevel = member.accessLevel;
+                const hasTeamRole = !!teamLevel;
                 return (
                   <tr
                     key={member.id}
@@ -193,15 +218,49 @@ export default function TeamMembers({
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${accessLevelColor(level)}`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${accessLevelColor(userLevel)}`}
                       >
-                        {accessLevelLabel(level)}
+                        {accessLevelLabel(userLevel)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1">
+                        {hasTeamRole ? (
+                          <>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${accessLevelColor(teamLevel)}`}
+                            >
+                              {accessLevelLabel(teamLevel)}
+                            </span>
+                            {member.isAdmin && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-Error-Container text-Error-Main">
+                                팀 관리자
+                              </span>
+                            )}
+                            {member.restrictedWhs && (
+                              <span className="text-xs text-Text-Low-70">
+                                창고 제한: {member.restrictedWhs}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-xs text-Text-Low-70 italic">
+                            기본 권한 사용
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
                         {!isReadOnly ? (
                           <>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleEditRole(member)}
+                            >
+                              팀 권한
+                            </Button>
                             <Button
                               variant="secondary"
                               size="sm"
@@ -219,13 +278,22 @@ export default function TeamMembers({
                             </Button>
                           </>
                         ) : (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleEditUser(member.user as IUser)}
-                          >
-                            조회
-                          </Button>
+                          <>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleEditRole(member)}
+                            >
+                              팀 권한
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleEditUser(member.user as IUser)}
+                            >
+                              조회
+                            </Button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -261,6 +329,14 @@ export default function TeamMembers({
         selectedUserId={selectedUserId}
         teamUsers={teamUsers}
         onUserUpdated={handleUserUpdated}
+        isReadOnly={isReadOnly}
+      />
+
+      {/* 팀 권한 수정 모달 */}
+      <TeamRoleEditModal
+        isOpen={isRoleEditModalOpen}
+        onClose={handleCloseRoleEditModal}
+        member={selectedMember}
         isReadOnly={isReadOnly}
       />
     </div>

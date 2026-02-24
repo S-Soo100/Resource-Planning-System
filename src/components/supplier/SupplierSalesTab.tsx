@@ -79,9 +79,6 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
                 제목
               </th>
               <th className="px-5 py-3.5 text-left text-sm font-medium text-Text-High-90 whitespace-nowrap">
-                수령인
-              </th>
-              <th className="px-5 py-3.5 text-left text-sm font-medium text-Text-High-90 whitespace-nowrap">
                 품목 수
               </th>
               <th className="px-5 py-3.5 text-left text-sm font-medium text-Text-High-90 whitespace-nowrap">
@@ -98,9 +95,6 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
               <th className="px-5 py-3.5 text-left text-sm font-medium text-Text-High-90 whitespace-nowrap">
                 상태
               </th>
-              <th className="px-5 py-3.5 text-left text-sm font-medium text-Text-High-90 whitespace-nowrap">
-                상세
-              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-Outline-Variant bg-white">
@@ -112,11 +106,13 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
                 <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
                   {format(new Date(record.purchaseDate), "yyyy-MM-dd")}
                 </td>
-                <td className="px-5 py-4 text-sm font-medium text-Text-Highest-100 max-w-[200px] truncate">
-                  {record.title}
-                </td>
-                <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
-                  {record.receiver}
+                <td className="px-5 py-4 text-sm font-medium max-w-[200px]">
+                  <Link
+                    href={`/orderRecord/${record.id}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline truncate block transition-colors"
+                  >
+                    {record.title}
+                  </Link>
                 </td>
                 <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
                   {record.itemCount}개
@@ -159,15 +155,6 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
                     {statusKorMap[record.status] || record.status}
                   </span>
                 </td>
-                <td className="px-5 py-4 text-sm whitespace-nowrap">
-                  <Link
-                    href={`/orderRecord/${record.id}`}
-                    className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1"
-                  >
-                    보기
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -180,14 +167,15 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
   return (
     <div className="space-y-3">
       {filteredRecords.map((record, index) => (
-        <div
+        <Link
           key={record.id}
-          className="bg-white border border-Outline-Variant rounded-xl p-4 hover:shadow-sm transition-shadow"
+          href={`/orderRecord/${record.id}`}
+          className="block bg-white border border-Outline-Variant rounded-xl p-4 hover:shadow-md hover:border-blue-300 transition-all active:scale-[0.99]"
         >
           {/* 헤더 */}
           <div className="flex items-start justify-between mb-3 pb-3 border-b border-Outline-Variant">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-Text-Highest-100 truncate">
+              <p className="text-sm font-medium text-blue-600 truncate">
                 {record.title}
               </p>
               <p className="text-xs text-Text-Low-70 mt-0.5">
@@ -209,10 +197,6 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
 
           {/* 본문 */}
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-Text-Low-70">수령인</span>
-              <span className="text-Text-Highest-100 font-medium">{record.receiver}</span>
-            </div>
             <div className="flex justify-between">
               <span className="text-Text-Low-70">품목 수</span>
               <span className="text-Text-High-90">{record.itemCount}개</span>
@@ -242,16 +226,7 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
               </div>
             )}
           </div>
-
-          {/* 상세 보기 버튼 */}
-          <Link
-            href={`/orderRecord/${record.id}`}
-            className="mt-3 pt-3 border-t border-Outline-Variant flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
-          >
-            상세 보기
-            <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
+        </Link>
       ))}
     </div>
   );

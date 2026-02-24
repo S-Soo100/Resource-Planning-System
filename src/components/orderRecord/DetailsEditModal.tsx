@@ -49,6 +49,15 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
       return;
     }
 
+    // 동일한 고객을 선택한 경우 (변경 없음)
+    if (order.supplierId === selectedSupplier.id) {
+      toast.error("동일한 고객입니다. 다른 고객을 선택해주세요", {
+        duration: 3000,
+        icon: "ℹ️",
+      });
+      return;
+    }
+
     try {
       await updateOrderDetails({
         id: order.id.toString(),
@@ -68,7 +77,10 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
         },
       });
 
-      onClose();
+      // 페이지 새로고침하여 변경사항 반영
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error("발주 정보 수정 실패:", error);
       toast.error(
@@ -90,6 +102,15 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
 
         {/* 본문 */}
         <div className="mt-6 space-y-6">
+          {/* Suppliers 데이터 없음 경고 */}
+          {suppliers.length === 0 && (
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-sm text-yellow-800">
+                ⚠️ <span className="font-semibold">고객 목록이 비어있습니다.</span> 먼저 고객을 등록해주세요.
+              </p>
+            </div>
+          )}
+
           {/* 고객 선택 */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -100,11 +121,12 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSupplierModalOpen(true)}
+                disabled={suppliers.length === 0}
                 className={`flex-1 px-4 py-3 text-left rounded-lg border-2 transition-all ${
                   selectedSupplier
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-300 bg-white hover:border-blue-400"
-                }`}
+                } ${suppliers.length === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {selectedSupplier ? (
                   <div>
@@ -116,11 +138,13 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="text-gray-500">고객을 선택하세요</div>
+                  <div className="text-gray-500">
+                    {suppliers.length === 0 ? "고객 목록이 비어있습니다" : "고객을 선택하세요"}
+                  </div>
                 )}
               </button>
             </div>
-            {!selectedSupplier && (
+            {!selectedSupplier && suppliers.length > 0 && (
               <p className="mt-2 text-xs text-red-600">
                 ⚠️ 고객을 선택해주세요
               </p>
@@ -166,8 +190,15 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
           </button>
           <button
             onClick={handleSave}
-            disabled={isPending || !selectedSupplier}
+            disabled={isPending || !selectedSupplier || suppliers.length === 0}
             className="px-6 py-2.5 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            title={
+              suppliers.length === 0
+                ? "고객 목록이 비어있습니다"
+                : !selectedSupplier
+                ? "고객을 선택해주세요"
+                : ""
+            }
           >
             {isPending ? (
               <>

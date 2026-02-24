@@ -1287,10 +1287,10 @@ const OrderRecordDetail = () => {
                                         <span className="sm:hidden">수정</span>
                                       </button>
                                     )}
-                                    <span>총 거래금액</span>
+                                    <span className="whitespace-nowrap">총 거래금액</span>
                                   </div>
                                 </td>
-                                <td className="px-2 sm:px-4 py-3 text-right text-sm sm:text-base font-bold text-blue-700">
+                                <td className="px-2 sm:px-4 py-3 text-right text-sm sm:text-base font-bold text-blue-700 whitespace-nowrap">
                                   {order.totalPrice != null && order.totalPrice > 0 ? (
                                     <>{order.totalPrice.toLocaleString()}원</>
                                   ) : (

@@ -531,8 +531,14 @@ export default function SalesPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    No
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('purchaseDate')}
+                  >
+                    <div className="flex items-center">
+                      판매일자
+                      {renderSortIcon('purchaseDate')}
+                    </div>
                   </th>
                   <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
@@ -541,15 +547,6 @@ export default function SalesPage() {
                     <div className="flex items-center">
                       판매처
                       {renderSortIcon('supplierName')}
-                    </div>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('purchaseDate')}
-                  >
-                    <div className="flex items-center">
-                      판매일자
-                      {renderSortIcon('purchaseDate')}
                     </div>
                   </th>
                   <th
@@ -579,16 +576,13 @@ export default function SalesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {sortedRecords.map((record, index) => (
+                {sortedRecords.map((record) => (
                   <tr key={record.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {index + 1}
+                      {formatDate(record.purchaseDate)}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {record.supplierName || record.receiver}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {formatDate(record.purchaseDate)}
                     </td>
                     <td
                       className="px-4 py-3 text-sm text-gray-900 cursor-pointer hover:bg-blue-50 transition-colors"
@@ -631,7 +625,7 @@ export default function SalesPage() {
                 {actualSummary && (
                   <tr className="bg-blue-50 border-t-2 border-blue-200">
                     <td
-                      colSpan={4}
+                      colSpan={3}
                       className="px-4 py-3 text-sm font-bold text-right text-gray-900"
                     >
                       합계

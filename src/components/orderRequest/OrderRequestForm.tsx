@@ -1312,24 +1312,23 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">품목명</th>
-                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">재고</th>
-                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">수량</th>
-                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">영세율</th>
-                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">
+                      <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">품목명</th>
+                      <th className="px-2 py-2 text-center text-sm font-medium text-gray-700">수량</th>
+                      <th className="hidden md:table-cell px-2 py-2 text-center text-sm font-medium text-gray-700">영세율</th>
+                      <th className="px-2 py-2 text-right text-sm font-medium text-gray-700">
                         총 금액 (원)
-                        <span className="ml-1 text-xs text-blue-600">✏️입력</span>
+                        <span className="ml-1 text-xs text-blue-600">✏️</span>
                       </th>
-                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-500">
+                      <th className="hidden lg:table-cell px-2 py-2 text-right text-sm font-medium text-gray-500">
                         공급가액 (원)
-                        <span className="ml-1 text-xs">💡자동</span>
+                        <span className="ml-1 text-xs">💡</span>
                       </th>
-                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-500">
+                      <th className="hidden lg:table-cell px-2 py-2 text-right text-sm font-medium text-gray-500">
                         부가세 (원)
-                        <span className="ml-1 text-xs">💡자동</span>
+                        <span className="ml-1 text-xs">💡</span>
                       </th>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">메모</th>
-                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">작업</th>
+                      <th className="hidden sm:table-cell px-2 py-2 text-left text-sm font-medium text-gray-700">메모</th>
+                      <th className="px-2 py-2 text-center text-sm font-medium text-gray-700">삭제</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1346,10 +1345,18 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                       const subtotal = (sellingPrice + vat) * item.quantity;
                       return (
                         <tr key={item.warehouseItemId} className="border-b last:border-0 hover:bg-gray-50">
-                          <td className="px-4 py-2">
+                          {/* 품목명 + 재고 정보 통합 */}
+                          <td className="px-2 py-2">
                             <div className="flex flex-col">
                               <span className="font-medium text-sm">{item.teamItem.itemName}</span>
-                              <span className="text-xs text-gray-500 mt-0.5">{item.teamItem.itemCode}</span>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs text-gray-500">{item.teamItem.itemCode}</span>
+                                {formData.warehouseId && item.stockQuantity !== undefined && (
+                                  <span className={`text-xs ${item.stockAvailable ? 'text-green-600' : 'text-red-500'}`}>
+                                    (재고: {item.stockQuantity}개)
+                                  </span>
+                                )}
+                              </div>
                               {formData.warehouseId && item.stockAvailable === false && (
                                 <div className="flex items-center text-xs text-red-500 mt-1">
                                   <AlertCircle size={12} className="mr-1" />
@@ -1358,66 +1365,64 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                               )}
                             </div>
                           </td>
-                          <td className="px-4 py-2 text-center text-sm text-gray-600">
-                            {formData.warehouseId && item.stockQuantity !== undefined
-                              ? `${item.stockQuantity}개`
-                              : "-"}
-                          </td>
-                          <td className="px-4 py-2">
-                            <div className="flex gap-1 items-center justify-center">
+
+                          {/* 수량 - 버튼 크기 축소 */}
+                          <td className="px-2 py-2">
+                            <div className="flex gap-0.5 items-center justify-center">
                               <button
                                 type="button"
                                 onClick={() => handleQuantityChange(index, false)}
-                                className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                                className="p-0.5 bg-gray-200 rounded hover:bg-gray-300"
                               >
-                                <Minus size={14} />
+                                <Minus size={12} />
                               </button>
-                              <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
+                              <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
                               <button
                                 type="button"
                                 onClick={() => handleQuantityChange(index, true)}
-                                className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                                className="p-0.5 bg-gray-200 rounded hover:bg-gray-300"
                               >
-                                <Plus size={14} />
+                                <Plus size={12} />
                               </button>
                             </div>
                           </td>
-                          {/* 🆕 영세율 체크박스 (v2.6.0) */}
-                          <td className="px-4 py-2 text-center">
+
+                          {/* 영세율 체크박스 - 크기 축소, 모바일 숨김 */}
+                          <td className="hidden md:table-cell px-2 py-2 text-center">
                             <input
                               type="checkbox"
                               checked={item.isZeroRated ?? false}
                               onChange={(e) => handleZeroRatedChange(index, e.target.checked)}
                               disabled={isAllZeroRated}
-                              className="w-4 h-4 accent-blue-600"
+                              className="w-3.5 h-3.5 accent-blue-600"
                               title={isAllZeroRated ? "전체 영세율 적용 중" : "개별 영세율"}
                             />
                           </td>
 
-                          {/* 🆕 총 금액 입력 (v2.6.0) */}
-                          <td className="px-4 py-2">
+                          {/* 총 금액 입력 - 패딩 축소 */}
+                          <td className="px-2 py-2">
                             <input
                               type="number"
                               min="0"
                               step="1"
-                              placeholder="총 금액 입력"
+                              placeholder="총액"
                               value={item.totalPrice || ""}
                               onChange={(e) => handleTotalPriceChange(index, e.target.value)}
-                              className="w-full px-3 py-2 text-sm text-right border-2 border-blue-300 rounded-lg
+                              className="w-full px-2 py-1.5 text-sm text-right border-2 border-blue-300 rounded-lg
                                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                                          bg-white font-medium"
                             />
                           </td>
 
-                          {/* 🆕 공급가액 (자동 계산, 읽기 전용) */}
-                          <td className="px-4 py-2 text-right">
+                          {/* 공급가액 (자동 계산) - 모바일/태블릿 숨김 */}
+                          <td className="hidden lg:table-cell px-2 py-2 text-right">
                             <span className="text-sm text-gray-600">
                               {sellingPrice > 0 ? sellingPrice.toLocaleString() : "-"}
                             </span>
                           </td>
 
-                          {/* 🆕 부가세 (자동 계산, 읽기 전용) */}
-                          <td className="px-4 py-2 text-right">
+                          {/* 부가세 (자동 계산) - 모바일/태블릿 숨김 */}
+                          <td className="hidden lg:table-cell px-2 py-2 text-right">
                             <span className="text-sm text-gray-600">
                               {vat > 0 ? vat.toLocaleString() : "0"}
                             </span>
@@ -1425,23 +1430,27 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                               <span className="ml-1 text-xs text-amber-600">(0%)</span>
                             )}
                           </td>
-                          <td className="px-4 py-2">
+
+                          {/* 메모 - 크기 축소, 작은 모바일 숨김 */}
+                          <td className="hidden sm:table-cell px-2 py-2">
                             <input
                               type="text"
-                              placeholder="메모 입력"
+                              placeholder="메모"
                               value={item.memo || ""}
                               onChange={(e) => handleMemoChange(index, e.target.value)}
-                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main focus:border-Primary-Main"
+                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main focus:border-Primary-Main"
                             />
                           </td>
-                          <td className="px-4 py-2 text-center">
+
+                          {/* 삭제 버튼 - 크기 축소 */}
+                          <td className="px-2 py-2 text-center">
                             <button
                               type="button"
                               onClick={() => handleRemoveItem(item.warehouseItemId)}
                               className="p-1 text-red-600 bg-red-50 rounded hover:bg-Error-Container"
                               title="품목 제거"
                             >
-                              <X size={16} />
+                              <X size={14} />
                             </button>
                           </td>
                         </tr>
@@ -1452,10 +1461,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   {orderItems.some(item => item.quantity > 0) && (
                     <tfoot className="bg-blue-50 border-t-2 border-blue-200">
                       <tr>
-                        <td colSpan={7} className="px-4 py-3 text-right text-base font-bold text-gray-900">
+                        <td colSpan={6} className="px-2 py-3 text-right text-base font-bold text-gray-900">
                           총 거래금액
                         </td>
-                        <td className="px-4 py-3 text-right text-lg font-bold text-blue-700">
+                        <td className="px-2 py-3 text-right text-lg font-bold text-blue-700">
                           {orderItems
                             .filter(item => item.quantity > 0)
                             .reduce((sum, item) => {

@@ -483,8 +483,13 @@ export default function SupplierManagePage() {
                     key={supplier.id}
                     className="hover:bg-Back-Low-10 transition-colors"
                   >
-                    <td className="px-5 py-4 text-sm font-medium text-Text-Highest-100 whitespace-nowrap">
-                      {supplier.supplierName}
+                    <td className="px-5 py-4 text-sm font-medium whitespace-nowrap">
+                      <a
+                        href={`/supplier/${supplier.id}`}
+                        className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                      >
+                        {supplier.supplierName}
+                      </a>
                     </td>
                     <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
                       {supplier.email || "-"}

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
+import Link from 'next/link';
 import {
   ArrowUpDown,
   ArrowUp,
@@ -476,8 +477,17 @@ export default function SalesPage() {
                         {record.title}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500">
-                      {record.supplierName || record.receiver}
+                    <p className="text-xs">
+                      {record.supplierName ? (
+                        <Link
+                          href="/supplier"
+                          className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                        >
+                          {record.supplierName}
+                        </Link>
+                      ) : (
+                        <span className="text-gray-500">{record.receiver}</span>
+                      )}
                     </p>
                   </div>
                   <span
@@ -691,8 +701,17 @@ export default function SalesPage() {
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {formatDate(record.purchaseDate)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {record.supplierName || record.receiver}
+                    <td className="px-4 py-3 text-sm">
+                      {record.supplierName ? (
+                        <Link
+                          href="/supplier"
+                          className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                        >
+                          {record.supplierName}
+                        </Link>
+                      ) : (
+                        <span className="text-gray-900">{record.receiver}</span>
+                      )}
                     </td>
                     <td
                       className="px-4 py-3 text-sm text-gray-900 cursor-pointer hover:bg-blue-50 transition-colors"

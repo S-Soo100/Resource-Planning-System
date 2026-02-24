@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Calendar } from "lucide-react";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
@@ -549,7 +550,18 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
             {/* 3번째 줄: 수령자 + 상태 + 상세보기 버튼 */}
             <div className="flex justify-between items-center">
               <span className="text-xs text-gray-600">
-                수령자: {record.receiver}
+                수령자:{" "}
+                {record.supplierId ? (
+                  <Link
+                    href="/supplier"
+                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {record.receiver}
+                  </Link>
+                ) : (
+                  record.receiver
+                )}
               </span>
               <span className="flex gap-2 items-center">
                 <span

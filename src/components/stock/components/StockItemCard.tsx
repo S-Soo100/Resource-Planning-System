@@ -154,7 +154,13 @@ export default function StockItemCard({
                         {/* 품목코드 + 카테고리 */}
                         <div className="flex justify-between items-center text-xs text-gray-600 mb-1 border-t border-gray-100 pt-1">
                           <div className="font-mono">
-                            코드: {item.teamItem.itemCode}
+                            코드:{" "}
+                            <span
+                              onClick={() => router.push(`/item/${item.id}`)}
+                              className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors"
+                            >
+                              {item.teamItem.itemCode}
+                            </span>
                           </div>
                           <div>
                             카테고리:{" "}

@@ -275,7 +275,7 @@ export default function StockTableDesktop({
 
             {/* 품목코드 */}
             <td className="px-6 py-4">
-              <div className="text-sm text-blue-600 font-mono">
+              <div className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-mono transition-colors">
                 {item.teamItem.itemCode}
               </div>
             </td>

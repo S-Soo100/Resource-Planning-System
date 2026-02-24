@@ -26,15 +26,8 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
   const { user } = useCurrentUser();
   const canViewMargin = user?.accessLevel === "admin" || user?.accessLevel === "moderator";
 
-  // 요청/반려/출고자반려 상태 제외
-  const filteredRecords = useMemo(() => {
-    return records.filter(
-      (record) =>
-        record.status !== "requested" &&
-        record.status !== "rejected" &&
-        record.status !== "rejectedByShipper"
-    );
-  }, [records]);
+  // 필터링은 useSupplierDetail에서 이미 처리됨 (요청/반려/출고자반려 제외)
+  const filteredRecords = records;
 
   // 데스크톱/모바일 감지
   const [isMobile, setIsMobile] = useState(false);

@@ -231,17 +231,10 @@ const MainMenu = () => {
       accessLevel: ["admin", "moderator"],
     },
     {
-      title: "판매 내역",
-      subtitle: "발주 기반 판매 현황을 분석합니다",
+      title: "판매 & 마진 분석",
+      subtitle: "발주 기반 판매 현황 및 마진율을 분석합니다",
       icon: <MdPointOfSale className="text-3xl" />,
       onClick: () => checkAccess(`/sales`, ["admin", "moderator"]),
-      accessLevel: ["admin", "moderator"],
-    },
-    {
-      title: "마진 분석",
-      subtitle: "품목별 원가 대비 마진율을 분석합니다",
-      icon: <MdAnalytics className="text-3xl" />,
-      onClick: () => checkAccess(`/margin-analysis`, ["admin", "moderator"]),
       accessLevel: ["admin", "moderator"],
     },
   ];

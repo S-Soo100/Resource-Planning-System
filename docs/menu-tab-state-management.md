@@ -18,30 +18,33 @@
 - **경로**: `src/components/menu/MainMenu.tsx`
 - **역할**: 메인 메뉴 탭 UI 및 로직
 - **주요 기능**:
-  - 권한별 탭 표시 (supplier: 2개, 일반: 2개, admin/moderator: 4개)
+  - 권한별 탭 표시 (supplier: 3개, user: 4개, admin/moderator: 5개)
   - Framer Motion 애니메이션
   - 탭 상태 초기화 및 검증
 
 ## 탭 구조
 
-### 모든 사용자 공통 (2개)
+### 모든 사용자 공통 (3개)
 1. **재고 관리** (`stock`)
    - 재고 조회
    - 입출고 내역
-   - 업체 관리
 
-2. **발주 & 시연** (`order`)
+2. **고객관리** (`customer`)
+   - 고객 관리
+
+3. **발주 & 시연** (`order`)
    - 발주 시작하기
    - 발주 기록
    - 시연 요청 (supplier 제외)
    - 시연 기록 (supplier 제외)
 
-### Admin/Moderator 전용 (추가 2개)
-3. **판매 & 구매** (`analytics`)
-   - 구매 내역
-   - 판매 내역
+### User/Admin/Moderator (supplier 제외)
+4. **판매 & 구매** (`analytics`)
+   - 구매 내역 (Admin/Moderator 전용)
+   - 판매 & 마진 분석 (User/Admin/Moderator)
 
-4. **관리** (`admin`)
+### Admin/Moderator 전용
+5. **관리** (`admin`)
    - 전체 물품, 카테고리 등록
    - 창고별 관리물품 등록
    - 패키지 등록 및 관리
@@ -72,14 +75,14 @@ const getDefaultTab = (userAccessLevel?: string) => {
 ```typescript
 const isValidTabForUser = (tab: string, userAccessLevel: string) => {
   if (userAccessLevel === "supplier") {
-    return tab === "order";  // supplier는 order 탭만 접근 가능
+    return ["order", "customer"].includes(tab);  // supplier는 order, customer 탭 접근 가능
   }
   // admin/moderator는 모든 탭 접근 가능
   if (userAccessLevel === "admin" || userAccessLevel === "moderator") {
-    return ["stock", "order", "analytics", "admin"].includes(tab);
+    return ["stock", "customer", "order", "analytics", "admin"].includes(tab);
   }
-  // user는 stock, order 탭만 접근 가능
-  return ["stock", "order"].includes(tab);
+  // user는 stock, customer, order, analytics 탭 접근 가능
+  return ["stock", "customer", "order", "analytics"].includes(tab);
 };
 ```
 

@@ -122,13 +122,10 @@ const MainMenu = () => {
       onClick: () => checkAccess(`/ioHistory`, ["admin", "user", "moderator"]),
       accessLevel: ["user", "admin", "moderator"],
     },
-    // {
-    //   title: "품목 관리",
-    //   subtitle: "품목 정보를 조회하고 관리합니다",
-    //   icon: <PiPackageFill className="text-3xl" />,
-    //   onClick: () => checkAccess(`/item`, ["admin", "user", "moderator"]),
-    //   accessLevel: ["user", "admin", "moderator"],
-    // },
+  ];
+
+  // 고객 관리 메뉴
+  const customerMenuItems = [
     {
       title: "고객 관리",
       subtitle: "고객 정보를 등록하고 관리합니다",
@@ -234,8 +231,8 @@ const MainMenu = () => {
       title: "판매 & 마진 분석",
       subtitle: "발주 기반 판매 현황 및 마진율을 분석합니다",
       icon: <MdPointOfSale className="text-3xl" />,
-      onClick: () => checkAccess(`/sales`, ["admin", "moderator"]),
-      accessLevel: ["admin", "moderator"],
+      onClick: () => checkAccess(`/sales`, ["admin", "moderator", "user"]),
+      accessLevel: ["admin", "moderator", "user"],
     },
   ];
 
@@ -295,12 +292,17 @@ const MainMenu = () => {
   // 탭 설정
   let tabs = [];
 
-  // 모든 사용자에게 재고 관리와 발주 & 시연 탭 표시
+  // 모든 사용자에게 재고 관리, 고객관리, 발주 & 시연 탭 표시
   tabs = [
     {
       id: "stock",
-      title: "재고&고객 관리",
+      title: "재고 관리",
       items: stockMenuItems,
+    },
+    {
+      id: "customer",
+      title: "고객관리",
+      items: customerMenuItems,
     },
     {
       id: "order",
@@ -309,14 +311,17 @@ const MainMenu = () => {
     },
   ];
 
-  // 관리자 또는 1차 승인권자인 경우 판매&구매, 관리 탭 추가
-  if (user?.accessLevel === "admin" || user?.accessLevel === "moderator") {
+  // user, admin, moderator에게 판매&구매 탭 표시 (supplier 제외)
+  if (user?.accessLevel !== "supplier") {
     tabs.push({
       id: "analytics",
       title: "판매 & 구매",
       items: analyticsMenuItems,
     });
+  }
 
+  // 관리자 또는 1차 승인권자인 경우 관리 탭 추가
+  if (user?.accessLevel === "admin" || user?.accessLevel === "moderator") {
     tabs.push({
       id: "admin",
       title: "관리",

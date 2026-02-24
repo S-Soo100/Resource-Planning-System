@@ -16,14 +16,14 @@ const getDefaultTab = (userAccessLevel?: string) => {
 
 const isValidTabForUser = (tab: string, userAccessLevel: string) => {
   if (userAccessLevel === "supplier") {
-    return tab === "order";
+    return ["order", "customer"].includes(tab);
   }
   // admin/moderator는 모든 탭 접근 가능
   if (userAccessLevel === "admin" || userAccessLevel === "moderator") {
-    return ["stock", "order", "analytics", "admin"].includes(tab);
+    return ["stock", "customer", "order", "analytics", "admin"].includes(tab);
   }
-  // user는 stock, order 탭만 접근 가능
-  return ["stock", "order"].includes(tab);
+  // user는 stock, customer, order, analytics 탭 접근 가능
+  return ["stock", "customer", "order", "analytics"].includes(tab);
 };
 
 export const menuTabStore = create<MenuTabState>()(

@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 // useWarehouseItems 훅 제거 - 발주 상세 페이지에서는 불필요
 import OrderEditModal from "@/components/orderRecord/OrderEditModal";
+import PriceEditModal from "@/components/orderRecord/PriceEditModal";
 import LoginModal from "@/components/login/LoginModal";
 import { IAuth } from "@/types/(auth)/auth";
 import { authService } from "@/services/authService";
@@ -375,6 +376,7 @@ const OrderRecordDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPriceEditModalOpen, setIsPriceEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState<number | null>(null);
@@ -779,6 +781,11 @@ const OrderRecordDetail = () => {
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
     const lowerFileName = fileName.toLowerCase();
     return imageExtensions.some(ext => lowerFileName.endsWith(ext));
+  };
+
+  // 가격 수정 권한 확인 (moderator 이상)
+  const canEditPrice = () => {
+    return auth?.accessLevel === "admin" || auth?.accessLevel === "moderator";
   };
 
   if (isLoading) {
@@ -1261,14 +1268,34 @@ const OrderRecordDetail = () => {
                             })}
                           </tbody>
                           {/* 총액 표시 - supplier 제외 */}
-                          {(auth?.accessLevel === 'admin' || auth?.accessLevel === 'moderator' || auth?.accessLevel === 'user') && order.totalPrice != null && order.totalPrice > 0 && (
+                          {(auth?.accessLevel === 'admin' || auth?.accessLevel === 'moderator' || auth?.accessLevel === 'user') && (
                             <tfoot className="bg-blue-50">
                               <tr>
-                                <td colSpan={4} className="px-4 py-3 text-right text-sm font-bold text-gray-900">
-                                  총 거래금액
+                                <td colSpan={4} className="px-2 sm:px-4 py-3 text-right text-sm font-bold text-gray-900">
+                                  <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2">
+                                    {/* moderator/admin만 가격 수정 버튼 표시 */}
+                                    {canEditPrice() && (
+                                      <button
+                                        onClick={() => setIsPriceEditModalOpen(true)}
+                                        className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-700 bg-white border-2 border-blue-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-all shadow-sm whitespace-nowrap"
+                                        title="발주 상태와 무관하게 가격만 수정할 수 있습니다"
+                                      >
+                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                        <span className="hidden sm:inline">가격 수정</span>
+                                        <span className="sm:hidden">수정</span>
+                                      </button>
+                                    )}
+                                    <span>총 거래금액</span>
+                                  </div>
                                 </td>
-                                <td className="px-4 py-3 text-right text-base font-bold text-blue-700">
-                                  {order.totalPrice.toLocaleString()}원
+                                <td className="px-2 sm:px-4 py-3 text-right text-sm sm:text-base font-bold text-blue-700">
+                                  {order.totalPrice != null && order.totalPrice > 0 ? (
+                                    <>{order.totalPrice.toLocaleString()}원</>
+                                  ) : (
+                                    <span className="text-yellow-600 font-medium">미입력</span>
+                                  )}
                                 </td>
                               </tr>
                             </tfoot>
@@ -1429,6 +1456,17 @@ const OrderRecordDetail = () => {
                     onClose={() => {
                       setIsEditModalOpen(false);
                       window.location.reload();
+                    }}
+                  />
+                )}
+
+                {/* 가격 수정 모달 */}
+                {isPriceEditModalOpen && order && (
+                  <PriceEditModal
+                    isOpen={isPriceEditModalOpen}
+                    order={order}
+                    onClose={() => {
+                      setIsPriceEditModalOpen(false);
                     }}
                   />
                 )}

@@ -153,10 +153,28 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
         );
       });
 
-      // TODO: 추후 API에서 warehouseId, supplierId, categoryId 필터링 지원 시 제거
-      // 현재는 클라이언트에서 필터링
+      // 6. 공급처 필터링 (supplierId)
+      if (params.supplierId) {
+        purchaseRecords = purchaseRecords.filter(
+          (record) => record.originalRecord.supplierId === params.supplierId
+        );
+      }
 
-      // 6. 검색어 필터링
+      // 7. 창고 필터링 (warehouseId) - TODO: API 지원 시 제거
+      // if (params.warehouseId) {
+      //   purchaseRecords = purchaseRecords.filter(
+      //     (record) => record.originalRecord.warehouseId === params.warehouseId
+      //   );
+      // }
+
+      // 8. 카테고리 필터링 (categoryId) - TODO: API 지원 시 제거
+      // if (params.categoryId) {
+      //   purchaseRecords = purchaseRecords.filter(
+      //     (record) => record.originalRecord.item?.teamItem?.categoryId === params.categoryId
+      //   );
+      // }
+
+      // 9. 검색어 필터링
       let filteredRecords = purchaseRecords;
       if (params.searchQuery && params.searchQuery.trim()) {
         const query = params.searchQuery.toLowerCase();
@@ -168,7 +186,7 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
         );
       }
 
-      // 7. 원가 미입력만 보기 필터 (실시간 원가 확인)
+      // 10. 원가 미입력만 보기 필터 (실시간 원가 확인)
       if (params.showMissingCostOnly) {
         filteredRecords = filteredRecords.filter((r) => {
           const teamItemId = r.originalRecord.item?.teamItem?.id;
@@ -180,7 +198,7 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
         });
       }
 
-      // 8. 요약 정보 계산 (실시간 원가 적용)
+      // 11. 요약 정보 계산 (실시간 원가 적용)
       const summary = calculateSummary(filteredRecords, teamItemsMap);
 
       return {

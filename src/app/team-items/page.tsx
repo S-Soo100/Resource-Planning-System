@@ -614,14 +614,21 @@ function TeamItemsContent() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
+                    <tr
+                      key={item.id}
+                      className="hover:bg-blue-50 cursor-pointer transition-colors group"
+                      onClick={() => handleOpenTeamItemModal(item)}
+                    >
                       <td className="px-4 py-3 text-center">
                         {item.imageUrl ? (
                           <img
                             src={item.imageUrl}
                             alt={item.itemName}
                             className="w-12 h-12 object-cover rounded-md border border-gray-200 mx-auto cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => setLightboxUrl(item.imageUrl ?? null)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLightboxUrl(item.imageUrl ?? null);
+                            }}
                           />
                         ) : (
                           <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center mx-auto">
@@ -629,12 +636,12 @@ function TeamItemsContent() {
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium whitespace-nowrap">
+                      <td className="px-4 py-3 text-sm font-medium whitespace-nowrap group-hover:text-blue-600 transition-colors">
                         {item.itemCode || "-"}
                       </td>
                       <td className="px-4 py-3 text-sm whitespace-nowrap">
                         <div
-                          className="truncate max-w-40"
+                          className="truncate max-w-40 font-medium group-hover:text-blue-600 transition-colors"
                           title={item.itemName}
                         >
                           {item.itemName}
@@ -671,14 +678,20 @@ function TeamItemsContent() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleOpenTeamItemModal(item)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenTeamItemModal(item);
+                                }}
                                 disabled={deleteLoading}
                                 icon={<Edit className="w-4 h-4" />}
                               />
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDeleteItem(item.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteItem(item.id);
+                                }}
                                 disabled={
                                   deleteLoading || deletingItemId === item.id
                                 }

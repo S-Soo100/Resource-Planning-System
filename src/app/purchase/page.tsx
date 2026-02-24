@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
+import Link from 'next/link';
 import { ArrowUpDown, ArrowUp, ArrowDown, Download, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { usePurchaseData } from '@/hooks/usePurchaseData';
@@ -381,7 +382,18 @@ export default function PurchasePage() {
                 <div className="space-y-1 text-xs text-gray-600">
                   <div className="flex justify-between">
                     <span className="text-gray-500">공급처</span>
-                    <span className="font-medium">{record.supplierName || '-'}</span>
+                    <span className="font-medium">
+                      {record.supplierName ? (
+                        <Link
+                          href="/supplier"
+                          className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                        >
+                          {record.supplierName}
+                        </Link>
+                      ) : (
+                        '-'
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">입고일자</span>
@@ -507,8 +519,17 @@ export default function PurchasePage() {
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {index + 1}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {record.supplierName || '-'}
+                    <td className="px-4 py-3 text-sm">
+                      {record.supplierName ? (
+                        <Link
+                          href="/supplier"
+                          className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                        >
+                          {record.supplierName}
+                        </Link>
+                      ) : (
+                        <span className="text-gray-900">-</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {formatDate(record.inboundDate)}

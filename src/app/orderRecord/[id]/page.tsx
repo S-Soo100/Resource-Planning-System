@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getOrder } from "@/api/order-api";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
@@ -1211,8 +1212,19 @@ const OrderRecordDetail = () => {
                               return (
                                 <tr key={index} className="hover:bg-gray-50 transition-colors">
                                   <td className="px-4 py-3">
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {item.item?.teamItem?.itemName || "알 수 없는 품목"}
+                                    <div className="text-sm font-medium">
+                                      {item.item?.id ? (
+                                        <Link
+                                          href={`/item/${item.item.id}`}
+                                          className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                                        >
+                                          {item.item?.teamItem?.itemName || "알 수 없는 품목"}
+                                        </Link>
+                                      ) : (
+                                        <span className="text-gray-900">
+                                          {item.item?.teamItem?.itemName || "알 수 없는 품목"}
+                                        </span>
+                                      )}
                                       {item.item?.teamItem?.itemCode && (
                                         <span className="ml-1 text-xs text-gray-500 font-normal">
                                           ({item.item.teamItem.itemCode})

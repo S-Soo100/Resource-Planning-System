@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
+import Link from "next/link";
 
 import { authService } from "@/services/authService";
 import { TeamWarehouse } from "@/types/warehouse";
@@ -375,11 +376,21 @@ export default function CustomItemTable({
                                     </div>
                                   )}
                                 </td>
-                                <td className="px-4 py-3 font-medium text-Text-Highest-100">
-                                  {item.teamItem.itemCode}
+                                <td className="px-4 py-3">
+                                  <Link
+                                    href={`/team-items?editId=${item.teamItem.id}`}
+                                    className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                                  >
+                                    {item.teamItem.itemCode}
+                                  </Link>
                                 </td>
-                                <td className="px-4 py-3 text-Text-High-90">
-                                  {item.teamItem.itemName}
+                                <td className="px-4 py-3">
+                                  <Link
+                                    href={`/team-items?editId=${item.teamItem.id}`}
+                                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                                  >
+                                    {item.teamItem.itemName}
+                                  </Link>
                                 </td>
                                 <td className="px-4 py-3">
                                   <span className="px-2 py-0.5 bg-Primary-Container text-Primary-Main rounded-full text-xs font-medium">

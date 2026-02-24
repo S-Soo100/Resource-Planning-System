@@ -383,15 +383,15 @@ export default function PurchasePage() {
                   <div className="flex justify-between">
                     <span className="text-gray-500">공급처</span>
                     <span className="font-medium">
-                      {record.supplierName ? (
+                      {record.supplierName && record.originalRecord.supplierId ? (
                         <Link
-                          href="/supplier"
+                          href={`/supplier/${record.originalRecord.supplierId}`}
                           className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                         >
                           {record.supplierName}
                         </Link>
                       ) : (
-                        '-'
+                        <span className="text-gray-900">{record.supplierName || '-'}</span>
                       )}
                     </span>
                   </div>
@@ -520,15 +520,15 @@ export default function PurchasePage() {
                       {index + 1}
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      {record.supplierName ? (
+                      {record.supplierName && record.originalRecord.supplierId ? (
                         <Link
-                          href="/supplier"
+                          href={`/supplier/${record.originalRecord.supplierId}`}
                           className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                         >
                           {record.supplierName}
                         </Link>
                       ) : (
-                        <span className="text-gray-900">-</span>
+                        <span className="text-gray-900">{record.supplierName || '-'}</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">

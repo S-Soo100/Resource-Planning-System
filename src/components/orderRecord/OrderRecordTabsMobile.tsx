@@ -553,7 +553,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                 수령자:{" "}
                 {record.supplierId ? (
                   <Link
-                    href="/supplier"
+                    href={`/supplier/${record.supplierId}`}
                     className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                     onClick={(e) => e.stopPropagation()}
                   >

@@ -8,8 +8,8 @@ import { format } from 'date-fns';
 /**
  * 고객 상세 데이터를 엑셀로 내보내기
  * @param supplier 고객 정보
- * @param salesRecords 판매 레코드
- * @param purchaseRecords 구매 레코드
+ * @param salesRecords 매출 레코드
+ * @param purchaseRecords 매입 레코드
  * @param teamItemsMap 품목 맵 (원가 조회용)
  * @param dateRange 조회 날짜 범위
  * @param showMarginColumns 마진 컬럼 표시 여부
@@ -40,11 +40,11 @@ export const exportSupplierDetailToExcel = (
   const ws1 = XLSX.utils.aoa_to_sheet(supplierInfoData);
   XLSX.utils.book_append_sheet(wb, ws1, '고객 정보');
 
-  // Sheet 2: 판매 내역 요약
+  // Sheet 2: 매출 내역 요약
   const salesSummaryData = [
-    ['총 판매 건수', salesRecords.length],
+    ['총 매출 건수', salesRecords.length],
     [
-      '총 판매 금액',
+      '총 매출 금액',
       salesRecords.reduce((sum, r) => sum + (r.totalPrice || 0), 0).toLocaleString() + '원',
     ],
   ];
@@ -70,9 +70,9 @@ export const exportSupplierDetailToExcel = (
   }
 
   const ws2 = XLSX.utils.aoa_to_sheet(salesSummaryData);
-  XLSX.utils.book_append_sheet(wb, ws2, '판매 요약');
+  XLSX.utils.book_append_sheet(wb, ws2, '매출 요약');
 
-  // Sheet 3: 판매 상세 내역
+  // Sheet 3: 매출 상세 내역
   const salesDetailData = salesRecords.map((record, index) => {
     const baseData: any = {
       No: index + 1,
@@ -81,7 +81,7 @@ export const exportSupplierDetailToExcel = (
       수령인: record.receiver,
       품목수: record.itemCount,
       총수량: record.totalQuantity,
-      판매금액: record.totalPrice !== null ? record.totalPrice : '미입력',
+      매출금액: record.totalPrice !== null ? record.totalPrice : '미입력',
     };
 
     if (showMarginColumns) {
@@ -98,9 +98,9 @@ export const exportSupplierDetailToExcel = (
   });
 
   const ws3 = XLSX.utils.json_to_sheet(salesDetailData);
-  XLSX.utils.book_append_sheet(wb, ws3, '판매 상세');
+  XLSX.utils.book_append_sheet(wb, ws3, '매출 상세');
 
-  // Sheet 4: 구매 내역 요약
+  // Sheet 4: 매입 내역 요약
   const totalPurchaseAmount = purchaseRecords.reduce((sum, r) => {
     const teamItemId = r.originalRecord.item?.teamItem?.id;
     if (!teamItemId || !teamItemsMap) return sum;
@@ -115,14 +115,14 @@ export const exportSupplierDetailToExcel = (
   }, 0);
 
   const purchaseSummaryData = [
-    ['총 구매 건수', purchaseRecords.length],
-    ['총 구매 금액', totalPurchaseAmount.toLocaleString() + '원'],
+    ['총 매입 건수', purchaseRecords.length],
+    ['총 매입 금액', totalPurchaseAmount.toLocaleString() + '원'],
   ];
 
   const ws4 = XLSX.utils.aoa_to_sheet(purchaseSummaryData);
-  XLSX.utils.book_append_sheet(wb, ws4, '구매 요약');
+  XLSX.utils.book_append_sheet(wb, ws4, '매입 요약');
 
-  // Sheet 5: 구매 상세 내역
+  // Sheet 5: 매입 상세 내역
   const purchaseDetailData = purchaseRecords.map((record, index) => {
     const teamItemId = record.originalRecord.item?.teamItem?.id;
     let costPrice: number | null = null;
@@ -149,7 +149,7 @@ export const exportSupplierDetailToExcel = (
   });
 
   const ws5 = XLSX.utils.json_to_sheet(purchaseDetailData);
-  XLSX.utils.book_append_sheet(wb, ws5, '구매 상세');
+  XLSX.utils.book_append_sheet(wb, ws5, '매입 상세');
 
   // 파일 다운로드
   const defaultFilename = `고객_${supplier.supplierName}_${format(

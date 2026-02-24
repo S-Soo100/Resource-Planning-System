@@ -10,11 +10,11 @@
 export interface Supplier {
   id: number;
   supplierName: string;
-  email: string;
-  supplierAddress: string;
-  supplierPhoneNumber: string;
-  registrationNumber: string; // 사업자 번호
-  memo: string;
+  email?: string;
+  supplierAddress?: string;
+  supplierPhoneNumber?: string;
+  registrationNumber?: string; // 사업자 번호
+  memo?: string;
   teamId: number;
   createdAt?: string;
   updatedAt?: string;

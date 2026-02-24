@@ -2,7 +2,7 @@
 
 import React from "react";
 import { SupplierDetailSummary } from "@/types/supplier";
-import { ShoppingCart, TrendingUp, Package, DollarSign } from "lucide-react";
+import { TrendingUp, DollarSign, ShoppingBag, Coins } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface SupplierDetailSummaryProps {
@@ -39,17 +39,17 @@ export function SupplierDetailSummaryComponent({
 
   const cards = [
     {
-      title: "총 판매 건수",
+      title: "총 매출 건수",
       value: `${summary.totalSalesOrders.toLocaleString()}건`,
-      icon: ShoppingCart,
+      icon: TrendingUp,
       bgColor: "bg-blue-50",
       iconColor: "text-blue-600",
       show: true,
     },
     {
-      title: "총 판매 금액",
+      title: "총 매출 금액",
       value: `₩${summary.totalSalesAmount.toLocaleString()}`,
-      icon: TrendingUp,
+      icon: DollarSign,
       bgColor: "bg-blue-50",
       iconColor: "text-blue-600",
       show: true,
@@ -58,19 +58,19 @@ export function SupplierDetailSummaryComponent({
         : undefined,
     },
     {
-      title: "총 구매 건수",
+      title: "총 매입 건수",
       value: `${summary.totalPurchaseOrders.toLocaleString()}건`,
-      icon: Package,
-      bgColor: "bg-green-50",
-      iconColor: "text-green-600",
+      icon: ShoppingBag,
+      bgColor: "bg-orange-50",
+      iconColor: "text-orange-600",
       show: true,
     },
     {
-      title: "총 구매 금액",
+      title: "총 매입 금액",
       value: `₩${summary.totalPurchaseAmount.toLocaleString()}`,
-      icon: DollarSign,
-      bgColor: "bg-green-50",
-      iconColor: "text-green-600",
+      icon: Coins,
+      bgColor: "bg-orange-50",
+      iconColor: "text-orange-600",
       show: true,
     },
   ];

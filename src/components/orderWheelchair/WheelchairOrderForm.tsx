@@ -355,8 +355,8 @@ export default function WheelchairOrderForm() {
       ...formData,
       supplierId,
       receiver: selectedSupplier.supplierName,
-      receiverPhone: selectedSupplier.supplierPhoneNumber,
-      address: selectedSupplier.supplierAddress,
+      receiverPhone: selectedSupplier.supplierPhoneNumber || "",
+      address: selectedSupplier.supplierAddress || "",
       detailAddress: "", // 상세주소는 비우기
     });
   };

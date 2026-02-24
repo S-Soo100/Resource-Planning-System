@@ -5,7 +5,9 @@ import {
   PurchaseFilterParams,
 } from '@/types/purchase';
 import { InventoryRecord } from '@/types/(inventoryRecord)/inventory-record';
+import { TeamItem } from '@/types/(item)/team-item';
 import { inventoryRecordApi } from '@/api/inventory-record-api';
+import { teamItemsApi } from '@/api/team-items-api';
 import { authStore } from '@/store/authStore';
 
 /**
@@ -44,24 +46,36 @@ const transformToPurchaseRecord = (
 };
 
 /**
- * 구매 요약 정보 계산 (동적으로 costPrice 참조)
+ * 구매 요약 정보 계산 (실시간 원가 적용)
  */
-const calculateSummary = (records: PurchaseRecord[]): PurchaseSummary => {
+const calculateSummary = (
+  records: PurchaseRecord[],
+  teamItemsMap: Map<number, TeamItem>
+): PurchaseSummary => {
   const uniqueItems = new Set(records.map((r) => r.itemCode));
   const totalQuantity = records.reduce((sum, r) => sum + r.quantity, 0);
 
-  // 동적으로 costPrice를 참조하여 totalAmount 계산
+  // TeamItem에서 실시간 원가를 참조하여 totalAmount 계산
   const totalAmount = records.reduce((sum, r) => {
-    const costPrice = r.originalRecord.item?.teamItem?.costPrice;
+    const teamItemId = r.originalRecord.item?.teamItem?.id;
+    if (!teamItemId) return sum;
+
+    const teamItem = teamItemsMap.get(teamItemId);
+    const costPrice = teamItem?.costPrice;
+
     if (costPrice !== null && costPrice !== undefined) {
       return sum + (r.quantity * costPrice);
     }
     return sum;
   }, 0);
 
-  // 동적으로 costPrice를 확인하여 미입력 건수 계산
+  // TeamItem에서 실시간 원가를 확인하여 미입력 건수 계산
   const missingCostCount = records.filter((r) => {
-    const costPrice = r.originalRecord.item?.teamItem?.costPrice;
+    const teamItemId = r.originalRecord.item?.teamItem?.id;
+    if (!teamItemId) return true;
+
+    const teamItem = teamItemsMap.get(teamItemId);
+    const costPrice = teamItem?.costPrice;
     return costPrice === null || costPrice === undefined;
   }).length;
 
@@ -75,7 +89,7 @@ const calculateSummary = (records: PurchaseRecord[]): PurchaseSummary => {
 };
 
 /**
- * 구매 데이터 조회 훅
+ * 구매 데이터 조회 훅 (실시간 원가 적용)
  */
 export const usePurchaseData = (params: PurchaseFilterParams) => {
   const selectedTeam = authStore((state) => state.selectedTeam);
@@ -87,7 +101,19 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
         throw new Error('팀이 선택되지 않았습니다.');
       }
 
-      // 입고 데이터 조회
+      // 1. TeamItem 데이터 조회 (실시간 원가)
+      const teamItemsResponse = await teamItemsApi.getTeamItemsByTeam(selectedTeam.id);
+      if (!teamItemsResponse.success || !teamItemsResponse.data) {
+        throw new Error('TeamItem 데이터 조회에 실패했습니다.');
+      }
+
+      // TeamItem Map 생성 (teamItemId -> TeamItem)
+      const teamItemsMap = new Map<number, TeamItem>();
+      for (const teamItem of teamItemsResponse.data) {
+        teamItemsMap.set(teamItem.id, teamItem);
+      }
+
+      // 2. 입고 데이터 조회
       const response = await inventoryRecordApi.getInventoryRecordsByTeamId(
         selectedTeam.id,
         params.startDate,
@@ -98,18 +124,18 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
         throw new Error('입고 데이터 조회에 실패했습니다.');
       }
 
-      // 구매 레코드로 변환 (입고만 필터링)
+      // 3. 구매 레코드로 변환 (입고만 필터링)
       let purchaseRecords = response.data
         .map(transformToPurchaseRecord)
         .filter((record): record is PurchaseRecord => record !== null);
 
-      // 시연품 창고 입고 내역 제외 (시연품은 여러번 들어갔다 나갔다 하므로 구매 금액 뻥튀기 방지)
+      // 4. 시연품 창고 입고 내역 제외 (시연품은 여러번 들어갔다 나갔다 하므로 구매 금액 뻥튀기 방지)
       purchaseRecords = purchaseRecords.filter((record) => {
         const warehouseName = record.warehouseName || '';
         return !warehouseName.includes('시연');
       });
 
-      // 클라이언트 사이드 날짜 필터링 (서버 필터링이 제대로 동작하지 않을 경우 대비)
+      // 5. 클라이언트 사이드 날짜 필터링 (서버 필터링이 제대로 동작하지 않을 경우 대비)
       purchaseRecords = purchaseRecords.filter((record) => {
         const inboundDate = record.inboundDate;
         return (
@@ -120,7 +146,7 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
       // TODO: 추후 API에서 warehouseId, supplierId, categoryId 필터링 지원 시 제거
       // 현재는 클라이언트에서 필터링
 
-      // 검색어 필터링
+      // 6. 검색어 필터링
       let filteredRecords = purchaseRecords;
       if (params.searchQuery && params.searchQuery.trim()) {
         const query = params.searchQuery.toLowerCase();
@@ -132,20 +158,25 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
         );
       }
 
-      // 원가 미입력만 보기 필터 (동적으로 costPrice 확인)
+      // 7. 원가 미입력만 보기 필터 (실시간 원가 확인)
       if (params.showMissingCostOnly) {
         filteredRecords = filteredRecords.filter((r) => {
-          const costPrice = r.originalRecord.item?.teamItem?.costPrice;
+          const teamItemId = r.originalRecord.item?.teamItem?.id;
+          if (!teamItemId) return true;
+
+          const teamItem = teamItemsMap.get(teamItemId);
+          const costPrice = teamItem?.costPrice;
           return costPrice === null || costPrice === undefined;
         });
       }
 
-      // 요약 정보 계산
-      const summary = calculateSummary(filteredRecords);
+      // 8. 요약 정보 계산 (실시간 원가 적용)
+      const summary = calculateSummary(filteredRecords, teamItemsMap);
 
       return {
         records: filteredRecords,
         summary,
+        teamItemsMap, // 구매 페이지에서 실시간 원가 표시용
       };
     },
     staleTime: 1000 * 60 * 5, // 5분

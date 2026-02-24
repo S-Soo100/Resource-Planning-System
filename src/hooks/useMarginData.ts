@@ -5,7 +5,9 @@ import {
   MarginFilterParams,
 } from '@/types/margin-analysis';
 import { Order } from '@/types/(order)/order';
+import { TeamItem } from '@/types/(item)/team-item';
 import { getOrdersByTeamId } from '@/api/order-api';
+import { teamItemsApi } from '@/api/team-items-api';
 import { authStore } from '@/store/authStore';
 
 /**
@@ -19,8 +21,7 @@ interface ItemSalesData {
   transactionCount: number; // 거래 건수 (발주 건수)
   salesQuantity: number; // 판매 수량
   salesAmount: number; // 판매가 합계
-  costPrice: number | null; // 원가 (teamItem.costPrice)
-  teamItemId?: number; // 원가 미입력 시 팀 물품 관리로 이동하기 위한 ID
+  teamItemId: number; // TeamItem ID (실시간 원가 조회용)
   hasSalesPrice: boolean; // 판매가 입력 여부
 }
 
@@ -76,7 +77,6 @@ const aggregateItemSalesData = (orders: Order[]): Map<string, ItemSalesData> => 
           transactionCount: 1,
           salesQuantity: orderItem.quantity,
           salesAmount: hasPrice ? itemSalesAmount : 0,
-          costPrice: teamItem.costPrice ?? null,
           teamItemId: teamItem.id,
           hasSalesPrice: hasPrice,
         });
@@ -88,18 +88,25 @@ const aggregateItemSalesData = (orders: Order[]): Map<string, ItemSalesData> => 
 };
 
 /**
- * 품목별 판매 데이터를 마진 분석 레코드로 변환
+ * 품목별 판매 데이터를 마진 분석 레코드로 변환 (실시간 원가 적용)
+ * @param itemData 품목별 판매 데이터
+ * @param teamItemsMap TeamItem Map (teamItemId -> TeamItem)
  */
 const transformToMarginRecord = (
-  itemData: ItemSalesData
+  itemData: ItemSalesData,
+  teamItemsMap: Map<number, TeamItem>
 ): MarginAnalysisRecord => {
+  // TeamItem에서 실시간 원가 조회
+  const teamItem = teamItemsMap.get(itemData.teamItemId);
+  const costPrice = teamItem?.costPrice ?? null;
+
   // 원가 입력 여부 체크: null, undefined는 미입력으로 간주 (0원은 유효한 원가)
-  const hasCost = itemData.costPrice !== null && itemData.costPrice !== undefined;
+  const hasCost = costPrice !== null && costPrice !== undefined;
 
   // 원가 합계 계산 (원가가 있을 때만)
   let costAmount: number | null = null;
-  if (hasCost && itemData.costPrice !== null) {
-    costAmount = itemData.costPrice * itemData.salesQuantity;
+  if (hasCost && costPrice !== null) {
+    costAmount = costPrice * itemData.salesQuantity;
   }
 
   // 마진 계산: (판매가 - 원가) / 판매가 × 100
@@ -177,7 +184,7 @@ const calculateMarginSummary = (
 };
 
 /**
- * 마진 분석 데이터 조회 훅
+ * 마진 분석 데이터 조회 훅 (실시간 원가 적용)
  */
 export const useMarginData = (params: MarginFilterParams) => {
   const selectedTeam = authStore((state) => state.selectedTeam);
@@ -189,30 +196,42 @@ export const useMarginData = (params: MarginFilterParams) => {
         throw new Error('팀이 선택되지 않았습니다.');
       }
 
-      // 발주 데이터 조회
-      const response = await getOrdersByTeamId(selectedTeam.id);
-      if (!response.success || !response.data) {
+      // 1. TeamItem 데이터 조회 (실시간 원가)
+      const teamItemsResponse = await teamItemsApi.getTeamItemsByTeam(selectedTeam.id);
+      if (!teamItemsResponse.success || !teamItemsResponse.data) {
+        throw new Error('TeamItem 데이터 조회에 실패했습니다.');
+      }
+
+      // TeamItem Map 생성 (teamItemId -> TeamItem)
+      const teamItemsMap = new Map<number, TeamItem>();
+      for (const teamItem of teamItemsResponse.data) {
+        teamItemsMap.set(teamItem.id, teamItem);
+      }
+
+      // 2. 발주 데이터 조회
+      const ordersResponse = await getOrdersByTeamId(selectedTeam.id);
+      if (!ordersResponse.success || !ordersResponse.data) {
         throw new Error('발주 데이터 조회에 실패했습니다.');
       }
 
-      const orders = response.data as Order[];
+      const orders = ordersResponse.data as Order[];
 
-      // 월별 필터링 (YYYY-MM)
+      // 3. 월별 필터링 (YYYY-MM)
       const filteredOrders = orders.filter((order) => {
         if (!order.purchaseDate) return false;
         const orderYearMonth = order.purchaseDate.substring(0, 7); // YYYY-MM
         return orderYearMonth === params.yearMonth;
       });
 
-      // 품목별 판매 데이터 집계
+      // 4. 품목별 판매 데이터 집계
       const itemSalesMap = aggregateItemSalesData(filteredOrders);
 
-      // 마진 분석 레코드로 변환
-      let marginRecords = Array.from(itemSalesMap.values()).map(
-        transformToMarginRecord
+      // 5. 마진 분석 레코드로 변환 (실시간 원가 적용)
+      let marginRecords = Array.from(itemSalesMap.values()).map((itemData) =>
+        transformToMarginRecord(itemData, teamItemsMap)
       );
 
-      // 검색어 필터링
+      // 6. 검색어 필터링
       if (params.searchQuery && params.searchQuery.trim()) {
         const query = params.searchQuery.toLowerCase();
         marginRecords = marginRecords.filter(
@@ -222,19 +241,19 @@ export const useMarginData = (params: MarginFilterParams) => {
         );
       }
 
-      // 역마진만 보기 필터
+      // 7. 역마진만 보기 필터
       if (params.showNegativeMarginOnly) {
         marginRecords = marginRecords.filter((r) => r.isNegativeMargin);
       }
 
-      // 원가/판매가 미입력만 보기 필터
+      // 8. 원가/판매가 미입력만 보기 필터
       if (params.showMissingDataOnly) {
         marginRecords = marginRecords.filter(
           (r) => !r.hasCostPrice || !r.hasSalesPrice
         );
       }
 
-      // 요약 정보 계산
+      // 9. 요약 정보 계산
       const summary = calculateMarginSummary(marginRecords);
 
       return {

@@ -50,6 +50,10 @@ export default function SalesPage() {
   // 미디어 쿼리
   const isMobile = useMediaQuery('(max-width: 759px)');
 
+  // 권한별 마진 컬럼 표시 여부 (Admin, Moderator만)
+  const showMarginColumns =
+    user?.accessLevel === 'admin' || user?.accessLevel === 'moderator';
+
   // 필터 상태 (기본값: 이번 달)
   const [filters, setFilters] = useState<SalesFilterParams>({
     startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
@@ -115,6 +119,11 @@ export default function SalesPage() {
         totalQuantity: 0,
         totalSales: 0,
         missingPriceCount: 0,
+        totalCost: 0,
+        totalMargin: 0,
+        averageMarginRate: 0,
+        negativeMarginCount: 0,
+        missingCostCount: 0,
       };
     }
 
@@ -126,12 +135,38 @@ export default function SalesPage() {
     );
     const missingPriceCount = sortedRecords.filter((r) => r.totalPrice === null).length;
 
+    // 마진 분석 요약
+    const totalCost = sortedRecords.reduce(
+      (sum, r) => (r.costAmount !== null && r.costAmount !== undefined ? sum + r.costAmount : sum),
+      0
+    );
+
+    const totalMargin = sortedRecords.reduce(
+      (sum, r) => (r.marginAmount !== null && r.marginAmount !== undefined ? sum + r.marginAmount : sum),
+      0
+    );
+
+    const recordsWithMargin = sortedRecords.filter((r) => r.marginRate !== null && r.marginRate !== undefined);
+    const averageMarginRate =
+      recordsWithMargin.length > 0
+        ? recordsWithMargin.reduce((sum, r) => sum + (r.marginRate || 0), 0) /
+          recordsWithMargin.length
+        : 0;
+
+    const negativeMarginCount = sortedRecords.filter((r) => r.isNegativeMargin).length;
+    const missingCostCount = sortedRecords.filter((r) => !r.hasCostPrice).length;
+
     return {
       totalOrders: sortedRecords.length,
       totalItems,
       totalQuantity,
       totalSales,
       missingPriceCount,
+      totalCost,
+      totalMargin,
+      averageMarginRate,
+      negativeMarginCount,
+      missingCostCount,
     };
   }, [sortedRecords]);
 
@@ -240,10 +275,10 @@ export default function SalesPage() {
     return lines.slice(0, 2).join('\n') + '...';
   };
 
-  // 엑셀 다운로드
+  // 엑셀 다운로드 (권한별 컬럼 차별화)
   const handleExportExcel = () => {
     if (!data?.records) return;
-    exportSalesToExcel(data.records);
+    exportSalesToExcel(data.records, undefined, showMarginColumns);
   };
 
   // 상태 색상
@@ -308,9 +343,12 @@ export default function SalesPage() {
     <div className="container mx-auto p-6 pb-10">
       {/* 헤더 */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">💰 판매 내역</h1>
+        <h1 className="text-3xl font-bold text-gray-900">
+          💰 판매 내역 {showMarginColumns && '& 마진 분석'}
+        </h1>
         <p className="text-gray-500 mt-2">
-          승인된 발주를 기반으로 판매 현황을 분석합니다
+          승인된 발주를 기반으로 판매 현황
+          {showMarginColumns && ' 및 마진율'}을 분석합니다
         </p>
       </div>
 
@@ -452,17 +490,69 @@ export default function SalesPage() {
                 </div>
 
                 {/* 금액 강조 */}
-                <div className="mb-3 p-2 bg-blue-50 rounded-md">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">총 금액</span>
-                    <span className="text-base font-bold text-blue-600">
-                      {record.totalPrice !== null ? (
-                        `₩${record.totalPrice.toLocaleString()}`
-                      ) : (
-                        <span className="text-gray-400">미입력</span>
-                      )}
-                    </span>
+                <div className="mb-3 space-y-2">
+                  <div className="p-2 bg-blue-50 rounded-md">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-600">판매가</span>
+                      <span className="text-base font-bold text-blue-600">
+                        {record.totalPrice !== null ? (
+                          `₩${record.totalPrice.toLocaleString()}`
+                        ) : (
+                          <span className="text-gray-400">미입력</span>
+                        )}
+                      </span>
+                    </div>
                   </div>
+
+                  {showMarginColumns && (
+                    <>
+                      <div className="p-2 bg-orange-50 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-600">원가</span>
+                          <span className="text-sm font-bold text-orange-600">
+                            {record.hasCostPrice && record.costAmount !== null && record.costAmount !== undefined
+                              ? `₩${record.costAmount.toLocaleString()}`
+                              : '미입력'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="p-2 bg-gray-50 rounded-md">
+                          <div className="text-xs text-gray-600 mb-1">마진액</div>
+                          <div
+                            className={`text-sm font-bold ${
+                              record.marginAmount !== null && record.marginAmount !== undefined
+                                ? record.marginAmount >= 0
+                                  ? 'text-green-600'
+                                  : 'text-red-600'
+                                : 'text-gray-400'
+                            }`}
+                          >
+                            {record.marginAmount !== null && record.marginAmount !== undefined
+                              ? `₩${record.marginAmount.toLocaleString()}`
+                              : '-'}
+                          </div>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded-md">
+                          <div className="text-xs text-gray-600 mb-1">마진율</div>
+                          <div
+                            className={`text-sm font-bold ${
+                              record.marginRate !== null && record.marginRate !== undefined
+                                ? record.marginRate >= 0
+                                  ? 'text-green-600'
+                                  : 'text-red-600'
+                                : 'text-gray-400'
+                            }`}
+                          >
+                            {record.marginRate !== null && record.marginRate !== undefined
+                              ? `${record.marginRate.toFixed(1)}%`
+                              : '-'}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* 상세 정보 */}
@@ -566,10 +656,23 @@ export default function SalesPage() {
                     onClick={() => handleSort('totalPrice')}
                   >
                     <div className="flex items-center justify-end">
-                      총 금액
+                      판매가
                       {renderSortIcon('totalPrice')}
                     </div>
                   </th>
+                  {showMarginColumns && (
+                    <>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 w-32">
+                        원가
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 w-32">
+                        마진액
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 w-24">
+                        마진율
+                      </th>
+                    </>
+                  )}
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-28">
                     거래명세서
                   </th>
@@ -577,7 +680,14 @@ export default function SalesPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {sortedRecords.map((record) => (
-                  <tr key={record.id} className="hover:bg-gray-50">
+                  <tr
+                    key={record.id}
+                    className={`hover:bg-gray-50 ${
+                      showMarginColumns && record.isNegativeMargin
+                        ? 'bg-red-50'
+                        : ''
+                    }`}
+                  >
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {formatDate(record.purchaseDate)}
                     </td>
@@ -602,13 +712,58 @@ export default function SalesPage() {
                     <td className="px-4 py-3 text-sm text-center text-gray-900">
                       {record.itemCount}종 {record.totalQuantity}개
                     </td>
-                    <td className="px-4 py-3 text-sm text-right font-medium text-gray-900 whitespace-nowrap">
+                    <td className="px-4 py-3 text-sm text-right">
                       {record.totalPrice !== null ? (
-                        `₩${record.totalPrice.toLocaleString()}`
+                        <div className="bg-blue-50 px-3 py-1.5 rounded-md inline-block">
+                          <span className="font-bold text-blue-600">
+                            ₩{record.totalPrice.toLocaleString()}
+                          </span>
+                        </div>
                       ) : (
                         <span className="text-gray-400">미입력</span>
                       )}
                     </td>
+                    {showMarginColumns && (
+                      <>
+                        <td className="px-4 py-3 text-sm text-right">
+                          {record.hasCostPrice && record.costAmount !== null && record.costAmount !== undefined ? (
+                            <div className="bg-orange-50 px-3 py-1.5 rounded-md inline-block">
+                              <span className="font-bold text-orange-600">
+                                ₩{record.costAmount.toLocaleString()}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">미입력</span>
+                          )}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-sm text-right font-medium ${
+                            record.marginAmount !== null && record.marginAmount !== undefined
+                              ? record.marginAmount >= 0
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                              : 'text-gray-400'
+                          }`}
+                        >
+                          {record.marginAmount !== null && record.marginAmount !== undefined
+                            ? `₩${record.marginAmount.toLocaleString()}`
+                            : '-'}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-sm text-right font-bold ${
+                            record.marginRate !== null && record.marginRate !== undefined
+                              ? record.marginRate >= 0
+                                ? 'text-green-600'
+                                : 'text-red-600'
+                              : 'text-gray-400'
+                          }`}
+                        >
+                          {record.marginRate !== null && record.marginRate !== undefined
+                            ? `${record.marginRate.toFixed(1)}%`
+                            : '-'}
+                        </td>
+                      </>
+                    )}
                     <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => handleOpenStatement(record)}
@@ -636,6 +791,19 @@ export default function SalesPage() {
                     <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">
                       ₩{actualSummary.totalSales.toLocaleString()}
                     </td>
+                    {showMarginColumns && (
+                      <>
+                        <td className="px-4 py-3 text-sm font-bold text-right text-orange-600">
+                          ₩{(actualSummary?.totalCost || 0).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-bold text-right text-green-600">
+                          ₩{(actualSummary?.totalMargin || 0).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-bold text-right text-green-600">
+                          {(actualSummary?.averageMarginRate || 0).toFixed(1)}%
+                        </td>
+                      </>
+                    )}
                     <td></td>
                   </tr>
                 )}
@@ -651,6 +819,25 @@ export default function SalesPage() {
           </div>
         )}
       </div>
+
+      {/* 역마진 경고 안내 (Admin/Moderator만) */}
+      {showMarginColumns &&
+        actualSummary &&
+        actualSummary.negativeMarginCount &&
+        actualSummary.negativeMarginCount > 0 && (
+          <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
+            <AlertCircle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-red-800">
+              <strong className="block mb-1">
+                ⚠️ 역마진 발주: {actualSummary.negativeMarginCount}건
+              </strong>
+              <p>
+                판매가가 원가보다 낮은 발주가 발견되었습니다. 가격 정책을
+                검토해주세요.
+              </p>
+            </div>
+          </div>
+        )}
 
       {/* 거래명세서 모달 */}
       {selectedRecord && (

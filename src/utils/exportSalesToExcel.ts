@@ -3,25 +3,50 @@ import { SalesRecord } from '@/types/sales';
 import { format } from 'date-fns';
 
 /**
- * 판매 데이터를 엑셀로 내보내기 (2 sheets)
+ * 판매 데이터를 엑셀로 내보내기 (권한별 컬럼 차별화)
+ * @param records 판매 레코드 배열
+ * @param filename 파일명 (선택)
+ * @param showMarginColumns 마진 컬럼 표시 여부 (Admin/Moderator)
  */
 export const exportSalesToExcel = (
   records: SalesRecord[],
-  filename?: string
+  filename?: string,
+  showMarginColumns = false
 ) => {
-  // Sheet 1: 발주 요약
-  const summaryData = records.map((record, index) => ({
-    No: index + 1,
-    발주일자: record.purchaseDate,
-    제목: record.title,
-    판매처: record.supplierName,
-    수령인: record.receiver,
-    품목수: `${record.itemCount}종 ${record.totalQuantity}개`,
-    총금액: record.totalPrice !== null ? record.totalPrice : '미입력',
-    상태: record.status,
-    담당자: record.manager,
-    비고: record.memo || '-',
-  }));
+  // Sheet 1: 발주 요약 (권한별 컬럼 차별화)
+  const summaryData = records.map((record, index) => {
+    const baseData: any = {
+      No: index + 1,
+      발주일자: record.purchaseDate,
+      제목: record.title,
+      판매처: record.supplierName,
+      수령인: record.receiver,
+      품목수: `${record.itemCount}종 ${record.totalQuantity}개`,
+      판매가: record.totalPrice !== null ? record.totalPrice : '미입력',
+    };
+
+    // Admin/Moderator만 마진 정보 포함
+    if (showMarginColumns) {
+      baseData.원가 =
+        record.costAmount !== null && record.costAmount !== undefined
+          ? record.costAmount
+          : '미입력';
+      baseData.마진액 =
+        record.marginAmount !== null && record.marginAmount !== undefined
+          ? record.marginAmount
+          : '-';
+      baseData.마진율 =
+        record.marginRate !== null && record.marginRate !== undefined
+          ? `${record.marginRate.toFixed(1)}%`
+          : '-';
+    }
+
+    baseData.상태 = record.status;
+    baseData.담당자 = record.manager;
+    baseData.비고 = record.memo || '-';
+
+    return baseData;
+  });
 
   // 합계 행 추가
   const totalQuantity = records.reduce((sum, r) => sum + r.totalQuantity, 0);
@@ -31,18 +56,50 @@ export const exportSalesToExcel = (
     0
   );
 
-  summaryData.push({
+  const totalRow: any = {
     No: '',
     발주일자: '',
     제목: '',
     판매처: '',
     수령인: '합계',
     품목수: `${totalItems}종 ${totalQuantity}개`,
-    총금액: totalSales,
-    상태: '',
-    담당자: '',
-    비고: '',
-  } as any);
+    판매가: totalSales,
+  };
+
+  if (showMarginColumns) {
+    const totalCost = records.reduce(
+      (sum, r) =>
+        r.costAmount !== null && r.costAmount !== undefined
+          ? sum + r.costAmount
+          : sum,
+      0
+    );
+    const totalMargin = records.reduce(
+      (sum, r) =>
+        r.marginAmount !== null && r.marginAmount !== undefined
+          ? sum + r.marginAmount
+          : sum,
+      0
+    );
+    const recordsWithMargin = records.filter(
+      (r) => r.marginRate !== null && r.marginRate !== undefined
+    );
+    const avgMarginRate =
+      recordsWithMargin.length > 0
+        ? recordsWithMargin.reduce((sum, r) => sum + (r.marginRate || 0), 0) /
+          recordsWithMargin.length
+        : 0;
+
+    totalRow.원가 = totalCost;
+    totalRow.마진액 = totalMargin;
+    totalRow.마진율 = `${avgMarginRate.toFixed(1)}%`;
+  }
+
+  totalRow.상태 = '';
+  totalRow.담당자 = '';
+  totalRow.비고 = '';
+
+  summaryData.push(totalRow);
 
   const worksheet1 = XLSX.utils.json_to_sheet(summaryData);
 

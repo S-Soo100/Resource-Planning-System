@@ -6,7 +6,9 @@ import {
   SalesPriceCalculation,
 } from '@/types/sales';
 import { Order } from '@/types/(order)/order';
+import { TeamItem } from '@/types/(item)/team-item';
 import { getOrdersByTeamId } from '@/api/order-api';
+import { teamItemsApi } from '@/api/team-items-api';
 import { authStore } from '@/store/authStore';
 
 /**
@@ -52,14 +54,57 @@ export const calculateOrderTotal = (order: Order): SalesPriceCalculation => {
 };
 
 /**
- * 발주 데이터를 판매 레코드로 변환
+ * 발주 데이터를 판매 레코드로 변환 (마진 정보 포함)
  */
-const transformToSalesRecord = (order: Order): SalesRecord => {
+const transformToSalesRecord = (
+  order: Order,
+  teamItemsMap: Map<number, TeamItem>
+): SalesRecord => {
   const priceCalc = calculateOrderTotal(order);
   const totalQuantity = order.orderItems.reduce(
     (sum, item) => sum + item.quantity,
     0
   );
+
+  // 원가 계산
+  let costAmount: number | null = null;
+  let hasCostPrice = false;
+
+  if (order.orderItems && order.orderItems.length > 0) {
+    let totalCost = 0;
+    let hasAnyCost = false;
+
+    for (const item of order.orderItems) {
+      const teamItem = item.item?.teamItem;
+      if (teamItem && teamItemsMap.has(teamItem.id)) {
+        const teamItemData = teamItemsMap.get(teamItem.id);
+        const costPrice = teamItemData?.costPrice;
+
+        if (costPrice !== null && costPrice !== undefined) {
+          totalCost += costPrice * item.quantity;
+          hasAnyCost = true;
+        }
+      }
+    }
+
+    if (hasAnyCost) {
+      costAmount = totalCost;
+      hasCostPrice = true;
+    }
+  }
+
+  // 마진 계산
+  let marginAmount: number | null = null;
+  let marginRate: number | null = null;
+  let isNegativeMargin = false;
+
+  if (priceCalc.totalPrice !== null && costAmount !== null) {
+    marginAmount = priceCalc.totalPrice - costAmount;
+    if (priceCalc.totalPrice !== 0) {
+      marginRate = (marginAmount / priceCalc.totalPrice) * 100;
+      isNegativeMargin = marginRate < 0;
+    }
+  }
 
   return {
     id: order.id,
@@ -75,11 +120,17 @@ const transformToSalesRecord = (order: Order): SalesRecord => {
     memo: order.memo || null,
     orderItems: order.orderItems || [],
     originalOrder: order,
+    // 마진 분석 필드
+    costAmount,
+    marginAmount,
+    marginRate,
+    hasCostPrice,
+    isNegativeMargin,
   };
 };
 
 /**
- * 판매 요약 정보 계산
+ * 판매 요약 정보 계산 (마진 정보 포함)
  */
 const calculateSummary = (records: SalesRecord[]): SalesSummary => {
   const totalItems = records.reduce((sum, r) => sum + r.itemCount, 0);
@@ -90,17 +141,44 @@ const calculateSummary = (records: SalesRecord[]): SalesSummary => {
   );
   const missingPriceCount = records.filter((r) => r.totalPrice === null).length;
 
+  // 마진 분석 요약
+  const totalCost = records.reduce(
+    (sum, r) => (r.costAmount !== null ? sum + (r.costAmount || 0) : sum),
+    0
+  );
+
+  const totalMargin = records.reduce(
+    (sum, r) => (r.marginAmount !== null ? sum + (r.marginAmount || 0) : sum),
+    0
+  );
+
+  const recordsWithMargin = records.filter((r) => r.marginRate !== null);
+  const averageMarginRate =
+    recordsWithMargin.length > 0
+      ? recordsWithMargin.reduce((sum, r) => sum + (r.marginRate || 0), 0) /
+        recordsWithMargin.length
+      : 0;
+
+  const negativeMarginCount = records.filter((r) => r.isNegativeMargin).length;
+  const missingCostCount = records.filter((r) => !r.hasCostPrice).length;
+
   return {
     totalOrders: records.length,
     totalItems,
     totalQuantity,
     totalSales,
     missingPriceCount,
+    // 마진 분석
+    totalCost,
+    totalMargin,
+    averageMarginRate,
+    negativeMarginCount,
+    missingCostCount,
   };
 };
 
 /**
- * 판매 데이터 조회 훅
+ * 판매 데이터 조회 훅 (마진 정보 포함)
  */
 export const useSalesData = (params: SalesFilterParams) => {
   const selectedTeam = authStore((state) => state.selectedTeam);
@@ -122,7 +200,21 @@ export const useSalesData = (params: SalesFilterParams) => {
         throw new Error('팀이 선택되지 않았습니다.');
       }
 
-      // 발주 데이터 조회
+      // 1. TeamItem 데이터 조회 (원가 정보)
+      const teamItemsResponse = await teamItemsApi.getTeamItemsByTeam(
+        selectedTeam.id
+      );
+      if (!teamItemsResponse.success || !teamItemsResponse.data) {
+        throw new Error('TeamItem 데이터 조회에 실패했습니다.');
+      }
+
+      // TeamItem Map 생성 (teamItemId -> TeamItem)
+      const teamItemsMap = new Map<number, TeamItem>();
+      for (const teamItem of teamItemsResponse.data) {
+        teamItemsMap.set(teamItem.id, teamItem);
+      }
+
+      // 2. 발주 데이터 조회
       const response = await getOrdersByTeamId(selectedTeam.id);
       if (!response.success || !response.data) {
         throw new Error('발주 데이터 조회에 실패했습니다.');
@@ -130,8 +222,10 @@ export const useSalesData = (params: SalesFilterParams) => {
 
       const orders = response.data as Order[];
 
-      // 판매 레코드로 변환
-      let salesRecords = orders.map(transformToSalesRecord);
+      // 3. 판매 레코드로 변환 (마진 정보 포함)
+      let salesRecords = orders.map((order) =>
+        transformToSalesRecord(order, teamItemsMap)
+      );
 
       // 날짜 필터링 (client-side)
       salesRecords = salesRecords.filter((record: SalesRecord) => {

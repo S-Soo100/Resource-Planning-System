@@ -6,6 +6,7 @@ import {
   CreatOrderResponse,
   UpdateOrderDto,
   UpdateOrderStatusDto,
+  UpdateOrderDetailsDto,
   OrderFile as OrderFileResponse,
 } from "../types/(order)/order";
 import { AxiosError } from "axios";
@@ -425,5 +426,56 @@ export const updateOrderPrice = async (
     }
 
     return { success: false, message: "주문 가격 수정에 실패했습니다." };
+  }
+};
+
+// # 주문 상세 정보 수정 (moderator 이상 권한)
+// 출고완료 등 수정 불가능한 상태에서도 고객 정보, 가격 등을 수정 가능
+// 레거시 데이터에서 supplier가 null인 경우 등을 수정할 때 사용
+export const updateOrderDetails = async (
+  id: string,
+  data: UpdateOrderDetailsDto
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.patch<ApiResponse>(`/order/${id}/details`, data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error("[API] 주문 상세 정보 수정 오류:", error);
+
+    if (error instanceof AxiosError) {
+      // 권한 오류 처리 (403 Forbidden)
+      if (error.response?.status === 403) {
+        return {
+          success: false,
+          message: "상세 정보 수정 권한이 없습니다. (중간관리자 이상 필요)",
+        };
+      }
+
+      // 주문을 찾을 수 없는 경우 (404 Not Found)
+      if (error.response?.status === 404) {
+        return {
+          success: false,
+          message: "주문을 찾을 수 없습니다.",
+        };
+      }
+
+      // Supplier를 찾을 수 없는 경우 (404 Not Found)
+      if (error.response?.data?.message?.includes("Supplier")) {
+        return {
+          success: false,
+          message: "선택한 고객을 찾을 수 없습니다.",
+        };
+      }
+
+      // 서버 응답이 있는 경우
+      if (error.response?.data?.message) {
+        return {
+          success: false,
+          message: error.response.data.message,
+        };
+      }
+    }
+
+    return { success: false, message: "주문 상세 정보 수정에 실패했습니다." };
   }
 };

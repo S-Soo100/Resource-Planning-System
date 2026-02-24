@@ -11,9 +11,11 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useUpdateOrderStatus, useDeleteOrder } from "@/hooks/(useOrder)/useOrderMutations";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import { useSuppliers } from "@/hooks/useSupplier";
 // useWarehouseItems 훅 제거 - 발주 상세 페이지에서는 불필요
 import OrderEditModal from "@/components/orderRecord/OrderEditModal";
 import PriceEditModal from "@/components/orderRecord/PriceEditModal";
+import DetailsEditModal from "@/components/orderRecord/DetailsEditModal";
 import LoginModal from "@/components/login/LoginModal";
 import { IAuth } from "@/types/(auth)/auth";
 import { authService } from "@/services/authService";
@@ -377,6 +379,7 @@ const OrderRecordDetail = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPriceEditModalOpen, setIsPriceEditModalOpen] = useState(false);
+  const [isDetailsEditModalOpen, setIsDetailsEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState<number | null>(null);
@@ -386,6 +389,10 @@ const OrderRecordDetail = () => {
   const queryClient = useQueryClient();
   const updateOrderStatusMutation = useUpdateOrderStatus();
   const deleteOrderMutation = useDeleteOrder();
+
+  // Suppliers 데이터 가져오기
+  const { useGetSuppliers } = useSuppliers();
+  const { suppliers = [] } = useGetSuppliers();
 
   // authStore에서 하이드레이션 상태 구독
   const hasHydrated = authStore((state) => state._hasHydrated);
@@ -899,15 +906,27 @@ const OrderRecordDetail = () => {
                       {getStatusText(order.status)}
                     </span>
                   </div>
-                  {/* 수정 버튼 */}
-                  {hasPermissionToEdit(order) && (
-                    <button
-                      onClick={() => setIsEditModalOpen(true)}
-                      className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
-                    >
-                      발주 수정
-                    </button>
-                  )}
+                  {/* 수정 버튼들 */}
+                  <div className="flex gap-2">
+                    {hasPermissionToEdit(order) && (
+                      <button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
+                      >
+                        발주 수정
+                      </button>
+                    )}
+                    {/* moderator/admin만 발주 정보 수정 버튼 표시 */}
+                    {(auth?.accessLevel === "admin" || auth?.accessLevel === "moderator") && (
+                      <button
+                        onClick={() => setIsDetailsEditModalOpen(true)}
+                        className="px-4 py-2 text-white bg-green-500 rounded-lg transition-colors hover:bg-green-600"
+                        title="고객 정보 등을 수정할 수 있습니다 (레거시 데이터 수정)"
+                      >
+                        정보 수정
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex gap-4 items-center p-4 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm fp-4">
@@ -1467,6 +1486,18 @@ const OrderRecordDetail = () => {
                     order={order}
                     onClose={() => {
                       setIsPriceEditModalOpen(false);
+                    }}
+                  />
+                )}
+
+                {/* 발주 정보 수정 모달 */}
+                {isDetailsEditModalOpen && order && (
+                  <DetailsEditModal
+                    isOpen={isDetailsEditModalOpen}
+                    order={order}
+                    suppliers={suppliers}
+                    onClose={() => {
+                      setIsDetailsEditModalOpen(false);
                     }}
                   />
                 )}

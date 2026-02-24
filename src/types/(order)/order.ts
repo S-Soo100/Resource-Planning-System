@@ -154,6 +154,17 @@ export interface UpdateOrderStatusDto {
   status: string;
 }
 
+// 발주 상세 정보 수정 DTO (고객 정보 등)
+export interface UpdateOrderDetailsDto {
+  totalPrice?: number;
+  orderItems?: Array<{
+    itemId: number;
+    sellingPrice: number;
+    vat?: number;
+  }>;
+  supplierId?: number;
+}
+
 export interface CreatOrderResponse {
   id: number;
   title: string; // 제목 필드 추가

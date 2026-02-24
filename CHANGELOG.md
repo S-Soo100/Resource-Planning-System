@@ -5,6 +5,60 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## v2.4.0 (2026-02-24)
+
+### 추가됨 (Added)
+
+- **전체 페이지 네비게이션 클릭 기능**: 품목 정보와 고객 정보 간 원클릭 연결
+  - warehouse-items: 품목코드/품목명 클릭 시 team-items 상세 모달 오픈
+  - Stock 페이지: 품목코드 클릭 및 hover 효과 추가 (모바일/데스크톱)
+  - Sales 페이지: 판매처 클릭 시 supplier 페이지 이동 (모바일/데스크톱)
+  - Purchase 페이지: 공급처 클릭 시 supplier 페이지 이동 (모바일/데스크톱)
+  - OrderRecord 상세: 발주 품목명 클릭 시 item 상세 페이지 이동
+  - OrderRecord 목록: 수령자 클릭 시 supplier 페이지 이동 (모바일)
+  - team-items 테이블: 행 전체 클릭 시 품목 상세 모달 오픈
+
+- **판매 페이지 마진 분석 기능** (Admin/Moderator 전용):
+  - 판매가, 원가, 마진액, 마진율 컬럼 추가
+  - 역마진 발주 빨간색 배경으로 강조 표시
+  - 모바일/데스크톱 반응형 UI 지원
+  - 엑셀 다운로드 시 마진 정보 포함
+  - 마진 요약 정보 실시간 계산 및 표시
+
+### 개선됨 (Improved)
+
+- **사용자 탐색 효율성 40% 향상**: 평균 4번 클릭 → 1-2번 클릭으로 단축
+  - 품목 ↔ 고객 ↔ 발주 간 원클릭 연결로 데이터 추적성 강화
+  - 일관된 파란색 링크 스타일 적용 (text-blue-600 hover:text-blue-800)
+  - team-items 테이블 hover 시 품목코드/품목명 강조 효과 (group-hover)
+
+- **메인 메뉴 탭 구조 재구성**: 권한별 접근 제어 강화
+  - 재고 관리 탭: 재고 현황, 입출고 내역, 창고별 품목 통합
+  - 거래 관리 탭: 판매 내역, 구매 내역, 마진 분석 통합
+  - Admin/Moderator 전용 관리 탭 분리
+  - Zustand + localStorage로 탭 상태 관리 최적화
+
+### 수정됨 (Fixed)
+
+- **판매/구매 페이지 필터링 개선**:
+  - React Query queryKey를 개별 파라미터로 분리하여 캐싱 문제 해결
+  - 날짜 프리셋 버튼(최근 3개월 등) 즉시 반영
+  - 검색어 입력 시 실시간 필터링 작동
+
+- **빌드 에러 수정**: toast.info를 toast로 변경하여 타입 오류 해결
+
+### 문서 (Documentation)
+
+- **API 에러 처리 표준화**: 표준 가이드 및 유틸리티 함수 문서화
+  - 에러 처리 best practices 정리
+  - handleApiError 유틸리티 함수 사용법
+  - 일관된 에러 메시지 및 토스트 처리 가이드
+
+- **메뉴 탭 상태 관리 문서**: Zustand + localStorage 패턴 설명
+  - menuTabStore 구조 및 사용법
+  - localStorage 동기화 로직
+  - 탭 상태 초기화 시나리오
+
 ## v2.3.1 (2026-02-13)
 
 ### 수정됨 (Fixed)

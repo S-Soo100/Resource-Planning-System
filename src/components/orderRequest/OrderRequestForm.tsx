@@ -1196,7 +1196,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   <thead className="bg-gray-50 border-b">
                     <tr>
                       <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">품목명</th>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">품목코드</th>
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">재고</th>
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">수량</th>
                       <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">단가 (원)</th>
@@ -1216,6 +1215,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                           <td className="px-4 py-2">
                             <div className="flex flex-col">
                               <span className="font-medium text-sm">{item.teamItem.itemName}</span>
+                              <span className="text-xs text-gray-500 mt-0.5">{item.teamItem.itemCode}</span>
                               {formData.warehouseId && item.stockAvailable === false && (
                                 <div className="flex items-center text-xs text-red-500 mt-1">
                                   <AlertCircle size={12} className="mr-1" />
@@ -1223,9 +1223,6 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                                 </div>
                               )}
                             </div>
-                          </td>
-                          <td className="px-4 py-2 text-sm text-gray-600">
-                            {item.teamItem.itemCode}
                           </td>
                           <td className="px-4 py-2 text-center text-sm text-gray-600">
                             {formData.warehouseId && item.stockQuantity !== undefined
@@ -1303,7 +1300,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   {orderItems.some(item => item.quantity > 0) && (
                     <tfoot className="bg-blue-50 border-t-2 border-blue-200">
                       <tr>
-                        <td colSpan={7} className="px-4 py-3 text-right text-base font-bold text-gray-900">
+                        <td colSpan={6} className="px-4 py-3 text-right text-base font-bold text-gray-900">
                           총 거래금액
                         </td>
                         <td className="px-4 py-3 text-right text-lg font-bold text-blue-700">

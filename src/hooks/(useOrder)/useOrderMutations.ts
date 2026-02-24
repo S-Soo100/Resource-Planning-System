@@ -5,11 +5,13 @@ import {
   deleteOrder,
   updateOrderStatus,
   updateOrderPrice,
+  updateOrderDetails,
 } from "../../api/order-api";
 import {
   CreateOrderDto,
   UpdateOrderDto,
   UpdateOrderStatusDto,
+  UpdateOrderDetailsDto,
   CreatOrderResponse,
 } from "../../types/(order)/order";
 import { ApiResponse } from "../../types/common";
@@ -133,6 +135,47 @@ export const useUpdateOrderPrice = () => {
     },
     onError: (error) => {
       console.error("가격 수정 에러:", error);
+    },
+  });
+};
+
+// 주문 상세 정보 수정 (moderator 이상 권한, 상태 무관)
+// 레거시 데이터에서 supplier가 null인 경우 등을 수정할 때 사용
+export const useUpdateOrderDetails = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: UpdateOrderDetailsDto;
+    }) => {
+      const response = await updateOrderDetails(id, data);
+
+      // 서버 응답이 실패인 경우 에러를 던져서 클라이언트에서 처리할 수 있도록 함
+      if (!response.success) {
+        throw new Error(response.message || "상세 정보 수정에 실패했습니다.");
+      }
+
+      return response;
+    },
+    onSuccess: async (response, variables) => {
+      if (response.success) {
+        // 주문 정보 캐시 무효화
+        await queryClient.invalidateQueries({ queryKey: ["orders"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["order", variables.id],
+        });
+        // supplier 정보가 변경될 수 있으므로 supplier 관련 캐시도 무효화
+        if (variables.data.supplierId) {
+          await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+        }
+      }
+    },
+    onError: (error) => {
+      console.error("상세 정보 수정 에러:", error);
     },
   });
 };

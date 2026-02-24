@@ -31,14 +31,14 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
 
   // 초기 데이터 설정
   const [editedItems, setEditedItems] = useState<EditedItem[]>(
-    order.orderItems.map((item) => ({
+    order.orderItems?.map((item) => ({
       itemId: item.itemId,
       itemName: item.item?.teamItem?.itemName || "알 수 없는 품목",
       itemCode: item.item?.teamItem?.itemCode || "",
       quantity: item.quantity,
       sellingPrice: item.sellingPrice?.toString() || "",
       vat: item.vat?.toString() || "",
-    }))
+    })) || []
   );
 
   // 총 거래금액 자동 계산

@@ -8,10 +8,8 @@ import { SupplierDetailHeader } from "@/components/supplier/SupplierDetailHeader
 import { SupplierDetailSummaryComponent } from "@/components/supplier/SupplierDetailSummary";
 import { SupplierSalesTab } from "@/components/supplier/SupplierSalesTab";
 import { SupplierPurchaseTab } from "@/components/supplier/SupplierPurchaseTab";
-import { SupplierTrendChart } from "@/components/supplier/SupplierTrendChart";
-import { SupplierTopItems } from "@/components/supplier/SupplierTopItems";
 import { LoadingCentered } from "@/components/ui/Loading";
-import { ArrowLeft, ShoppingCart, Package, Calendar, Download } from "lucide-react";
+import { ArrowLeft, TrendingUp, ShoppingBag, Calendar, Download } from "lucide-react";
 import { Button } from "@/components/ui";
 import { format, subMonths, subYears } from "date-fns";
 import { exportSupplierDetailToExcel } from "@/utils/exportSupplierDetailToExcel";
@@ -71,6 +69,8 @@ export default function SupplierDetailPage() {
   } = useSupplierDetail(supplierId, startDate, endDate);
 
   const [activeTab, setActiveTab] = useState<"sales" | "purchase">("sales");
+
+  // 워딩: 판매→매출, 구매→매입
 
   // 권한 체크
   if (isUserLoading || isLoading) {
@@ -177,12 +177,7 @@ export default function SupplierDetailPage() {
         />
       </div>
 
-      {/* 요약 통계 */}
-      <div className="mb-6">
-        <SupplierDetailSummaryComponent summary={summary} isLoading={isLoading} />
-      </div>
-
-      {/* 날짜 범위 선택기 */}
+      {/* 날짜 범위 선택기 (위치 이동: 요약 카드 위로) */}
       <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant p-4 mb-6">
         <div className="flex items-center gap-2 mb-3">
           <Calendar className="w-4 h-4 text-Text-High-90" />
@@ -245,23 +240,12 @@ export default function SupplierDetailPage() {
         </div>
       </div>
 
-      {/* 거래 트렌드 차트 & 품목별 분석 (2컬럼 그리드) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* 거래 트렌드 차트 */}
-        <SupplierTrendChart
-          salesRecords={salesRecords}
-          purchaseRecords={purchaseRecords}
-          teamItemsMap={teamItemsMap}
-        />
-
-        {/* 품목별 거래 분석 TOP 10 */}
-        <SupplierTopItems
-          salesRecords={salesRecords}
-          purchaseRecords={purchaseRecords}
-        />
+      {/* 요약 통계 */}
+      <div className="mb-6">
+        <SupplierDetailSummaryComponent summary={summary} isLoading={isLoading} />
       </div>
 
-      {/* 탭 UI */}
+      {/* 탭 UI (매출/매입 내역) */}
       <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant overflow-hidden">
         {/* 탭 헤더 */}
         <div className="flex border-b border-Outline-Variant bg-Back-Low-10">
@@ -274,8 +258,8 @@ export default function SupplierDetailPage() {
             }`}
           >
             <div className="flex items-center justify-center gap-2">
-              <ShoppingCart className="w-4 h-4" />
-              판매 내역
+              <TrendingUp className="w-4 h-4" />
+              매출 내역
             </div>
             {activeTab === "sales" && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
@@ -286,16 +270,16 @@ export default function SupplierDetailPage() {
             onClick={() => setActiveTab("purchase")}
             className={`flex-1 px-6 py-4 text-sm font-medium transition-all relative ${
               activeTab === "purchase"
-                ? "text-green-600 bg-white"
+                ? "text-orange-600 bg-white"
                 : "text-Text-High-90 hover:text-Text-Highest-100 hover:bg-Back-Mid-20"
             }`}
           >
             <div className="flex items-center justify-center gap-2">
-              <Package className="w-4 h-4" />
-              구매 내역
+              <ShoppingBag className="w-4 h-4" />
+              매입 내역
             </div>
             {activeTab === "purchase" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-600"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600"></div>
             )}
           </button>
         </div>

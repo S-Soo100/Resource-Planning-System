@@ -11,7 +11,7 @@ interface NewUserForm {
   confirmPassword: string;
   name: string;
   userId: number;
-  accessLevel: "user" | "supplier" | "moderator";
+  accessLevel: "user" | "supplier" | "moderator" | "admin";
   restrictedWhs: number[];
 }
 
@@ -146,13 +146,19 @@ export default function UserManagementModal({
         setFormSuccess("사용자가 팀에 추가되었습니다.");
       } else {
         // 새 사용자 생성 및 팀에 추가
+        // 전체 창고에서 선택된 창고(접근 가능)를 제외 = 제한된 창고
+        const allWarehouseIds = warehouses?.map((w) => w.id) || [];
+        const restrictedIds = allWarehouseIds.filter(
+          (id) => !newUserForm.restrictedWhs.includes(id)
+        );
+
         const userData: CreateUserDto = {
           email: newUserForm.email,
           password: newUserForm.password,
           name: newUserForm.name,
-          restrictedWhs: newUserForm.restrictedWhs.join(","),
+          restrictedWhs: restrictedIds.length > 0 ? restrictedIds.join(",") : "",
           accessLevel: newUserForm.accessLevel,
-          isAdmin: false,
+          isAdmin: newUserForm.accessLevel === "admin",
         };
 
         setDetailMessage("새 사용자 생성 및 팀 추가 중...");
@@ -332,8 +338,11 @@ export default function UserManagementModal({
 
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">
-                권한 레벨
+                이 팀에서의 권한
               </label>
+              <p className="mb-2 text-xs text-gray-500">
+                이 사용자가 현재 팀에서 가질 권한을 선택하세요
+              </p>
               <select
                 value={newUserForm.accessLevel}
                 onChange={(e) =>
@@ -342,24 +351,26 @@ export default function UserManagementModal({
                     accessLevel: e.target.value as
                       | "user"
                       | "supplier"
-                      | "moderator",
+                      | "moderator"
+                      | "admin",
                   })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="user">일반 사용자</option>
-                <option value="supplier">납품처</option>
                 <option value="moderator">1차승인권자</option>
+                <option value="admin">관리자</option>
+                <option value="supplier">납품처</option>
               </select>
             </div>
 
-            {/* 창고 접근 제한 설정 */}
+            {/* 창고 접근 권한 설정 */}
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700">
-                창고 접근 제한
+                접근 가능한 창고
               </label>
               <p className="mb-3 text-xs text-gray-500">
-                체크된 창고는 해당 사용자가 접근할 수 없습니다.
+                체크된 창고에 접근할 수 있습니다. 체크하지 않으면 해당 창고에 접근할 수 없습니다.
               </p>
               <div className="max-h-32 overflow-y-auto border border-gray-200 rounded-md p-2">
                 {warehouses && warehouses.length > 0 ? (
@@ -399,9 +410,13 @@ export default function UserManagementModal({
                   </p>
                 )}
               </div>
-              {newUserForm.restrictedWhs.length > 0 && (
+              {newUserForm.restrictedWhs.length === 0 ? (
                 <p className="mt-2 text-xs text-amber-600">
-                  {newUserForm.restrictedWhs.length}개 창고에 접근이 제한됩니다.
+                  ⚠️ 접근 가능한 창고가 없습니다. 최소 1개 이상 선택해주세요.
+                </p>
+              ) : (
+                <p className="mt-2 text-xs text-green-600">
+                  ✓ {newUserForm.restrictedWhs.length}개 창고에 접근 가능합니다.
                 </p>
               )}
             </div>

@@ -19,8 +19,8 @@ export interface CreateUserDto {
   password: string;
   name: string;
   restrictedWhs: string;
-  accessLevel: "user" | "supplier" | "moderator";
-  isAdmin: false;
+  accessLevel: "user" | "supplier" | "moderator" | "admin";
+  isAdmin: boolean;
 }
 
 export interface CreateUserResponse {

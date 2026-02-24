@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { teamApi } from "@/api/team-api";
 import { userApi } from "@/api/user-api";
+import { teamRoleApi } from "@/api/team-role-api";
 import { Team } from "@/types/team";
 import { IMappingUser } from "@/types/mappingUser";
 import { CreateUserDto, UpdateUserRequest } from "@/types/(auth)/user";
@@ -76,6 +77,28 @@ export const useTeamAdmin = (teamId: number) => {
       });
       if (!addResult.success) {
         throw new Error(addResult.error || "팀에 사용자 추가에 실패했습니다.");
+      }
+
+      // 팀에 추가 성공 후 팀 권한 설정
+      console.log("API 호출: 팀 권한 설정", {
+        teamId,
+        userId,
+        accessLevel: userData.accessLevel,
+        isAdmin: userData.isAdmin,
+        restrictedWhs: userData.restrictedWhs,
+      });
+      const roleResult = await teamRoleApi.updateTeamRole(teamId, userId, {
+        accessLevel: userData.accessLevel,
+        isAdmin: userData.isAdmin,
+        restrictedWhs: userData.restrictedWhs || undefined,
+      });
+      console.log("API 응답: 팀 권한 설정", {
+        success: roleResult.success,
+        error: roleResult.error,
+      });
+      if (!roleResult.success) {
+        console.warn("팀 권한 설정 실패 (계속 진행):", roleResult.error);
+        // 팀 권한 설정 실패 시에도 계속 진행 (사용자는 생성되고 팀에 추가됨)
       }
 
       return response.data;

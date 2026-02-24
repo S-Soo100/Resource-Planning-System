@@ -140,68 +140,48 @@ export default function UserEditModal({
 
   // 사용자 정보가 변경될 때 폼 데이터 초기화
   useEffect(() => {
-    if (user) {
+    if (user && warehouses) {
       setFormData({
         name: user.name,
         email: user.email,
-        accessLevel: user.accessLevel,
-        isAdmin: user.isAdmin,
       });
 
-      // restrictedWhs 파싱
+      // restrictedWhs 파싱 (제한된 창고)
       let restrictedIds: number[] = [];
 
       if (user.restrictedWhs) {
-        console.log(
-          "[UserEditModal] restrictedWhs 타입:",
-          typeof user.restrictedWhs
-        );
-        console.log("[UserEditModal] restrictedWhs 값:", user.restrictedWhs);
-
         if (typeof user.restrictedWhs === "string") {
           const trimmed = user.restrictedWhs.trim();
-          console.log("[UserEditModal] trimmed:", trimmed);
-
-          if (trimmed === "") {
-            restrictedIds = [];
-          } else {
-            const splitResult = trimmed.split(",");
-            console.log("[UserEditModal] splitResult:", splitResult);
-
-            restrictedIds = splitResult
-              .map((id) => {
-                const idTrimmed = id.trim();
-                const parsed = parseInt(idTrimmed);
-                console.log("[UserEditModal] id 변환:", {
-                  original: id,
-                  trimmed: idTrimmed,
-                  parsed,
-                });
-                return parsed;
-              })
+          if (trimmed !== "") {
+            restrictedIds = trimmed
+              .split(",")
+              .map((id) => parseInt(id.trim()))
               .filter((id) => !isNaN(id));
           }
         } else if (Array.isArray(user.restrictedWhs)) {
-          restrictedIds = user.restrictedWhs.map((id) => {
-            const result = typeof id === "number" ? id : parseInt(id);
-            return result;
-          });
+          restrictedIds = user.restrictedWhs.map((id) =>
+            typeof id === "number" ? id : parseInt(id)
+          );
         }
-      } else {
-        // restrictedWhs가 없거나 null/undefined인 경우
-        restrictedIds = [];
       }
 
-      console.log("[UserEditModal] 제한된 창고:", restrictedIds.length, "개");
-      console.log("[UserEditModal] 제한된 창고 ID:", restrictedIds);
-      console.log("[UserEditModal] 원본 restrictedWhs:", user.restrictedWhs);
-      setSelectedWarehouses(restrictedIds);
+      // 전체 창고에서 제한된 창고를 제외 = 접근 가능한 창고
+      const allWarehouseIds = warehouses.map((w) => w.id);
+      const accessibleIds = allWarehouseIds.filter(
+        (id) => !restrictedIds.includes(id)
+      );
+
+      console.log("[UserEditModal] 전체 창고:", allWarehouseIds);
+      console.log("[UserEditModal] 제한된 창고:", restrictedIds);
+      console.log("[UserEditModal] 접근 가능한 창고:", accessibleIds);
+
+      setSelectedWarehouses(accessibleIds);
     } else {
       // user가 null이면 폼 데이터 초기화
       setFormData({});
       setSelectedWarehouses([]);
     }
-  }, [user]);
+  }, [user, warehouses]);
 
   // 데이터 준비 상태 체크 (사용자 정보 + 창고 목록 모두 로드 완료)
   useEffect(() => {
@@ -217,16 +197,19 @@ export default function UserEditModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedUserId || !user || isReadOnly) return;
+    if (!selectedUserId || !user || isReadOnly || !warehouses) return;
     try {
+      // 전체 창고에서 선택된 창고(접근 가능)를 제외 = 제한된 창고
+      const allWarehouseIds = warehouses.map((w) => w.id);
+      const restrictedIds = allWarehouseIds.filter(
+        (id) => !selectedWarehouses.includes(id)
+      );
+
       const updateData: UpdateUserRequest = {
         ...formData,
         restrictedWhs:
-          selectedWarehouses.length > 0 ? selectedWarehouses.join(",") : "",
+          restrictedIds.length > 0 ? restrictedIds.join(",") : "",
       };
-
-      // restrictedWhs가 빈 문자열인 경우 빈 문자열로 유지 (서버에서 처리하도록)
-      // console.log("[UserEditModal] 제출 전 restrictedWhs:", updateData.restrictedWhs);
 
       // 빈 필드는 제거 (restrictedWhs는 제외)
       Object.keys(updateData).forEach((key) => {
@@ -239,9 +222,10 @@ export default function UserEditModal({
       // 디버깅 정보 출력
       console.log("[UserEditModal] 최종 수정 요청:", {
         userId: selectedUserId,
-        selectedWarehouses: selectedWarehouses.length,
+        전체창고: allWarehouseIds,
+        접근가능창고: selectedWarehouses,
+        제한창고: restrictedIds,
         restrictedWhs: updateData.restrictedWhs,
-        updateData: updateData,
       });
 
       // useTeamAdmin의 updateUser 사용
@@ -253,7 +237,6 @@ export default function UserEditModal({
         const response = await userApi.getUser(selectedUserId.toString());
 
         if (response.success && response.data) {
-          // user 상태를 최신 데이터로 업데이트
           setUser(response.data);
           console.log("[UserEditModal] 수정 후 최신 데이터로 업데이트:", response.data);
         }
@@ -264,7 +247,6 @@ export default function UserEditModal({
       onUserUpdated();
       onClose();
     } catch {
-      // console.error("[UserEditModal] 수정 중 오류:", error);
       alert("사용자 정보 수정 중 오류가 발생했습니다.");
     }
   };
@@ -286,20 +268,6 @@ export default function UserEditModal({
     });
   };
 
-  const handleAccessLevelChange = (accessLevel: string) => {
-    if (isReadOnly) return;
-
-    setFormData((prev) => ({
-      ...prev,
-      accessLevel: accessLevel as "user" | "admin" | "supplier" | "moderator",
-      isAdmin: accessLevel === "admin",
-    }));
-
-    // admin으로 변경 시 창고 제한 해제
-    if (accessLevel === "admin") {
-      setSelectedWarehouses([]);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -406,45 +374,14 @@ export default function UserEditModal({
             </div>
           </div>
 
-          {/* 권한 설정 */}
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">권한 설정</h4>
-
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                권한 레벨
-              </label>
-              <div className="space-y-2">
-                {[
-                  { value: "user", label: "일반 사용자" },
-                  { value: "moderator", label: "1차승인권자" },
-                  { value: "supplier", label: "외부업체" },
-                  { value: "admin", label: "관리자" },
-                ].map((option) => (
-                  <label key={option.value} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="accessLevel"
-                      value={option.value}
-                      checked={formData.accessLevel === option.value}
-                      onChange={(e) => handleAccessLevelChange(e.target.value)}
-                      className="mr-2"
-                      disabled={isReadOnly}
-                    />
-                    <span className="text-sm text-gray-700">
-                      {option.label}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
           {/* 창고 접근 제한 */}
           <div className="space-y-4">
             <h4 className="font-medium text-gray-900">창고 접근 권한</h4>
+            <p className="text-xs text-gray-500">
+              사용자의 기본 창고 접근 권한을 설정합니다. 권한은 '팀 역할' 버튼에서 설정할 수 있습니다.
+            </p>
 
-            {formData.accessLevel === "admin" ? (
+            {false ? (
               <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
                 <p className="text-sm text-gray-600">
                   관리자는 모든 창고에 접근 가능하므로 창고 접근 제한이 적용되지
@@ -458,20 +395,19 @@ export default function UserEditModal({
                     <span className="text-sm text-gray-500">
                       접근 가능한 창고
                     </span>
-                    <span className="text-sm font-medium text-blue-600">
-                      {Array.isArray(warehouses)
-                        ? warehouses.length - selectedWarehouses.length
-                        : 0}
-                      개
+                    <span className="text-sm font-medium text-green-600">
+                      {selectedWarehouses.length}개
+                    </span>
+                    <span className="text-sm text-gray-400">
+                      / 전체 {Array.isArray(warehouses) ? warehouses.length : 0}개
                     </span>
                   </div>
                 </div>
 
                 {/* 권한 레벨별 안내 */}
-                <div className="p-3 bg-blue-50 rounded-md">
-                  <p className="text-sm text-blue-800">
-                    체크된 창고는 접근이 제한됩니다. 관리자는 모든 창고에 접근
-                    가능합니다.
+                <div className="p-3 bg-green-50 rounded-md border border-green-200">
+                  <p className="text-sm text-green-800">
+                    ✓ 체크된 창고에 접근 가능합니다. 관리자는 모든 창고에 접근할 수 있습니다.
                   </p>
                 </div>
 
@@ -505,7 +441,7 @@ export default function UserEditModal({
                   <div className="space-y-2">
                     {Array.isArray(warehouses) && warehouses.length > 0 ? (
                       warehouses.map((warehouse) => {
-                        const isRestricted = selectedWarehouses.includes(
+                        const isAccessible = selectedWarehouses.includes(
                           warehouse.id
                         );
 
@@ -515,9 +451,9 @@ export default function UserEditModal({
                             className={`
                               flex items-center p-3 rounded-md border transition-colors
                               ${
-                                isRestricted
-                                  ? "bg-red-50 border-red-200"
-                                  : "bg-green-50 border-green-200"
+                                isAccessible
+                                  ? "bg-green-50 border-green-200"
+                                  : "bg-red-50 border-red-200"
                               }
                               ${
                                 isReadOnly
@@ -528,7 +464,7 @@ export default function UserEditModal({
                           >
                             <input
                               type="checkbox"
-                              checked={isRestricted}
+                              checked={isAccessible}
                               onChange={() =>
                                 handleWarehouseToggle(warehouse.id)
                               }
@@ -547,13 +483,13 @@ export default function UserEditModal({
                               className={`
                               px-2 py-1 text-xs rounded-full
                               ${
-                                isRestricted
-                                  ? "text-red-700 bg-red-100"
-                                  : "text-green-700 bg-green-100"
+                                isAccessible
+                                  ? "text-green-700 bg-green-100"
+                                  : "text-red-700 bg-red-100"
                               }
                             `}
                             >
-                              {isRestricted ? "접근 제한" : "접근 가능"}
+                              {isAccessible ? "접근 가능" : "접근 제한"}
                             </div>
                           </div>
                         );
@@ -566,10 +502,10 @@ export default function UserEditModal({
                   </div>
                 )}
 
-                {selectedWarehouses.length > 0 && (
+                {selectedWarehouses.length === 0 && (
                   <div className="p-2 bg-amber-50 rounded-md border border-amber-200">
                     <p className="text-sm text-amber-800">
-                      ⚠️ {selectedWarehouses.length}개 창고에 접근이 제한됩니다.
+                      ⚠️ 접근 가능한 창고가 없습니다. 최소 1개 이상 선택해주세요.
                     </p>
                   </div>
                 )}

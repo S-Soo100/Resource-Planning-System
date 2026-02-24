@@ -1644,7 +1644,9 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                       </button>
                       <button
                         type="button"
-                        onClick={() => toast.info("고객 정보 섹션에서 직접 선택하거나 추가할 수 있습니다")}
+                        onClick={() => toast("고객 정보 섹션에서 직접 선택하거나 추가할 수 있습니다", {
+                          icon: "ℹ️",
+                        })}
                         className="px-4 py-2 font-medium text-amber-700 bg-white rounded-lg border-2 border-amber-300 shadow-sm transition-all hover:bg-amber-50 hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
                       >
                         나중에 등록

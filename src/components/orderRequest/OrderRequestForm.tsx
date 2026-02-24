@@ -82,6 +82,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     (OrderItemWithDetails & { warehouseItemId: number })[]
   >([]);
 
+  // 🆕 전체 영세율 상태
+  const [isAllZeroRated, setIsAllZeroRated] = useState(false);
+
   const [formData, setFormData] = useState<OrderRequestFormData>({
     title: "", // 제목 필드 추가
     manager: "",
@@ -245,6 +248,31 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
   // 패키지 수량 상태 (로컬스토리지 함수보다 먼저 선언)
   const [packageQuantity, setPackageQuantity] = useState(1);
+
+  // 🆕 총 금액에서 공급가액과 VAT 계산 (v2.6.0)
+  const calculatePriceBreakdown = (
+    totalPrice: string,
+    isZeroRated: boolean
+  ): { sellingPrice: number; vat: number } => {
+    const total = parseInt(totalPrice || "0", 10);
+
+    if (total === 0) {
+      return { sellingPrice: 0, vat: 0 };
+    }
+
+    if (isZeroRated) {
+      // 영세율: 전체 금액이 공급가액, VAT = 0
+      return {
+        sellingPrice: total,
+        vat: 0,
+      };
+    } else {
+      // 일반 부가세: 총액 ÷ 1.1 = 공급가액
+      const sellingPrice = Math.round(total / 1.1);
+      const vat = total - sellingPrice; // 차액이 VAT (반올림 오차 방지)
+      return { sellingPrice, vat };
+    }
+  };
 
   // 로컬스토리지 키
   const FORM_DATA_KEY = `orderForm_${isPackageOrder ? 'package' : 'regular'}_${currentTeam?.id || 'default'}`;
@@ -467,26 +495,74 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     });
   };
 
-  // 품목별 판매가 변경 핸들러
-  const handleSellingPriceChange = (index: number, value: string) => {
+  // 🆕 전체 영세율 체크 핸들러 (v2.6.0)
+  const handleAllZeroRatedChange = (checked: boolean) => {
+    setIsAllZeroRated(checked);
+
+    // 모든 품목의 가격 재계산
+    setOrderItems((prev) =>
+      prev.map((item) => {
+        const { sellingPrice, vat } = calculatePriceBreakdown(
+          item.totalPrice || "",
+          checked
+        );
+        return {
+          ...item,
+          sellingPrice: sellingPrice.toString(),
+          vat: vat.toString(),
+        };
+      })
+    );
+  };
+
+  // 🆕 개별 영세율 체크 핸들러 (v2.6.0)
+  const handleZeroRatedChange = (index: number, checked: boolean) => {
     setOrderItems((prev) => {
       const updated = [...prev];
-      updated[index] = {
-        ...updated[index],
-        sellingPrice: value,
-      };
+      const item = updated[index];
+
+      // 영세율 상태 업데이트
+      const newItem = { ...item, isZeroRated: checked };
+
+      // 가격 재계산
+      const { sellingPrice, vat } = calculatePriceBreakdown(
+        newItem.totalPrice || "",
+        checked
+      );
+
+      newItem.sellingPrice = sellingPrice.toString();
+      newItem.vat = vat.toString();
+
+      updated[index] = newItem;
       return updated;
     });
   };
 
-  // 품목별 VAT 변경 핸들러
-  const handleVatChange = (index: number, value: string) => {
+  // 🆕 총 금액 입력 핸들러 (v2.6.0)
+  const handleTotalPriceChange = (index: number, value: string) => {
+    // 숫자만 허용
+    if (value !== "" && !/^\d+$/.test(value)) {
+      return;
+    }
+
     setOrderItems((prev) => {
       const updated = [...prev];
+      const item = updated[index];
+
+      // 영세율 여부 확인 (전체 또는 개별)
+      const isZeroRated = isAllZeroRated || (item.isZeroRated ?? false);
+
+      // 공급가액과 VAT 자동 계산
+      const { sellingPrice, vat } = calculatePriceBreakdown(value, isZeroRated);
+
+      // 업데이트
       updated[index] = {
-        ...updated[index],
-        vat: value,
+        ...item,
+        totalPrice: value,
+        sellingPrice: sellingPrice.toString(),
+        vat: vat.toString(),
       };
+
       return updated;
     });
   };
@@ -1190,6 +1266,47 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
           {orderItems.length > 0 && (
             <div className="mt-4">
+              {/* 🆕 전체 영세율 체크박스 (v2.6.0) */}
+              <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isAllZeroRated}
+                    onChange={(e) => handleAllZeroRatedChange(e.target.checked)}
+                    className="w-4 h-4 accent-blue-600"
+                  />
+                  <span className="font-medium text-gray-700">
+                    영세율(0%) 품목 (전체 적용)
+                  </span>
+                </label>
+                <p className="ml-6 mt-1 text-xs text-amber-700">
+                  체크 시: 모든 품목의 부가세가 0원으로 처리됩니다
+                </p>
+              </div>
+
+              {/* 🆕 안내 메시지 (v2.6.0) */}
+              <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-1">💡 가격 입력 방법</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>
+                        <strong>총 금액만 입력</strong>하세요. 공급가액과 부가세는 자동으로 계산됩니다.
+                      </li>
+                      <li>
+                        <strong>일반 품목</strong>: 총 금액의 10%가 부가세로 자동 계산됩니다.
+                      </li>
+                      <li>
+                        <strong>영세율 품목</strong>: 체크박스를 선택하면 부가세가 0원으로 처리됩니다.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
               <h3 className="mb-2 font-medium">선택된 품목</h3>
               <div className="overflow-x-auto border rounded-lg">
                 <table className="w-full">
@@ -1198,18 +1315,35 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                       <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">품목명</th>
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">재고</th>
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">수량</th>
-                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">단가 (원)</th>
-                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">VAT (원)</th>
-                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">소계 (원)</th>
+                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">영세율</th>
+                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">
+                        총 금액 (원)
+                        <span className="ml-1 text-xs text-blue-600">✏️입력</span>
+                      </th>
+                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-500">
+                        공급가액 (원)
+                        <span className="ml-1 text-xs">💡자동</span>
+                      </th>
+                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-500">
+                        부가세 (원)
+                        <span className="ml-1 text-xs">💡자동</span>
+                      </th>
                       <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">메모</th>
                       <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">작업</th>
                     </tr>
                   </thead>
                   <tbody>
                     {orderItems.map((item, index) => {
-                      const sellingPrice = item.sellingPrice ? parseInt(item.sellingPrice) : 0;
-                      const vat = item.vat ? parseInt(item.vat) : 0;
-                      const subtotal = item.quantity > 0 ? (sellingPrice + vat) * item.quantity : 0;
+                      // 🆕 영세율 여부 판단 (전체 또는 개별)
+                      const isZeroRated = isAllZeroRated || (item.isZeroRated ?? false);
+
+                      // 🆕 자동 계산
+                      const { sellingPrice, vat } = calculatePriceBreakdown(
+                        item.totalPrice || "",
+                        isZeroRated
+                      );
+
+                      const subtotal = (sellingPrice + vat) * item.quantity;
                       return (
                         <tr key={item.warehouseItemId} className="border-b last:border-0 hover:bg-gray-50">
                           <td className="px-4 py-2">
@@ -1248,30 +1382,48 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                               </button>
                             </div>
                           </td>
+                          {/* 🆕 영세율 체크박스 (v2.6.0) */}
+                          <td className="px-4 py-2 text-center">
+                            <input
+                              type="checkbox"
+                              checked={item.isZeroRated ?? false}
+                              onChange={(e) => handleZeroRatedChange(index, e.target.checked)}
+                              disabled={isAllZeroRated}
+                              className="w-4 h-4 accent-blue-600"
+                              title={isAllZeroRated ? "전체 영세율 적용 중" : "개별 영세율"}
+                            />
+                          </td>
+
+                          {/* 🆕 총 금액 입력 (v2.6.0) */}
                           <td className="px-4 py-2">
                             <input
                               type="number"
                               min="0"
                               step="1"
-                              placeholder="0"
-                              value={item.sellingPrice || ""}
-                              onChange={(e) => handleSellingPriceChange(index, e.target.value)}
-                              className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main focus:border-Primary-Main"
+                              placeholder="총 금액 입력"
+                              value={item.totalPrice || ""}
+                              onChange={(e) => handleTotalPriceChange(index, e.target.value)}
+                              className="w-full px-3 py-2 text-sm text-right border-2 border-blue-300 rounded-lg
+                                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                         bg-white font-medium"
                             />
                           </td>
-                          <td className="px-4 py-2">
-                            <input
-                              type="number"
-                              min="0"
-                              step="1"
-                              placeholder="0"
-                              value={item.vat || ""}
-                              onChange={(e) => handleVatChange(index, e.target.value)}
-                              className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main focus:border-Primary-Main"
-                            />
+
+                          {/* 🆕 공급가액 (자동 계산, 읽기 전용) */}
+                          <td className="px-4 py-2 text-right">
+                            <span className="text-sm text-gray-600">
+                              {sellingPrice > 0 ? sellingPrice.toLocaleString() : "-"}
+                            </span>
                           </td>
-                          <td className="px-4 py-2 text-right text-sm font-medium">
-                            {subtotal > 0 ? subtotal.toLocaleString() : "-"}
+
+                          {/* 🆕 부가세 (자동 계산, 읽기 전용) */}
+                          <td className="px-4 py-2 text-right">
+                            <span className="text-sm text-gray-600">
+                              {vat > 0 ? vat.toLocaleString() : "0"}
+                            </span>
+                            {isZeroRated && (
+                              <span className="ml-1 text-xs text-amber-600">(0%)</span>
+                            )}
                           </td>
                           <td className="px-4 py-2">
                             <input
@@ -1300,18 +1452,22 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   {orderItems.some(item => item.quantity > 0) && (
                     <tfoot className="bg-blue-50 border-t-2 border-blue-200">
                       <tr>
-                        <td colSpan={6} className="px-4 py-3 text-right text-base font-bold text-gray-900">
+                        <td colSpan={7} className="px-4 py-3 text-right text-base font-bold text-gray-900">
                           총 거래금액
                         </td>
                         <td className="px-4 py-3 text-right text-lg font-bold text-blue-700">
                           {orderItems
                             .filter(item => item.quantity > 0)
                             .reduce((sum, item) => {
-                              const sellingPrice = parseInt(item.sellingPrice || "0", 10);
-                              const vat = parseInt(item.vat || "0", 10);
+                              // 🆕 자동 계산된 값 사용
+                              const isZeroRated = isAllZeroRated || (item.isZeroRated ?? false);
+                              const { sellingPrice, vat } = calculatePriceBreakdown(
+                                item.totalPrice || "",
+                                isZeroRated
+                              );
                               return sum + ((sellingPrice + vat) * item.quantity);
                             }, 0)
-                            .toLocaleString()}
+                            .toLocaleString()}원
                         </td>
                         <td></td>
                       </tr>

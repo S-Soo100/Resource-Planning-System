@@ -18,8 +18,12 @@ interface EditedItem {
   itemName: string;
   itemCode: string;
   quantity: number;
-  sellingPrice: string;
-  vat: string;
+  // 🆕 v2.6.0: 총액 입력 방식
+  totalPrice: string;        // 사용자 입력 (총 금액)
+  isZeroRated: boolean;      // 개별 영세율 체크
+  // 자동 계산 필드
+  sellingPrice: string;      // 공급가액 (자동 계산)
+  vat: string;               // 부가세 (자동 계산)
 }
 
 const PriceEditModal: React.FC<PriceEditModalProps> = ({
@@ -29,59 +33,112 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
 }) => {
   const { mutateAsync: updateOrderPrice, isPending } = useUpdateOrderPrice();
 
+  // 🆕 전체 영세율 상태 (v2.6.0)
+  const [isAllZeroRated, setIsAllZeroRated] = useState(false);
+
   // 초기 데이터 설정
   const [editedItems, setEditedItems] = useState<EditedItem[]>(
-    order.orderItems?.map((item) => ({
-      itemId: item.itemId,
-      itemName: item.item?.teamItem?.itemName || "알 수 없는 품목",
-      itemCode: item.item?.teamItem?.itemCode || "",
-      quantity: item.quantity,
-      sellingPrice: item.sellingPrice?.toString() || "",
-      vat: item.vat?.toString() || "",
-    })) || []
+    order.orderItems?.map((item) => {
+      const sellingPrice = item.sellingPrice || 0;
+      const vat = item.vat || 0;
+      const totalPrice = sellingPrice + vat;
+      const isZeroRated = vat === 0 && sellingPrice > 0;
+
+      return {
+        itemId: item.itemId,
+        itemName: item.item?.teamItem?.itemName || "알 수 없는 품목",
+        itemCode: item.item?.teamItem?.itemCode || "",
+        quantity: item.quantity,
+        totalPrice: totalPrice.toString(),
+        isZeroRated: isZeroRated,
+        sellingPrice: sellingPrice.toString(),
+        vat: vat.toString(),
+      };
+    }) || []
   );
+
+  // 🆕 총 금액에서 공급가액과 VAT 계산 (v2.6.0)
+  const calculatePriceBreakdown = (
+    totalPrice: string,
+    isZeroRated: boolean
+  ): { sellingPrice: number; vat: number } => {
+    const total = parseInt(totalPrice || "0", 10);
+
+    if (total === 0) {
+      return { sellingPrice: 0, vat: 0 };
+    }
+
+    if (isZeroRated) {
+      // 영세율: 전체 금액이 공급가액, VAT = 0
+      return {
+        sellingPrice: total,
+        vat: 0,
+      };
+    } else {
+      // 일반 부가세: 총액 ÷ 1.1 = 공급가액
+      const sellingPrice = Math.round(total / 1.1);
+      const vat = total - sellingPrice; // 차액이 VAT (반올림 오차 방지)
+      return { sellingPrice, vat };
+    }
+  };
 
   // 총 거래금액 자동 계산
   const totalPrice = useMemo(() => {
     return editedItems.reduce((sum, item) => {
-      const price = parseInt(item.sellingPrice || "0", 10);
-      const vat = parseInt(item.vat || "0", 10);
-      return sum + (price + vat) * item.quantity;
+      const isZeroRated = isAllZeroRated || item.isZeroRated;
+      const { sellingPrice, vat } = calculatePriceBreakdown(
+        item.totalPrice,
+        isZeroRated
+      );
+      return sum + (sellingPrice + vat) * item.quantity;
     }, 0);
-  }, [editedItems]);
+  }, [editedItems, isAllZeroRated]);
 
-  // 가격 입력 핸들러
-  const handlePriceChange = (index: number, value: string) => {
-    // 숫자만 허용
-    if (value !== "" && !/^\d+$/.test(value)) {
-      return;
-    }
+  // 🆕 전체 영세율 체크 핸들러 (v2.6.0)
+  const handleAllZeroRatedChange = (checked: boolean) => {
+    setIsAllZeroRated(checked);
 
-    // PostgreSQL INT 최대값 검증
-    if (value !== "") {
-      const numValue = parseInt(value, 10);
-      const MAX_PRICE = 2147483647;
-
-      if (numValue > MAX_PRICE) {
-        toast.error(
-          `판매가는 최대 ${MAX_PRICE.toLocaleString()}원까지 입력 가능합니다.`
+    // 모든 품목의 가격 재계산
+    setEditedItems((prev) =>
+      prev.map((item) => {
+        const { sellingPrice, vat } = calculatePriceBreakdown(
+          item.totalPrice,
+          checked
         );
-        return;
-      }
-    }
+        return {
+          ...item,
+          sellingPrice: sellingPrice.toString(),
+          vat: vat.toString(),
+        };
+      })
+    );
+  };
 
+  // 🆕 개별 영세율 체크 핸들러 (v2.6.0)
+  const handleZeroRatedChange = (index: number, checked: boolean) => {
     setEditedItems((prev) => {
       const updated = [...prev];
-      updated[index] = {
-        ...updated[index],
-        sellingPrice: value,
-      };
+      const item = updated[index];
+
+      // 영세율 상태 업데이트
+      const newItem = { ...item, isZeroRated: checked };
+
+      // 가격 재계산
+      const { sellingPrice, vat } = calculatePriceBreakdown(
+        newItem.totalPrice,
+        checked
+      );
+
+      newItem.sellingPrice = sellingPrice.toString();
+      newItem.vat = vat.toString();
+
+      updated[index] = newItem;
       return updated;
     });
   };
 
-  // VAT 입력 핸들러
-  const handleVatChange = (index: number, value: string) => {
+  // 🆕 총 금액 입력 핸들러 (v2.6.0)
+  const handleTotalPriceChange = (index: number, value: string) => {
     // 숫자만 허용
     if (value !== "" && !/^\d+$/.test(value)) {
       return;
@@ -94,7 +151,7 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
 
       if (numValue > MAX_PRICE) {
         toast.error(
-          `VAT는 최대 ${MAX_PRICE.toLocaleString()}원까지 입력 가능합니다.`
+          `총 금액은 최대 ${MAX_PRICE.toLocaleString()}원까지 입력 가능합니다.`
         );
         return;
       }
@@ -102,10 +159,22 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
 
     setEditedItems((prev) => {
       const updated = [...prev];
+      const item = updated[index];
+
+      // 영세율 여부 확인 (전체 또는 개별)
+      const isZeroRated = isAllZeroRated || item.isZeroRated;
+
+      // 공급가액과 VAT 자동 계산
+      const { sellingPrice, vat } = calculatePriceBreakdown(value, isZeroRated);
+
+      // 업데이트
       updated[index] = {
-        ...updated[index],
-        vat: value,
+        ...item,
+        totalPrice: value,
+        sellingPrice: sellingPrice.toString(),
+        vat: vat.toString(),
       };
+
       return updated;
     });
   };
@@ -180,8 +249,49 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
           <div>
             <h2 className="text-xl font-bold text-gray-900">발주 가격 수정</h2>
             <p className="text-sm text-gray-600">
-              품목별 판매가와 VAT를 수정할 수 있습니다
+              품목별 총 금액만 입력하세요. 공급가액과 부가세는 자동 계산됩니다.
             </p>
+          </div>
+        </div>
+
+        {/* 🆕 전체 영세율 체크박스 (v2.6.0) */}
+        <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isAllZeroRated}
+              onChange={(e) => handleAllZeroRatedChange(e.target.checked)}
+              className="w-4 h-4 accent-blue-600"
+            />
+            <span className="font-medium text-gray-700">
+              영세율(0%) 품목 (전체 적용)
+            </span>
+          </label>
+          <p className="ml-6 mt-1 text-xs text-amber-700">
+            체크 시: 모든 품목의 부가세가 0원으로 처리됩니다
+          </p>
+        </div>
+
+        {/* 🆕 안내 메시지 (v2.6.0) */}
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-start gap-2">
+            <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <div className="text-sm text-blue-800">
+              <p className="font-semibold mb-1">💡 가격 입력 방법</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>
+                  <strong>총 금액만 입력</strong>하세요. 공급가액과 부가세는 자동으로 계산됩니다.
+                </li>
+                <li>
+                  <strong>일반 품목</strong>: 총 금액의 10%가 부가세로 자동 계산됩니다.
+                </li>
+                <li>
+                  <strong>영세율 품목</strong>: 체크박스를 선택하면 부가세가 0원으로 처리됩니다.
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -200,22 +310,35 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     수량
                   </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    판매가
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    영세율
                   </th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    VAT
+                    총 금액 (원)
+                    <span className="ml-1 text-xs text-blue-600">✏️</span>
                   </th>
-                  <th className="hidden md:table-cell px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    소계
+                  <th className="hidden md:table-cell px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    공급가액 (원)
+                    <span className="ml-1 text-xs">💡</span>
+                  </th>
+                  <th className="hidden md:table-cell px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    부가세 (원)
+                    <span className="ml-1 text-xs">💡</span>
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {editedItems.map((item, index) => {
-                  const price = parseInt(item.sellingPrice || "0", 10);
-                  const vat = parseInt(item.vat || "0", 10);
-                  const subtotal = (price + vat) * item.quantity;
+                  // 🆕 영세율 여부 판단 (전체 또는 개별)
+                  const isZeroRated = isAllZeroRated || item.isZeroRated;
+
+                  // 🆕 자동 계산
+                  const { sellingPrice, vat } = calculatePriceBreakdown(
+                    item.totalPrice,
+                    isZeroRated
+                  );
+
+                  const subtotal = (sellingPrice + vat) * item.quantity;
 
                   return (
                     <tr key={item.itemId} className="hover:bg-gray-50">
@@ -238,46 +361,54 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
                           {item.quantity}개
                         </span>
                       </td>
+
+                      {/* 🆕 영세율 체크박스 (v2.6.0) */}
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={item.isZeroRated}
+                          onChange={(e) => handleZeroRatedChange(index, e.target.checked)}
+                          disabled={isAllZeroRated || isPending}
+                          className="w-4 h-4 accent-blue-600"
+                          title={isAllZeroRated ? "전체 영세율 적용 중" : "개별 영세율"}
+                        />
+                      </td>
+
+                      {/* 🆕 총 금액 입력 (v2.6.0) */}
                       <td className="px-2 sm:px-4 py-2 sm:py-3">
                         <input
                           type="text"
                           inputMode="numeric"
                           pattern="[0-9]*"
-                          value={item.sellingPrice}
-                          onChange={(e) => handlePriceChange(index, e.target.value)}
+                          value={item.totalPrice}
+                          onChange={(e) => handleTotalPriceChange(index, e.target.value)}
                           onPaste={(e) => {
                             e.preventDefault();
                             const pastedText = e.clipboardData.getData("text");
                             const sanitized = pastedText.replace(/[^0-9]/g, "");
-                            handlePriceChange(index, sanitized);
+                            handleTotalPriceChange(index, sanitized);
                           }}
-                          placeholder="0"
-                          className="w-20 sm:w-28 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-right border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="총 금액 입력"
+                          className="w-24 sm:w-32 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-right border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium"
                           disabled={isPending}
                         />
                       </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={item.vat}
-                          onChange={(e) => handleVatChange(index, e.target.value)}
-                          onPaste={(e) => {
-                            e.preventDefault();
-                            const pastedText = e.clipboardData.getData("text");
-                            const sanitized = pastedText.replace(/[^0-9]/g, "");
-                            handleVatChange(index, sanitized);
-                          }}
-                          placeholder="0"
-                          className="w-20 sm:w-28 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-right border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          disabled={isPending}
-                        />
-                      </td>
+
+                      {/* 🆕 공급가액 (자동 계산, 읽기 전용) */}
                       <td className="hidden md:table-cell px-4 py-3 text-right">
-                        <span className="text-sm font-semibold text-blue-600">
-                          {subtotal > 0 ? subtotal.toLocaleString() + "원" : "-"}
+                        <span className="text-sm text-gray-600">
+                          {sellingPrice > 0 ? sellingPrice.toLocaleString() : "-"}
                         </span>
+                      </td>
+
+                      {/* 🆕 부가세 (자동 계산, 읽기 전용) */}
+                      <td className="hidden md:table-cell px-4 py-3 text-right">
+                        <span className="text-sm text-gray-600">
+                          {vat > 0 ? vat.toLocaleString() : "0"}
+                        </span>
+                        {isZeroRated && (
+                          <span className="ml-1 text-xs text-amber-600">(0%)</span>
+                        )}
                       </td>
                     </tr>
                   );

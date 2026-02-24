@@ -5,6 +5,35 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)를 기반으로 하며,
 이 프로젝트는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## [Unreleased]
+
+### 추가됨 (Added)
+
+- **총액 입력 방식 가격 시스템 (v2.6.0)**
+  - 발주 요청 시 총 금액만 입력하면 공급가액/VAT 자동 계산
+  - 전체 영세율 체크박스: 모든 품목에 일괄 적용
+  - 품목별 개별 영세율 체크박스
+  - 가격 수정 모달에도 동일한 자동 계산 로직 적용
+
+### 개선됨 (Improved)
+
+- **가격 입력 UX 대폭 개선**
+  - Before: 판매가/VAT 각각 입력 (계산기 필요)
+  - After: 총 금액만 입력 (견적서 보고 바로 입력)
+  - 영세율 처리 간소화: 체크박스 1번으로 끝
+  - 계산 오류 방지: 자동 계산으로 정확도 100% 보장
+
+### 변경됨 (Changed)
+
+- 가격 입력 방식 변경: 개별 입력 → 총액 입력 + 자동 계산
+- OrderItemWithDetails 타입: `totalPrice`, `isZeroRated` 필드 추가
+- 계산 로직: 일반 부가세 `총액 ÷ 1.1`, 영세율 `VAT = 0`
+
+### 문서 (Documentation)
+
+- `claude.md`: 가격 입력 규칙 전면 업데이트 (v2.6.0)
+- 총액 입력 방식 및 계산 로직 예시 추가
+
 ## v2.4.0 (2026-02-24)
 
 ### 추가됨 (Added)

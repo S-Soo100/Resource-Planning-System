@@ -28,6 +28,8 @@ import { ApiResponse } from "@/types/common";
 import { uploadMultipleOrderFileById, deleteOrderFile } from "@/api/order-api";
 import { OrderFile } from "@/types/(order)/order";
 import { TeamItem } from "@/types/(item)/team-item";
+import SelectSupplierModal from "../supplier/SelectSupplierModal";
+import AddSupplierModal from "../supplier/AddSupplierModal";
 
 interface OrderEditModalProps {
   isOpen: boolean;
@@ -75,6 +77,12 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   // ItemSelectionModal 상태 추가
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
 
+  // SelectSupplierModal 상태 추가
+  const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] = useState(false);
+
+  // AddSupplierModal 상태 추가
+  const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "", // 제목 필드 추가
     manager: "",
@@ -99,7 +107,8 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   const { useUpdateOrder } = useOrder();
   const { mutate: updateOrder } = useUpdateOrder();
   const { useGetSuppliers } = useSuppliers();
-  const { suppliers } = useGetSuppliers();
+  const { suppliers: suppliersResponse } = useGetSuppliers();
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const { warehousesList, warehouseItems, handleWarehouseChange } =
     useWarehouseWithItems();
 
@@ -275,17 +284,51 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     }
   }, [orderRecord?.warehouseId, warehouseItems, handleWarehouseChange]);
 
-  // 납품처 변경 핸들러
-  const handleSupplierChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const supplierId = parseInt(e.target.value) || null;
-      setFormData((prev) => ({
-        ...prev,
-        supplierId,
-      }));
-    },
-    []
-  );
+  // 납품처 목록 설정
+  useEffect(() => {
+    if (suppliersResponse) {
+      if (
+        typeof suppliersResponse === "object" &&
+        "data" in suppliersResponse
+      ) {
+        setSuppliers(suppliersResponse.data as Supplier[]);
+      } else {
+        setSuppliers(suppliersResponse as Supplier[]);
+      }
+    }
+  }, [suppliersResponse]);
+
+  // 모달에서 고객 선택 핸들러 (고객 정보 자동 채우기)
+  const handleSupplierSelect = useCallback((supplier: Supplier) => {
+    setFormData((prev) => ({
+      ...prev,
+      supplierId: supplier.id,
+      receiver: supplier.representativeName || supplier.supplierName || "",
+      receiverPhone: supplier.supplierPhoneNumber || "",
+      address: supplier.supplierAddress || "",
+      detailAddress: "", // 상세주소는 사용자가 직접 입력
+    }));
+    setIsSelectSupplierModalOpen(false);
+  }, []);
+
+  // 고객 추가 성공 핸들러
+  const handleAddSupplierSuccess = async () => {
+    // 고객 목록 새로고침 (React Query가 자동으로 UI 업데이트)
+    await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+    toast.success("고객이 추가되었습니다");
+  };
+
+  // 레거시 데이터 감지 (고객 미입력 && 수령인 정보 있음)
+  const hasLegacyData = useMemo(() => {
+    return !formData.supplierId &&
+           (!!formData.receiver || !!formData.receiverPhone || !!formData.address);
+  }, [formData.supplierId, formData.receiver, formData.receiverPhone, formData.address]);
+
+  // 빠른 고객 등록 핸들러 (기존 수령인 정보 활용)
+  const handleQuickAddSupplier = () => {
+    // 기존 정보를 기반으로 고객 추가 모달 열기 (initialData 전달)
+    setIsAddSupplierModalOpen(true);
+  };
 
   // 패키지 수량 변경 핸들러 - 패키지 아이템만 업데이트
   const handlePackageQuantityChange = useCallback(
@@ -917,16 +960,50 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               );
             }
           } else {
-            throw new Error(response.message || "주문 수정에 실패했습니다.");
+            // 서버에서 상세한 에러 메시지를 보내는 경우 처리
+            const errorMessage = response.message || "주문 수정에 실패했습니다.";
+            console.error("주문 수정 실패:", response);
+
+            // 사용자 친화적인 에러 팝업 표시
+            const isConfirm = window.confirm(
+              `❌ 주문 수정 실패\n\n${errorMessage}\n\n확인을 눌러 닫기`
+            );
+
+            toast.error(errorMessage, {
+              duration: 5000,
+            });
+
+            setIsSubmitting(false);
+            setIsFileUploading(false);
           }
         },
-        onError: (error) => {
+        onError: (error: any) => {
           console.error("주문 수정 오류:", error);
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : "주문 수정 중 오류가 발생했습니다.";
-          toast.error(errorMessage);
+
+          // 서버 응답에서 에러 메시지 추출
+          let errorMessage = "주문 수정 중 오류가 발생했습니다.";
+
+          if (error?.response?.data?.message) {
+            // Axios 에러 응답
+            errorMessage = error.response.data.message;
+          } else if (error?.message) {
+            // 일반 Error 객체
+            errorMessage = error.message;
+          } else if (typeof error === "string") {
+            errorMessage = error;
+          }
+
+          // 사용자 친화적인 에러 팝업 표시
+          window.alert(
+            `❌ 주문 수정 오류\n\n${errorMessage}\n\n문제가 계속되면 관리자에게 문의해주세요.`
+          );
+
+          toast.error(errorMessage, {
+            duration: 5000,
+          });
+
+          setIsSubmitting(false);
+          setIsFileUploading(false);
         },
         onSettled: () => {
           setIsSubmitting(false);
@@ -1502,7 +1579,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
             </div>
 
             {/* 설치 기한 */}
-            <div>
+            <div className="mb-8">
               <label htmlFor="setupDate" className="block text-sm font-medium">
                 설치 기한
               </label>
@@ -1517,110 +1594,193 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               />
             </div>
 
-            {/* 납품처 선택 */}
-            <div className="space-y-2">
-              <label className="flex flex-row gap-3 text-sm font-medium text-gray-700">
-                납품처 선택
-                <p className="text-xs text-red-500">
-                  *등록 업체일 경우에만 선택, 이외에는 모두 별도 기재
+            {/* 레거시 데이터 안내 배너 (고객 미입력 + 수령인 정보 있음) */}
+            {hasLegacyData && (
+              <div className="mb-4 p-5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border-2 border-amber-300 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div className="flex items-center justify-center w-10 h-10 bg-amber-500 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-base font-bold text-amber-900 mb-2">
+                      ⚠️ 고객 정보가 등록되지 않았습니다
+                    </h4>
+                    <p className="text-sm text-amber-800 mb-3">
+                      현재 입력된 수령인 정보를 기반으로 고객을 등록하시겠습니까?
+                    </p>
+                    <div className="p-3 mb-3 bg-white/60 rounded-lg border border-amber-200">
+                      <div className="grid grid-cols-1 gap-2 text-sm">
+                        {formData.receiver && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-amber-900 min-w-[70px]">• 수령인:</span>
+                            <span className="text-amber-800">{formData.receiver}</span>
+                          </div>
+                        )}
+                        {formData.receiverPhone && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-amber-900 min-w-[70px]">• 연락처:</span>
+                            <span className="text-amber-800">{formData.receiverPhone}</span>
+                          </div>
+                        )}
+                        {formData.address && (
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-amber-900 min-w-[70px]">• 주소:</span>
+                            <span className="text-amber-800">{formData.address}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleQuickAddSupplier}
+                        className="px-4 py-2 font-medium text-white bg-amber-600 rounded-lg shadow-sm transition-all hover:bg-amber-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                      >
+                        📝 이 정보로 고객 등록하기
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toast.info("고객 정보 섹션에서 직접 선택하거나 추가할 수 있습니다")}
+                        className="px-4 py-2 font-medium text-amber-700 bg-white rounded-lg border-2 border-amber-300 shadow-sm transition-all hover:bg-amber-50 hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                      >
+                        나중에 등록
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 고객 정보 섹션 (Material Design) */}
+            <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-gray-800">고객 정보</h3>
+              </div>
+
+              {/* 고객 선택 */}
+              <div className="mb-4 space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  고객 <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsSelectSupplierModalOpen(true)}
+                    className="flex-1 px-4 py-3 text-left bg-white rounded-lg border-2 border-blue-300 shadow-sm transition-all hover:bg-blue-50 hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {formData.supplierId ? (
+                      <span className="font-medium text-gray-900">
+                        {suppliers?.find((s: Supplier) => s.id === formData.supplierId)?.supplierName || "고객 선택"}
+                      </span>
+                    ) : (
+                      <span className="text-gray-500">클릭하여 고객 선택</span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddSupplierModalOpen(true)}
+                    className="px-4 py-3 font-medium text-white bg-blue-600 rounded-lg shadow-sm transition-all hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    title="새 고객 추가"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-xs text-blue-700 bg-blue-100 px-3 py-1.5 rounded-md">
+                  💡 고객을 선택하면 수령인, 연락처, 주소가 자동으로 채워집니다
                 </p>
-              </label>
-              <select
-                name="supplier"
-                onChange={handleSupplierChange}
-                className="px-3 py-2 w-full rounded-md border"
-              >
-                <option value="0">납품처 선택</option>
-                {Array.isArray(suppliers) && suppliers?.length > 0 ? (
-                  suppliers.map((supplier: Supplier) => (
-                    <option key={supplier.id} value={supplier.id}>
-                      {supplier.supplierName}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>
-                    납품처 목록을 불러올 수 없습니다
-                  </option>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 수령인 */}
+                <div>
+                  <label htmlFor="receiver" className="block mb-1 text-sm font-semibold text-gray-700">
+                    수령인 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="receiver"
+                    name="receiver"
+                    value={formData.receiver}
+                    onChange={handleChange}
+                    className="px-4 py-3 w-full bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="수령인 이름"
+                    required
+                  />
+                </div>
+
+                {/* 수령인 연락처 */}
+                <div>
+                  <label htmlFor="phone" className="block mb-1 text-sm font-semibold text-gray-700">
+                    수령인 연락처 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="phone"
+                    name="receiverPhone"
+                    value={formData.receiverPhone}
+                    onChange={handleChange}
+                    placeholder="010-0000-0000"
+                    className="px-4 py-3 w-full bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* 수령지 주소 */}
+              <div className="mt-4 space-y-2">
+                <label htmlFor="address" className="block text-sm font-semibold text-gray-700">
+                  수령지 주소 <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    className="flex-1 px-4 py-3 bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="기본 주소"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="px-4 py-3 font-medium text-blue-700 bg-white rounded-lg border-2 border-blue-300 shadow-sm transition-all hover:bg-blue-50 hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onClick={() => setIsAddressOpen(!isAddressOpen)}
+                  >
+                    주소 검색
+                  </button>
+                </div>
+                {isAddressOpen && (
+                  <SearchAddressModal
+                    onCompletePost={handleAddressChange}
+                    onClose={() => setIsAddressOpen(false)}
+                  />
                 )}
-              </select>
-            </div>
+              </div>
 
-            {/* 수령인 */}
-            <div>
-              <label htmlFor="receiver" className="block text-sm font-medium">
-                수령인
-              </label>
-              <input
-                type="text"
-                id="receiver"
-                name="receiver"
-                value={formData.receiver}
-                onChange={handleChange}
-                className="p-2 w-full rounded border"
-                required
-              />
-            </div>
-
-            {/* 수령인 연락처 */}
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium">
-                수령인 연락처
-              </label>
-              <input
-                type="text"
-                id="phone"
-                name="receiverPhone"
-                value={formData.receiverPhone}
-                onChange={handleChange}
-                placeholder="연락처를 입력해주세요"
-                className="p-2 w-full rounded border"
-                required
-              />
-            </div>
-
-            {/* 수령지 주소 */}
-            <div>
-              <label htmlFor="address" className="block text-sm font-medium">
-                수령지 주소
-              </label>
-              <div className="flex flex-row">
+              {/* 상세 주소 */}
+              <div className="mt-2">
                 <input
                   type="text"
-                  id="address"
-                  name="address"
-                  value={formData.address}
+                  id="detailAddress"
+                  name="detailAddress"
+                  value={formData.detailAddress}
                   onChange={handleChange}
-                  className="flex-1 p-2 rounded border"
-                  placeholder="주소를 입력하세요"
-                  required
+                  className="px-4 py-3 w-full bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="상세 주소 (동/호수 등)"
                 />
-                <button
-                  type="button"
-                  className="p-2 ml-3 text-black rounded border transition-colors duration-200 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-Primary-Main focus:ring-offset-2"
-                  onClick={() => setIsAddressOpen(!isAddressOpen)}
-                >
-                  주소 검색
-                </button>
               </div>
-              {isAddressOpen && (
-                <SearchAddressModal
-                  onCompletePost={handleAddressChange}
-                  onClose={() => setIsAddressOpen(false)}
-                />
-              )}
-            </div>
-
-            {/* 상세 주소 */}
-            <div>
-              <input
-                type="text"
-                id="detailAddress"
-                name="detailAddress"
-                value={formData.detailAddress}
-                onChange={handleChange}
-                className="p-2 w-full rounded border"
-                placeholder="상세 주소"
-              />
             </div>
 
             {/* 파일 업로드 */}
@@ -1894,6 +2054,30 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           currentWarehouseItems={currentWarehouseItems}
           orderItems={modalOrderItems}
           title="품목 추가"
+        />
+
+        {/* 고객 선택 모달 */}
+        <SelectSupplierModal
+          isOpen={isSelectSupplierModalOpen}
+          onClose={() => setIsSelectSupplierModalOpen(false)}
+          suppliers={suppliers || []}
+          onSelect={handleSupplierSelect}
+          selectedSupplierId={formData.supplierId}
+          focusRingColor="blue"
+          onAddSupplier={() => setIsAddSupplierModalOpen(true)}
+        />
+
+        {/* 고객 추가 모달 */}
+        <AddSupplierModal
+          isOpen={isAddSupplierModalOpen}
+          onClose={() => setIsAddSupplierModalOpen(false)}
+          onSuccess={handleAddSupplierSuccess}
+          initialData={{
+            supplierName: formData.receiver || "",
+            supplierPhone: formData.receiverPhone || "",
+            address: formData.address || "",
+            representativeName: formData.receiver || "",
+          }}
         />
       </div>
     </Modal>

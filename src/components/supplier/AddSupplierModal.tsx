@@ -8,10 +8,18 @@ import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
 import { authStore } from "@/store/authStore";
 
+interface SupplierInitialData {
+  supplierName?: string;
+  supplierPhone?: string;
+  address?: string;
+  representativeName?: string;
+}
+
 interface AddSupplierModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: SupplierInitialData;
 }
 
 const inputCls =
@@ -23,6 +31,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  initialData,
 }) => {
   const selectedTeam = authStore((state) => state.selectedTeam);
   const [formData, setFormData] = useState({
@@ -37,6 +46,33 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
+  const [hasInitialData, setHasInitialData] = useState(false);
+
+  // initialData가 있을 때 폼 데이터 초기화
+  React.useEffect(() => {
+    if (isOpen && initialData && !hasInitialData) {
+      setFormData((prev) => ({
+        ...prev,
+        supplierName: initialData.supplierName || prev.supplierName,
+        supplierPhone: initialData.supplierPhone || prev.supplierPhone,
+        address: initialData.address || prev.address,
+        representativeName: initialData.representativeName || prev.representativeName,
+      }));
+      setHasInitialData(true);
+
+      if (initialData.supplierName || initialData.supplierPhone || initialData.address) {
+        toast.success("기존 입력된 정보가 자동으로 채워졌습니다", {
+          duration: 3000,
+          icon: "✅",
+        });
+      }
+    }
+
+    // 모달이 닫히면 hasInitialData 리셋
+    if (!isOpen) {
+      setHasInitialData(false);
+    }
+  }, [isOpen, initialData, hasInitialData]);
 
   if (!isOpen) return null;
 

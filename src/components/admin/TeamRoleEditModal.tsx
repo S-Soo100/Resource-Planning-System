@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { IMappingUser } from "@/types/mappingUser";
 import { UpdateTeamRoleRequest } from "@/types/team";
-import { TeamWarehouse } from "@/types/warehouse";
 import { useTeamRole } from "@/hooks/useTeamRole";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { Button } from "@/components/ui";
@@ -33,7 +32,6 @@ export default function TeamRoleEditModal({
 }: TeamRoleEditModalProps) {
   const { team } = useCurrentTeam();
   const teamId = team?.id;
-  const warehouses: TeamWarehouse[] = team?.warehouses || [];
 
   const { teamRole, isLoading, updateRole, isUpdatingRole } = useTeamRole(
     teamId || 0,
@@ -45,6 +43,23 @@ export default function TeamRoleEditModal({
     isAdmin: undefined,
     restrictedWhs: undefined,
   });
+
+  // 권한 레벨 번역 함수
+  const getAccessLevelLabel = (level: string | undefined): string => {
+    if (!level) return "기본 권한 사용";
+    switch (level) {
+      case "admin":
+        return "관리자";
+      case "moderator":
+        return "1차 승인권자";
+      case "supplier":
+        return "납품처";
+      case "user":
+        return "일반 사용자";
+      default:
+        return level;
+    }
+  };
 
   // 모달 열릴 때 현재 권한 정보 로드
   useEffect(() => {
@@ -70,33 +85,6 @@ export default function TeamRoleEditModal({
     } catch (error) {
       console.error("팀 권한 수정 실패:", error);
     }
-  };
-
-  const handleWarehouseChange = (warehouseId: number, checked: boolean) => {
-    const currentWarehouses = formData.restrictedWhs
-      ? formData.restrictedWhs.split(",").map(Number)
-      : [];
-
-    let newWarehouses: number[];
-    if (checked) {
-      newWarehouses = [...currentWarehouses, warehouseId];
-    } else {
-      newWarehouses = currentWarehouses.filter((id) => id !== warehouseId);
-    }
-
-    setFormData({
-      ...formData,
-      restrictedWhs:
-        newWarehouses.length > 0 ? newWarehouses.join(",") : undefined,
-    });
-  };
-
-  const isWarehouseSelected = (warehouseId: number): boolean => {
-    if (!formData.restrictedWhs) return false;
-    return formData.restrictedWhs
-      .split(",")
-      .map(Number)
-      .includes(warehouseId);
   };
 
   if (!isOpen) return null;
@@ -142,18 +130,23 @@ export default function TeamRoleEditModal({
                 <h3 className="text-sm font-semibold text-Text-High-90 mb-2">
                   현재 권한 정보
                 </h3>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className={`grid ${member?.accessLevel ? "grid-cols-1" : "grid-cols-2"} gap-3 text-sm`}>
+                  {!member?.accessLevel && (
+                    <div>
+                      <span className="text-Text-Low-70">기본 권한:</span>
+                      <span className="ml-2 font-medium text-Text-Highest-100">
+                        {getAccessLevelLabel(
+                          (member?.user as { accessLevel?: string }).accessLevel
+                        )}
+                      </span>
+                    </div>
+                  )}
                   <div>
-                    <span className="text-Text-Low-70">기본 권한:</span>
-                    <span className="ml-2 font-medium text-Text-Highest-100">
-                      {(member?.user as { accessLevel?: string }).accessLevel ||
-                        "user"}
+                    <span className="text-Text-Low-70">
+                      {member?.accessLevel ? "현재 팀 권한:" : "팀 권한:"}
                     </span>
-                  </div>
-                  <div>
-                    <span className="text-Text-Low-70">팀 권한:</span>
                     <span className="ml-2 font-medium text-Text-Highest-100">
-                      {member?.accessLevel || "기본 권한 사용"}
+                      {getAccessLevelLabel(member?.accessLevel)}
                     </span>
                   </div>
                 </div>
@@ -162,21 +155,24 @@ export default function TeamRoleEditModal({
               {/* 권한 레벨 선택 */}
               <div>
                 <label className="block text-sm font-semibold text-Text-Highest-100 mb-2">
-                  권한 레벨
+                  권한 레벨 수정
                 </label>
                 <select
                   value={formData.accessLevel || ""}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const newAccessLevel = e.target.value as
+                      | "user"
+                      | "moderator"
+                      | "admin"
+                      | "supplier"
+                      | undefined;
                     setFormData({
                       ...formData,
-                      accessLevel: e.target.value as
-                        | "user"
-                        | "moderator"
-                        | "admin"
-                        | "supplier"
-                        | undefined,
-                    })
-                  }
+                      accessLevel: newAccessLevel,
+                      // accessLevel이 admin이면 자동으로 isAdmin = true
+                      isAdmin: newAccessLevel === "admin",
+                    });
+                  }}
                   disabled={isReadOnly}
                   className="w-full px-4 py-2 border border-Outline-Variant rounded-xl focus:outline-none focus:ring-2 focus:ring-Primary-Main disabled:bg-Back-Low-10 disabled:cursor-not-allowed"
                 >
@@ -189,72 +185,13 @@ export default function TeamRoleEditModal({
                 <p className="mt-1 text-xs text-Text-Low-70">
                   비어있으면 사용자 기본 권한을 사용합니다
                 </p>
-              </div>
-
-              {/* 관리자 여부 */}
-              <div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.isAdmin || false}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        isAdmin: e.target.checked,
-                      })
-                    }
-                    disabled={isReadOnly}
-                    className="w-5 h-5 text-Primary-Main focus:ring-Primary-Main border-Outline-Variant rounded disabled:cursor-not-allowed"
-                  />
-                  <span className="text-sm font-semibold text-Text-Highest-100">
-                    팀 관리자
-                  </span>
-                </label>
-                <p className="mt-1 text-xs text-Text-Low-70 ml-7">
-                  관리자는 역할 체크를 bypass하며, 모든 창고에 접근할 수 있습니다
-                </p>
-              </div>
-
-              {/* 창고 접근 제한 */}
-              <div>
-                <label className="block text-sm font-semibold text-Text-Highest-100 mb-2">
-                  접근 가능한 창고
-                </label>
-                {warehouses && warehouses.length > 0 ? (
-                  <div className="space-y-2 max-h-48 overflow-y-auto p-3 border border-Outline-Variant rounded-xl">
-                    {warehouses.map((warehouse: TeamWarehouse) => (
-                      <label
-                        key={warehouse.id}
-                        className="flex items-center gap-2 p-2 hover:bg-Back-Low-10 rounded-lg cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isWarehouseSelected(warehouse.id)}
-                          onChange={(e) =>
-                            handleWarehouseChange(warehouse.id, e.target.checked)
-                          }
-                          disabled={isReadOnly}
-                          className="w-5 h-5 text-Primary-Main focus:ring-Primary-Main border-Outline-Variant rounded disabled:cursor-not-allowed"
-                        />
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-Text-Highest-100">
-                            {warehouse.warehouseName}
-                          </div>
-                          <div className="text-xs text-Text-Low-70">
-                            {warehouse.warehouseAddress}
-                          </div>
-                        </div>
-                      </label>
-                    ))}
+                {formData.accessLevel === "admin" && (
+                  <div className="mt-2 p-3 bg-Primary-Container rounded-xl">
+                    <p className="text-sm text-Primary-Main">
+                      ✓ 관리자는 모든 창고에 접근할 수 있습니다
+                    </p>
                   </div>
-                ) : (
-                  <p className="text-sm text-Text-Low-70">
-                    등록된 창고가 없습니다.
-                  </p>
                 )}
-                <p className="mt-1 text-xs text-Text-Low-70">
-                  선택하지 않으면 모든 창고에 접근할 수 있습니다
-                </p>
               </div>
             </div>
 

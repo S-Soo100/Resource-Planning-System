@@ -259,14 +259,14 @@ export default function TeamMembers({
                               size="sm"
                               onClick={() => handleEditRole(member)}
                             >
-                              팀 권한
+                              팀 역할
                             </Button>
                             <Button
                               variant="secondary"
                               size="sm"
                               onClick={() => handleEditUser(member.user as IUser)}
                             >
-                              수정
+                              정보 수정
                             </Button>
                             <Button
                               variant="danger"
@@ -284,14 +284,14 @@ export default function TeamMembers({
                               size="sm"
                               onClick={() => handleEditRole(member)}
                             >
-                              팀 권한
+                              팀 역할
                             </Button>
                             <Button
                               variant="secondary"
                               size="sm"
                               onClick={() => handleEditUser(member.user as IUser)}
                             >
-                              조회
+                              정보 조회
                             </Button>
                           </>
                         )}

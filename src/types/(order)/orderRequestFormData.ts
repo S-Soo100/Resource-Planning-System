@@ -27,8 +27,14 @@ export type OrderItemWithDetails = {
   stockAvailable?: boolean;
   stockQuantity?: number;
   memo?: string; // 품목별 개별 메모
-  sellingPrice?: string; // 주문 품목 판매가 (입력은 문자열로)
-  vat?: string; // 주문 품목 세금 (입력은 문자열로)
+
+  // 🆕 v2.6.0: 총액 입력 방식
+  totalPrice?: string; // 사용자 입력 (총 금액: 공급가액 + VAT)
+  isZeroRated?: boolean; // 개별 영세율 체크 여부
+
+  // 자동 계산되는 필드 (백엔드 전송용)
+  sellingPrice?: string; // 주문 품목 판매가 (공급가액, 자동 계산)
+  vat?: string; // 주문 품목 세금 (부가세, 자동 계산)
 };
 
 export interface OrderRequestFormProps {

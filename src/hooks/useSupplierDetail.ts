@@ -54,27 +54,56 @@ export function useSupplierDetail(
     showMissingCostOnly: false,
   });
 
-  // 4. 요약 통계 계산
+  // 4. 매출 레코드 필터링 (요청/반려/출고자반려 제외)
+  const filteredSalesRecords = useMemo(() => {
+    if (!salesQuery.data?.records) return [];
+
+    return salesQuery.data.records.filter(
+      (record) =>
+        record.status !== 'requested' &&
+        record.status !== 'rejected' &&
+        record.status !== 'rejectedByShipper'
+    );
+  }, [salesQuery.data]);
+
+  // 5. 요약 통계 재계산 (필터링된 데이터 기준)
   const summary: SupplierDetailSummary | null = useMemo(() => {
     if (!salesQuery.data || !purchaseQuery.data) {
       return null;
     }
 
-    const salesSummary = salesQuery.data.summary;
+    // 필터링된 매출 레코드로 요약 계산
+    const totalSalesAmount = filteredSalesRecords.reduce(
+      (sum, r) => (r.totalPrice !== null ? sum + r.totalPrice : sum),
+      0
+    );
+
+    const totalMargin = filteredSalesRecords.reduce(
+      (sum, r) => (r.marginAmount !== null ? sum + (r.marginAmount || 0) : sum),
+      0
+    );
+
+    const recordsWithMargin = filteredSalesRecords.filter((r) => r.marginRate !== null);
+    const averageMarginRate =
+      recordsWithMargin.length > 0
+        ? recordsWithMargin.reduce((sum, r) => sum + (r.marginRate || 0), 0) /
+          recordsWithMargin.length
+        : 0;
+
     const purchaseSummary = purchaseQuery.data.summary;
 
     return {
-      // 판매 관련
-      totalSalesOrders: salesSummary.totalOrders,
-      totalSalesAmount: salesSummary.totalSales,
-      totalMargin: salesSummary.totalMargin,
-      averageMarginRate: salesSummary.averageMarginRate,
+      // 매출 관련 (필터링된 데이터)
+      totalSalesOrders: filteredSalesRecords.length,
+      totalSalesAmount,
+      totalMargin,
+      averageMarginRate,
 
-      // 구매 관련
+      // 매입 관련
       totalPurchaseOrders: purchaseSummary.totalOrders,
       totalPurchaseAmount: purchaseSummary.totalAmount,
     };
-  }, [salesQuery.data, purchaseQuery.data]);
+  }, [filteredSalesRecords, purchaseQuery.data]);
 
   return {
     // 고객 기본 정보
@@ -82,13 +111,13 @@ export function useSupplierDetail(
     isSupplierLoading: supplierQuery.isLoading,
     isSupplierError: supplierQuery.isError,
 
-    // 판매 데이터
-    salesRecords: salesQuery.data?.records || [],
+    // 매출 데이터 (필터링된 레코드)
+    salesRecords: filteredSalesRecords,
     salesSummary: salesQuery.data?.summary,
     isSalesLoading: salesQuery.isLoading,
     isSalesError: salesQuery.isError,
 
-    // 구매 데이터
+    // 매입 데이터
     purchaseRecords: purchaseQuery.data?.records || [],
     purchaseSummary: purchaseQuery.data?.summary,
     teamItemsMap: purchaseQuery.data?.teamItemsMap,

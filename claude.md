@@ -67,6 +67,11 @@
 | `/docs/warehouse-management.md` | 작성 필요  |
 | `/docs/supplier-management.md`  | 작성 필요  |
 
+### 👥 관리자 & 팀 관리
+| 문서                               | 주요 내용                                        |
+| ---------------------------------- | ------------------------------------------------ |
+| `/docs/team-members-management.md` | 팀 멤버 관리, 팀별 권한 시스템, 창고 접근 제어    |
+
 ### 🛠️ 개발 가이드
 | 문서                            | 주요 내용                                |
 | ------------------------------- | ---------------------------------------- |
@@ -100,12 +105,54 @@
 | 검증              | `e.target.value.replace(/[^0-9]/g, '')` |
 
 ### 권한 시스템
-| 등급       | 권한                        |
-| ---------- | --------------------------- |
-| Admin      | 모든 기능                   |
-| Moderator  | 읽기 + 발주 승인            |
-| User       | 기본 기능                   |
-| Supplier   | 발주 관련만                 |
+
+KARS는 **팀별 권한 중심 아키텍처**를 사용합니다.
+
+#### 권한 레벨
+| 등급       | 권한                        | 한글 표시       |
+| ---------- | --------------------------- | --------------- |
+| Admin      | 모든 기능 + 팀 관리자       | 관리자          |
+| Moderator  | 읽기 + 발주 승인            | 1차 승인권자    |
+| User       | 기본 기능                   | 일반 사용자     |
+| Supplier   | 발주 관련만                 | 납품처          |
+
+#### 권한 아키텍처 원칙
+
+**팀 권한 우선 (Team-Permission-Centric)**
+- `TeamUserMapping.accessLevel` (팀별 권한) 우선 사용
+- `User.accessLevel` (기본 권한)은 **레거시** - 신규 개발 시 사용 금지
+- 신규 사용자 생성 시 반드시 팀 권한을 자동 설정할 것
+
+**isAdmin 자동 계산**
+- `isAdmin` 필드는 별도로 입력받지 않음
+- 항상 자동 계산: `isAdmin = (accessLevel === "admin")`
+- 관리자 선택 시 isAdmin 자동 true 설정
+
+**3단계 사용자 생성 플로우**
+```typescript
+// 1. 사용자 생성 (User 테이블)
+const user = await userApi.createUser(userData);
+
+// 2. 팀에 추가 (TeamUserMapping 생성)
+await teamApi.addUserToTeam(teamId, userId);
+
+// 3. 팀 권한 설정 (TeamUserMapping.accessLevel 설정) ⭐ 필수!
+await teamRoleApi.updateTeamRole(teamId, userId, {
+  accessLevel: userData.accessLevel,
+  isAdmin: userData.accessLevel === "admin",
+  restrictedWhs: userData.restrictedWhs,
+});
+```
+
+**권한 표시 우선순위**
+```typescript
+// 팀 권한이 있으면 팀 권한만 표시
+if (teamUserMapping.accessLevel) {
+  return teamUserMapping.accessLevel; // "admin", "moderator", etc.
+} else {
+  return user.accessLevel; // 기본 권한 (레거시)
+}
+```
 
 ### 테마 색상
 | 용도         | 색상                              |
@@ -177,6 +224,63 @@ const handleSupplierSelect = (supplier: Supplier) => {
   });
 };
 ```
+
+### 창고 접근 권한 패턴
+
+**직관적인 체크박스 로직 (v2.5.0+)**
+
+체크박스는 "접근 가능"을 의미하도록 설계 (직관성 우선):
+
+```typescript
+// ❌ 잘못된 방법 (헷갈림)
+// 체크 = 접근 제한
+
+// ✅ 올바른 방법 (직관적)
+// 체크 = 접근 가능
+```
+
+**프론트엔드 → 백엔드 변환**
+
+```typescript
+// 1. 폼 상태: 접근 가능한 창고 ID 배열
+const [selectedWarehouses, setSelectedWarehouses] = useState<number[]>([]);
+
+// 2. 저장 시: 전체 - 접근 가능 = 제한된 창고
+const allWarehouseIds = warehouses.map((w) => w.id);
+const restrictedIds = allWarehouseIds.filter(
+  (id) => !selectedWarehouses.includes(id)
+);
+
+// 3. 백엔드 전송: 쉼표로 구분된 문자열
+const restrictedWhs = restrictedIds.length > 0 ? restrictedIds.join(",") : "";
+```
+
+**백엔드 → 프론트엔드 변환**
+
+```typescript
+// 1. 백엔드 수신: "1,3,5" (제한된 창고)
+const restrictedWhs = user.restrictedWhs || "";
+
+// 2. 파싱
+const restrictedIds = restrictedWhs
+  .split(",")
+  .map((id) => parseInt(id.trim()))
+  .filter((id) => !isNaN(id));
+
+// 3. 변환: 전체 - 제한 = 접근 가능
+const allWarehouseIds = warehouses.map((w) => w.id);
+const accessibleIds = allWarehouseIds.filter(
+  (id) => !restrictedIds.includes(id)
+);
+
+// 4. 폼 상태 설정
+setSelectedWarehouses(accessibleIds);
+```
+
+**일관성 유지**
+- UserManagementModal: 신규 사용자 생성 시
+- UserEditModal: 기존 사용자 정보 수정 시
+- 두 모달 모두 동일한 로직 사용 (접근 가능 ↔ 제한)
 
 ---
 

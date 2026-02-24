@@ -572,6 +572,10 @@ export default function SalesPage() {
                     <span>{formatDate(record.purchaseDate)}</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-gray-500">담당자</span>
+                    <span className="font-medium">{record.manager || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-gray-500">품목 수</span>
                     <span className="font-medium">
                       {record.itemCount}종 {record.totalQuantity}개
@@ -659,6 +663,9 @@ export default function SalesPage() {
                     </div>
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500">
+                    담당자
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500">
                     품목 수
                   </th>
                   <th
@@ -727,6 +734,9 @@ export default function SalesPage() {
                           </div>
                         )}
                       </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-center text-gray-900">
+                      {record.manager || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm text-center text-gray-900">
                       {record.itemCount}종 {record.totalQuantity}개
@@ -799,7 +809,7 @@ export default function SalesPage() {
                 {actualSummary && (
                   <tr className="bg-blue-50 border-t-2 border-blue-200">
                     <td
-                      colSpan={3}
+                      colSpan={4}
                       className="px-4 py-3 text-sm font-bold text-right text-gray-900"
                     >
                       합계

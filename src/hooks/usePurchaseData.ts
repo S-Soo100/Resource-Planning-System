@@ -95,7 +95,17 @@ export const usePurchaseData = (params: PurchaseFilterParams) => {
   const selectedTeam = authStore((state) => state.selectedTeam);
 
   return useQuery({
-    queryKey: ['purchase', params, selectedTeam?.id],
+    queryKey: [
+      'purchase',
+      selectedTeam?.id,
+      params.startDate,
+      params.endDate,
+      params.warehouseId,
+      params.supplierId,
+      params.categoryId,
+      params.searchQuery,
+      params.showMissingCostOnly,
+    ],
     queryFn: async () => {
       if (!selectedTeam?.id) {
         throw new Error('팀이 선택되지 않았습니다.');

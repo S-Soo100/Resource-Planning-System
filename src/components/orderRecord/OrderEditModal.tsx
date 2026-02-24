@@ -1056,7 +1056,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   if (!orderRecord) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+    <Modal isOpen={isOpen} onClose={onClose} size="full">
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">주문 수정</h2>

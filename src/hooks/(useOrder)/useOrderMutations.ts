@@ -4,6 +4,7 @@ import {
   updateOrder,
   deleteOrder,
   updateOrderStatus,
+  updateOrderPrice,
 } from "../../api/order-api";
 import {
   CreateOrderDto,
@@ -59,12 +60,12 @@ export const useUpdateOrderStatus = () => {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateOrderStatusDto }) => {
       const response = await updateOrderStatus(id, data);
-      
+
       // 서버 응답이 실패인 경우 에러를 던져서 클라이언트에서 처리할 수 있도록 함
       if (!response.success) {
         throw new Error(response.message || "상태 변경에 실패했습니다.");
       }
-      
+
       return response;
     },
     onSuccess: async (response, variables) => {
@@ -89,6 +90,49 @@ export const useUpdateOrderStatus = () => {
     onError: (error) => {
       // 에러가 발생해도 여기서는 처리하지 않고, 컴포넌트에서 처리하도록 함
       console.error("상태 변경 에러:", error);
+    },
+  });
+};
+
+// 주문 가격 수정 (moderator 이상 권한, 상태 무관)
+export const useUpdateOrderPrice = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: {
+        totalPrice?: number;
+        orderItems?: Array<{
+          itemId: number;
+          sellingPrice: number;
+          vat?: number;
+        }>;
+      };
+    }) => {
+      const response = await updateOrderPrice(id, data);
+
+      // 서버 응답이 실패인 경우 에러를 던져서 클라이언트에서 처리할 수 있도록 함
+      if (!response.success) {
+        throw new Error(response.message || "가격 수정에 실패했습니다.");
+      }
+
+      return response;
+    },
+    onSuccess: async (response, variables) => {
+      if (response.success) {
+        // 주문 정보 캐시 무효화
+        await queryClient.invalidateQueries({ queryKey: ["orders"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["order", variables.id],
+        });
+      }
+    },
+    onError: (error) => {
+      console.error("가격 수정 에러:", error);
     },
   });
 };

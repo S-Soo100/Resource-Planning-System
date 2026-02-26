@@ -1,9 +1,10 @@
 'use client';
 
-import { X, Download } from 'lucide-react';
+import { X, Download, FileSpreadsheet } from 'lucide-react';
 import { SalesRecord } from '@/types/sales';
 import { format } from 'date-fns';
 import { useAuth, useSelectedTeam } from '@/store/authStore';
+import { exportTransactionStatementToExcel } from '@/utils/exportTransactionStatementToExcel';
 
 interface TransactionStatementModalProps {
   isOpen: boolean;
@@ -68,6 +69,17 @@ export function TransactionStatementModal({
     }, 1000);
   };
 
+  // 엑셀 다운로드
+  const handleDownloadExcel = async () => {
+    await exportTransactionStatementToExcel(record, selectedTeam ? {
+      companyName: selectedTeam.companyName,
+      businessRegistrationNumber: selectedTeam.businessRegistrationNumber,
+      representativeName: selectedTeam.representativeName,
+      businessAddress: selectedTeam.businessAddress,
+      phoneNumber: selectedTeam.phoneNumber,
+    } : null);
+  };
+
   return (
     <>
       {/* 배경 오버레이 */}
@@ -84,6 +96,13 @@ export function TransactionStatementModal({
           <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between print:hidden z-10">
             <h2 className="text-xl font-bold text-gray-900">거래명세서</h2>
             <div className="flex items-center gap-2">
+              <button
+                onClick={handleDownloadExcel}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                엑셀 다운로드
+              </button>
               <button
                 onClick={handleDownloadPDF}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
@@ -237,6 +256,17 @@ export function TransactionStatementModal({
                         </tr>
                       );
                     })}
+                    {/* 여백 행 3칸 */}
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <tr key={`empty-${i}`}>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]">&nbsp;</td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]"></td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]"></td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]"></td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]"></td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]"></td>
+                      </tr>
+                    ))}
                   </tbody>
                   <tfoot className="bg-blue-50 font-semibold">
                     <tr>
@@ -418,6 +448,17 @@ export function TransactionStatementModal({
                         </tr>
                       );
                     })}
+                    {/* 여백 행 3칸 */}
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <tr key={`copy-empty-${i}`}>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]">&nbsp;</td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]"></td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]"></td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]"></td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]"></td>
+                        <td className="border border-gray-300 px-1 py-0.5 text-[9px]"></td>
+                      </tr>
+                    ))}
                   </tbody>
                   <tfoot className="bg-blue-50 font-semibold">
                     <tr>

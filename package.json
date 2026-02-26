@@ -20,6 +20,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
     "event-source-polyfill": "^1.0.31",
+    "exceljs": "^4.4.0",
     "firebase": "^12.0.0",
     "formik": "^2.4.6",
     "framer-motion": "^12.23.24",

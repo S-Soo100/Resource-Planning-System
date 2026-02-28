@@ -1,0 +1,84 @@
+name: "\U0001F3AF Epic"
+description: "여러 작업을 포괄하는 대규모 기능 단위"
+title: "[Epic] "
+labels: ["epic"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Epic
+        여러 기능 요청/작업을 하나로 묶는 상위 단위입니다.
+        Epic 아래에 개별 Feature/Task 이슈를 생성하고 연결해주세요.
+
+  - type: textarea
+    id: background
+    attributes:
+      label: "비즈니스 배경"
+      description: "왜 이 Epic이 필요한가요?"
+      value: |
+        ### 해결하려는 문제
+
+
+        ### 비즈니스 가치
+
+
+        ### 대상 사용자
+
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: "범위 (Scope)"
+      value: |
+        ### 포함
+        -
+
+        ### 제외
+        -
+    validations:
+      required: true
+
+  - type: textarea
+    id: stories
+    attributes:
+      label: "포함된 User Stories / Tasks"
+      description: "이 Epic에 속하는 작업들을 나열해주세요. 이슈 생성 후 #번호로 연결합니다."
+      placeholder: |
+        - [ ] #이슈번호 사용자가 OO를 할 수 있다
+        - [ ] #이슈번호 관리자가 OO를 설정할 수 있다
+        - [ ] (아직 이슈 미생성) OO 기능
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "Epic 완료 조건"
+      description: "이 Epic 전체가 완료되었다고 판단할 수 있는 조건"
+      placeholder: |
+        - [ ] 모든 하위 이슈가 완료됨
+        - [ ] 통합 테스트 통과
+        - [ ] 사용자 피드백 반영
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: "의존성 및 제약사항"
+      description: "선행 작업, 백엔드 API 필요 사항, 외부 의존성 등"
+      placeholder: |
+        - 선행: 백엔드 OO API 완성 필요
+        - 제약: OO 라이브러리 버전 호환성
+    validations:
+      required: false
+
+  - type: input
+    id: target-version
+    attributes:
+      label: "목표 버전"
+      placeholder: "예: v2.7.0"
+    validations:
+      required: false

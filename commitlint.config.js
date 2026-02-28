@@ -18,6 +18,7 @@ module.exports = {
       ],
     ],
     "subject-empty": [2, "never"],
+    "subject-case": [0], // 한국어 + 영문 고유명사 혼용 허용
     "type-empty": [2, "never"],
     "header-max-length": [2, "always", 100],
   },

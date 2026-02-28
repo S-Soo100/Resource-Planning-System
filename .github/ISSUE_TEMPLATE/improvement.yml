@@ -1,0 +1,84 @@
+name: "\u2728 개선 요청 (Improvement)"
+description: "기존 기능의 개선/최적화를 요청합니다"
+title: "[Improve] "
+labels: ["improvement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 개선 요청
+        기존 기능이 동작하지만, 더 나은 방법이 있을 때 사용합니다.
+
+  - type: textarea
+    id: current
+    attributes:
+      label: "현재 동작"
+      description: "지금은 어떻게 동작하나요?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired
+    attributes:
+      label: "개선 후 동작"
+      description: "어떻게 바뀌면 좋겠나요?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: "개선 이유"
+      description: "왜 이 개선이 필요한가요? (UX, 성능, 유지보수 등)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: "개선 유형"
+      options:
+        - "UX/UI 개선"
+        - "성능 최적화"
+        - "코드 리팩토링"
+        - "접근성 개선"
+        - "반응형 최적화"
+        - "기타"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: "관련 영역"
+      options:
+        - "발주 관리"
+        - "재고 관리 (입고/출고)"
+        - "판매/구매"
+        - "마진 분석"
+        - "시연 관리"
+        - "팀/사용자 관리"
+        - "기준 정보 (품목/창고/납품처)"
+        - "UI/UX 전반"
+        - "기타"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "희망 우선순위"
+      options:
+        - "P1 - 높음"
+        - "P2 - 보통"
+        - "P3 - 낮음"
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "참고 자료"
+      description: "현재 화면 캡처, 개선 후 와이어프레임 등"
+    validations:
+      required: false

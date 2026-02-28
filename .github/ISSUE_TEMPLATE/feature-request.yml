@@ -1,0 +1,89 @@
+name: "\U0001F680 기능 요청 (Feature Request)"
+description: "새로운 기능을 요청합니다"
+title: "[Feature] "
+labels: ["feature", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 기능 요청
+        가능한 구체적으로 작성해주세요. 상세할수록 빠르게 구현할 수 있습니다.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "해결하려는 문제"
+      description: "어떤 상황에서 불편함을 느꼈나요?"
+      placeholder: "예: 발주 목록에서 특정 납품처의 발주만 보고 싶은데, 현재는 전체 목록을 스크롤해야 합니다."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "제안하는 해결책"
+      description: "어떻게 해결되면 좋겠나요?"
+      placeholder: "예: 발주 목록 상단에 납품처 필터 드롭다운을 추가해주세요."
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: "사용자 스토리"
+      description: "누가, 무엇을, 왜 하고 싶은지 작성해주세요."
+      value: |
+        **As a** (사용자 유형)
+        **I want** (원하는 기능)
+        **So that** (얻는 가치)
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "완료 조건 (Acceptance Criteria)"
+      description: "이 기능이 완료되었다고 판단할 수 있는 조건들"
+      placeholder: |
+        - [ ] 납품처 필터 드롭다운이 표시된다
+        - [ ] 선택 시 해당 납품처의 발주만 필터링된다
+        - [ ] '전체' 옵션으로 필터를 해제할 수 있다
+    validations:
+      required: false
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: "관련 영역"
+      options:
+        - "발주 관리"
+        - "재고 관리 (입고/출고)"
+        - "판매/구매"
+        - "마진 분석"
+        - "시연 관리"
+        - "팀/사용자 관리"
+        - "기준 정보 (품목/창고/납품처)"
+        - "UI/UX 전반"
+        - "기타"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "희망 우선순위"
+      options:
+        - "P0 - 긴급 (업무 차질)"
+        - "P1 - 높음 (빠른 시일 내)"
+        - "P2 - 보통 (다음 릴리스)"
+        - "P3 - 낮음 (여유 있을 때)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "참고 자료"
+      description: "스크린샷, 와이어프레임, 참고 링크 등"
+    validations:
+      required: false

@@ -1,6 +1,7 @@
 // 판매 관련 타입 정의
 
-import { Order, OrderItem } from './(order)/order';
+import { Order, OrderItem } from "./(order)/order";
+import { DemoResponse } from "./demo/demo";
 
 /**
  * 판매 레코드 (발주 기반)
@@ -26,6 +27,10 @@ export interface SalesRecord {
   marginRate?: number | null; // 마진율 (%) = (판매가 - 원가) / 판매가 × 100
   hasCostPrice?: boolean; // 원가 입력 여부
   isNegativeMargin?: boolean; // 역마진 여부 (마진율 < 0)
+  // 데이터 출처 (유료 시연 통합용)
+  source?: "order" | "demo"; // 기본값 'order'
+  demoId?: number; // source === 'demo'일 때 원본 ID
+  originalDemo?: DemoResponse | null; // 시연 상세 링크용
 }
 
 /**
@@ -43,6 +48,10 @@ export interface SalesSummary {
   averageMarginRate?: number; // 평균 마진율 (%)
   negativeMarginCount?: number; // 역마진 건수
   missingCostCount?: number; // 원가 미입력 건수
+  // 유료 시연 통합용
+  orderCount?: number; // 발주 건수
+  demoCount?: number; // 시연 건수
+  demoSalesAmount?: number; // 시연 매출 합계
 }
 
 /**
@@ -53,7 +62,7 @@ export interface SalesFilterParams {
   endDate: string; // YYYY-MM-DD
   supplierId?: number | null;
   status?: string | null;
-  orderType?: 'all' | 'package' | 'individual'; // 패키지/개별
+  orderType?: "all" | "package" | "individual"; // 패키지/개별
   searchQuery?: string;
   showMissingPriceOnly?: boolean; // 판매가 미입력만 보기
 }
@@ -62,13 +71,13 @@ export interface SalesFilterParams {
  * 정렬 설정
  */
 export type SalesSortField =
-  | 'purchaseDate'
-  | 'title'
-  | 'supplierName'
-  | 'totalPrice'
-  | 'status';
+  | "purchaseDate"
+  | "title"
+  | "supplierName"
+  | "totalPrice"
+  | "status";
 
-export type SortDirection = 'asc' | 'desc';
+export type SortDirection = "asc" | "desc";
 
 export interface SalesSortConfig {
   field: SalesSortField;
@@ -81,5 +90,5 @@ export interface SalesSortConfig {
 export interface SalesPriceCalculation {
   totalPrice: number | null;
   hasPrice: boolean; // 가격 정보 존재 여부
-  source: 'order' | 'items' | 'none'; // 가격 출처
+  source: "order" | "items" | "none"; // 가격 출처
 }

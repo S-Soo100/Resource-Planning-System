@@ -116,7 +116,11 @@ export const useDemoSalesData = (params: SalesFilterParams) => {
         throw new Error("시연 데이터 조회에 실패했습니다.");
       }
 
-      const demos = (response.data as { data: DemoResponse[] }).data || [];
+      // API 응답 구조 안전 파싱: 배열이면 직접 사용, 아니면 .data 접근
+      const rawData = response.data;
+      const demos: DemoResponse[] = Array.isArray(rawData)
+        ? rawData
+        : (rawData as unknown as { data: DemoResponse[] })?.data || [];
 
       // 유료 시연 + 유효 상태만 필터링
       const filteredDemos = demos.filter(

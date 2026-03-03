@@ -89,7 +89,7 @@ export default function LoginForm({
               type: "spring",
               stiffness: 260,
               damping: 20,
-              delay: 0.2
+              delay: 0.2,
             }}
           >
             <motion.div
@@ -99,7 +99,7 @@ export default function LoginForm({
               transition={{
                 duration: 0.5,
                 delay: 0.8,
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
             >
               <User className="w-12 h-12 text-blue-600" />
@@ -130,12 +130,12 @@ export default function LoginForm({
               animate={{
                 opacity: 1,
                 y: 0,
-                x: [0, -5, 5, -5, 5, 0]
+                x: [0, -5, 5, -5, 5, 0],
               }}
               transition={{
                 opacity: { duration: 0.2 },
                 y: { duration: 0.2 },
-                x: { duration: 0.4, delay: 0.2 }
+                x: { duration: 0.4, delay: 0.2 },
               }}
               className="p-3 text-sm text-red-700 bg-red-100 rounded-lg"
             >
@@ -153,7 +153,7 @@ export default function LoginForm({
             transition={{
               opacity: { delay: 0.5, duration: 0.4 },
               x: { delay: 0.5, duration: 0.4 },
-              scale: { duration: 0.2 }
+              scale: { duration: 0.2 },
             }}
           >
             <div className="relative">
@@ -181,7 +181,7 @@ export default function LoginForm({
                     <motion.div
                       animate={{
                         scale: isEmailFocused ? [1, 1.2, 1] : 1,
-                        rotate: isEmailFocused ? [0, -10, 10, 0] : 0
+                        rotate: isEmailFocused ? [0, -10, 10, 0] : 0,
                       }}
                       transition={{ duration: 0.3 }}
                     >
@@ -205,7 +205,7 @@ export default function LoginForm({
             transition={{
               opacity: { delay: 0.6, duration: 0.4 },
               x: { delay: 0.6, duration: 0.4 },
-              scale: { duration: 0.2 }
+              scale: { duration: 0.2 },
             }}
           >
             <div className="relative">
@@ -233,7 +233,7 @@ export default function LoginForm({
                     <motion.div
                       animate={{
                         scale: isPasswordFocused ? [1, 1.2, 1] : 1,
-                        rotate: isPasswordFocused ? [0, 5, -5, 0] : 0
+                        rotate: isPasswordFocused ? [0, 5, -5, 0] : 0,
                       }}
                       transition={{ duration: 0.3 }}
                     >
@@ -264,42 +264,16 @@ export default function LoginForm({
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: isLoading ? 1 : [1, 1.01, 1],
-            }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{
               opacity: { delay: 0.7, duration: 0.4 },
               y: { delay: 0.7, duration: 0.4 },
-              scale: {
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }
             }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <motion.div
-              className="relative"
-              animate={{
-                boxShadow: isLoading
-                  ? "0 0 0px rgba(59, 130, 246, 0)"
-                  : [
-                      "0 0 0px rgba(59, 130, 246, 0.5)",
-                      "0 0 20px rgba(59, 130, 246, 0.3)",
-                      "0 0 0px rgba(59, 130, 246, 0.5)"
-                    ]
-              }}
-              transition={{
-                boxShadow: {
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }
-              }}
-              style={{ borderRadius: "0.5rem" }}
+            <div
+              className={`relative rounded-lg ${!isLoading ? "animate-login-glow" : ""}`}
             >
               <Button
                 type="submit"
@@ -311,7 +285,7 @@ export default function LoginForm({
               >
                 로그인
               </Button>
-            </motion.div>
+            </div>
           </motion.div>
         </form>
 
@@ -360,13 +334,13 @@ export default function LoginForm({
               scale: {
                 duration: 1.5,
                 repeat: Infinity,
-                ease: "easeInOut"
+                ease: "easeInOut",
               },
               rotate: {
                 duration: 2,
                 repeat: Infinity,
-                ease: "linear"
-              }
+                ease: "linear",
+              },
             }}
             className="p-5 bg-white rounded-full"
           >

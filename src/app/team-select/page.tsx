@@ -24,10 +24,13 @@ export default function TeamSelectPage() {
   const [newTeamName, setNewTeamName] = useState("");
   const [isCreatingTeam, setIsCreatingTeam] = useState(false);
   const [authCheckCompleted, setAuthCheckCompleted] = useState(false);
+  const [loadingTooLong, setLoadingTooLong] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // /menu 페이지를 미리 컴파일하여 팀 선택 후 빠른 전환
+    router.prefetch("/menu");
+  }, [router]);
 
   // Auth 데이터 확인 로직
   useEffect(() => {
@@ -66,6 +69,16 @@ export default function TeamSelectPage() {
       router.push("/menu");
     }
   }, [selectedTeam, router, isRedirecting, authCheckCompleted]);
+
+  // 리디렉팅 또는 팀 선택 로딩이 15초 이상 지속되면 안내 표시
+  useEffect(() => {
+    if (!isRedirecting && !isTeamSelecting) {
+      setLoadingTooLong(false);
+      return;
+    }
+    const timer = setTimeout(() => setLoadingTooLong(true), 15000);
+    return () => clearTimeout(timer);
+  }, [isRedirecting, isTeamSelecting]);
 
   const handleTeamSelect = async (teamId: number) => {
     const res = await authService.selectTeam(teamId);
@@ -142,6 +155,19 @@ export default function TeamSelectPage() {
               ? "잠시만 기다려주세요..."
               : "팀 정보를 불러오는 중입니다"}
           </p>
+          {loadingTooLong && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-500">
+                페이지 로딩이 평소보다 오래 걸리고 있습니다
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-2 px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+              >
+                새로고침
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -197,9 +223,10 @@ export default function TeamSelectPage() {
 
         <div className="relative p-6 max-w-7xl mx-auto">
           {/* 헤더 및 환영 메시지 */}
-          <div className="p-8 mb-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50"
+          <div
+            className="p-8 mb-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50"
             style={{
-              animation: 'fadeInDown 0.6s ease-out'
+              animation: "fadeInDown 0.6s ease-out",
             }}
           >
             <div className="flex justify-between items-start mb-6">
@@ -208,7 +235,12 @@ export default function TeamSelectPage() {
                   환영합니다! 👋
                 </h1>
                 <p className="text-lg text-gray-700 leading-relaxed">
-                  안녕하세요, <span className="font-semibold text-blue-600">{serverUser?.name || "사용자"}</span>님!<br />
+                  안녕하세요,{" "}
+                  <span className="font-semibold text-blue-600">
+                    {serverUser?.name || "사용자"}
+                  </span>
+                  님!
+                  <br />
                   작업할 팀을 선택하거나 새 팀을 생성해주세요.
                 </p>
               </div>
@@ -248,9 +280,10 @@ export default function TeamSelectPage() {
           </div>
 
           {/* 관리자 액션 버튼 */}
-          <div className="flex justify-end mb-8"
+          <div
+            className="flex justify-end mb-8"
             style={{
-              animation: 'fadeInRight 0.6s ease-out 0.2s both'
+              animation: "fadeInRight 0.6s ease-out 0.2s both",
             }}
           >
             <button
@@ -285,9 +318,10 @@ export default function TeamSelectPage() {
 
           {/* 현재 선택된 팀 */}
           {selectedTeam && (
-            <div className="p-6 mb-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 shadow-lg"
+            <div
+              className="p-6 mb-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 shadow-lg"
               style={{
-                animation: 'fadeInUp 0.6s ease-out'
+                animation: "fadeInUp 0.6s ease-out",
               }}
             >
               <div className="flex items-center mb-4">
@@ -334,9 +368,10 @@ export default function TeamSelectPage() {
           )}
 
           {/* 팀 선택 영역 */}
-          <div className="p-8 mb-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50"
+          <div
+            className="p-8 mb-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50"
             style={{
-              animation: 'fadeInUp 0.6s ease-out 0.3s both'
+              animation: "fadeInUp 0.6s ease-out 0.3s both",
             }}
           >
             <div className="flex items-center gap-3 mb-6">
@@ -391,18 +426,22 @@ export default function TeamSelectPage() {
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                   />
                 </svg>
-                <p className="mb-2 text-lg font-semibold text-gray-700">소속된 팀이 없습니다</p>
+                <p className="mb-2 text-lg font-semibold text-gray-700">
+                  소속된 팀이 없습니다
+                </p>
                 <p className="text-sm text-gray-500">
-                  관리자에게 팀 초대를 요청하거나, 관리자 권한이 있다면 새 팀을 생성해보세요.
+                  관리자에게 팀 초대를 요청하거나, 관리자 권한이 있다면 새 팀을
+                  생성해보세요.
                 </p>
               </div>
             )}
           </div>
 
           {/* 푸터 */}
-          <div className="pb-6 text-center text-gray-500"
+          <div
+            className="pb-6 text-center text-gray-500"
             style={{
-              animation: 'fadeInUp 0.6s ease-out 0.5s both'
+              animation: "fadeInUp 0.6s ease-out 0.5s both",
             }}
           >
             <p className="text-sm">문의사항은 관리자에게 연락하세요</p>
@@ -412,14 +451,16 @@ export default function TeamSelectPage() {
 
       {/* 팀 생성 모달 */}
       {isModalOpen && (
-        <div className="flex fixed inset-0 z-50 justify-center items-center bg-black/50 backdrop-blur-sm p-4"
+        <div
+          className="flex fixed inset-0 z-50 justify-center items-center bg-black/50 backdrop-blur-sm p-4"
           style={{
-            animation: 'fadeIn 0.3s ease-out'
+            animation: "fadeIn 0.3s ease-out",
           }}
         >
-          <div className="p-8 w-full max-w-md bg-white rounded-2xl shadow-2xl"
+          <div
+            className="p-8 w-full max-w-md bg-white rounded-2xl shadow-2xl"
             style={{
-              animation: 'scaleIn 0.3s ease-out'
+              animation: "scaleIn 0.3s ease-out",
             }}
           >
             <div className="flex items-center justify-between mb-6">
@@ -474,7 +515,7 @@ export default function TeamSelectPage() {
                 placeholder="새 팀 이름을 입력하세요"
                 disabled={isCreatingTeam}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !isCreatingTeam) {
+                  if (e.key === "Enter" && !isCreatingTeam) {
                     handleCreateTeam();
                   }
                 }}
@@ -493,7 +534,9 @@ export default function TeamSelectPage() {
               </button>
               <button
                 className={`px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-semibold shadow-lg hover:shadow-xl ${
-                  isCreatingTeam ? "opacity-50 cursor-not-allowed" : "active:scale-95"
+                  isCreatingTeam
+                    ? "opacity-50 cursor-not-allowed"
+                    : "active:scale-95"
                 }`}
                 onClick={handleCreateTeam}
                 disabled={isCreatingTeam}
@@ -534,7 +577,8 @@ export default function TeamSelectPage() {
       {/* 애니메이션 keyframes */}
       <style jsx global>{`
         @keyframes blob {
-          0%, 100% {
+          0%,
+          100% {
             transform: translate(0, 0) scale(1);
           }
           33% {

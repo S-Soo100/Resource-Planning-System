@@ -23,9 +23,16 @@ import {
 } from "@/hooks/useInventoryRecord";
 import { useCategory } from "@/hooks/useCategory";
 import { useQueryClient } from "@tanstack/react-query";
-import { getTodayString, formatDateToLocalString, formatDateForDisplayUTC } from "@/utils/dateUtils";
+import {
+  getTodayString,
+  formatDateToLocalString,
+  formatDateForDisplayUTC,
+} from "@/utils/dateUtils";
 import { LoadingCentered } from "@/components/ui/Loading";
-import { getRecordPurposeLabel, MANUAL_RECORD_PURPOSES } from "@/constants/recordPurpose";
+import {
+  getRecordPurposeLabel,
+  MANUAL_RECORD_PURPOSES,
+} from "@/constants/recordPurpose";
 
 // 로컬 formatDate 함수 완전 제거 - formatDateForDisplayUTC 직접 사용
 
@@ -283,6 +290,10 @@ export default function IoHistoryList() {
       itemCode: "",
       itemName: "",
       recordPurpose: "purchase", // 기본값: 구매 입고
+      supplierId: undefined,
+      inboundPlace: "",
+      inboundAddress: "",
+      inboundAddressDetail: "",
     });
     setSelectedInboundItem(null);
     setIsInboundModalOpen(true);
@@ -302,6 +313,10 @@ export default function IoHistoryList() {
       itemName: "",
       currentQuantity: 0,
       recordPurpose: "sale", // 기본값: 판매 출고
+      supplierId: undefined,
+      outboundPlace: "",
+      outboundAddress: "",
+      outboundAddressDetail: "",
     });
     setSelectedOutboundItem(null);
     setIsOutboundModalOpen(true);
@@ -356,6 +371,16 @@ export default function IoHistoryList() {
         inboundPlace: selectedSupplier?.supplierName || "",
         inboundAddress: selectedSupplier?.supplierAddress || "",
       });
+    } else if (field === "recordPurpose") {
+      // 목적 변경 시 고객 정보 초기화
+      setInboundValues({
+        ...inboundValues,
+        recordPurpose: value as string,
+        supplierId: undefined,
+        inboundPlace: "",
+        inboundAddress: "",
+        inboundAddressDetail: "",
+      });
     } else {
       setInboundValues({
         ...inboundValues,
@@ -409,6 +434,16 @@ export default function IoHistoryList() {
         supplierId: value as number | undefined,
         outboundPlace: selectedSupplier?.supplierName || "",
         outboundAddress: selectedSupplier?.supplierAddress || "",
+      });
+    } else if (field === "recordPurpose") {
+      // 목적 변경 시 고객 정보 초기화
+      setOutboundValues({
+        ...outboundValues,
+        recordPurpose: value as string,
+        supplierId: undefined,
+        outboundPlace: "",
+        outboundAddress: "",
+        outboundAddressDetail: "",
       });
     } else {
       setOutboundValues({
@@ -673,7 +708,10 @@ export default function IoHistoryList() {
     setSelectedOutboundItem(null);
   };
 
-  const handleRecordPurposeChange = async (recordId: number, newPurpose: string) => {
+  const handleRecordPurposeChange = async (
+    recordId: number,
+    newPurpose: string
+  ) => {
     try {
       await updateInventoryRecordAsync({
         id: String(recordId),
@@ -889,8 +927,8 @@ export default function IoHistoryList() {
             {typeFilter === "inbound"
               ? "선택한 기간에 입고 기록이 없습니다"
               : typeFilter === "outbound"
-              ? "선택한 기간에 출고 기록이 없습니다"
-              : "선택한 기간에 입출고 기록이 없습니다"}
+                ? "선택한 기간에 출고 기록이 없습니다"
+                : "선택한 기간에 입출고 기록이 없습니다"}
           </p>
         </div>
       ) : (
@@ -931,8 +969,12 @@ export default function IoHistoryList() {
                   >
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                       {record.inboundQuantity
-                        ? (record.inboundDate ? formatDateForDisplayUTC(record.inboundDate) : "N/A")
-                        : (record.outboundDate ? formatDateForDisplayUTC(record.outboundDate) : "N/A")}
+                        ? record.inboundDate
+                          ? formatDateForDisplayUTC(record.inboundDate)
+                          : "N/A"
+                        : record.outboundDate
+                          ? formatDateForDisplayUTC(record.outboundDate)
+                          : "N/A"}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span
@@ -945,11 +987,15 @@ export default function IoHistoryList() {
                         {record.inboundQuantity ? "입고" : "출고"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap"
-                        onClick={(e) => e.stopPropagation()}>
+                    <td
+                      className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <select
                         value={record.recordPurpose || ""}
-                        onChange={(e) => handleRecordPurposeChange(record.id, e.target.value)}
+                        onChange={(e) =>
+                          handleRecordPurposeChange(record.id, e.target.value)
+                        }
                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
                         onClick={(e) => e.stopPropagation()}
                       >

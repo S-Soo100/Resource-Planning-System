@@ -57,6 +57,12 @@ export const SalesSummary = ({ summary }: SalesSummaryProps) => {
         <div className="text-2xl font-bold text-blue-600">
           ₩{summary.totalSales.toLocaleString()}
         </div>
+        {summary.demoSalesAmount !== undefined &&
+          summary.demoSalesAmount > 0 && (
+            <div className="text-xs text-purple-500 mt-1">
+              시연 매출 포함: ₩{summary.demoSalesAmount.toLocaleString()}
+            </div>
+          )}
         {summary.missingPriceCount > 0 && (
           <div className="text-xs text-red-500 mt-1">
             판매가 미입력: {summary.missingPriceCount}건
@@ -93,6 +99,12 @@ export const SalesSummary = ({ summary }: SalesSummaryProps) => {
             >
               ₩{(summary.totalMargin || 0).toLocaleString()}
             </div>
+            {summary.demoSalesAmount !== undefined &&
+              summary.demoSalesAmount > 0 && (
+                <div className="text-xs text-purple-500 mt-1">
+                  시연 마진 포함: ₩{summary.demoSalesAmount.toLocaleString()}
+                </div>
+              )}
           </div>
 
           {/* 평균 마진율 */}

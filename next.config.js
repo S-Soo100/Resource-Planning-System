@@ -11,15 +11,6 @@ const nextConfig = {
     },
   },
 
-  // webpack 설정: markdown 파일을 문자열로 import
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.md$/,
-      type: "asset/source",
-    });
-    return config;
-  },
-
   async headers() {
     return [
       {

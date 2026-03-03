@@ -1,6 +1,6 @@
-import * as XLSX from 'xlsx';
-import { SalesRecord } from '@/types/sales';
-import { format } from 'date-fns';
+import * as XLSX from "xlsx";
+import { SalesRecord } from "@/types/sales";
+import { format } from "date-fns";
 
 /**
  * 판매 데이터를 엑셀로 내보내기 (권한별 컬럼 차별화)
@@ -22,7 +22,7 @@ export const exportSalesToExcel = (
       판매처: record.supplierName,
       수령인: record.receiver,
       품목수: `${record.itemCount}종 ${record.totalQuantity}개`,
-      판매가: record.totalPrice !== null ? record.totalPrice : '미입력',
+      판매가: record.totalPrice !== null ? record.totalPrice : "미입력",
     };
 
     // Admin/Moderator만 마진 정보 포함
@@ -30,20 +30,20 @@ export const exportSalesToExcel = (
       baseData.원가 =
         record.costAmount !== null && record.costAmount !== undefined
           ? record.costAmount
-          : '미입력';
+          : "미입력";
       baseData.마진액 =
         record.marginAmount !== null && record.marginAmount !== undefined
           ? record.marginAmount
-          : '-';
+          : "-";
       baseData.마진율 =
         record.marginRate !== null && record.marginRate !== undefined
           ? `${record.marginRate.toFixed(1)}%`
-          : '-';
+          : "-";
     }
 
     baseData.상태 = record.status;
     baseData.담당자 = record.manager;
-    baseData.비고 = record.memo || '-';
+    baseData.비고 = record.memo || "-";
 
     return baseData;
   });
@@ -57,11 +57,11 @@ export const exportSalesToExcel = (
   );
 
   const totalRow: any = {
-    No: '',
-    발주일자: '',
-    제목: '',
-    판매처: '',
-    수령인: '합계',
+    No: "",
+    발주일자: "",
+    제목: "",
+    판매처: "",
+    수령인: "합계",
     품목수: `${totalItems}종 ${totalQuantity}개`,
     판매가: totalSales,
   };
@@ -95,9 +95,9 @@ export const exportSalesToExcel = (
     totalRow.마진율 = `${avgMarginRate.toFixed(1)}%`;
   }
 
-  totalRow.상태 = '';
-  totalRow.담당자 = '';
-  totalRow.비고 = '';
+  totalRow.상태 = "";
+  totalRow.담당자 = "";
+  totalRow.비고 = "";
 
   summaryData.push(totalRow);
 
@@ -117,11 +117,12 @@ export const exportSalesToExcel = (
         발주일자: record.purchaseDate,
         제목: record.title,
         판매처: record.supplierName,
-        품목코드: item.item?.teamItem?.itemCode || '',
-        품목명: item.item?.teamItem?.itemName || '',
+        품목코드: item.item?.teamItem?.itemCode || "",
+        품목명: item.item?.teamItem?.itemName || "",
         수량: item.quantity,
-        단가: itemPrice !== null && itemPrice !== undefined ? itemPrice : '미입력',
-        금액: itemTotal !== null ? itemTotal : '미입력',
+        단가:
+          itemPrice !== null && itemPrice !== undefined ? itemPrice : "미입력",
+        금액: itemTotal !== null ? itemTotal : "미입력",
         상태: record.status,
         담당자: record.manager,
       });
@@ -141,18 +142,105 @@ export const exportSalesToExcel = (
     품목수: `${record.itemCount}종 ${record.totalQuantity}개`,
     상태: record.status,
     담당자: record.manager,
-    비고: record.memo || '-',
+    비고: record.memo || "-",
   }));
 
   const worksheet3 = XLSX.utils.json_to_sheet(missingPriceData);
 
   // 워크북 생성
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet1, '판매 요약');
-  XLSX.utils.book_append_sheet(workbook, worksheet2, '품목 상세');
-  XLSX.utils.book_append_sheet(workbook, worksheet3, '판매가 미입력');
+  XLSX.utils.book_append_sheet(workbook, worksheet1, "판매 요약");
+  XLSX.utils.book_append_sheet(workbook, worksheet2, "품목 상세");
+  XLSX.utils.book_append_sheet(workbook, worksheet3, "판매가 미입력");
 
   // 파일명 생성
-  const defaultFilename = `판매내역_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
+  const defaultFilename = `판매내역_${format(new Date(), "yyyyMMdd_HHmmss")}.xlsx`;
+  XLSX.writeFile(workbook, filename || defaultFilename);
+};
+
+/**
+ * 시연 상태 한글 매핑
+ */
+const getDemoStatusLabel = (status: string) => {
+  switch (status) {
+    case "confirmedByShipper":
+      return "출고자확인";
+    case "shipmentCompleted":
+      return "출고완료";
+    case "demoCompleted":
+      return "시연종료";
+    default:
+      return status;
+  }
+};
+
+/**
+ * 유료 시연 데이터를 엑셀로 내보내기
+ */
+export const exportDemoSalesToExcel = (
+  records: SalesRecord[],
+  filename?: string,
+  showMarginColumns = false
+) => {
+  // Sheet 1: 시연 요약
+  const summaryData = records.map((record, index) => {
+    const baseData: any = {
+      No: index + 1,
+      시연일자: record.purchaseDate,
+      시연명: record.title,
+      시연담당자: record.supplierName,
+      사내담당자: record.manager,
+      품목수: `${record.itemCount}종 ${record.totalQuantity}개`,
+      시연가격: record.totalPrice !== null ? record.totalPrice : "미입력",
+    };
+
+    if (showMarginColumns) {
+      baseData.원가 = 0;
+      baseData.마진액 = record.totalPrice !== null ? record.totalPrice : "-";
+      baseData.마진율 =
+        record.totalPrice !== null && record.totalPrice > 0 ? "100.0%" : "-";
+    }
+
+    baseData.상태 = getDemoStatusLabel(record.status);
+    baseData.비고 = record.memo || "-";
+
+    return baseData;
+  });
+
+  // 합계 행
+  const totalQuantity = records.reduce((sum, r) => sum + r.totalQuantity, 0);
+  const totalItems = records.reduce((sum, r) => sum + r.itemCount, 0);
+  const totalSales = records.reduce(
+    (sum, r) => (r.totalPrice !== null ? sum + r.totalPrice : sum),
+    0
+  );
+
+  const totalRow: any = {
+    No: "",
+    시연일자: "",
+    시연명: "",
+    시연담당자: "",
+    사내담당자: "합계",
+    품목수: `${totalItems}종 ${totalQuantity}개`,
+    시연가격: totalSales,
+  };
+
+  if (showMarginColumns) {
+    totalRow.원가 = 0;
+    totalRow.마진액 = totalSales;
+    totalRow.마진율 = totalSales > 0 ? "100.0%" : "-";
+  }
+
+  totalRow.상태 = "";
+  totalRow.비고 = "";
+
+  summaryData.push(totalRow);
+
+  const worksheet = XLSX.utils.json_to_sheet(summaryData);
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "유료 시연 내역");
+
+  const defaultFilename = `유료시연내역_${format(new Date(), "yyyyMMdd_HHmmss")}.xlsx`;
   XLSX.writeFile(workbook, filename || defaultFilename);
 };

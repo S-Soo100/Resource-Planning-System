@@ -13,9 +13,14 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSalesData } from "@/hooks/useSalesData";
+import { useDemoSalesData } from "@/hooks/useDemoSalesData";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { SalesSummary } from "@/components/sales/SalesSummary";
-import { exportSalesToExcel } from "@/utils/exportSalesToExcel";
+import { DemoSalesTable } from "@/components/sales/DemoSalesTable";
+import {
+  exportSalesToExcel,
+  exportDemoSalesToExcel,
+} from "@/utils/exportSalesToExcel";
 import { ErrorState } from "@/components/common/ErrorState";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { TransactionStatementModal } from "@/components/sales/TransactionStatementModal";
@@ -27,7 +32,10 @@ import {
   SalesSortField,
   SortDirection,
   SalesRecord,
+  SalesSummary as SalesSummaryType,
 } from "@/types/sales";
+
+type SalesTab = "order" | "demo";
 
 // 미디어 쿼리 훅
 function useMediaQuery(query: string) {
@@ -82,6 +90,9 @@ export default function SalesPage() {
   const [sortField, setSortField] = useState<SalesSortField>("purchaseDate");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
+  // 탭 상태
+  const [activeTab, setActiveTab] = useState<SalesTab>("order");
+
   // 거래명세서 모달 상태
   const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<SalesRecord | null>(
@@ -90,6 +101,11 @@ export default function SalesPage() {
 
   // 데이터 조회
   const { data, isLoading, error } = useSalesData(filters);
+  const {
+    data: demoData,
+    isLoading: isDemoLoading,
+    error: demoError,
+  } = useDemoSalesData(filters);
 
   // 정렬된 레코드
   const sortedRecords = useMemo(() => {
@@ -202,6 +218,69 @@ export default function SalesPage() {
     };
   }, [sortedRecords]);
 
+  // 시연 레코드 (날짜 정렬)
+  const sortedDemoRecords = useMemo(() => {
+    if (!demoData?.records) return [];
+    return [...demoData.records].sort((a, b) =>
+      b.purchaseDate.localeCompare(a.purchaseDate)
+    );
+  }, [demoData?.records]);
+
+  // 시연 요약
+  const demoSummary = useMemo(() => {
+    if (!demoData?.summary) {
+      return {
+        totalOrders: 0,
+        totalItems: 0,
+        totalQuantity: 0,
+        totalSales: 0,
+        missingPriceCount: 0,
+        totalCost: 0,
+        totalMargin: 0,
+        averageMarginRate: 0,
+        negativeMarginCount: 0,
+        missingCostCount: 0,
+      };
+    }
+    return demoData.summary;
+  }, [demoData?.summary]);
+
+  // 합산 요약 (발주 + 시연)
+  const combinedSummary = useMemo((): SalesSummaryType => {
+    const orderCount = actualSummary.totalOrders;
+    const demoCount = sortedDemoRecords.length;
+    const demoSalesAmount = demoSummary.totalSales;
+
+    // 모든 레코드(발주+시연) 합산해서 마진율 계산
+    const allRecords = [...sortedRecords, ...sortedDemoRecords];
+    const recordsWithMargin = allRecords.filter(
+      (r) => r.marginRate !== null && r.marginRate !== undefined
+    );
+    const combinedAvgMarginRate =
+      recordsWithMargin.length > 0
+        ? recordsWithMargin.reduce((sum, r) => sum + (r.marginRate || 0), 0) /
+          recordsWithMargin.length
+        : 0;
+
+    return {
+      totalOrders: orderCount + demoCount,
+      totalItems: actualSummary.totalItems + demoSummary.totalItems,
+      totalQuantity: actualSummary.totalQuantity + demoSummary.totalQuantity,
+      totalSales: actualSummary.totalSales + demoSalesAmount,
+      missingPriceCount:
+        actualSummary.missingPriceCount + demoSummary.missingPriceCount,
+      totalCost: (actualSummary.totalCost || 0) + (demoSummary.totalCost || 0),
+      totalMargin:
+        (actualSummary.totalMargin || 0) + (demoSummary.totalMargin || 0),
+      averageMarginRate: combinedAvgMarginRate,
+      negativeMarginCount: actualSummary.negativeMarginCount || 0,
+      missingCostCount: actualSummary.missingCostCount || 0,
+      orderCount,
+      demoCount,
+      demoSalesAmount,
+    };
+  }, [actualSummary, demoSummary, sortedRecords, sortedDemoRecords]);
+
   // 권한 체크: 로그인 및 사용자 로딩 상태
   if (isUserLoading) {
     return (
@@ -313,10 +392,15 @@ export default function SalesPage() {
     return lines.slice(0, 2).join("\n") + "...";
   };
 
-  // 엑셀 다운로드 (권한별 컬럼 차별화)
+  // 엑셀 다운로드 (탭 기반 + 권한별 컬럼 차별화)
   const handleExportExcel = () => {
-    if (!data?.records) return;
-    exportSalesToExcel(data.records, undefined, showMarginColumns);
+    if (activeTab === "demo") {
+      if (!sortedDemoRecords.length) return;
+      exportDemoSalesToExcel(sortedDemoRecords, undefined, showMarginColumns);
+    } else {
+      if (!data?.records) return;
+      exportSalesToExcel(data.records, undefined, showMarginColumns);
+    }
   };
 
   // 상태 색상
@@ -344,7 +428,7 @@ export default function SalesPage() {
     router.push(`/orderRecord/${orderId}`);
   };
 
-  if (error) {
+  if (error || demoError) {
     return (
       <ErrorState
         title="데이터 조회 실패"
@@ -354,7 +438,7 @@ export default function SalesPage() {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || isDemoLoading) {
     return (
       <div className="container mx-auto p-6">
         <div className="mb-6">
@@ -385,7 +469,7 @@ export default function SalesPage() {
           💰 판매 내역 {showMarginColumns && "& 마진 분석"}
         </h1>
         <p className="text-gray-500 mt-2">
-          승인된 발주를 기반으로 판매 현황
+          승인된 발주와 유료 시연을 기반으로 판매 현황
           {showMarginColumns && " 및 마진율"}을 분석합니다
         </p>
       </div>
@@ -396,7 +480,7 @@ export default function SalesPage() {
           <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-800">
             <strong className="block mb-1">
-              📊 어떤 발주가 판매 내역에 포함되나요?
+              📊 어떤 데이터가 판매 내역에 포함되나요?
             </strong>
             <div className="space-y-1">
               <div>
@@ -406,9 +490,15 @@ export default function SalesPage() {
                 </span>
               </div>
               <div>
-                <span className="font-medium">❌ 제외되는 발주:</span>{" "}
+                <span className="font-medium">✅ 포함되는 시연:</span>{" "}
+                <span className="text-purple-700">
+                  유료 시연 중 출고자확인, 출고완료, 시연종료 상태
+                </span>
+              </div>
+              <div>
+                <span className="font-medium">❌ 제외:</span>{" "}
                 <span className="text-blue-600">
-                  승인 대기 중인 발주, 반려된 발주
+                  승인 대기 중, 반려된 발주 / 무료 시연
                 </span>
               </div>
             </div>
@@ -456,7 +546,11 @@ export default function SalesPage() {
 
           <button
             onClick={handleExportExcel}
-            disabled={!data?.records.length}
+            disabled={
+              activeTab === "order"
+                ? !data?.records.length
+                : !sortedDemoRecords.length
+            }
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4 mr-2" />
@@ -465,16 +559,16 @@ export default function SalesPage() {
         </div>
       </div>
 
-      {/* 요약 카드 */}
-      {actualSummary && <SalesSummary summary={actualSummary} />}
+      {/* 요약 카드 (발주+시연 합산) */}
+      {combinedSummary && <SalesSummary summary={combinedSummary} />}
 
       {/* 판매가 미입력 경고 */}
-      {actualSummary && actualSummary.missingPriceCount > 0 && (
+      {combinedSummary && combinedSummary.missingPriceCount > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex items-start">
           <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-yellow-800">
             <strong>
-              판매가 미입력 판매: {actualSummary.missingPriceCount}건
+              판매가 미입력 판매: {combinedSummary.missingPriceCount}건
             </strong>
             <br />
             정확한 판매 금액 분석을 위해 판매가 정보를 입력해주세요.
@@ -482,9 +576,46 @@ export default function SalesPage() {
         </div>
       )}
 
+      {/* 탭 UI */}
+      <div className="flex border-b border-gray-200 mb-0">
+        <button
+          onClick={() => setActiveTab("order")}
+          className={`relative px-6 py-3 text-sm font-medium transition-colors ${
+            activeTab === "order"
+              ? "text-blue-600 bg-white"
+              : "text-gray-500 hover:text-gray-700 bg-gray-50"
+          }`}
+        >
+          발주 판매 ({actualSummary.totalOrders}건)
+          {activeTab === "order" && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab("demo")}
+          className={`relative px-6 py-3 text-sm font-medium transition-colors ${
+            activeTab === "demo"
+              ? "text-purple-600 bg-white"
+              : "text-gray-500 hover:text-gray-700 bg-gray-50"
+          }`}
+        >
+          유료 시연 ({sortedDemoRecords.length}건)
+          {activeTab === "demo" && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600"></div>
+          )}
+        </button>
+      </div>
+
       {/* 테이블/카드 */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        {isMobile ? (
+      <div className="bg-white rounded-lg rounded-tl-none border border-gray-200 border-t-0 overflow-hidden">
+        {activeTab === "demo" ? (
+          <DemoSalesTable
+            records={sortedDemoRecords}
+            summary={demoSummary}
+            showMarginColumns={showMarginColumns}
+            isMobile={isMobile}
+          />
+        ) : isMobile ? (
           /* 모바일 카드형 리스트 */
           <div className="divide-y divide-gray-100">
             {sortedRecords.map((record, index) => (
@@ -903,14 +1034,14 @@ export default function SalesPage() {
 
       {/* 역마진 경고 안내 (Admin/Moderator만) */}
       {showMarginColumns &&
-        actualSummary &&
-        actualSummary.negativeMarginCount &&
-        actualSummary.negativeMarginCount > 0 && (
+        combinedSummary &&
+        combinedSummary.negativeMarginCount &&
+        combinedSummary.negativeMarginCount > 0 && (
           <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
             <AlertCircle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-red-800">
               <strong className="block mb-1">
-                ⚠️ 역마진 발주: {actualSummary.negativeMarginCount}건
+                ⚠️ 역마진 발주: {combinedSummary.negativeMarginCount}건
               </strong>
               <p>
                 판매가가 원가보다 낮은 발주가 발견되었습니다. 가격 정책을

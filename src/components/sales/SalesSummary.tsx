@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { SalesSummary as SalesSummaryType } from '@/types/sales';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { SalesSummary as SalesSummaryType } from "@/types/sales";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface SalesSummaryProps {
   summary: SalesSummaryType;
@@ -12,7 +12,7 @@ export const SalesSummary = ({ summary }: SalesSummaryProps) => {
 
   // 권한별 마진 카드 표시 여부
   const showMarginCards =
-    user?.accessLevel === 'admin' || user?.accessLevel === 'moderator';
+    user?.accessLevel === "admin" || user?.accessLevel === "moderator";
 
   // 마진 정보가 있는지 확인
   const hasMarginData =
@@ -20,12 +20,19 @@ export const SalesSummary = ({ summary }: SalesSummaryProps) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {/* 총 발주 건수 */}
+      {/* 총 판매 건수 */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="text-sm text-gray-500 mb-1">총 발주 건수</div>
+        <div className="text-sm text-gray-500 mb-1">총 판매 건수</div>
         <div className="text-2xl font-bold text-gray-900">
           {summary.totalOrders.toLocaleString()}건
         </div>
+        {summary.orderCount !== undefined &&
+          summary.demoCount !== undefined &&
+          summary.demoCount > 0 && (
+            <div className="text-xs text-gray-500 mt-1">
+              발주 {summary.orderCount}건 / 시연 {summary.demoCount}건
+            </div>
+          )}
       </div>
 
       {/* 총 품목 수 */}
@@ -80,8 +87,8 @@ export const SalesSummary = ({ summary }: SalesSummaryProps) => {
             <div
               className={`text-2xl font-bold ${
                 (summary.totalMargin || 0) >= 0
-                  ? 'text-green-600'
-                  : 'text-red-600'
+                  ? "text-green-600"
+                  : "text-red-600"
               }`}
             >
               ₩{(summary.totalMargin || 0).toLocaleString()}
@@ -94,8 +101,8 @@ export const SalesSummary = ({ summary }: SalesSummaryProps) => {
             <div
               className={`text-2xl font-bold ${
                 (summary.averageMarginRate || 0) >= 0
-                  ? 'text-green-600'
-                  : 'text-red-600'
+                  ? "text-green-600"
+                  : "text-red-600"
               }`}
             >
               {(summary.averageMarginRate || 0).toFixed(1)}%

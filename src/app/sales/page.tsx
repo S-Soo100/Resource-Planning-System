@@ -10,10 +10,13 @@ import {
   AlertCircle,
   FileText,
   Info,
+  ChevronDown,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSalesData } from "@/hooks/useSalesData";
 import { useDemoSalesData } from "@/hooks/useDemoSalesData";
+import { useDebounce } from "@/hooks/useDebounce";
+import { formatDateForDisplay } from "@/utils/dateUtils";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { SalesSummary } from "@/components/sales/SalesSummary";
 import { DemoSalesTable } from "@/components/sales/DemoSalesTable";
@@ -76,13 +79,16 @@ export default function SalesPage() {
     setShowMissingPriceOnly,
   } = useSalesFilterStore();
 
+  // 검색 debounce (300ms)
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
   const filters: SalesFilterParams = {
     startDate,
     endDate,
     supplierId: null,
     status: null,
     orderType: "all",
-    searchQuery,
+    searchQuery: debouncedSearchQuery,
     showMissingPriceOnly,
   };
 
@@ -92,6 +98,9 @@ export default function SalesPage() {
 
   // 탭 상태
   const [activeTab, setActiveTab] = useState<SalesTab>("order");
+
+  // 안내 카드 접기/펼치기
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   // 거래명세서 모달 상태
   const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
@@ -339,16 +348,6 @@ export default function SalesPage() {
     );
   };
 
-  // 날짜 포맷 간소화 (2026-02-10T00:00:00.000Z → 26-02-10)
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    const year = date.getFullYear().toString().slice(2); // 26
-    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // 02
-    const day = date.getDate().toString().padStart(2, "0"); // 10
-    return `${year}-${month}-${day}`;
-  };
-
   // 판매 제목 자동 생성
   const generateSalesTitle = (record: SalesRecord) => {
     const { orderItems, originalOrder } = record;
@@ -474,36 +473,48 @@ export default function SalesPage() {
         </p>
       </div>
 
-      {/* 상태 안내 카드 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <div className="flex items-start">
-          <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
-            <strong className="block mb-1">
-              📊 어떤 데이터가 판매 내역에 포함되나요?
-            </strong>
-            <div className="space-y-1">
+      {/* 상태 안내 카드 (접기/펼치기) */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg mb-6 overflow-hidden">
+        <button
+          onClick={() => setIsInfoOpen(!isInfoOpen)}
+          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-blue-100 transition-colors"
+        >
+          <div className="flex items-center">
+            <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" />
+            <span className="text-sm font-semibold text-blue-800">
+              어떤 데이터가 판매 내역에 포함되나요?
+            </span>
+          </div>
+          <ChevronDown
+            className={`w-4 h-4 text-blue-600 transition-transform duration-200 ${
+              isInfoOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+        {isInfoOpen && (
+          <div className="px-4 pb-4 text-sm text-blue-800">
+            <div className="space-y-1 ml-7">
               <div>
-                <span className="font-medium">✅ 포함되는 발주:</span>{" "}
+                <span className="font-medium">포함되는 발주:</span>{" "}
                 <span className="text-blue-700">
                   승인된 발주, 출고 확인된 발주, 출고 완료된 발주
                 </span>
               </div>
               <div>
-                <span className="font-medium">✅ 포함되는 시연:</span>{" "}
+                <span className="font-medium">포함되는 시연:</span>{" "}
                 <span className="text-purple-700">
                   유료 시연 중 출고자확인, 출고완료, 시연종료 상태
                 </span>
               </div>
               <div>
-                <span className="font-medium">❌ 제외:</span>{" "}
+                <span className="font-medium">제외:</span>{" "}
                 <span className="text-blue-600">
                   승인 대기 중, 반려된 발주 / 무료 시연
                 </span>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 필터 */}
@@ -551,7 +562,11 @@ export default function SalesPage() {
                 ? !data?.records.length
                 : !sortedDemoRecords.length
             }
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className={`flex items-center px-4 py-2 text-white rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed ${
+              activeTab === "demo"
+                ? "bg-purple-600 hover:bg-purple-700"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
             <Download className="w-4 h-4 mr-2" />
             엑셀 다운로드
@@ -607,7 +622,11 @@ export default function SalesPage() {
       </div>
 
       {/* 테이블/카드 */}
-      <div className="bg-white rounded-lg rounded-tl-none border border-gray-200 border-t-0 overflow-hidden">
+      <div
+        className={`bg-white rounded-lg border border-gray-200 border-t-0 overflow-hidden ${
+          activeTab === "order" ? "rounded-tl-none" : ""
+        }`}
+      >
         {activeTab === "demo" ? (
           <DemoSalesTable
             records={sortedDemoRecords}
@@ -739,7 +758,7 @@ export default function SalesPage() {
                 <div className="space-y-1 text-xs text-gray-600 mb-3">
                   <div className="flex justify-between">
                     <span className="text-gray-500">판매일자</span>
-                    <span>{formatDate(record.purchaseDate)}</span>
+                    <span>{formatDateForDisplay(record.purchaseDate)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">담당자</span>
@@ -879,7 +898,7 @@ export default function SalesPage() {
                     }`}
                   >
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {formatDate(record.purchaseDate)}
+                      {formatDateForDisplay(record.purchaseDate)}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       {record.supplierName &&

@@ -71,7 +71,12 @@ test.describe("판매 내역 + 유료 시연 통합 (#006)", () => {
   });
 
   test("안내 카드에 시연 포함 조건이 표시된다", async ({ page }) => {
-    // 안내 카드에 시연 관련 조건 포함 확인
+    // 안내 카드는 기본 접힌 상태 → 클릭하여 펼치기
+    const infoButton = page.getByText("어떤 데이터가 판매 내역에 포함되나요?");
+    await expect(infoButton).toBeVisible();
+    await infoButton.click();
+
+    // 펼친 후 시연 관련 조건 포함 확인
     await expect(
       page.getByText(/유료 시연 중 출고자확인, 출고완료, 시연종료 상태/)
     ).toBeVisible();

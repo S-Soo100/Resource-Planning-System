@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { SalesRecord, SalesSummary as SalesSummaryType } from "@/types/sales";
+import { formatDateForDisplay } from "@/utils/dateUtils";
 
 interface DemoSalesTableProps {
   records: SalesRecord[];
@@ -40,18 +41,6 @@ const getDemoStatusColor = (status: string) => {
     default:
       return "bg-gray-100 text-gray-700";
   }
-};
-
-/**
- * 날짜 포맷 (26-02-10)
- */
-const formatDate = (dateString: string) => {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  const year = date.getFullYear().toString().slice(2);
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  return `${year}-${month}-${day}`;
 };
 
 export const DemoSalesTable = ({
@@ -156,7 +145,7 @@ export const DemoSalesTable = ({
             <div className="space-y-1 text-xs text-gray-600">
               <div className="flex justify-between">
                 <span className="text-gray-500">시연일자</span>
-                <span>{formatDate(record.purchaseDate)}</span>
+                <span>{formatDateForDisplay(record.purchaseDate)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">사내 담당자</span>
@@ -247,7 +236,7 @@ export const DemoSalesTable = ({
           {records.map((record) => (
             <tr key={record.id} className="hover:bg-gray-50">
               <td className="px-4 py-3 text-sm text-gray-900">
-                {formatDate(record.purchaseDate)}
+                {formatDateForDisplay(record.purchaseDate)}
               </td>
               <td className="px-4 py-3 text-sm text-gray-900">
                 {record.supplierName || "-"}

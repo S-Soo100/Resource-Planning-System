@@ -2,17 +2,28 @@
 
 import React from "react";
 import { Supplier } from "@/types/supplier";
-import { Building2, User, Phone, FileText, MapPin, Mail, Edit } from "lucide-react";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import {
+  Building2,
+  User,
+  Phone,
+  FileText,
+  MapPin,
+  Mail,
+  Edit,
+} from "lucide-react";
+import { usePermission } from "@/hooks/usePermission";
 
 interface SupplierDetailHeaderProps {
   supplier: Supplier;
   onEdit?: () => void;
 }
 
-export function SupplierDetailHeader({ supplier, onEdit }: SupplierDetailHeaderProps) {
-  const { user } = useCurrentUser();
-  const canEdit = user?.accessLevel === "admin" || user?.accessLevel === "moderator";
+export function SupplierDetailHeader({
+  supplier,
+  onEdit,
+}: SupplierDetailHeaderProps) {
+  const { isAdminOrModerator } = usePermission();
+  const canEdit = isAdminOrModerator;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant p-6">

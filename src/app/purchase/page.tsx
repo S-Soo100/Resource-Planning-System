@@ -12,6 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { usePurchaseData } from "@/hooks/usePurchaseData";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { PurchaseSummary } from "@/components/purchase/PurchaseSummary";
 import { exportPurchaseToExcel } from "@/utils/exportPurchaseToExcel";
@@ -45,6 +46,7 @@ function useMediaQuery(query: string) {
 export default function PurchasePage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { isSupplier } = usePermission();
 
   // TeamItems 데이터 (live costPrice를 가져오기 위해)
   const { useGetTeamItems } = useTeamItems();
@@ -167,7 +169,7 @@ export default function PurchasePage() {
   }
 
   // 권한 체크: Supplier는 접근 불가
-  if (!user || user.accessLevel === "supplier") {
+  if (!user || isSupplier) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex flex-col items-center justify-center min-h-[400px]">

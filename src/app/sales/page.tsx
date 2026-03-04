@@ -18,6 +18,7 @@ import { useDemoSalesData } from "@/hooks/useDemoSalesData";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatDateForDisplay } from "@/utils/dateUtils";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { SalesSummary } from "@/components/sales/SalesSummary";
 import { DemoSalesTable } from "@/components/sales/DemoSalesTable";
 import {
@@ -58,13 +59,13 @@ function useMediaQuery(query: string) {
 export default function SalesPage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { canViewMargin, isSupplier } = usePermission();
 
   // 미디어 쿼리
   const isMobile = useMediaQuery("(max-width: 759px)");
 
   // 권한별 마진 컬럼 표시 여부 (Admin, Moderator만)
-  const showMarginColumns =
-    user?.accessLevel === "admin" || user?.accessLevel === "moderator";
+  const showMarginColumns = canViewMargin;
 
   // 필터 상태 (Zustand store - 날짜는 localStorage에 보존)
   const {
@@ -302,7 +303,7 @@ export default function SalesPage() {
   }
 
   // 권한 체크: Supplier는 접근 불가
-  if (!user || user.accessLevel === "supplier") {
+  if (!user || isSupplier) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex flex-col items-center justify-center min-h-[400px]">

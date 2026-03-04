@@ -2,7 +2,11 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getDemoById, uploadMultipleDemoFileById, deleteDemoFile } from "@/api/demo-api";
+import {
+  getDemoById,
+  uploadMultipleDemoFileById,
+  deleteDemoFile,
+} from "@/api/demo-api";
 import { DemoResponse } from "@/types/demo/demo";
 import { DemoStatus } from "@/types/demo/demo";
 import {
@@ -18,7 +22,11 @@ import {
   Printer,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
+import { usePermission } from "@/hooks/usePermission";
+import {
+  formatDateForDisplay,
+  formatDateForDisplayUTC,
+} from "@/utils/dateUtils";
 import { formatDateTimeToKorean } from "@/utils/calendar/calendarUtils";
 import {
   useUpdateDemoStatus,
@@ -195,6 +203,7 @@ const deliveryMethodIcon = (method: string) => {
 // 댓글 섹션 컴포넌트
 const DemoCommentSection: React.FC<{ demoId: number }> = ({ demoId }) => {
   const { user: currentUser } = useCurrentUser();
+  const { isAdmin: isCommentAdmin } = usePermission();
   const [newComment, setNewComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState("");
@@ -216,9 +225,7 @@ const DemoCommentSection: React.FC<{ demoId: number }> = ({ demoId }) => {
   };
   const canDeleteComment = (comment: DemoComment) => {
     if (!currentUser) return false;
-    return (
-      comment.userId === currentUser.id || currentUser.accessLevel === "admin"
-    );
+    return comment.userId === currentUser.id || isCommentAdmin;
   };
   // 댓글 작성 시간 포맷팅
   const formatCommentDate = (dateString: string) => {
@@ -422,6 +429,8 @@ const DemoRecordDetail = () => {
   });
 
   const { user: auth } = useCurrentUser();
+  const { isAdmin, isModerator, isAdminOrModerator, isUser, isSupplier } =
+    usePermission();
   const queryClient = useQueryClient();
   const updateDemoStatusMutation = useUpdateDemoStatus();
   const deleteDemoMutation = useDeleteDemo();
@@ -558,9 +567,17 @@ const DemoRecordDetail = () => {
 
   // 이미지 파일 체크 함수
   const isImageFile = (fileName: string): boolean => {
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+    const imageExtensions = [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".webp",
+      ".bmp",
+      ".svg",
+    ];
     const lowerFileName = fileName.toLowerCase();
-    return imageExtensions.some(ext => lowerFileName.endsWith(ext));
+    return imageExtensions.some((ext) => lowerFileName.endsWith(ext));
   };
 
   // 시연 삭제 핸들러
@@ -591,7 +608,7 @@ const DemoRecordDetail = () => {
     if (!demo || !selectedStatus) return;
 
     // moderator 권한 사용자가 본인이 생성한 시연을 승인/반려하려고 할 때 제한
-    if (auth?.accessLevel === "moderator") {
+    if (isModerator) {
       if (demo.userId === auth?.id) {
         if (
           selectedStatus === DemoStatus.approved ||
@@ -765,16 +782,15 @@ const DemoRecordDetail = () => {
       return false;
     }
 
-    const isAdmin = auth.isAdmin;
-    const isAuthor = record.userId === auth.id;
     if (isAdmin) return true;
+    const isAuthor = record.userId === auth.id;
     const isRequestedStatus = record.demoStatus === DemoStatus.requested;
     return isAuthor && isRequestedStatus;
   };
 
   // 상태 변경 권한 확인
   const hasPermissionToChangeStatus = () => {
-    return auth?.accessLevel === "admin" || auth?.accessLevel === "moderator";
+    return isAdminOrModerator;
   };
 
   // 권한별 상태 변경 가능 여부 확인
@@ -790,31 +806,21 @@ const DemoRecordDetail = () => {
     // });
 
     // Moderator 권한 체크
-    if (auth.accessLevel === "moderator") {
+    if (isModerator) {
       // Moderator는 requested, approved, rejected 상태만 변경 가능
       const canChange = [
         DemoStatus.requested,
         DemoStatus.approved,
         DemoStatus.rejected,
       ].includes(currentStatus as DemoStatus);
-      console.log("📋 Moderator 권한 체크:", {
-        allowedStatuses: [
-          DemoStatus.requested,
-          DemoStatus.approved,
-          DemoStatus.rejected,
-        ],
-        currentStatus,
-        canChange,
-      });
       return canChange;
     }
 
     // Admin 권한 체크 - 모든 상태 변경 가능
-    if (auth.accessLevel === "admin") {
+    if (isAdmin) {
       return true;
     }
 
-    console.log("❌ 권한 없음 - accessLevel:", auth.accessLevel);
     return false;
   };
 
@@ -822,7 +828,7 @@ const DemoRecordDetail = () => {
   const getAvailableStatusOptions = () => {
     if (!auth) return [];
 
-    if (auth.accessLevel === "moderator") {
+    if (isModerator) {
       // Moderator는 초기 승인 단계만 담당
       return [
         { value: DemoStatus.requested, label: "요청" },
@@ -839,7 +845,7 @@ const DemoRecordDetail = () => {
       ];
     }
 
-    if (auth.accessLevel === "admin") {
+    if (isAdmin) {
       // Admin은 모든 상태 변경 가능
       return [
         { value: DemoStatus.requested, label: "요청" },
@@ -1156,10 +1162,10 @@ const DemoRecordDetail = () => {
                             }
                             disabled={
                               isUpdatingStatus ||
-                              (auth?.accessLevel === "moderator" &&
-                               demo.demoStatus !== "requested" &&
-                               demo.demoStatus !== "approved" &&
-                               demo.demoStatus !== "rejected")
+                              (isModerator &&
+                                demo.demoStatus !== "requested" &&
+                                demo.demoStatus !== "approved" &&
+                                demo.demoStatus !== "rejected")
                             }
                             className="px-4 py-2 pr-10 bg-white rounded-lg border border-gray-300 transition-colors appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
@@ -1172,7 +1178,7 @@ const DemoRecordDetail = () => {
                               >
                                 {option.label}
                                 {option.disabled &&
-                                auth?.accessLevel === "moderator" &&
+                                isModerator &&
                                 demo?.userId === auth?.id
                                   ? " (본인 시연)"
                                   : ""}
@@ -1226,18 +1232,19 @@ const DemoRecordDetail = () => {
                           />
                         </svg>
                         <div className="text-sm text-blue-800">
-                          {auth?.accessLevel === "moderator" ? (
+                          {isModerator ? (
                             <>
-                              1차승인권자는 초기 승인 단계(요청, 승인, 반려)만 담당합니다.
+                              1차승인권자는 초기 승인 단계(요청, 승인, 반려)만
+                              담당합니다.
                               {demo.demoStatus !== "requested" &&
-                               demo.demoStatus !== "approved" &&
-                               demo.demoStatus !== "rejected" && (
-                                <span className="block mt-1 text-amber-700">
-                                  ⚠️ 현재 상태에서는 상태 변경이 불가능합니다.
-                                </span>
-                              )}
+                                demo.demoStatus !== "approved" &&
+                                demo.demoStatus !== "rejected" && (
+                                  <span className="block mt-1 text-amber-700">
+                                    ⚠️ 현재 상태에서는 상태 변경이 불가능합니다.
+                                  </span>
+                                )}
                             </>
-                          ) : auth?.accessLevel === "admin" ? (
+                          ) : isAdmin ? (
                             "관리자는 모든 상태를 변경할 수 있습니다."
                           ) : (
                             "상태 변경 권한이 없습니다."
@@ -1268,11 +1275,11 @@ const DemoRecordDetail = () => {
                           상태 변경 권한 없음
                         </h3>
                         <p className="mt-1 text-sm text-yellow-700">
-                          {auth?.accessLevel === "user"
+                          {isUser
                             ? "일반 사용자는 상태 변경 권한이 없습니다."
-                            : auth?.accessLevel === "supplier"
-                            ? "공급업체는 상태 변경 권한이 없습니다."
-                            : "상태 변경 권한이 없습니다."}
+                            : isSupplier
+                              ? "공급업체는 상태 변경 권한이 없습니다."
+                              : "상태 변경 권한이 없습니다."}
                         </p>
                       </div>
                     </div>
@@ -1367,7 +1374,8 @@ const DemoRecordDetail = () => {
                       {demo.demoTitle}
                     </h3>
                     <p className="text-sm text-center text-gray-700 mt-2">
-                      담당자 : {demo.demoManager} ({formatPhoneNumber(demo.demoManagerPhone)})
+                      담당자 : {demo.demoManager} (
+                      {formatPhoneNumber(demo.demoManagerPhone)})
                     </p>
                   </div>
 
@@ -1391,7 +1399,9 @@ const DemoRecordDetail = () => {
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                               />
                             </svg>
-                            <h3 className="font-medium text-green-900">시연행사 시작</h3>
+                            <h3 className="font-medium text-green-900">
+                              시연행사 시작
+                            </h3>
                           </div>
                           <div className="pl-7 space-y-2">
                             <p className="text-2xl font-bold text-green-700">
@@ -1421,7 +1431,9 @@ const DemoRecordDetail = () => {
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                               />
                             </svg>
-                            <h3 className="font-medium text-green-900">시연행사 종료</h3>
+                            <h3 className="font-medium text-green-900">
+                              시연행사 종료
+                            </h3>
                           </div>
                           <div className="pl-7 space-y-2">
                             <p className="text-2xl font-bold text-green-700">
@@ -1648,7 +1660,9 @@ const DemoRecordDetail = () => {
                                     src={file.fileUrl}
                                     alt={getDisplayFileName(file.fileName)}
                                     className="object-cover w-full h-full cursor-pointer transition-transform hover:scale-110"
-                                    onClick={() => window.open(file.fileUrl, "_blank")}
+                                    onClick={() =>
+                                      window.open(file.fileUrl, "_blank")
+                                    }
                                   />
                                 </div>
                               ) : (
@@ -1670,13 +1684,17 @@ const DemoRecordDetail = () => {
                                   {getDisplayFileName(file.fileName)}
                                 </div>
                                 {isImage && (
-                                  <div className="text-xs text-gray-500">클릭하여 원본 보기</div>
+                                  <div className="text-xs text-gray-500">
+                                    클릭하여 원본 보기
+                                  </div>
                                 )}
                               </div>
                             </div>
                             <div className="flex gap-2 flex-shrink-0 ml-3">
                               <button
-                                onClick={() => window.open(file.fileUrl, "_blank")}
+                                onClick={() =>
+                                  window.open(file.fileUrl, "_blank")
+                                }
                                 className="px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-md transition-colors hover:bg-blue-100"
                               >
                                 {isImage ? "원본" : "다운로드"}
@@ -1686,7 +1704,9 @@ const DemoRecordDetail = () => {
                                 disabled={isDeletingFile === file.id}
                                 className="px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded-md transition-colors hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                {isDeletingFile === file.id ? "삭제 중..." : "삭제"}
+                                {isDeletingFile === file.id
+                                  ? "삭제 중..."
+                                  : "삭제"}
                               </button>
                             </div>
                           </div>
@@ -1694,7 +1714,9 @@ const DemoRecordDetail = () => {
                       })}
                     </div>
                   ) : (
-                    <p className="text-gray-500 text-center py-4">첨부파일이 없습니다.</p>
+                    <p className="text-gray-500 text-center py-4">
+                      첨부파일이 없습니다.
+                    </p>
                   )}
                 </div>
 

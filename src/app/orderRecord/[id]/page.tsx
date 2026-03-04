@@ -38,6 +38,7 @@ import {
 } from "@/utils/dateUtils";
 import { uploadMultipleOrderFileById, deleteOrderFile } from "@/api/order-api";
 import OrderChangeHistory from "@/components/orderRecord/OrderChangeHistory";
+import TaxInvoiceSection from "@/components/orderRecord/TaxInvoiceSection";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 // 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
@@ -1510,6 +1511,11 @@ const OrderRecordDetail = () => {
                       </div>
                     </div>
                   </div>
+                )}
+
+                {/* 세금계산서 (출고완료 시) */}
+                {order.status === "shipmentCompleted" && !isSupplier && (
+                  <TaxInvoiceSection orderId={order.id} />
                 )}
 
                 {/* 첨부파일 */}

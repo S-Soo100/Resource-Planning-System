@@ -24,14 +24,17 @@ import {
 // import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUpdateOrderStatus } from "@/hooks/(useOrder)/useOrderMutations";
-import { userApi } from "@/api/user-api";
 import { toast } from "react-hot-toast";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import dynamic from "next/dynamic";
 import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import OrderEditModal from "./OrderEditModal";
-import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
+import {
+  formatDateForDisplay,
+  formatDateForDisplayUTC,
+} from "@/utils/dateUtils";
 import OrderRecordTable from "./OrderRecordTable";
 import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
@@ -86,8 +89,8 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
             typeof order.package.itemlist === "string"
               ? order.package.itemlist.split(", ").filter(Boolean)
               : Array.isArray(order.package.itemlist)
-              ? order.package.itemlist
-              : [],
+                ? order.package.itemlist
+                : [],
         }
       : undefined,
     warehouse: order.warehouse
@@ -163,6 +166,11 @@ const OrderRecordTabs = () => {
   const { useGetSuppliers } = useSuppliers();
   const { refetchAll: refetchWarehouseItems } = useWarehouseItems();
   const { user: currentUser } = useCurrentUser();
+  const {
+    isAdmin: permissionIsAdmin,
+    isAdminOrModerator,
+    isSupplier: permissionIsSupplier,
+  } = usePermission();
   const auth = authStore((state) => state.user);
   // const router = useRouter();
   const queryClient = useQueryClient();
@@ -195,33 +203,22 @@ const OrderRecordTabs = () => {
     const user = authStore.getState().user;
     if (user && user.id) {
       setUserId(user.id.toString());
-      console.log("현재 사용자 ID:", user.id.toString());
-
-      // 사용자 접근 레벨 가져오기
-      const fetchUserInfo = async () => {
-        try {
-          const response = await userApi.getUser(user.id.toString());
-          if (response.success && response.data) {
-            setUserAccessLevel(response.data.accessLevel);
-            console.log("사용자 접근 레벨:", response.data.accessLevel);
-
-            // supplier인 경우 자동으로 "user" 탭 선택
-            if (response.data.accessLevel === "supplier") {
-              setActiveTab("user");
-            }
-          } else {
-            // 기본값: 관리자인 경우 admin, 아닌 경우 user
-            setUserAccessLevel(user.isAdmin ? "admin" : "user");
-          }
-        } catch (error) {
-          console.error("사용자 정보 가져오기 실패:", error);
-          setUserAccessLevel(user.isAdmin ? "admin" : "user");
-        }
-      };
-
-      fetchUserInfo();
     }
   }, []);
+
+  // 팀 권한 기반으로 접근 레벨 동기화
+  useEffect(() => {
+    if (permissionIsSupplier) {
+      setUserAccessLevel("supplier");
+      setActiveTab("user");
+    } else if (permissionIsAdmin) {
+      setUserAccessLevel("admin");
+    } else if (isAdminOrModerator) {
+      setUserAccessLevel("moderator");
+    } else {
+      setUserAccessLevel("user");
+    }
+  }, [permissionIsAdmin, isAdminOrModerator, permissionIsSupplier]);
 
   // URL 파라미터에서 orderId를 읽어서 해당 발주를 자동으로 확장
   useEffect(() => {
@@ -388,11 +385,7 @@ const OrderRecordTabs = () => {
       }
 
       // 창고 접근 권한 체크 (Admin이 아닌 경우에만)
-      if (
-        currentUser &&
-        currentUser.accessLevel !== "admin" &&
-        order.warehouseId
-      ) {
+      if (currentUser && !permissionIsAdmin && order.warehouseId) {
         const warehouseAccessible = hasWarehouseAccess(
           currentUser,
           order.warehouseId
@@ -425,7 +418,7 @@ const OrderRecordTabs = () => {
   // 페이지네이션 계산 (useMemo로 최적화)
   const { totalPages, currentRecords, startIndex } = useMemo(() => {
     // 정렬 적용
-    let sortedOrders = [...filteredOrders];
+    const sortedOrders = [...filteredOrders];
 
     if (sortField && sortOrder) {
       sortedOrders.sort((a, b) => {
@@ -585,7 +578,7 @@ const OrderRecordTabs = () => {
 
   // 카드 토글 핸들러
   const handleCardToggle = (recordId: number) => {
-    setExpandedCards(prev => {
+    setExpandedCards((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(recordId)) {
         newSet.delete(recordId);
@@ -812,20 +805,18 @@ const OrderRecordTabs = () => {
 
   // 권한 확인 함수 추가
   const hasPermissionToChangeStatus = () => {
-    return userAccessLevel === "admin" || userAccessLevel === "moderator";
+    return isAdminOrModerator;
   };
 
   // 수정 권한 확인 함수 추가
   const hasPermissionToEdit = (record: IOrderRecord) => {
     if (!auth) return false;
 
-    const isAdmin = auth.isAdmin;
-    const isAuthor = record.userId === auth.id;
-
     // admin인 경우 상태에 상관없이 수정 가능
-    if (isAdmin) return true;
+    if (permissionIsAdmin) return true;
 
     // 일반 사용자는 자신이 작성한 requested 상태의 발주만 수정 가능
+    const isAuthor = record.userId === auth.id;
     const isRequestedStatus = record.status === OrderStatus.requested;
     return isAuthor && isRequestedStatus;
   };
@@ -1040,7 +1031,11 @@ const OrderRecordTabs = () => {
         {[
           { id: "all" as TabType, label: "전체", icon: <Package size={15} /> },
           { id: "user" as TabType, label: "내 발주", icon: <User size={15} /> },
-          { id: "supplier" as TabType, label: "납품처별", icon: <Truck size={15} /> },
+          {
+            id: "supplier" as TabType,
+            label: "납품처별",
+            icon: <Truck size={15} />,
+          },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -1068,8 +1063,19 @@ const OrderRecordTabs = () => {
             id: "pending" as ShipmentTabType,
             label: "출고 전",
             icon: (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             ),
           },
@@ -1077,8 +1083,19 @@ const OrderRecordTabs = () => {
             id: "completed" as ShipmentTabType,
             label: "출고 완료",
             icon: (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             ),
           },
@@ -1273,7 +1290,8 @@ const OrderRecordTabs = () => {
         {totalPages > 1 && (
           <div className="flex justify-between items-center mt-6">
             <div className="text-sm text-gray-500">
-              {startIndex + 1}-{Math.min(startIndex + recordsPerPage, filteredOrders.length)} /{" "}
+              {startIndex + 1}-
+              {Math.min(startIndex + recordsPerPage, filteredOrders.length)} /{" "}
               {filteredOrders.length}개
             </div>
             <div className="flex space-x-2">

@@ -18,6 +18,7 @@ import { getDisplayFileName, formatFileSize } from "@/utils/fileUtils";
 import { useQueryClient } from "@tanstack/react-query";
 import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { formatDateForServer } from "@/utils/dateUtils";
 import { Modal } from "@/components/ui";
 import { ItemSelectionModal } from "@/components/ui";
@@ -66,6 +67,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   const [isFileUploading, setIsFileUploading] = useState(false);
   const auth = authStore((state) => state.user);
   const { user } = useCurrentUser();
+  const { isAdmin: permissionIsAdmin } = usePermission();
 
   // 아이템 관련 상태 - 패키지와 개별 아이템 분리 관리
   const [packageItems, setPackageItems] = useState<OrderItemWithDetails[]>([]);
@@ -78,7 +80,8 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
 
   // SelectSupplierModal 상태 추가
-  const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] = useState(false);
+  const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] =
+    useState(false);
 
   // AddSupplierModal 상태 추가
   const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
@@ -320,9 +323,16 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
   // 레거시 데이터 감지 (고객 미입력 && 수령인 정보 있음)
   const hasLegacyData = useMemo(() => {
-    return !formData.supplierId &&
-           (!!formData.receiver || !!formData.receiverPhone || !!formData.address);
-  }, [formData.supplierId, formData.receiver, formData.receiverPhone, formData.address]);
+    return (
+      !formData.supplierId &&
+      (!!formData.receiver || !!formData.receiverPhone || !!formData.address)
+    );
+  }, [
+    formData.supplierId,
+    formData.receiver,
+    formData.receiverPhone,
+    formData.address,
+  ]);
 
   // 빠른 고객 등록 핸들러 (기존 수령인 정보 활용)
   const handleQuickAddSupplier = () => {
@@ -453,8 +463,8 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
             const newQuantity = increment
               ? item.quantity + 1
               : item.quantity > 0
-              ? item.quantity - 1
-              : item.quantity;
+                ? item.quantity - 1
+                : item.quantity;
 
             const stockItem = currentWarehouseItems.find(
               (stockItem: Item) =>
@@ -492,7 +502,9 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         const MAX_PRICE = 2147483647;
 
         if (numValue > MAX_PRICE) {
-          toast.error(`판매가는 최대 ${MAX_PRICE.toLocaleString()}원까지 입력 가능합니다.`);
+          toast.error(
+            `판매가는 최대 ${MAX_PRICE.toLocaleString()}원까지 입력 가능합니다.`
+          );
           return;
         }
       }
@@ -856,15 +868,23 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
       // 총 판매가격 계산 (0원 포함)
       const calculatedTotalPrice = allOrderItems
-        .filter((item) => item.quantity > 0 && item.sellingPrice !== undefined && item.sellingPrice !== "")
+        .filter(
+          (item) =>
+            item.quantity > 0 &&
+            item.sellingPrice !== undefined &&
+            item.sellingPrice !== ""
+        )
         .reduce((sum, item) => {
           const price = parseInt(item.sellingPrice || "0", 10);
-          return sum + (price * item.quantity);
+          return sum + price * item.quantity;
         }, 0);
 
       // 모든 품목이 0원인 경우 확인
       const itemsWithPrice = allOrderItems.filter(
-        (item) => item.quantity > 0 && item.sellingPrice !== undefined && item.sellingPrice !== ""
+        (item) =>
+          item.quantity > 0 &&
+          item.sellingPrice !== undefined &&
+          item.sellingPrice !== ""
       );
       if (itemsWithPrice.length > 0 && calculatedTotalPrice === 0) {
         const confirmZeroPrice = window.confirm(
@@ -894,19 +914,22 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           installationDate: toUTCISOString(formData.setupDate),
           status: formData.status,
           memo: formData.notes || undefined,
-          totalPrice: calculatedTotalPrice >= 0 ? calculatedTotalPrice : undefined,
+          totalPrice:
+            calculatedTotalPrice >= 0 ? calculatedTotalPrice : undefined,
           orderItems: allOrderItems
             .filter((item) => item.quantity > 0)
             .map((item) => ({
               itemId: item.warehouseItemId,
               quantity: item.quantity,
               memo: item.memo || "",
-              sellingPrice: item.sellingPrice !== undefined && item.sellingPrice !== ""
-                ? parseInt(item.sellingPrice, 10)
-                : undefined,
-              vat: item.vat !== undefined && item.vat !== ""
-                ? parseInt(item.vat, 10)
-                : undefined,
+              sellingPrice:
+                item.sellingPrice !== undefined && item.sellingPrice !== ""
+                  ? parseInt(item.sellingPrice, 10)
+                  : undefined,
+              vat:
+                item.vat !== undefined && item.vat !== ""
+                  ? parseInt(item.vat, 10)
+                  : undefined,
             })),
         },
       };
@@ -961,7 +984,8 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
             }
           } else {
             // 서버에서 상세한 에러 메시지를 보내는 경우 처리
-            const errorMessage = response.message || "주문 수정에 실패했습니다.";
+            const errorMessage =
+              response.message || "주문 수정에 실패했습니다.";
             console.error("주문 수정 실패:", response);
 
             // 사용자 친화적인 에러 팝업 표시
@@ -1022,13 +1046,11 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   const canEdit = () => {
     if (!orderRecord || !auth) return false;
 
-    const isAdmin = auth.isAdmin;
-    const isAuthor = orderRecord.userId === auth.id;
-
     // admin인 경우 상태에 상관없이 수정 가능
-    if (isAdmin) return true;
+    if (permissionIsAdmin) return true;
 
     // 일반 사용자는 자신이 작성한 requested 상태의 발주만 수정 가능
+    const isAuthor = orderRecord.userId === auth.id;
     const isRequestedStatus = orderRecord.status === OrderStatus.requested;
     return isAuthor && isRequestedStatus;
   };
@@ -1037,10 +1059,9 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   const getPermissionMessage = () => {
     if (!orderRecord || !auth) return "수정 권한이 없습니다.";
 
-    const isAdmin = auth.isAdmin;
-    const isAuthor = orderRecord.userId === auth.id;
+    if (permissionIsAdmin) return ""; // Admin은 메시지 표시 안함
 
-    if (isAdmin) return ""; // Admin은 메시지 표시 안함
+    const isAuthor = orderRecord.userId === auth.id;
 
     if (!isAuthor) {
       return "자신이 작성한 주문만 수정할 수 있습니다.";
@@ -1068,900 +1089,1033 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         {canEdit() ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <fieldset disabled={isSubmitting || isFileUploading}>
-            {/* 제목 입력 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                제목 <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-Primary-Main"
-                placeholder="발주 제목을 입력하세요"
-                required
-              />
-            </div>
-
-            {/* 창고 선택 - 비즈니스 규칙: 창고 변경 금지 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                발주 창고 <span className="text-red-500">*</span>
-                <span className="ml-2 text-xs text-gray-500">(변경 불가)</span>
-              </label>
-              <select
-                name="warehouseId"
-                value={formData.warehouseId || 0}
-                className="px-3 py-2 w-full bg-gray-100 rounded-md border"
-                disabled={true} // 읽기 전용으로 변경
-              >
-                <option value="0">창고 선택</option>
-                {warehousesList?.map((warehouse: Warehouse) => {
-                  const hasAccess =
-                    !user || hasWarehouseAccess(user, warehouse.id);
-                  return (
-                    <option
-                      key={warehouse.id}
-                      value={warehouse.id}
-                      disabled={!hasAccess}
-                      style={{ color: hasAccess ? "inherit" : "#9CA3AF" }}
-                    >
-                      {warehouse.warehouseName}
-                      {!hasAccess ? " (접근 불가)" : ""}
-                    </option>
-                  );
-                })}
-              </select>
-              <p className="text-xs text-gray-500">
-                발주 건의 창고는 변경할 수 없습니다. 해당 창고 내의 물품으로만
-                수정 가능합니다.
-              </p>
-            </div>
-
-            {/* 패키지 선택 (패키지 발주인 경우에만 표시) */}
-            {formData.packageId && packages && packages.length > 0 && (
+              {/* 제목 입력 */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  패키지 선택
+                  제목 <span className="text-red-500">*</span>
                 </label>
-                <div className="flex gap-2 items-center">
-                  <select
-                    name="packageId"
-                    onChange={handlePackageSelect}
-                    className="flex-1 px-3 py-2 rounded-md border"
-                    value={formData.packageId || 0}
-                    required={!!formData.packageId}
-                    disabled={!formData.warehouseId}
-                  >
-                    <option value="0">패키지 선택</option>
-                    {packages?.map((pkg: PackageApi) => (
-                      <option key={pkg.id} value={pkg.id}>
-                        {pkg.packageName}
-                      </option>
-                    ))}
-                  </select>
-                  {formData.packageId && (
-                    <div className="flex gap-2 items-center">
-                      <button
-                        type="button"
-                        onClick={() => handlePackageQuantityChange(false)}
-                        className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                      >
-                        <Minus size={16} />
-                      </button>
-                      <span className="w-8 text-center">{packageQuantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => handlePackageQuantityChange(true)}
-                        className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* 개별품목 선택 - ItemSelectionModal 사용 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                품목 선택
-              </label>
-              <button
-                type="button"
-                onClick={() => setIsItemModalOpen(true)}
-                disabled={!formData.warehouseId}
-                className="px-4 py-2 w-full text-left bg-white rounded-md border transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-Primary-Main"
-              >
-                <span className="text-gray-500">클릭하여 품목 선택</span>
-              </button>
-              <p className="text-xs text-gray-500">
-                패키지와 개별 품목을 함께 선택할 수 있습니다.
-              </p>
-            </div>
-
-            {/* 선택된 품목 목록 */}
-            {allOrderItems.length > 0 && (
-              <div className="mt-4">
-                <h3 className="mb-2 font-medium">선택된 품목</h3>
-                <div className="overflow-x-auto border border-gray-300 rounded-lg">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          품목명
-                        </th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          품목코드
-                        </th>
-                        <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          수량
-                        </th>
-                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          판매가
-                        </th>
-                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          VAT
-                        </th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          메모
-                        </th>
-                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          소계
-                        </th>
-                        <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
-                          작업
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {/* 패키지 아이템들 */}
-                      {packageItems.map((item, index) => {
-                        const sellingPrice = item.sellingPrice ? parseInt(item.sellingPrice, 10) : 0;
-                        const vat = item.vat ? parseInt(item.vat, 10) : 0;
-                        const subtotal = (sellingPrice + vat) * item.quantity;
-                        return (
-                          <tr key={`package-${item.warehouseItemId}`} className="hover:bg-gray-50">
-                            <td className="px-3 py-2 whitespace-nowrap">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-gray-900">
-                                  {item.teamItem.itemName}
-                                </span>
-                                <span className="text-xs text-blue-600 font-semibold">(패키지)</span>
-                                {formData.warehouseId && item.stockAvailable === false && (
-                                  <div className="flex items-center text-xs text-red-500">
-                                    <AlertCircle size={12} className="mr-1" />
-                                    재고 부족
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
-                              <div className="text-sm text-gray-700">
-                                {item.teamItem.itemCode}
-                                {formData.warehouseId && item.stockQuantity !== undefined && (
-                                  <div className="text-xs text-gray-500">(재고: {item.stockQuantity}개)</div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
-                              <div className="flex gap-1 items-center justify-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleQuantityChange(index, false, true)}
-                                  className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                                >
-                                  <Minus size={14} />
-                                </button>
-                                <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleQuantityChange(index, true, true)}
-                                  className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                                >
-                                  <Plus size={14} />
-                                </button>
-                              </div>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                value={item.sellingPrice || ""}
-                                onChange={(e) => {
-                                  const sanitized = e.target.value.replace(/[^0-9]/g, '');
-                                  handleSellingPriceChange(index, sanitized, true);
-                                }}
-                                onPaste={(e) => {
-                                  e.preventDefault();
-                                  const pastedText = e.clipboardData.getData('text');
-                                  const sanitized = pastedText.replace(/[^0-9]/g, '');
-                                  handleSellingPriceChange(index, sanitized, true);
-                                }}
-                                placeholder="0"
-                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                              />
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                value={item.vat || ""}
-                                onChange={(e) => {
-                                  const sanitized = e.target.value.replace(/[^0-9]/g, '');
-                                  handleVatChange(index, sanitized, true);
-                                }}
-                                onPaste={(e) => {
-                                  e.preventDefault();
-                                  const pastedText = e.clipboardData.getData('text');
-                                  const sanitized = pastedText.replace(/[^0-9]/g, '');
-                                  handleVatChange(index, sanitized, true);
-                                }}
-                                placeholder="0"
-                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                              />
-                            </td>
-                            <td className="px-3 py-2">
-                              <input
-                                type="text"
-                                value={item.memo || ""}
-                                onChange={(e) => handleMemoChange(index, e.target.value, true)}
-                                placeholder="메모 입력"
-                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                              />
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-right">
-                              <span className="text-sm font-semibold text-blue-600">
-                                {subtotal > 0 ? subtotal.toLocaleString() : "-"}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-center">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (window.confirm(
-                                    "패키지 품목을 삭제하시겠습니까?\n\n패키지에서 제외된 개별 품목으로 처리되며, 패키지 구성이 변경됩니다."
-                                  )) {
-                                    handleRemoveItem(item.warehouseItemId, true);
-                                  }
-                                }}
-                                className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
-                                title="품목 제거"
-                              >
-                                <X size={14} />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-
-                      {/* 개별 아이템들 */}
-                      {individualItems.map((item, index) => {
-                        const sellingPrice = item.sellingPrice ? parseInt(item.sellingPrice, 10) : 0;
-                        const vat = item.vat ? parseInt(item.vat, 10) : 0;
-                        const subtotal = (sellingPrice + vat) * item.quantity;
-                        return (
-                          <tr key={`individual-${item.warehouseItemId}`} className="hover:bg-gray-50">
-                            <td className="px-3 py-2 whitespace-nowrap">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-gray-900">
-                                  {item.teamItem.itemName}
-                                </span>
-                                {formData.warehouseId && item.stockAvailable === false && (
-                                  <div className="flex items-center text-xs text-red-500">
-                                    <AlertCircle size={12} className="mr-1" />
-                                    재고 부족
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
-                              <div className="text-sm text-gray-700">
-                                {item.teamItem.itemCode}
-                                {formData.warehouseId && item.stockQuantity !== undefined && (
-                                  <div className="text-xs text-gray-500">(재고: {item.stockQuantity}개)</div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
-                              <div className="flex gap-1 items-center justify-center">
-                                <button
-                                  type="button"
-                                  onClick={() => handleQuantityChange(index, false, false)}
-                                  className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                                >
-                                  <Minus size={14} />
-                                </button>
-                                <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleQuantityChange(index, true, false)}
-                                  className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                                >
-                                  <Plus size={14} />
-                                </button>
-                              </div>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                value={item.sellingPrice || ""}
-                                onChange={(e) => {
-                                  const sanitized = e.target.value.replace(/[^0-9]/g, '');
-                                  handleSellingPriceChange(index, sanitized, false);
-                                }}
-                                onPaste={(e) => {
-                                  e.preventDefault();
-                                  const pastedText = e.clipboardData.getData('text');
-                                  const sanitized = pastedText.replace(/[^0-9]/g, '');
-                                  handleSellingPriceChange(index, sanitized, false);
-                                }}
-                                placeholder="0"
-                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                              />
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap">
-                              <input
-                                type="text"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                value={item.vat || ""}
-                                onChange={(e) => {
-                                  const sanitized = e.target.value.replace(/[^0-9]/g, '');
-                                  handleVatChange(index, sanitized, false);
-                                }}
-                                onPaste={(e) => {
-                                  e.preventDefault();
-                                  const pastedText = e.clipboardData.getData('text');
-                                  const sanitized = pastedText.replace(/[^0-9]/g, '');
-                                  handleVatChange(index, sanitized, false);
-                                }}
-                                placeholder="0"
-                                className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                              />
-                            </td>
-                            <td className="px-3 py-2">
-                              <input
-                                type="text"
-                                value={item.memo || ""}
-                                onChange={(e) => handleMemoChange(index, e.target.value, false)}
-                                placeholder="메모 입력"
-                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                              />
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-right">
-                              <span className="text-sm font-semibold text-blue-600">
-                                {subtotal > 0 ? subtotal.toLocaleString() : "-"}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2 whitespace-nowrap text-center">
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveItem(item.warehouseItemId, false)}
-                                className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
-                              >
-                                <X size={14} />
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                {/* 총 거래금액 표시 */}
-                {allOrderItems.some((item) => item.sellingPrice !== undefined && item.sellingPrice !== "") && (
-                  <div className="mt-3 pt-3 border-t-2 border-gray-300">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-base font-bold text-gray-900">
-                          총 거래금액
-                        </span>
-                        <span className="text-lg font-bold text-blue-700">
-                          {allOrderItems
-                            .filter((item) => item.quantity > 0 && item.sellingPrice !== undefined && item.sellingPrice !== "")
-                            .reduce((sum, item) => {
-                              const price = parseInt(item.sellingPrice || "0", 10);
-                              return sum + price * item.quantity;
-                            }, 0)
-                            .toLocaleString()}
-                          원
-                        </span>
-                      </div>
-                      {allOrderItems.some((item) => item.quantity > 0 && (item.sellingPrice === undefined || item.sellingPrice === "")) && (
-                        <p className="text-xs text-gray-500 text-right">
-                          * 판매가 미입력 품목 {allOrderItems.filter((item) => item.quantity > 0 && (item.sellingPrice === undefined || item.sellingPrice === "")).length}개 제외
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 기타 요청 사항 */}
-            <div>
-              <label htmlFor="notes" className="block text-sm font-medium">
-                기타 요청 사항
-              </label>
-              <textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                className="p-2 w-full rounded border"
-                rows={3}
-              />
-            </div>
-
-            {/* Admin 전용: 상태 변경 */}
-            {auth?.isAdmin && (
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium">
-                  발주 상태{" "}
-                  <span className="text-xs text-gray-500">(Admin 전용)</span>
-                </label>
-                <select
-                  id="status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="p-2 w-full rounded border"
-                >
-                  <option value="requested">요청</option>
-                  <option value="approved">승인</option>
-                  <option value="rejected">반려</option>
-                  <option value="confirmedByShipper">출고팀 확인</option>
-                  <option value="shipmentCompleted">출고 완료</option>
-                  <option value="rejectedByShipper">출고 보류</option>
-                </select>
-                <p className="mt-1 text-xs text-gray-500">
-                  현재 상태: {orderRecord?.status}
-                </p>
-              </div>
-            )}
-
-            {/* 발주자 */}
-            <div>
-              <label htmlFor="requester" className="block text-sm font-medium">
-                캥스터즈 영업 담당자 이름
-              </label>
-              <input
-                type="text"
-                id="requester"
-                name="requester"
-                value={formData.requester}
-                onChange={handleChange}
-                className="p-2 w-full rounded border"
-                required
-              />
-            </div>
-
-            {/* 담당자 */}
-            <div>
-              <label htmlFor="manager" className="block text-sm font-medium">
-                업체 발주 담당자
-              </label>
-              <input
-                type="text"
-                id="manager"
-                name="manager"
-                value={formData.manager}
-                onChange={handleChange}
-                className="p-2 w-full rounded border"
-                required
-              />
-            </div>
-
-            {/* 발주 요청일 */}
-            <div>
-              <label
-                htmlFor="requestDate"
-                className="block text-sm font-medium"
-              >
-                발주 요청일
-              </label>
-              <input
-                type="date"
-                id="requestDate"
-                name="requestDate"
-                value={formData.requestDate}
-                onChange={(e) => handleDateChange(e, "requestDate")}
-                className="p-2 w-full rounded border"
-                required
-              />
-            </div>
-
-            {/* 설치 기한 */}
-            <div className="mb-8">
-              <label htmlFor="setupDate" className="block text-sm font-medium">
-                설치 기한
-              </label>
-              <input
-                type="date"
-                id="setupDate"
-                name="setupDate"
-                value={formData.setupDate}
-                onChange={(e) => handleDateChange(e, "setupDate")}
-                className="p-2 w-full rounded border"
-                required
-              />
-            </div>
-
-            {/* 레거시 데이터 안내 배너 (고객 미입력 + 수령인 정보 있음) */}
-            {hasLegacyData && (
-              <div className="mb-4 p-5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border-2 border-amber-300 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 mt-0.5">
-                    <div className="flex items-center justify-center w-10 h-10 bg-amber-500 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-base font-bold text-amber-900 mb-2">
-                      ⚠️ 고객 정보가 등록되지 않았습니다
-                    </h4>
-                    <p className="text-sm text-amber-800 mb-3">
-                      현재 입력된 수령인 정보를 기반으로 고객을 등록하시겠습니까?
-                    </p>
-                    <div className="p-3 mb-3 bg-white/60 rounded-lg border border-amber-200">
-                      <div className="grid grid-cols-1 gap-2 text-sm">
-                        {formData.receiver && (
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-amber-900 min-w-[70px]">• 수령인:</span>
-                            <span className="text-amber-800">{formData.receiver}</span>
-                          </div>
-                        )}
-                        {formData.receiverPhone && (
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-amber-900 min-w-[70px]">• 연락처:</span>
-                            <span className="text-amber-800">{formData.receiverPhone}</span>
-                          </div>
-                        )}
-                        {formData.address && (
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-amber-900 min-w-[70px]">• 주소:</span>
-                            <span className="text-amber-800">{formData.address}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={handleQuickAddSupplier}
-                        className="px-4 py-2 font-medium text-white bg-amber-600 rounded-lg shadow-sm transition-all hover:bg-amber-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-                      >
-                        📝 이 정보로 고객 등록하기
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => toast("고객 정보 섹션에서 직접 선택하거나 추가할 수 있습니다", {
-                          icon: "ℹ️",
-                        })}
-                        className="px-4 py-2 font-medium text-amber-700 bg-white rounded-lg border-2 border-amber-300 shadow-sm transition-all hover:bg-amber-50 hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-                      >
-                        나중에 등록
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 고객 정보 섹션 (Material Design) */}
-            <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold text-gray-800">고객 정보</h3>
-              </div>
-
-              {/* 고객 선택 */}
-              <div className="mb-4 space-y-2">
-                <label className="block text-sm font-semibold text-gray-700">
-                  고객 <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsSelectSupplierModalOpen(true)}
-                    className="flex-1 px-4 py-3 text-left bg-white rounded-lg border-2 border-blue-300 shadow-sm transition-all hover:bg-blue-50 hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    {formData.supplierId ? (
-                      <span className="font-medium text-gray-900">
-                        {suppliers?.find((s: Supplier) => s.id === formData.supplierId)?.supplierName || "고객 선택"}
-                      </span>
-                    ) : (
-                      <span className="text-gray-500">클릭하여 고객 선택</span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsAddSupplierModalOpen(true)}
-                    className="px-4 py-3 font-medium text-white bg-blue-600 rounded-lg shadow-sm transition-all hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    title="새 고객 추가"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-                </div>
-                <p className="text-xs text-blue-700 bg-blue-100 px-3 py-1.5 rounded-md">
-                  💡 고객을 선택하면 수령인, 연락처, 주소가 자동으로 채워집니다
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 수령인 */}
-                <div>
-                  <label htmlFor="receiver" className="block mb-1 text-sm font-semibold text-gray-700">
-                    수령인 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="receiver"
-                    name="receiver"
-                    value={formData.receiver}
-                    onChange={handleChange}
-                    className="px-4 py-3 w-full bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="수령인 이름"
-                    required
-                  />
-                </div>
-
-                {/* 수령인 연락처 */}
-                <div>
-                  <label htmlFor="phone" className="block mb-1 text-sm font-semibold text-gray-700">
-                    수령인 연락처 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="phone"
-                    name="receiverPhone"
-                    value={formData.receiverPhone}
-                    onChange={handleChange}
-                    placeholder="010-0000-0000"
-                    className="px-4 py-3 w-full bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* 수령지 주소 */}
-              <div className="mt-4 space-y-2">
-                <label htmlFor="address" className="block text-sm font-semibold text-gray-700">
-                  수령지 주소 <span className="text-red-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    className="flex-1 px-4 py-3 bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="기본 주소"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="px-4 py-3 font-medium text-blue-700 bg-white rounded-lg border-2 border-blue-300 shadow-sm transition-all hover:bg-blue-50 hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onClick={() => setIsAddressOpen(!isAddressOpen)}
-                  >
-                    주소 검색
-                  </button>
-                </div>
-                {isAddressOpen && (
-                  <SearchAddressModal
-                    onCompletePost={handleAddressChange}
-                    onClose={() => setIsAddressOpen(false)}
-                  />
-                )}
-              </div>
-
-              {/* 상세 주소 */}
-              <div className="mt-2">
                 <input
                   type="text"
-                  id="detailAddress"
-                  name="detailAddress"
-                  value={formData.detailAddress}
+                  name="title"
+                  value={formData.title}
                   onChange={handleChange}
-                  className="px-4 py-3 w-full bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="상세 주소 (동/호수 등)"
+                  className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-Primary-Main"
+                  placeholder="발주 제목을 입력하세요"
+                  required
                 />
               </div>
-            </div>
 
-            {/* 파일 업로드 */}
-            <div>
-              <label
-                htmlFor="file-upload"
-                className="block text-sm font-medium"
-              >
-                파일 업로드
-              </label>
-              <div className="mb-2 text-xs text-amber-600">
-                * 파일 크기는 최대 50MB까지 업로드 가능합니다.
-              </div>
-              <div className="mb-2 text-xs text-red-600">
-                * 발주서, 견적서 등 필요증빙 필수 첨부
-              </div>
-              <div
-                onClick={() => selectedFiles.current?.click()}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`flex flex-col gap-2 items-center justify-center p-6 rounded-lg border-2 border-dashed transition-colors cursor-pointer ${
-                  isDragOver
-                    ? "bg-blue-50 border-blue-500"
-                    : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
-                }`}
-              >
-                <Paperclip className="w-8 h-8 text-gray-400" />
-                <div className="text-center">
-                  <p className="text-sm font-medium text-gray-700">
-                    {isDragOver
-                      ? "파일을 여기에 놓으세요"
-                      : "클릭하여 파일 선택 또는 파일을 여기로 드래그"}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    PDF, 이미지, 문서 파일 등
-                  </p>
-                </div>
-              </div>
-              <input
-                ref={selectedFiles}
-                type="file"
-                hidden
-                multiple={true}
-                onChange={handleFileSelection}
-              />
-
-              {/* 업로드된 파일 목록 */}
-              <div className="p-2 mt-2 rounded-md border">
-                <div className="mb-2">업로드된 파일</div>
-                <ul className="p-2 text-black rounded border">
-                  {files.length === 0 ? (
-                    <div className="text-sm text-gray-400">
-                      업로드 항목이 없습니다.
-                    </div>
-                  ) : (
-                    files.map((file, index) => (
-                      <li
-                        key={index}
-                        className="flex justify-between items-center py-1"
+              {/* 창고 선택 - 비즈니스 규칙: 창고 변경 금지 */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  발주 창고 <span className="text-red-500">*</span>
+                  <span className="ml-2 text-xs text-gray-500">
+                    (변경 불가)
+                  </span>
+                </label>
+                <select
+                  name="warehouseId"
+                  value={formData.warehouseId || 0}
+                  className="px-3 py-2 w-full bg-gray-100 rounded-md border"
+                  disabled={true} // 읽기 전용으로 변경
+                >
+                  <option value="0">창고 선택</option>
+                  {warehousesList?.map((warehouse: Warehouse) => {
+                    const hasAccess =
+                      !user || hasWarehouseAccess(user, warehouse.id);
+                    return (
+                      <option
+                        key={warehouse.id}
+                        value={warehouse.id}
+                        disabled={!hasAccess}
+                        style={{ color: hasAccess ? "inherit" : "#9CA3AF" }}
                       >
-                        <div className="flex-1 min-w-0">
-                          <div
-                            className="text-sm truncate"
-                            title={getDisplayFileName(file.name)}
-                          >
-                            {getDisplayFileName(file.name)}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {formatFileSize(file.size)}
-                          </div>
-                        </div>
+                        {warehouse.warehouseName}
+                        {!hasAccess ? " (접근 불가)" : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+                <p className="text-xs text-gray-500">
+                  발주 건의 창고는 변경할 수 없습니다. 해당 창고 내의 물품으로만
+                  수정 가능합니다.
+                </p>
+              </div>
+
+              {/* 패키지 선택 (패키지 발주인 경우에만 표시) */}
+              {formData.packageId && packages && packages.length > 0 && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    패키지 선택
+                  </label>
+                  <div className="flex gap-2 items-center">
+                    <select
+                      name="packageId"
+                      onChange={handlePackageSelect}
+                      className="flex-1 px-3 py-2 rounded-md border"
+                      value={formData.packageId || 0}
+                      required={!!formData.packageId}
+                      disabled={!formData.warehouseId}
+                    >
+                      <option value="0">패키지 선택</option>
+                      {packages?.map((pkg: PackageApi) => (
+                        <option key={pkg.id} value={pkg.id}>
+                          {pkg.packageName}
+                        </option>
+                      ))}
+                    </select>
+                    {formData.packageId && (
+                      <div className="flex gap-2 items-center">
                         <button
                           type="button"
-                          onClick={() => handleRemoveFile(index)}
-                          className="p-1 text-red-600 hover:text-red-800"
+                          onClick={() => handlePackageQuantityChange(false)}
+                          className="p-1 bg-gray-200 rounded hover:bg-gray-300"
                         >
-                          <X size={14} />
+                          <Minus size={16} />
                         </button>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              </div>
-            </div>
+                        <span className="w-8 text-center">
+                          {packageQuantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handlePackageQuantityChange(true)}
+                          className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
-            {/* 기존 파일 목록 */}
-            {existingFiles.length > 0 && (
-              <div>
-                <label className="block mb-2 text-sm font-medium">
-                  기존 첨부 파일
+              {/* 개별품목 선택 - ItemSelectionModal 사용 */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  품목 선택
                 </label>
-                <div className="p-3 bg-gray-50 rounded-md border">
-                  <ul className="space-y-2">
-                    {existingFiles.map((file) => (
-                      <li
-                        key={file.id}
-                        className="flex justify-between items-center p-2 bg-white rounded border"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-4 h-4 text-gray-500"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                            />
-                          </svg>
-                          <span className="text-sm text-gray-700">
-                            {getDisplayFileName(file.fileName)}
+                <button
+                  type="button"
+                  onClick={() => setIsItemModalOpen(true)}
+                  disabled={!formData.warehouseId}
+                  className="px-4 py-2 w-full text-left bg-white rounded-md border transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-Primary-Main"
+                >
+                  <span className="text-gray-500">클릭하여 품목 선택</span>
+                </button>
+                <p className="text-xs text-gray-500">
+                  패키지와 개별 품목을 함께 선택할 수 있습니다.
+                </p>
+              </div>
+
+              {/* 선택된 품목 목록 */}
+              {allOrderItems.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="mb-2 font-medium">선택된 품목</h3>
+                  <div className="overflow-x-auto border border-gray-300 rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            품목명
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            품목코드
+                          </th>
+                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            수량
+                          </th>
+                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            판매가
+                          </th>
+                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            VAT
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            메모
+                          </th>
+                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            소계
+                          </th>
+                          <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                            작업
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {/* 패키지 아이템들 */}
+                        {packageItems.map((item, index) => {
+                          const sellingPrice = item.sellingPrice
+                            ? parseInt(item.sellingPrice, 10)
+                            : 0;
+                          const vat = item.vat ? parseInt(item.vat, 10) : 0;
+                          const subtotal = (sellingPrice + vat) * item.quantity;
+                          return (
+                            <tr
+                              key={`package-${item.warehouseItemId}`}
+                              className="hover:bg-gray-50"
+                            >
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {item.teamItem.itemName}
+                                  </span>
+                                  <span className="text-xs text-blue-600 font-semibold">
+                                    (패키지)
+                                  </span>
+                                  {formData.warehouseId &&
+                                    item.stockAvailable === false && (
+                                      <div className="flex items-center text-xs text-red-500">
+                                        <AlertCircle
+                                          size={12}
+                                          className="mr-1"
+                                        />
+                                        재고 부족
+                                      </div>
+                                    )}
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <div className="text-sm text-gray-700">
+                                  {item.teamItem.itemCode}
+                                  {formData.warehouseId &&
+                                    item.stockQuantity !== undefined && (
+                                      <div className="text-xs text-gray-500">
+                                        (재고: {item.stockQuantity}개)
+                                      </div>
+                                    )}
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <div className="flex gap-1 items-center justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleQuantityChange(index, false, true)
+                                    }
+                                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                                  >
+                                    <Minus size={14} />
+                                  </button>
+                                  <span className="w-8 text-center text-sm font-medium">
+                                    {item.quantity}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleQuantityChange(index, true, true)
+                                    }
+                                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                                  >
+                                    <Plus size={14} />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
+                                  value={item.sellingPrice || ""}
+                                  onChange={(e) => {
+                                    const sanitized = e.target.value.replace(
+                                      /[^0-9]/g,
+                                      ""
+                                    );
+                                    handleSellingPriceChange(
+                                      index,
+                                      sanitized,
+                                      true
+                                    );
+                                  }}
+                                  onPaste={(e) => {
+                                    e.preventDefault();
+                                    const pastedText =
+                                      e.clipboardData.getData("text");
+                                    const sanitized = pastedText.replace(
+                                      /[^0-9]/g,
+                                      ""
+                                    );
+                                    handleSellingPriceChange(
+                                      index,
+                                      sanitized,
+                                      true
+                                    );
+                                  }}
+                                  placeholder="0"
+                                  className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                />
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
+                                  value={item.vat || ""}
+                                  onChange={(e) => {
+                                    const sanitized = e.target.value.replace(
+                                      /[^0-9]/g,
+                                      ""
+                                    );
+                                    handleVatChange(index, sanitized, true);
+                                  }}
+                                  onPaste={(e) => {
+                                    e.preventDefault();
+                                    const pastedText =
+                                      e.clipboardData.getData("text");
+                                    const sanitized = pastedText.replace(
+                                      /[^0-9]/g,
+                                      ""
+                                    );
+                                    handleVatChange(index, sanitized, true);
+                                  }}
+                                  placeholder="0"
+                                  className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="text"
+                                  value={item.memo || ""}
+                                  onChange={(e) =>
+                                    handleMemoChange(
+                                      index,
+                                      e.target.value,
+                                      true
+                                    )
+                                  }
+                                  placeholder="메모 입력"
+                                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                />
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap text-right">
+                                <span className="text-sm font-semibold text-blue-600">
+                                  {subtotal > 0
+                                    ? subtotal.toLocaleString()
+                                    : "-"}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (
+                                      window.confirm(
+                                        "패키지 품목을 삭제하시겠습니까?\n\n패키지에서 제외된 개별 품목으로 처리되며, 패키지 구성이 변경됩니다."
+                                      )
+                                    ) {
+                                      handleRemoveItem(
+                                        item.warehouseItemId,
+                                        true
+                                      );
+                                    }
+                                  }}
+                                  className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
+                                  title="품목 제거"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+
+                        {/* 개별 아이템들 */}
+                        {individualItems.map((item, index) => {
+                          const sellingPrice = item.sellingPrice
+                            ? parseInt(item.sellingPrice, 10)
+                            : 0;
+                          const vat = item.vat ? parseInt(item.vat, 10) : 0;
+                          const subtotal = (sellingPrice + vat) * item.quantity;
+                          return (
+                            <tr
+                              key={`individual-${item.warehouseItemId}`}
+                              className="hover:bg-gray-50"
+                            >
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {item.teamItem.itemName}
+                                  </span>
+                                  {formData.warehouseId &&
+                                    item.stockAvailable === false && (
+                                      <div className="flex items-center text-xs text-red-500">
+                                        <AlertCircle
+                                          size={12}
+                                          className="mr-1"
+                                        />
+                                        재고 부족
+                                      </div>
+                                    )}
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <div className="text-sm text-gray-700">
+                                  {item.teamItem.itemCode}
+                                  {formData.warehouseId &&
+                                    item.stockQuantity !== undefined && (
+                                      <div className="text-xs text-gray-500">
+                                        (재고: {item.stockQuantity}개)
+                                      </div>
+                                    )}
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <div className="flex gap-1 items-center justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleQuantityChange(index, false, false)
+                                    }
+                                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                                  >
+                                    <Minus size={14} />
+                                  </button>
+                                  <span className="w-8 text-center text-sm font-medium">
+                                    {item.quantity}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleQuantityChange(index, true, false)
+                                    }
+                                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                                  >
+                                    <Plus size={14} />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
+                                  value={item.sellingPrice || ""}
+                                  onChange={(e) => {
+                                    const sanitized = e.target.value.replace(
+                                      /[^0-9]/g,
+                                      ""
+                                    );
+                                    handleSellingPriceChange(
+                                      index,
+                                      sanitized,
+                                      false
+                                    );
+                                  }}
+                                  onPaste={(e) => {
+                                    e.preventDefault();
+                                    const pastedText =
+                                      e.clipboardData.getData("text");
+                                    const sanitized = pastedText.replace(
+                                      /[^0-9]/g,
+                                      ""
+                                    );
+                                    handleSellingPriceChange(
+                                      index,
+                                      sanitized,
+                                      false
+                                    );
+                                  }}
+                                  placeholder="0"
+                                  className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                />
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap">
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
+                                  value={item.vat || ""}
+                                  onChange={(e) => {
+                                    const sanitized = e.target.value.replace(
+                                      /[^0-9]/g,
+                                      ""
+                                    );
+                                    handleVatChange(index, sanitized, false);
+                                  }}
+                                  onPaste={(e) => {
+                                    e.preventDefault();
+                                    const pastedText =
+                                      e.clipboardData.getData("text");
+                                    const sanitized = pastedText.replace(
+                                      /[^0-9]/g,
+                                      ""
+                                    );
+                                    handleVatChange(index, sanitized, false);
+                                  }}
+                                  placeholder="0"
+                                  className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="text"
+                                  value={item.memo || ""}
+                                  onChange={(e) =>
+                                    handleMemoChange(
+                                      index,
+                                      e.target.value,
+                                      false
+                                    )
+                                  }
+                                  placeholder="메모 입력"
+                                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                />
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap text-right">
+                                <span className="text-sm font-semibold text-blue-600">
+                                  {subtotal > 0
+                                    ? subtotal.toLocaleString()
+                                    : "-"}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 whitespace-nowrap text-center">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleRemoveItem(
+                                      item.warehouseItemId,
+                                      false
+                                    )
+                                  }
+                                  className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
+                                >
+                                  <X size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  {/* 총 거래금액 표시 */}
+                  {allOrderItems.some(
+                    (item) =>
+                      item.sellingPrice !== undefined &&
+                      item.sellingPrice !== ""
+                  ) && (
+                    <div className="mt-3 pt-3 border-t-2 border-gray-300">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-base font-bold text-gray-900">
+                            총 거래금액
+                          </span>
+                          <span className="text-lg font-bold text-blue-700">
+                            {allOrderItems
+                              .filter(
+                                (item) =>
+                                  item.quantity > 0 &&
+                                  item.sellingPrice !== undefined &&
+                                  item.sellingPrice !== ""
+                              )
+                              .reduce((sum, item) => {
+                                const price = parseInt(
+                                  item.sellingPrice || "0",
+                                  10
+                                );
+                                return sum + price * item.quantity;
+                              }, 0)
+                              .toLocaleString()}
+                            원
                           </span>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <button
-                            type="button"
-                            onClick={() => handleDownloadFile(file)}
-                            className="p-1 text-blue-600 rounded hover:text-blue-800"
-                            title="다운로드"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                        {allOrderItems.some(
+                          (item) =>
+                            item.quantity > 0 &&
+                            (item.sellingPrice === undefined ||
+                              item.sellingPrice === "")
+                        ) && (
+                          <p className="text-xs text-gray-500 text-right">
+                            * 판매가 미입력 품목{" "}
+                            {
+                              allOrderItems.filter(
+                                (item) =>
+                                  item.quantity > 0 &&
+                                  (item.sellingPrice === undefined ||
+                                    item.sellingPrice === "")
+                              ).length
+                            }
+                            개 제외
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 기타 요청 사항 */}
+              <div>
+                <label htmlFor="notes" className="block text-sm font-medium">
+                  기타 요청 사항
+                </label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  className="p-2 w-full rounded border"
+                  rows={3}
+                />
+              </div>
+
+              {/* Admin 전용: 상태 변경 */}
+              {permissionIsAdmin && (
+                <div>
+                  <label htmlFor="status" className="block text-sm font-medium">
+                    발주 상태{" "}
+                    <span className="text-xs text-gray-500">(Admin 전용)</span>
+                  </label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    className="p-2 w-full rounded border"
+                  >
+                    <option value="requested">요청</option>
+                    <option value="approved">승인</option>
+                    <option value="rejected">반려</option>
+                    <option value="confirmedByShipper">출고팀 확인</option>
+                    <option value="shipmentCompleted">출고 완료</option>
+                    <option value="rejectedByShipper">출고 보류</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    현재 상태: {orderRecord?.status}
+                  </p>
+                </div>
+              )}
+
+              {/* 발주자 */}
+              <div>
+                <label
+                  htmlFor="requester"
+                  className="block text-sm font-medium"
+                >
+                  캥스터즈 영업 담당자 이름
+                </label>
+                <input
+                  type="text"
+                  id="requester"
+                  name="requester"
+                  value={formData.requester}
+                  onChange={handleChange}
+                  className="p-2 w-full rounded border"
+                  required
+                />
+              </div>
+
+              {/* 담당자 */}
+              <div>
+                <label htmlFor="manager" className="block text-sm font-medium">
+                  업체 발주 담당자
+                </label>
+                <input
+                  type="text"
+                  id="manager"
+                  name="manager"
+                  value={formData.manager}
+                  onChange={handleChange}
+                  className="p-2 w-full rounded border"
+                  required
+                />
+              </div>
+
+              {/* 발주 요청일 */}
+              <div>
+                <label
+                  htmlFor="requestDate"
+                  className="block text-sm font-medium"
+                >
+                  발주 요청일
+                </label>
+                <input
+                  type="date"
+                  id="requestDate"
+                  name="requestDate"
+                  value={formData.requestDate}
+                  onChange={(e) => handleDateChange(e, "requestDate")}
+                  className="p-2 w-full rounded border"
+                  required
+                />
+              </div>
+
+              {/* 설치 기한 */}
+              <div className="mb-8">
+                <label
+                  htmlFor="setupDate"
+                  className="block text-sm font-medium"
+                >
+                  설치 기한
+                </label>
+                <input
+                  type="date"
+                  id="setupDate"
+                  name="setupDate"
+                  value={formData.setupDate}
+                  onChange={(e) => handleDateChange(e, "setupDate")}
+                  className="p-2 w-full rounded border"
+                  required
+                />
+              </div>
+
+              {/* 레거시 데이터 안내 배너 (고객 미입력 + 수령인 정보 있음) */}
+              {hasLegacyData && (
+                <div className="mb-4 p-5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border-2 border-amber-300 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-0.5">
+                      <div className="flex items-center justify-center w-10 h-10 bg-amber-500 rounded-full">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-6 h-6 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-base font-bold text-amber-900 mb-2">
+                        ⚠️ 고객 정보가 등록되지 않았습니다
+                      </h4>
+                      <p className="text-sm text-amber-800 mb-3">
+                        현재 입력된 수령인 정보를 기반으로 고객을
+                        등록하시겠습니까?
+                      </p>
+                      <div className="p-3 mb-3 bg-white/60 rounded-lg border border-amber-200">
+                        <div className="grid grid-cols-1 gap-2 text-sm">
+                          {formData.receiver && (
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-amber-900 min-w-[70px]">
+                                • 수령인:
+                              </span>
+                              <span className="text-amber-800">
+                                {formData.receiver}
+                              </span>
+                            </div>
+                          )}
+                          {formData.receiverPhone && (
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-amber-900 min-w-[70px]">
+                                • 연락처:
+                              </span>
+                              <span className="text-amber-800">
+                                {formData.receiverPhone}
+                              </span>
+                            </div>
+                          )}
+                          {formData.address && (
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-amber-900 min-w-[70px]">
+                                • 주소:
+                              </span>
+                              <span className="text-amber-800">
+                                {formData.address}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleQuickAddSupplier}
+                          className="px-4 py-2 font-medium text-white bg-amber-600 rounded-lg shadow-sm transition-all hover:bg-amber-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                        >
+                          📝 이 정보로 고객 등록하기
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            toast(
+                              "고객 정보 섹션에서 직접 선택하거나 추가할 수 있습니다",
+                              {
+                                icon: "ℹ️",
+                              }
+                            )
+                          }
+                          className="px-4 py-2 font-medium text-amber-700 bg-white rounded-lg border-2 border-amber-300 shadow-sm transition-all hover:bg-amber-50 hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                        >
+                          나중에 등록
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 고객 정보 섹션 (Material Design) */}
+              <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-800">고객 정보</h3>
+                </div>
+
+                {/* 고객 선택 */}
+                <div className="mb-4 space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    고객 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsSelectSupplierModalOpen(true)}
+                      className="flex-1 px-4 py-3 text-left bg-white rounded-lg border-2 border-blue-300 shadow-sm transition-all hover:bg-blue-50 hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {formData.supplierId ? (
+                        <span className="font-medium text-gray-900">
+                          {suppliers?.find(
+                            (s: Supplier) => s.id === formData.supplierId
+                          )?.supplierName || "고객 선택"}
+                        </span>
+                      ) : (
+                        <span className="text-gray-500">
+                          클릭하여 고객 선택
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddSupplierModalOpen(true)}
+                      className="px-4 py-3 font-medium text-white bg-blue-600 rounded-lg shadow-sm transition-all hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      title="새 고객 추가"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="text-xs text-blue-700 bg-blue-100 px-3 py-1.5 rounded-md">
+                    💡 고객을 선택하면 수령인, 연락처, 주소가 자동으로
+                    채워집니다
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 수령인 */}
+                  <div>
+                    <label
+                      htmlFor="receiver"
+                      className="block mb-1 text-sm font-semibold text-gray-700"
+                    >
+                      수령인 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="receiver"
+                      name="receiver"
+                      value={formData.receiver}
+                      onChange={handleChange}
+                      className="px-4 py-3 w-full bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="수령인 이름"
+                      required
+                    />
+                  </div>
+
+                  {/* 수령인 연락처 */}
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      className="block mb-1 text-sm font-semibold text-gray-700"
+                    >
+                      수령인 연락처 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="phone"
+                      name="receiverPhone"
+                      value={formData.receiverPhone}
+                      onChange={handleChange}
+                      placeholder="010-0000-0000"
+                      className="px-4 py-3 w-full bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* 수령지 주소 */}
+                <div className="mt-4 space-y-2">
+                  <label
+                    htmlFor="address"
+                    className="block text-sm font-semibold text-gray-700"
+                  >
+                    수령지 주소 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      className="flex-1 px-4 py-3 bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="기본 주소"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="px-4 py-3 font-medium text-blue-700 bg-white rounded-lg border-2 border-blue-300 shadow-sm transition-all hover:bg-blue-50 hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onClick={() => setIsAddressOpen(!isAddressOpen)}
+                    >
+                      주소 검색
+                    </button>
+                  </div>
+                  {isAddressOpen && (
+                    <SearchAddressModal
+                      onCompletePost={handleAddressChange}
+                      onClose={() => setIsAddressOpen(false)}
+                    />
+                  )}
+                </div>
+
+                {/* 상세 주소 */}
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    id="detailAddress"
+                    name="detailAddress"
+                    value={formData.detailAddress}
+                    onChange={handleChange}
+                    className="px-4 py-3 w-full bg-white rounded-lg border-2 border-gray-300 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="상세 주소 (동/호수 등)"
+                  />
+                </div>
+              </div>
+
+              {/* 파일 업로드 */}
+              <div>
+                <label
+                  htmlFor="file-upload"
+                  className="block text-sm font-medium"
+                >
+                  파일 업로드
+                </label>
+                <div className="mb-2 text-xs text-amber-600">
+                  * 파일 크기는 최대 50MB까지 업로드 가능합니다.
+                </div>
+                <div className="mb-2 text-xs text-red-600">
+                  * 발주서, 견적서 등 필요증빙 필수 첨부
+                </div>
+                <div
+                  onClick={() => selectedFiles.current?.click()}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`flex flex-col gap-2 items-center justify-center p-6 rounded-lg border-2 border-dashed transition-colors cursor-pointer ${
+                    isDragOver
+                      ? "bg-blue-50 border-blue-500"
+                      : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                  }`}
+                >
+                  <Paperclip className="w-8 h-8 text-gray-400" />
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-700">
+                      {isDragOver
+                        ? "파일을 여기에 놓으세요"
+                        : "클릭하여 파일 선택 또는 파일을 여기로 드래그"}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      PDF, 이미지, 문서 파일 등
+                    </p>
+                  </div>
+                </div>
+                <input
+                  ref={selectedFiles}
+                  type="file"
+                  hidden
+                  multiple={true}
+                  onChange={handleFileSelection}
+                />
+
+                {/* 업로드된 파일 목록 */}
+                <div className="p-2 mt-2 rounded-md border">
+                  <div className="mb-2">업로드된 파일</div>
+                  <ul className="p-2 text-black rounded border">
+                    {files.length === 0 ? (
+                      <div className="text-sm text-gray-400">
+                        업로드 항목이 없습니다.
+                      </div>
+                    ) : (
+                      files.map((file, index) => (
+                        <li
+                          key={index}
+                          className="flex justify-between items-center py-1"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div
+                              className="text-sm truncate"
+                              title={getDisplayFileName(file.name)}
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                              />
-                            </svg>
-                          </button>
+                              {getDisplayFileName(file.name)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {formatFileSize(file.size)}
+                            </div>
+                          </div>
                           <button
                             type="button"
-                            onClick={() => handleDeleteExistingFile(file.id)}
-                            className="p-1 text-red-600 rounded hover:text-red-800"
-                            title="삭제"
+                            onClick={() => handleRemoveFile(index)}
+                            className="p-1 text-red-600 hover:text-red-800"
                           >
                             <X size={14} />
                           </button>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      ))
+                    )}
                   </ul>
                 </div>
               </div>
-            )}
 
-            {/* 삭제 예정 파일 목록 */}
-            {filesToDelete.length > 0 && (
-              <div>
-                <label className="block mb-2 text-sm font-medium text-red-600">
-                  삭제 예정 파일
-                </label>
-                <div className="p-3 bg-red-50 rounded-md border">
-                  <ul className="space-y-2">
-                    {filesToDelete.map((fileId) => {
-                      const originalFile = orderRecord?.files?.find(
-                        (file) => file.id === fileId
-                      );
-                      if (!originalFile) return null;
-
-                      return (
+              {/* 기존 파일 목록 */}
+              {existingFiles.length > 0 && (
+                <div>
+                  <label className="block mb-2 text-sm font-medium">
+                    기존 첨부 파일
+                  </label>
+                  <div className="p-3 bg-gray-50 rounded-md border">
+                    <ul className="space-y-2">
+                      {existingFiles.map((file) => (
                         <li
-                          key={fileId}
-                          className="flex justify-between items-center p-2 bg-white rounded border border-red-200"
+                          key={file.id}
+                          className="flex justify-between items-center p-2 bg-white rounded border"
                         >
                           <div className="flex items-center space-x-2">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
-                              className="w-4 h-4 text-red-500"
+                              className="w-4 h-4 text-gray-500"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
@@ -1973,39 +2127,114 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                 d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                               />
                             </svg>
-                            <span className="text-sm text-red-700 line-through">
-                              {originalFile.fileName}
+                            <span className="text-sm text-gray-700">
+                              {getDisplayFileName(file.fileName)}
                             </span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => handleCancelDeleteFile(fileId)}
-                            className="p-1 text-green-600 rounded hover:text-green-800"
-                            title="삭제 취소"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                          <div className="flex items-center space-x-1">
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadFile(file)}
+                              className="p-1 text-blue-600 rounded hover:text-blue-800"
+                              title="다운로드"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                              />
-                            </svg>
-                          </button>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-4 h-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteExistingFile(file.id)}
+                              className="p-1 text-red-600 rounded hover:text-red-800"
+                              title="삭제"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
                         </li>
-                      );
-                    })}
-                  </ul>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
+              {/* 삭제 예정 파일 목록 */}
+              {filesToDelete.length > 0 && (
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-red-600">
+                    삭제 예정 파일
+                  </label>
+                  <div className="p-3 bg-red-50 rounded-md border">
+                    <ul className="space-y-2">
+                      {filesToDelete.map((fileId) => {
+                        const originalFile = orderRecord?.files?.find(
+                          (file) => file.id === fileId
+                        );
+                        if (!originalFile) return null;
+
+                        return (
+                          <li
+                            key={fileId}
+                            className="flex justify-between items-center p-2 bg-white rounded border border-red-200"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-4 h-4 text-red-500"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                />
+                              </svg>
+                              <span className="text-sm text-red-700 line-through">
+                                {originalFile.fileName}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelDeleteFile(fileId)}
+                              className="p-1 text-green-600 rounded hover:text-green-800"
+                              title="삭제 취소"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-4 h-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                                />
+                              </svg>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              )}
             </fieldset>
             {/* 버튼 영역 */}
             <div className="flex gap-3 justify-end pt-4">

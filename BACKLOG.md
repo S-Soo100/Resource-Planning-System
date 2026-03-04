@@ -42,3 +42,17 @@
 - **상태**: [ ]
 - **설명**: 현재 입금 "상태"만 표시. 실제 `depositAmount` 금액도 보여줘야 수금 현황 파악 가능.
 - **관련 파일**: `sales/page.tsx`, `OrderRecordTable.tsx`
+
+### E-005: 발주 상세 페이지에서 고객 서류 섹션 제거
+- **우선순위**: Medium
+- **상태**: [x]
+- **설명**: 발주 상세 페이지(`/orderRecord/[id]`)에 고객 서류(`CustomerDocumentSection`)가 표시되고 있음. 발주에는 이미 발주 파일 업로드 + 전자세금계산서 업로드 기능이 별도로 있어서, 고객 서류까지 같이 노출되면 역할이 혼재되고 사용자가 헷갈림. 고객 서류는 고객 상세 페이지(`/customers/[id]`)에서만 관리하도록 책임 분리.
+- **작업 내용**:
+  1. `src/app/orderRecord/[id]/page.tsx`에서 `CustomerDocumentSection` import 및 렌더링 제거 (1523~1529행 부근)
+  2. `src/components/admin/UserEditModal.tsx`에서도 제거 여부 검토 (관리자 모달)
+  3. 고객 서류 접근 경로: `/customers/[id]` 고객 서류 탭으로 단일화
+- **관련 파일**:
+  - `src/app/orderRecord/[id]/page.tsx` — 발주 상세 (제거 대상)
+  - `src/components/admin/UserEditModal.tsx` — 팀 멤버 편집 (검토 대상)
+  - `src/app/customers/[id]/page.tsx` — 고객 상세 (유지)
+  - `src/components/orderRecord/CustomerDocumentSection.tsx` — 컴포넌트 자체는 유지

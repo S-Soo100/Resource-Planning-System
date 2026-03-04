@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { IUser } from "@/types/(auth)/user";
+import { Supplier } from "@/types/supplier";
 import {
   User,
   Mail,
@@ -12,21 +12,23 @@ import {
   RefreshCw,
   Calendar,
   Pencil,
+  Phone,
+  Building2,
 } from "lucide-react";
 
 interface CustomerInfoCardProps {
-  user: IUser;
+  supplier: Supplier;
   onEdit?: () => void;
   canEdit: boolean;
 }
 
 export default function CustomerInfoCard({
-  user,
+  supplier,
   onEdit,
   canEdit,
 }: CustomerInfoCardProps) {
-  const maskedResidentId = user.residentId
-    ? user.residentId.replace(/^(\d{6}-?)\d{7}$/, "$1*******")
+  const maskedResidentId = supplier.residentId
+    ? supplier.residentId.replace(/^(\d{6}-?)\d{7}$/, "$1*******")
     : null;
 
   return (
@@ -49,30 +51,40 @@ export default function CustomerInfoCard({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <InfoItem
           icon={<User className="w-4 h-4" />}
-          label="이름"
-          value={user.name}
+          label="고객명"
+          value={supplier.supplierName}
         />
         <InfoItem
           icon={<Mail className="w-4 h-4" />}
           label="이메일"
-          value={user.email}
+          value={supplier.email || "-"}
+        />
+        <InfoItem
+          icon={<Phone className="w-4 h-4" />}
+          label="연락처"
+          value={supplier.supplierPhoneNumber || "-"}
+        />
+        <InfoItem
+          icon={<Building2 className="w-4 h-4" />}
+          label="사업자번호"
+          value={supplier.registrationNumber || "-"}
         />
         <InfoItem
           icon={<Tag className="w-4 h-4" />}
           label="고객 유형"
           value={
-            user.customerType === "b2c"
+            supplier.customerType === "b2c"
               ? "B2C (개인)"
-              : user.customerType === "b2b"
+              : supplier.customerType === "b2b"
                 ? "B2B (기업)"
                 : "미설정"
           }
           badge={
-            user.customerType
+            supplier.customerType
               ? {
-                  text: user.customerType.toUpperCase(),
+                  text: supplier.customerType.toUpperCase(),
                   color:
-                    user.customerType === "b2c"
+                    supplier.customerType === "b2c"
                       ? "bg-indigo-100 text-indigo-700"
                       : "bg-emerald-100 text-emerald-700",
                 }
@@ -82,9 +94,9 @@ export default function CustomerInfoCard({
         <InfoItem
           icon={<Heart className="w-4 h-4" />}
           label="수급자 여부"
-          value={user.isRecipient ? "수급자" : "해당 없음"}
+          value={supplier.isRecipient ? "수급자" : "해당 없음"}
           badge={
-            user.isRecipient
+            supplier.isRecipient
               ? { text: "수급자", color: "bg-green-100 text-green-700" }
               : undefined
           }
@@ -92,7 +104,7 @@ export default function CustomerInfoCard({
         <InfoItem
           icon={<Wallet className="w-4 h-4" />}
           label="입금자명"
-          value={user.depositorName || "-"}
+          value={supplier.depositorName || "-"}
         />
         <InfoItem
           icon={<CreditCard className="w-4 h-4" />}
@@ -103,8 +115,8 @@ export default function CustomerInfoCard({
           icon={<RefreshCw className="w-4 h-4" />}
           label="재구매 주기"
           value={
-            user.repurchaseCycleMonths
-              ? `${user.repurchaseCycleMonths}개월`
+            supplier.repurchaseCycleMonths
+              ? `${supplier.repurchaseCycleMonths}개월`
               : "기본 3개월"
           }
         />
@@ -112,8 +124,8 @@ export default function CustomerInfoCard({
           icon={<Calendar className="w-4 h-4" />}
           label="재구매 예정일"
           value={
-            user.repurchaseDueDate
-              ? new Date(user.repurchaseDueDate).toLocaleDateString("ko-KR")
+            supplier.repurchaseDueDate
+              ? new Date(supplier.repurchaseDueDate).toLocaleDateString("ko-KR")
               : "미설정"
           }
         />

@@ -2,49 +2,53 @@
 
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import { IUser, CustomerType, UpdateUserRequest } from "@/types/(auth)/user";
-import { userApi } from "@/api/user-api";
+import {
+  Supplier,
+  CustomerType,
+  UpdateSupplierRequest,
+} from "@/types/supplier";
+import { supplierApi } from "@/api/supplier-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 
 interface CustomerInfoEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: IUser;
+  supplier: Supplier;
 }
 
 export default function CustomerInfoEditModal({
   isOpen,
   onClose,
-  user,
+  supplier,
 }: CustomerInfoEditModalProps) {
   const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
-    customerType: user.customerType ?? (null as CustomerType | null),
-    isRecipient: user.isRecipient ?? false,
-    depositorName: user.depositorName ?? "",
-    residentId: user.residentId ?? "",
+    customerType: supplier.customerType ?? (null as CustomerType | null),
+    isRecipient: supplier.isRecipient ?? false,
+    depositorName: supplier.depositorName ?? "",
+    residentId: supplier.residentId ?? "",
     repurchaseCycleMonths:
-      user.repurchaseCycleMonths ?? (null as number | null),
+      supplier.repurchaseCycleMonths ?? (null as number | null),
   });
 
   useEffect(() => {
     if (isOpen) {
       setFormData({
-        customerType: user.customerType ?? null,
-        isRecipient: user.isRecipient ?? false,
-        depositorName: user.depositorName ?? "",
-        residentId: user.residentId ?? "",
-        repurchaseCycleMonths: user.repurchaseCycleMonths ?? null,
+        customerType: supplier.customerType ?? null,
+        isRecipient: supplier.isRecipient ?? false,
+        depositorName: supplier.depositorName ?? "",
+        residentId: supplier.residentId ?? "",
+        repurchaseCycleMonths: supplier.repurchaseCycleMonths ?? null,
       });
     }
-  }, [isOpen, user]);
+  }, [isOpen, supplier]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const updateData: UpdateUserRequest = {
+      const updateData: UpdateSupplierRequest = {
         customerType: formData.customerType,
         isRecipient: formData.isRecipient,
         depositorName: formData.depositorName || null,
@@ -52,11 +56,17 @@ export default function CustomerInfoEditModal({
         repurchaseCycleMonths: formData.repurchaseCycleMonths,
       };
 
-      const response = await userApi.updateUser(user.id.toString(), updateData);
+      const response = await supplierApi.updateSupplier(
+        supplier.id.toString(),
+        updateData
+      );
 
       if (response.success) {
         toast.success("고객 정보가 수정되었습니다");
-        queryClient.invalidateQueries({ queryKey: ["user", user.id] });
+        queryClient.invalidateQueries({
+          queryKey: ["supplier", supplier.id.toString()],
+        });
+        queryClient.invalidateQueries({ queryKey: ["suppliers"] });
         queryClient.invalidateQueries({ queryKey: ["teamCustomers"] });
         onClose();
       } else {
@@ -96,7 +106,7 @@ export default function CustomerInfoEditModal({
             </label>
             <input
               type="text"
-              value={user.name}
+              value={supplier.supplierName}
               disabled
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500"
             />
@@ -217,8 +227,8 @@ export default function CustomerInfoEditModal({
               <input
                 type="text"
                 value={
-                  user.repurchaseDueDate
-                    ? new Date(user.repurchaseDueDate).toLocaleDateString(
+                  supplier.repurchaseDueDate
+                    ? new Date(supplier.repurchaseDueDate).toLocaleDateString(
                         "ko-KR"
                       )
                     : "미설정"

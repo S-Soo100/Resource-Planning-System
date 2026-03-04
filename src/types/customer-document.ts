@@ -1,4 +1,4 @@
-// 고객 서류 관리 타입 (v2.5)
+// 고객 서류 관리 타입 (v3.1 - E-006: Supplier 기반으로 전환)
 
 export type DocumentType =
   | "prescription"
@@ -15,7 +15,9 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
 
 export interface CustomerDocument {
   id: number;
-  userId: number;
+  /** @deprecated userId는 레거시. supplierId 사용 권장 */
+  userId?: number;
+  supplierId: number;
   orderId: number | null;
   documentType: DocumentType;
   fileName: string;
@@ -26,6 +28,9 @@ export interface CustomerDocument {
   deletedAt: string | null;
 }
 
+/**
+ * @deprecated RepurchaseDueSupplier (supplier.ts) 사용 권장
+ */
 export interface RepurchaseDueUser {
   id: number;
   email: string;

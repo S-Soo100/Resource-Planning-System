@@ -1,8 +1,12 @@
 # 팀 멤버 관리 시스템
 
-> **버전**: 2.5.0
-> **최종 수정일**: 2026-02-24
+> **버전**: 3.1.0
+> **최종 수정일**: 2026-03-04
 > **아키텍처**: 팀 권한 중심 (Team-based Permissions)
+>
+> **중요 (E-006)**: 팀 멤버(User) ≠ 고객(Supplier). 고객 관리는 `/supplier` 페이지에서 Supplier 기반으로 처리.
+> 기존 IUser에 있던 고객 필드(customerType, isRecipient 등)는 `@deprecated` 처리되었으며,
+> 신규 코드에서는 Supplier 타입의 고객 필드를 사용해야 합니다.
 
 ---
 

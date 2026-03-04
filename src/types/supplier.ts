@@ -1,11 +1,5 @@
-// supplier(구매처)
-// export interface ISupplier {
-//   supplierId: number; // 구매처 id
-//   supplierName: string; // 구매처 이름
-//   supplierAddress: string; // 주소
-//   supplierPhoneNumber: string; // 전화번호
-//   registrationNumber: string; // 사업자 번호
-// }
+// 고객 유형
+export type CustomerType = "b2c" | "b2b";
 
 export interface Supplier {
   id: number;
@@ -19,6 +13,13 @@ export interface Supplier {
   createdAt?: string;
   updatedAt?: string;
   representativeName?: string; // 대표자 이름 (v2.2)
+  // 고객관리 필드 (v3.1 - E-006)
+  customerType?: CustomerType | null;
+  isRecipient?: boolean;
+  depositorName?: string | null;
+  residentId?: string | null;
+  repurchaseCycleMonths?: number | null;
+  repurchaseDueDate?: string | null;
 }
 
 export interface CreateSupplierRequest {
@@ -30,6 +31,12 @@ export interface CreateSupplierRequest {
   memo?: string;
   teamId?: number;
   representativeName?: string; // 대표자 이름 (v2.2)
+  // 고객관리 필드 (v3.1 - E-006)
+  customerType?: CustomerType | null;
+  isRecipient?: boolean;
+  depositorName?: string | null;
+  residentId?: string | null;
+  repurchaseCycleMonths?: number | null;
 }
 
 export interface UpdateSupplierRequest {
@@ -41,6 +48,29 @@ export interface UpdateSupplierRequest {
   memo?: string;
   teamId?: number;
   representativeName?: string; // 대표자 이름 (v2.2)
+  // 고객관리 필드 (v3.1 - E-006)
+  customerType?: CustomerType | null;
+  isRecipient?: boolean;
+  depositorName?: string | null;
+  residentId?: string | null;
+  repurchaseCycleMonths?: number | null;
+}
+
+/**
+ * 재구매 예정 고객 (Supplier 기반, v3.1 - E-006)
+ */
+export interface RepurchaseDueSupplier {
+  id: number;
+  supplierName: string;
+  email?: string;
+  customerType?: CustomerType | null;
+  isRecipient?: boolean;
+  depositorName?: string | null;
+  repurchaseCycleMonths?: number | null;
+  repurchaseDueDate: string;
+  supplierPhoneNumber?: string;
+  registrationNumber?: string;
+  createdAt?: string;
 }
 
 export interface SupplierResponse {

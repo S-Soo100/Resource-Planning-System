@@ -56,3 +56,23 @@
   - `src/components/admin/UserEditModal.tsx` — 팀 멤버 편집 (검토 대상)
   - `src/app/customers/[id]/page.tsx` — 고객 상세 (유지)
   - `src/components/orderRecord/CustomerDocumentSection.tsx` — 컴포넌트 자체는 유지
+
+---
+
+## Epic
+
+### E-006: 고객관리 데이터 모델 리팩토링 (User → Supplier 통합)
+- **우선순위**: High
+- **상태**: [~]
+- **설명**: "고객"은 Supplier(거래처)를 의미하지만, 현재 `/customers` 페이지가 IUser(팀 멤버)를 "고객"으로 잘못 사용 중. 고객 필드(customerType, isRecipient, residentId 등 6개)가 IUser 모델에, 고객 서류 API가 `/user/:id/documents`에 연결됨. Supplier 기반으로 통합하여 데이터 모델 정합성 확보.
+
+#### 하위 티켓
+- [~] **E-006-1**: 백엔드 변경 요구사항 문서 작성 (`docs/backend-customer-migration.md`)
+- [~] **E-006-2**: Supplier 타입에 고객 필드 6개 추가 (`src/types/supplier.ts`)
+- [~] **E-006-3**: customer-document.ts 타입 Supplier 기반으로 전환
+- [~] **E-006-4**: supplier-api.ts에 서류/재구매 API 메서드 추가
+- [~] **E-006-5**: useCustomers.ts Supplier 기반 재작성
+- [~] **E-006-6**: useCustomerDocuments.ts supplierApi 기반 전환
+- [~] **E-006-7**: `/customers` 디렉토리 삭제 + `/supplier/[id]` 페이지에 고객 탭 추가
+- [~] **E-006-8**: 컴포넌트 IUser→Supplier 전환 (CustomerInfoCard, EditModal, DocumentSection, OrderHistory)
+- [~] **E-006-9**: 메뉴 통합 + 문서 업데이트

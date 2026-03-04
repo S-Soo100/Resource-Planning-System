@@ -70,6 +70,17 @@ export const getRefundStatusColor = (record: DepositRecord): string => {
 };
 
 /**
+ * 입금상태 드롭다운 옵션 (인라인 수정용)
+ */
+export const DEPOSIT_STATUS_OPTIONS = [
+  "자부담금",
+  "전액",
+  "선금",
+  "중도금",
+  "잔금",
+] as const;
+
+/**
  * 입금 상태 필터 드롭다운 옵션
  */
 export const DEPOSIT_FILTER_OPTIONS = [

@@ -7,6 +7,7 @@ import { useTeamAdmin } from "@/hooks/admin/useTeamAdmin";
 import { Warehouse } from "@/types/warehouse";
 import { IMappingUser } from "@/types/mappingUser";
 import { LoadingCentered } from "@/components/ui/Loading";
+import CustomerDocumentSection from "@/components/orderRecord/CustomerDocumentSection";
 
 interface UserEditModalProps {
   isOpen: boolean;
@@ -476,7 +477,14 @@ export default function UserEditModal({
                 </label>
                 <input
                   type="text"
-                  value={formData.residentId || ""}
+                  value={
+                    isReadOnly && formData.residentId
+                      ? formData.residentId.replace(
+                          /^(\d{6}-?)\d{7}$/,
+                          "$1*******"
+                        )
+                      : formData.residentId || ""
+                  }
                   onChange={(e) => {
                     // 숫자와 하이픈만 허용
                     const value = e.target.value.replace(/[^0-9-]/g, "");
@@ -539,6 +547,11 @@ export default function UserEditModal({
               </div>
             </div>
           </div>
+
+          {/* 고객 서류 */}
+          {selectedUserId && (
+            <CustomerDocumentSection userId={selectedUserId} />
+          )}
 
           {/* 창고 접근 제한 */}
           <div className="space-y-4">

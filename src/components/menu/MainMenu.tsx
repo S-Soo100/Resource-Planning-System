@@ -139,7 +139,14 @@ const MainMenu = () => {
   const customerMenuItems = [
     {
       title: "고객 관리",
-      subtitle: "고객 정보를 등록하고 관리합니다",
+      subtitle: "고객 정보를 조회하고 관리합니다",
+      icon: <FaUsers className="text-3xl" />,
+      onClick: () => checkAccess(`/customers`, ["admin", "user", "moderator"]),
+      accessLevel: ["user", "admin", "moderator"],
+    },
+    {
+      title: "거래처 관리",
+      subtitle: "거래처 정보를 등록하고 관리합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () =>
         checkAccess(`/supplier`, ["admin", "user", "moderator", "supplier"]),

@@ -30,6 +30,7 @@ import AddressSection from "@/components/common/AddressSection";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import { Address } from "react-daum-postcode";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import DemoItemSelector, { SelectedDemoItem } from "./DemoItemSelector";
 import { TeamItem } from "@/types/(item)/team-item";
 import { useQueryClient } from "@tanstack/react-query";
@@ -39,7 +40,7 @@ import {
   convertToUTC9,
   normalizeDateForDisplay,
   normalizeTimeForDisplay,
-  isValidDateString
+  isValidDateString,
 } from "@/utils/dateUtils";
 
 // 통합 날짜 유틸리티 사용 - toKSTDateString은 formatDateForServer로 대체됨
@@ -99,6 +100,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
   onSuccess,
 }) => {
   const { user } = useCurrentUser();
+  const { isAdmin: permissionIsAdmin } = usePermission();
   const [isLoading, setIsLoading] = useState(true);
   const [isHandlerSelf, setIsHandlerSelf] = useState(false);
   const [selectedItems, setSelectedItems] = useState<SelectedDemoItem[]>([]);
@@ -576,7 +578,7 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
     }
 
     // 수정 권한 확인
-    const isAdmin = user.isAdmin;
+    const isAdmin = permissionIsAdmin;
     const isAuthor = demo.userId === user.id;
 
     if (!isAdmin && !isAuthor) {
@@ -1205,52 +1207,65 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                   </div>
                 )}
 
-              {/* 시연행사 날짜 */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h3 className="text-lg font-medium text-gray-700 mb-4">
-                  시연행사 일정 (선택 사항)
-                </h3>
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
-                  <p className="text-sm text-gray-600">
-                    💡 물류 일정과 별도로 <strong>실제 시연 기간</strong>을 기록해주세요.
-                  </p>
-                </div>
-                <div className="space-y-6">
-                  <div>
-                    <DateTimePicker
-                      label="시연행사 시작 일시"
-                      date={formData.eventStartDate || ""}
-                      time={formData.eventStartTime || ""}
-                      onDateChange={(date) =>
-                        setFormData((prev) => ({ ...prev, eventStartDate: date }))
-                      }
-                      onTimeChange={(time) =>
-                        setFormData((prev) => ({ ...prev, eventStartTime: time }))
-                      }
-                      placeholder="시연행사 시작 날짜와 시간을 선택하세요"
-                      helperText="시연/행사가 시작되는 일시"
-                      businessHours={{ start: "00:00", end: "23:30" }}
-                    />
+                {/* 시연행사 날짜 */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-medium text-gray-700 mb-4">
+                    시연행사 일정 (선택 사항)
+                  </h3>
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
+                    <p className="text-sm text-gray-600">
+                      💡 물류 일정과 별도로 <strong>실제 시연 기간</strong>을
+                      기록해주세요.
+                    </p>
                   </div>
-                  <div>
-                    <DateTimePicker
-                      label="시연행사 종료 일시"
-                      date={formData.eventEndDate || ""}
-                      time={formData.eventEndTime || ""}
-                      onDateChange={(date) =>
-                        setFormData((prev) => ({ ...prev, eventEndDate: date }))
-                      }
-                      onTimeChange={(time) =>
-                        setFormData((prev) => ({ ...prev, eventEndTime: time }))
-                      }
-                      placeholder="시연행사 종료 날짜와 시간을 선택하세요"
-                      helperText="시연/행사가 종료되는 일시"
-                      minDate={formData.eventStartDate || undefined}
-                      businessHours={{ start: "00:00", end: "23:30" }}
-                    />
+                  <div className="space-y-6">
+                    <div>
+                      <DateTimePicker
+                        label="시연행사 시작 일시"
+                        date={formData.eventStartDate || ""}
+                        time={formData.eventStartTime || ""}
+                        onDateChange={(date) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            eventStartDate: date,
+                          }))
+                        }
+                        onTimeChange={(time) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            eventStartTime: time,
+                          }))
+                        }
+                        placeholder="시연행사 시작 날짜와 시간을 선택하세요"
+                        helperText="시연/행사가 시작되는 일시"
+                        businessHours={{ start: "00:00", end: "23:30" }}
+                      />
+                    </div>
+                    <div>
+                      <DateTimePicker
+                        label="시연행사 종료 일시"
+                        date={formData.eventEndDate || ""}
+                        time={formData.eventEndTime || ""}
+                        onDateChange={(date) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            eventEndDate: date,
+                          }))
+                        }
+                        onTimeChange={(time) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            eventEndTime: time,
+                          }))
+                        }
+                        placeholder="시연행사 종료 날짜와 시간을 선택하세요"
+                        helperText="시연/행사가 종료되는 일시"
+                        minDate={formData.eventStartDate || undefined}
+                        businessHours={{ start: "00:00", end: "23:30" }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
               </div>
             </Card>
 

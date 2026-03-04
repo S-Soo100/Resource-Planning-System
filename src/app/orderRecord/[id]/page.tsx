@@ -39,6 +39,7 @@ import {
 import { uploadMultipleOrderFileById, deleteOrderFile } from "@/api/order-api";
 import OrderChangeHistory from "@/components/orderRecord/OrderChangeHistory";
 import TaxInvoiceSection from "@/components/orderRecord/TaxInvoiceSection";
+import CustomerDocumentSection from "@/components/orderRecord/CustomerDocumentSection";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 // 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
@@ -1517,6 +1518,16 @@ const OrderRecordDetail = () => {
                 {order.status === "shipmentCompleted" && !isSupplier && (
                   <TaxInvoiceSection orderId={order.id} />
                 )}
+
+                {/* 고객 서류 (출고완료 시) */}
+                {order.status === "shipmentCompleted" &&
+                  !isSupplier &&
+                  order.userId && (
+                    <CustomerDocumentSection
+                      userId={order.userId}
+                      orderId={order.id}
+                    />
+                  )}
 
                 {/* 첨부파일 */}
                 <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">

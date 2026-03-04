@@ -8,6 +8,7 @@ import {
   PatchDemoRequest,
 } from "@/types/demo/demo";
 import { AxiosError } from "axios";
+import { extractErrorMessage } from "@/utils/apiErrorHandler";
 
 export const createDemo = async (
   demoData: CreateDemoRequest
@@ -77,8 +78,14 @@ export const getDemoByTeamId = async (
       `/demo/team/${teamId}`
     );
     return response.data;
-  } catch {
-    return { success: false, message: "주문 데모 목록 조회에 실패했습니다." };
+  } catch (error) {
+    return {
+      success: false,
+      message: extractErrorMessage(
+        error,
+        "주문 데모 목록 조회에 실패했습니다."
+      ),
+    };
   }
 };
 
@@ -90,8 +97,11 @@ export const getDemoById = async (
       `/demo/${demoId}`
     );
     return response.data;
-  } catch {
-    return { success: false, message: "시연 상세 조회에 실패했습니다." };
+  } catch (error) {
+    return {
+      success: false,
+      message: extractErrorMessage(error, "시연 상세 조회에 실패했습니다."),
+    };
   }
 };
 
@@ -103,8 +113,14 @@ export const getDemoDetailById = async (
       `/demo/team/${teamId}`
     );
     return response.data;
-  } catch {
-    return { success: false, message: "주문 데모 목록 조회에 실패했습니다." };
+  } catch (error) {
+    return {
+      success: false,
+      message: extractErrorMessage(
+        error,
+        "주문 데모 목록 조회에 실패했습니다."
+      ),
+    };
   }
 };
 
@@ -115,8 +131,11 @@ export const updateDemoById = async (
   try {
     const response = await api.patch<ApiResponse>(`/demo/${id}`, data);
     return response.data;
-  } catch {
-    return { success: false, message: "시연 기록 수정에 실패했습니다." };
+  } catch (error) {
+    return {
+      success: false,
+      message: extractErrorMessage(error, "시연 기록 수정에 실패했습니다."),
+    };
   }
 };
 
@@ -172,8 +191,11 @@ export const deleteDemoById = async (id: number): Promise<ApiResponse> => {
   try {
     const response = await api.delete<ApiResponse>(`/demo/${id}`);
     return response.data;
-  } catch {
-    return { success: false, message: "시연 신청 삭제에 실패했습니다." };
+  } catch (error) {
+    return {
+      success: false,
+      message: extractErrorMessage(error, "시연 신청 삭제에 실패했습니다."),
+    };
   }
 };
 
@@ -199,8 +221,11 @@ export const creatDemoCommentById = async (
       content: content,
     });
     return response.data;
-  } catch {
-    return { success: false, message: "댓글 생성에 실패했습니다." };
+  } catch (error) {
+    return {
+      success: false,
+      message: extractErrorMessage(error, "댓글 생성에 실패했습니다."),
+    };
   }
 };
 
@@ -209,8 +234,11 @@ export const getDemoCommentById = async (id: number): Promise<ApiResponse> => {
   try {
     const response = await api.get<ApiResponse>(`/demo/${id}/comments`);
     return response.data;
-  } catch {
-    return { success: false, message: "댓글 조회에 실패했습니다." };
+  } catch (error) {
+    return {
+      success: false,
+      message: extractErrorMessage(error, "댓글 조회에 실패했습니다."),
+    };
   }
 };
 
@@ -225,8 +253,11 @@ export const updateDemoCommentByCommentId = async (
       data
     );
     return response.data;
-  } catch {
-    return { success: false, message: "댓글 수정에 실패했습니다." };
+  } catch (error) {
+    return {
+      success: false,
+      message: extractErrorMessage(error, "댓글 수정에 실패했습니다."),
+    };
   }
 };
 
@@ -239,8 +270,11 @@ export const deleteDemoCommentByCommentId = async (
       `/demo/comments/${commentId}`
     );
     return response.data;
-  } catch {
-    return { success: false, message: "댓글 삭제에 실패했습니다." };
+  } catch (error) {
+    return {
+      success: false,
+      message: extractErrorMessage(error, "댓글 삭제에 실패했습니다."),
+    };
   }
 };
 
@@ -261,7 +295,6 @@ export const uploadMultipleDemoFileById = async (
   id: number,
   files: File[],
   expirationTimeMinutes: number = 30
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<ApiResponse<any[]>> => {
   try {
     console.log("[데모 파일 업로드 API] 업로드 시작:", {
@@ -295,7 +328,6 @@ export const uploadMultipleDemoFileById = async (
       normalizedFileNames: files.map((f) => normalizeFileName(f)),
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await api.post<ApiResponse<any[]>>(
       `/demo/${id}/upload-multiple-with-signed-url`,
       formData,
@@ -314,7 +346,6 @@ export const uploadMultipleDemoFileById = async (
       ),
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return response.data as ApiResponse<any[]>;
   } catch (error) {
     console.error("[데모 파일 업로드 API] 오류:", error);

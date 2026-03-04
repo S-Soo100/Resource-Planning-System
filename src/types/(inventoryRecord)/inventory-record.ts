@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Item } from "../(item)/item";
 import { ApiResponse } from "../common";
 
@@ -99,6 +98,7 @@ export interface InventoryRecordResponse extends ApiResponse {
 export interface InventoryRecordsResponse {
   success: boolean;
   data: InventoryRecord[];
+  error?: string;
 }
 
 export interface InventoryRecordsByInventoryResponse extends ApiResponse {

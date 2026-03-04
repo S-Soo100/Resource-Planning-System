@@ -8,6 +8,7 @@ import {
 } from "../types/(inventoryRecord)/inventory-record";
 import { AxiosError } from "axios";
 import { authStore } from "@/store/authStore";
+import { extractErrorMessage } from "@/utils/apiErrorHandler";
 
 // 입출고 기록 생성 함수를 별도로 export
 export const createInventoryRecord = async (
@@ -100,8 +101,6 @@ export const inventoryRecordApi = {
         params.endDate = endDate;
       }
 
-
-
       const response = await api.get<InventoryRecordsResponse>(
         `/inventory-record/team/${teamId}`,
         {
@@ -117,6 +116,7 @@ export const inventoryRecordApi = {
       return {
         success: false,
         data: [],
+        error: extractErrorMessage(error, "입출고 기록 조회에 실패했습니다."),
       };
     }
   },
@@ -203,14 +203,13 @@ export const getAllInventoryRecords = async (): Promise<
   ApiResponse<InventoryRecord[]>
 > => {
   try {
-    const response = await api.get<ApiResponse<InventoryRecord[]>>(
-      "/inventory-record"
-    );
+    const response =
+      await api.get<ApiResponse<InventoryRecord[]>>("/inventory-record");
     return response.data;
-  } catch {
+  } catch (error) {
     return {
       success: false,
-      error: "재고 기록 목록 조회에 실패했습니다.",
+      error: extractErrorMessage(error, "재고 기록 목록 조회에 실패했습니다."),
       data: [],
     };
   }
@@ -224,10 +223,10 @@ export const getInventoryRecord = async (
       `/inventory-record/${id}`
     );
     return response.data;
-  } catch {
+  } catch (error) {
     return {
       success: false,
-      error: "재고 기록 조회에 실패했습니다.",
+      error: extractErrorMessage(error, "재고 기록 조회에 실패했습니다."),
       data: undefined,
     };
   }
@@ -243,10 +242,10 @@ export const updateInventoryRecord = async (
       data
     );
     return response.data;
-  } catch {
+  } catch (error) {
     return {
       success: false,
-      error: "재고 기록 수정에 실패했습니다.",
+      error: extractErrorMessage(error, "재고 기록 수정에 실패했습니다."),
       data: undefined,
     };
   }
@@ -260,10 +259,10 @@ export const deleteInventoryRecord = async (
       `/inventory-record/${id}`
     );
     return response.data;
-  } catch {
+  } catch (error) {
     return {
       success: false,
-      error: "재고 기록 삭제에 실패했습니다.",
+      error: extractErrorMessage(error, "재고 기록 삭제에 실패했습니다."),
       data: undefined,
     };
   }

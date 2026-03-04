@@ -28,6 +28,7 @@ import {
 import { BiSolidPurchaseTag } from "react-icons/bi";
 import { MdPointOfSale, MdAnalytics, MdPeopleOutline } from "react-icons/md";
 import { useCategory } from "@/hooks/useCategory";
+import { useRepurchaseDueUsers } from "@/hooks/useCustomerDocuments";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 const MainMenu = () => {
@@ -40,6 +41,12 @@ const MainMenu = () => {
 
   // 새로운 useCategory 훅 사용
   const { isLoading: categoriesLoading } = useCategory(selectedTeam?.id);
+
+  // 재구매 예정 고객 수
+  const { data: repurchaseDueUsers = [] } = useRepurchaseDueUsers(
+    selectedTeam?.id
+  );
+  const repurchaseDueCount = repurchaseDueUsers.length;
 
   // 3D 기울이기 효과를 위한 상태
   const [hoveredCard, setHoveredCard] = React.useState<number | null>(null);
@@ -429,6 +436,33 @@ const MainMenu = () => {
           팀: <span className="font-semibold">{selectedTeam.teamName}</span>
         </motion.p>
       </motion.div>
+
+      {/* 재구매 예정 고객 알림 배너 */}
+      {repurchaseDueCount > 0 && user?.accessLevel !== "supplier" && (
+        <motion.button
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.15 }}
+          onClick={() => router.push("/repurchase")}
+          className="flex items-center justify-between w-full mb-4 p-4 bg-orange-50 border border-orange-200 rounded-xl shadow-sm hover:bg-orange-100 transition-colors text-left"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full">
+              <MdPeopleOutline className="text-xl text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-orange-900">
+                재구매 예정 고객{" "}
+                <span className="text-orange-600">{repurchaseDueCount}명</span>
+              </p>
+              <p className="text-xs text-orange-600">
+                재구매 예정일이 지난 고객이 있습니다
+              </p>
+            </div>
+          </div>
+          <span className="text-sm text-orange-500">확인하기 →</span>
+        </motion.button>
+      )}
 
       {/* 탭 네비게이션 — MD3 Segment Control */}
       <motion.div

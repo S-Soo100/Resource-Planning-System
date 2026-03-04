@@ -1,12 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import { useRepurchaseDueUsers } from "@/hooks/useCustomerDocuments";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { usePermission } from "@/hooks/usePermission";
 import { LoadingCentered } from "@/components/ui/Loading";
-import { ArrowLeft, RefreshCw, AlertCircle } from "lucide-react";
+import { ArrowLeft, RefreshCw, AlertCircle, Download } from "lucide-react";
 import Link from "next/link";
 import { RepurchaseDueUser } from "@/types/customer-document";
+import * as XLSX from "xlsx";
+
+type CustomerFilter = "all" | "b2c" | "b2b" | "none";
+
+const FILTER_OPTIONS: { value: CustomerFilter; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "b2c", label: "B2C" },
+  { value: "b2b", label: "B2B" },
+  { value: "none", label: "미분류" },
+];
 
 // 경과일수 계산
 const getDaysOverdue = (dueDateStr: string): number => {
@@ -24,6 +35,47 @@ const getOverdueColor = (days: number): string => {
   return "text-blue-600 bg-blue-50";
 };
 
+// 엑셀 내보내기
+const exportToExcel = (users: RepurchaseDueUser[], filterLabel: string) => {
+  const data = users.map((user, index) => ({
+    No: index + 1,
+    고객명: user.name,
+    이메일: user.email,
+    고객유형:
+      user.customerType === "b2c"
+        ? "B2C"
+        : user.customerType === "b2b"
+          ? "B2B"
+          : "-",
+    수급자: user.isRecipient ? "O" : "-",
+    입금자명: user.depositorName || "-",
+    "재구매 주기(개월)": user.repurchaseCycleMonths ?? 3,
+    재구매예정일: new Date(user.repurchaseDueDate).toLocaleDateString("ko-KR"),
+    경과일: getDaysOverdue(user.repurchaseDueDate),
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+
+  // 컬럼 너비 설정
+  ws["!cols"] = [
+    { wch: 5 }, // No
+    { wch: 12 }, // 고객명
+    { wch: 25 }, // 이메일
+    { wch: 10 }, // 고객유형
+    { wch: 8 }, // 수급자
+    { wch: 12 }, // 입금자명
+    { wch: 15 }, // 재구매 주기
+    { wch: 15 }, // 재구매예정일
+    { wch: 10 }, // 경과일
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "재구매 예정 고객");
+
+  const today = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `재구매예정고객_${filterLabel}_${today}.xlsx`);
+};
+
 export default function RepurchasePage() {
   const { team } = useCurrentTeam();
   const { isSupplier } = usePermission();
@@ -32,6 +84,25 @@ export default function RepurchasePage() {
     isLoading,
     refetch,
   } = useRepurchaseDueUsers(team?.id);
+
+  const [filter, setFilter] = useState<CustomerFilter>("all");
+
+  // 필터링된 사용자 목록
+  const filteredUsers = users.filter((user) => {
+    if (filter === "all") return true;
+    if (filter === "b2c") return user.customerType === "b2c";
+    if (filter === "b2b") return user.customerType === "b2b";
+    if (filter === "none") return !user.customerType;
+    return true;
+  });
+
+  // 필터별 카운트
+  const counts = {
+    all: users.length,
+    b2c: users.filter((u) => u.customerType === "b2c").length,
+    b2b: users.filter((u) => u.customerType === "b2b").length,
+    none: users.filter((u) => !u.customerType).length,
+  };
 
   if (isSupplier) {
     return (
@@ -61,24 +132,42 @@ export default function RepurchasePage() {
             </p>
           </div>
         </div>
-        <button
-          onClick={() => refetch()}
-          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          <RefreshCw className="w-4 h-4" />
-          새로고침
-        </button>
+        <div className="flex items-center gap-2">
+          {!isLoading && filteredUsers.length > 0 && (
+            <button
+              onClick={() =>
+                exportToExcel(
+                  filteredUsers,
+                  FILTER_OPTIONS.find((o) => o.value === filter)?.label ??
+                    "전체"
+                )
+              }
+              className="flex items-center gap-2 px-4 py-2 text-sm text-green-700 bg-green-50 border border-green-300 rounded-lg hover:bg-green-100 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              엑셀
+            </button>
+          )}
+          <button
+            onClick={() => refetch()}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            새로고침
+          </button>
+        </div>
       </div>
 
       {/* 요약 카드 */}
       {!isLoading && users.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="p-4 bg-red-50 rounded-lg border border-red-200">
             <p className="text-sm text-red-600">30일 이상 경과</p>
             <p className="text-2xl font-bold text-red-700">
               {
-                users.filter((u) => getDaysOverdue(u.repurchaseDueDate) >= 30)
-                  .length
+                filteredUsers.filter(
+                  (u) => getDaysOverdue(u.repurchaseDueDate) >= 30
+                ).length
               }
               명
             </p>
@@ -87,7 +176,7 @@ export default function RepurchasePage() {
             <p className="text-sm text-orange-600">14~29일 경과</p>
             <p className="text-2xl font-bold text-orange-700">
               {
-                users.filter((u) => {
+                filteredUsers.filter((u) => {
                   const days = getDaysOverdue(u.repurchaseDueDate);
                   return days >= 14 && days < 30;
                 }).length
@@ -95,10 +184,46 @@ export default function RepurchasePage() {
               명
             </p>
           </div>
+          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <p className="text-sm text-yellow-600">7~13일 경과</p>
+            <p className="text-2xl font-bold text-yellow-700">
+              {
+                filteredUsers.filter((u) => {
+                  const days = getDaysOverdue(u.repurchaseDueDate);
+                  return days >= 7 && days < 14;
+                }).length
+              }
+              명
+            </p>
+          </div>
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-sm text-blue-600">전체</p>
-            <p className="text-2xl font-bold text-blue-700">{users.length}명</p>
+            <p className="text-2xl font-bold text-blue-700">
+              {filteredUsers.length}명
+            </p>
           </div>
+        </div>
+      )}
+
+      {/* B2C/B2B 필터 탭 */}
+      {!isLoading && users.length > 0 && (
+        <div className="flex items-center gap-2 mb-4">
+          {FILTER_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setFilter(option.value)}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                filter === option.value
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              {option.label}
+              <span className="ml-1 text-xs opacity-75">
+                ({counts[option.value]})
+              </span>
+            </button>
+          ))}
         </div>
       )}
 
@@ -114,6 +239,10 @@ export default function RepurchasePage() {
           <p className="text-sm text-gray-400 mt-1">
             모든 고객의 재구매 예정일이 아직 도래하지 않았습니다
           </p>
+        </div>
+      ) : filteredUsers.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
+          <p className="text-gray-500">해당 분류의 고객이 없습니다</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -143,7 +272,7 @@ export default function RepurchasePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {users.map((user: RepurchaseDueUser) => {
+                {filteredUsers.map((user: RepurchaseDueUser) => {
                   const daysOverdue = getDaysOverdue(user.repurchaseDueDate);
                   return (
                     <tr
@@ -160,7 +289,13 @@ export default function RepurchasePage() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         {user.customerType ? (
-                          <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                          <span
+                            className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                              user.customerType === "b2c"
+                                ? "bg-indigo-100 text-indigo-700"
+                                : "bg-emerald-100 text-emerald-700"
+                            }`}
+                          >
                             {user.customerType === "b2c" ? "B2C" : "B2B"}
                           </span>
                         ) : (
@@ -202,7 +337,7 @@ export default function RepurchasePage() {
 
           {/* 카드 (모바일) */}
           <div className="md:hidden divide-y divide-gray-200">
-            {users.map((user: RepurchaseDueUser) => {
+            {filteredUsers.map((user: RepurchaseDueUser) => {
               const daysOverdue = getDaysOverdue(user.repurchaseDueDate);
               return (
                 <div key={user.id} className="p-4">

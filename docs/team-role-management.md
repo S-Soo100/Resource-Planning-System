@@ -10,11 +10,12 @@
 
 사용자가 **팀마다 다른 권한**을 가질 수 있도록 하는 시스템입니다.
 
-### 핵심 변경사항
+### 핵심 원칙
 
-- **기존**: `User` 테이블에만 권한 → 모든 팀에서 동일한 권한 적용
-- **신규**: `TeamUserMap`에 팀별 권한 필드 추가 → **팀마다 다른 권한** 설정 가능
-- **하위 호환**: 팀별 권한이 설정되지 않으면 기존 User 권한으로 폴백
+- `TeamUserMapping.accessLevel`이 **유일한 권한 소스**
+- `User.accessLevel`은 **레거시** — 신규 코드에서 참조 금지
+- 팀마다 다른 권한 설정 가능 (A팀: admin, B팀: user)
+- **API가 팀 권한대로 동작하지 않으면 API를 수정해야 함**
 
 ---
 
@@ -43,12 +44,14 @@
 | `null`    | 제한 없음 — 모든 창고 접근 가능              |
 | `"1,2,3"` | 쉼표 구분된 창고 ID 목록 — 해당 창고만 접근 |
 
-### 권한 우선순위
+### 권한 소스
 
 ```
-1. TeamUserMap에 팀별 권한이 설정되어 있으면 → 팀별 권한 사용
-2. TeamUserMap.accessLevel이 null이면 → User 테이블 권한으로 폴백
-3. TeamUserMap 레코드 자체가 없으면 → User 테이블 권한으로 폴백
+TeamUserMapping.accessLevel = 유일한 권한 기준
+User.accessLevel = 레거시 (사용 금지)
+
+※ TeamUserMapping에 권한이 없는 사용자는 권한 설정이 필요한 상태임.
+   폴백으로 User.accessLevel을 사용하지 않고, 팀 권한을 설정해야 함.
 ```
 
 ---
@@ -415,7 +418,7 @@ queryClient.invalidateQueries({ queryKey: ["user", userId] });
 
 ## 🚨 주의사항
 
-1. **하위 호환**: 기존 코드는 수정 없이 정상 동작합니다. TeamUserMap에 권한 필드가 없으면 User 테이블 권한을 사용합니다.
+1. **레거시 전환 중**: `User.accessLevel`은 레거시. 모든 권한 체크는 `TeamUserMapping.accessLevel` 기반으로 전환해야 합니다. API가 팀 권한을 따르지 않으면 API를 수정합니다.
 
 2. **캐시 무효화**: 권한 수정 후 반드시 캐시를 무효화하여 UI에 최신 정보를 표시해야 합니다.
 

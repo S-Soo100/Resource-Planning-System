@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import CustomItemTable from "@/components/item/CustomItemTable";
@@ -11,8 +12,10 @@ import { LoadingCentered } from "@/components/ui/Loading";
 export default function ItemsPage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { isAdminOrModerator, isLoading: isPermissionLoading } =
+    usePermission();
 
-  if (isUserLoading) {
+  if (isUserLoading || isPermissionLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
@@ -46,10 +49,8 @@ export default function ItemsPage() {
     );
   }
 
-  // 권한에 따라 읽기 전용 모드 결정
-  // Admin과 Moderator만 아이템 추가/삭제 가능
-  const isReadOnly =
-    user.accessLevel === "user" || user.accessLevel === "supplier";
+  // 권한에 따라 읽기 전용 모드 결정 (팀 권한 기반)
+  const isReadOnly = !isAdminOrModerator;
 
   return (
     <div className="p-4">

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { api, ApiResponse } from "./api";
 import {
   IUser,
@@ -7,6 +6,12 @@ import {
   UpdateUserRequest,
   WarehouseAccessRequest,
 } from "@/types/(auth)/user";
+import {
+  CustomerDocument,
+  DocumentType,
+  RepurchaseDueUser,
+} from "@/types/customer-document";
+import { normalizeFileName } from "@/utils/fileUtils";
 
 export const userApi = {
   // 사용자 생성
@@ -107,6 +112,92 @@ export const userApi = {
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: "창고 접근 권한 확인에 실패했습니다." };
+    }
+  },
+
+  // === 재구매 예정 고객 API (v2.5) ===
+
+  // 재구매 예정 고객 조회
+  getRepurchaseDueUsers: async (
+    teamId: number
+  ): Promise<ApiResponse<RepurchaseDueUser[]>> => {
+    try {
+      const response = await api.get<ApiResponse<RepurchaseDueUser[]>>(
+        `/user/repurchase-due?teamId=${teamId}`
+      );
+      return response.data;
+    } catch (error) {
+      return { success: false, error: "재구매 예정 고객 조회에 실패했습니다." };
+    }
+  },
+
+  // === 고객 서류 관리 API (v2.5) ===
+
+  // 고객 서류 업로드
+  uploadDocument: async (
+    userId: number,
+    file: File,
+    documentType: DocumentType,
+    memo?: string,
+    orderId?: number
+  ): Promise<ApiResponse<CustomerDocument>> => {
+    try {
+      const formData = new FormData();
+      const normalizedFileName = normalizeFileName(file);
+      const normalizedFile = new File([file], normalizedFileName, {
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+      formData.append("file", normalizedFile);
+      formData.append("documentType", documentType);
+      if (memo) {
+        formData.append("memo", memo);
+      }
+      if (orderId) {
+        formData.append("orderId", orderId.toString());
+      }
+
+      const response = await api.post<ApiResponse<CustomerDocument>>(
+        `/user/${userId}/documents/upload`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return { success: false, error: "고객 서류 업로드에 실패했습니다." };
+    }
+  },
+
+  // 고객 서류 목록 조회
+  getDocuments: async (
+    userId: number,
+    documentType?: DocumentType
+  ): Promise<ApiResponse<CustomerDocument[]>> => {
+    try {
+      const params = documentType ? `?documentType=${documentType}` : "";
+      const response = await api.get<ApiResponse<CustomerDocument[]>>(
+        `/user/${userId}/documents${params}`
+      );
+      return response.data;
+    } catch (error) {
+      return { success: false, error: "고객 서류 조회에 실패했습니다." };
+    }
+  },
+
+  // 고객 서류 삭제
+  deleteDocument: async (
+    userId: number,
+    docId: number
+  ): Promise<ApiResponse<CustomerDocument>> => {
+    try {
+      const response = await api.delete<ApiResponse<CustomerDocument>>(
+        `/user/${userId}/documents/${docId}`
+      );
+      return response.data;
+    } catch (error) {
+      return { success: false, error: "고객 서류 삭제에 실패했습니다." };
     }
   },
 };

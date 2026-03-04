@@ -11,7 +11,17 @@ import {
 import { TeamItem } from "@/types/(item)/team-item";
 import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { ArrowLeft, Package, Calendar, Edit2, Trash2, X, Plus, Info } from "lucide-react";
+import { usePermission } from "@/hooks/usePermission";
+import {
+  ArrowLeft,
+  Package,
+  Calendar,
+  Edit2,
+  Trash2,
+  X,
+  Plus,
+  Info,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { navigateByAuthStatus } from "@/utils/navigation";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
@@ -32,7 +42,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-3xl w-full max-w-lg mx-4 overflow-hidden shadow-xl">
         <div className="flex justify-between items-center px-6 py-4 border-b border-Outline-Variant">
-          <h2 className="text-lg font-semibold text-Text-Highest-100">{title}</h2>
+          <h2 className="text-lg font-semibold text-Text-Highest-100">
+            {title}
+          </h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-Back-Low-10 text-Text-Low-70 transition-colors"
@@ -49,6 +61,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
 export default function PacakgePage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { isAdminOrModerator, isLoading: isPermissionLoading } =
+    usePermission();
 
   // usePackages 훅 수정
   const packageHooks = usePackages();
@@ -67,7 +81,8 @@ export default function PacakgePage() {
   const isTeamItemsLoading = getTeamItems.isLoading;
 
   // useWarehouseItems 훅 추가 (itemCode -> itemId 매핑용)
-  const { items: warehouseItems, isLoading: isWarehouseItemsLoading } = useWarehouseItems();
+  const { items: warehouseItems, isLoading: isWarehouseItemsLoading } =
+    useWarehouseItems();
 
   const selectedTeamId = authStore((state) => state.selectedTeam?.id);
 
@@ -251,7 +266,10 @@ export default function PacakgePage() {
   };
 
   // 드래그 시작 핸들러
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, packageId: number) => {
+  const handleDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    packageId: number
+  ) => {
     setDraggedPackageId(packageId);
     e.dataTransfer.effectAllowed = "move";
   };
@@ -308,7 +326,10 @@ export default function PacakgePage() {
 
     // Fallback: 구버전 itemlist 문자열 파싱
     if (pkg.itemlist) {
-      const itemCodes = pkg.itemlist.split(',').map(code => code.trim()).filter(code => code);
+      const itemCodes = pkg.itemlist
+        .split(",")
+        .map((code) => code.trim())
+        .filter((code) => code);
       const isExpanded = expandedPackages[pkg.id] || false;
       const displayCount = isExpanded
         ? itemCodes.length
@@ -319,12 +340,16 @@ export default function PacakgePage() {
         <div>
           <div className="flex flex-wrap gap-1.5">
             {itemCodes.slice(0, displayCount).map((itemCode, index) => {
-              const teamItem = teamItems.find(item => item.itemCode === itemCode);
+              const teamItem = teamItems.find(
+                (item) => item.itemCode === itemCode
+              );
               return (
                 <span
                   key={index}
                   className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-Primary-Container text-Primary-Main"
-                  title={teamItem ? `${teamItem.itemName} (${itemCode})` : itemCode}
+                  title={
+                    teamItem ? `${teamItem.itemName} (${itemCode})` : itemCode
+                  }
                 >
                   {teamItem ? teamItem.itemName : itemCode}
                 </span>
@@ -347,7 +372,13 @@ export default function PacakgePage() {
     return <p className="text-sm text-Text-Low-70">아이템 없음</p>;
   };
 
-  if (isUserLoading || isLoading || isTeamItemsLoading || isWarehouseItemsLoading) {
+  if (
+    isUserLoading ||
+    isLoading ||
+    isTeamItemsLoading ||
+    isWarehouseItemsLoading ||
+    isPermissionLoading
+  ) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -358,8 +389,8 @@ export default function PacakgePage() {
     );
   }
 
-  // 권한 체크: Admin, Moderator만 접근 가능
-  if (!user || (user.accessLevel !== 'admin' && user.accessLevel !== 'moderator')) {
+  // 권한 체크: Admin, Moderator만 접근 가능 (팀 권한 기반)
+  if (!user || !isAdminOrModerator) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-Back-Low-10">
         <div className="text-center max-w-md">
@@ -371,7 +402,7 @@ export default function PacakgePage() {
             패키지 관리 페이지는 관리자 또는 1차 승인권자만 접근할 수 있습니다.
           </p>
           <button
-            onClick={() => router.push('/menu')}
+            onClick={() => router.push("/menu")}
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-Primary-Main text-white rounded-full hover:bg-Primary-Main/90 transition-colors font-medium"
           >
             <ArrowLeft size={18} />
@@ -384,7 +415,9 @@ export default function PacakgePage() {
 
   if (error) {
     return (
-      <div className="p-4 text-center text-Error-Main">오류: {error.message}</div>
+      <div className="p-4 text-center text-Error-Main">
+        오류: {error.message}
+      </div>
     );
   }
 
@@ -414,7 +447,9 @@ export default function PacakgePage() {
   const renderAddPackageForm = () => (
     <form onSubmit={handleAddPackage}>
       <div className="mb-4">
-        <label className="block mb-1.5 text-sm font-medium text-Text-Highest-100">패키지 이름</label>
+        <label className="block mb-1.5 text-sm font-medium text-Text-Highest-100">
+          패키지 이름
+        </label>
         <input
           type="text"
           value={newPackageName}
@@ -426,15 +461,24 @@ export default function PacakgePage() {
       </div>
       <div className="mb-4">
         <label className="block mb-1.5 text-sm font-medium text-Text-Highest-100">
-          아이템 선택 <span className="text-Primary-Main font-normal">({selectedItems.length}개 선택됨)</span>
+          아이템 선택{" "}
+          <span className="text-Primary-Main font-normal">
+            ({selectedItems.length}개 선택됨)
+          </span>
         </label>
         <div className="max-h-60 overflow-y-auto border border-Outline-Variant rounded-xl p-3 bg-Back-Low-10">
           {teamItems.length === 0 ? (
-            <p className="text-Text-Low-70 text-sm">등록된 팀 아이템이 없습니다.</p>
+            <p className="text-Text-Low-70 text-sm">
+              등록된 팀 아이템이 없습니다.
+            </p>
           ) : (
             <ul className="space-y-1.5">
               {teamItems.map((item) => (
-                <li key={item.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white cursor-pointer" onClick={() => handleItemSelect(item.itemCode)}>
+                <li
+                  key={item.id}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white cursor-pointer"
+                  onClick={() => handleItemSelect(item.itemCode)}
+                >
                   <input
                     type="checkbox"
                     id={`item-${item.id}`}
@@ -443,11 +487,12 @@ export default function PacakgePage() {
                     className="accent-Primary-Main"
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <label htmlFor={`item-${item.id}`} className="cursor-pointer text-sm text-Text-Highest-100">
+                  <label
+                    htmlFor={`item-${item.id}`}
+                    className="cursor-pointer text-sm text-Text-Highest-100"
+                  >
                     {item.itemName}{" "}
-                    <span className="text-Text-Low-70">
-                      ({item.itemCode})
-                    </span>
+                    <span className="text-Text-Low-70">({item.itemCode})</span>
                   </label>
                 </li>
               ))}
@@ -456,7 +501,9 @@ export default function PacakgePage() {
         </div>
         {selectedItems.length > 0 && (
           <div className="mt-2.5">
-            <p className="text-xs font-semibold text-Text-Low-70 mb-1.5">선택된 아이템:</p>
+            <p className="text-xs font-semibold text-Text-Low-70 mb-1.5">
+              선택된 아이템:
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {selectedItems
                 .map((itemCode) => findItemByCode(itemCode))
@@ -495,19 +542,22 @@ export default function PacakgePage() {
   return (
     <div className="p-4 md:p-6 lg:p-8 min-h-screen bg-Back-Low-10">
       <div className="mx-auto max-w-7xl">
-
         {/* 페이지 헤더 */}
         <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-Text-Highest-100">패키지 관리</h1>
-            <p className="text-sm text-Text-Low-70 mt-0.5">자주 사용하는 품목 묶음을 패키지로 저장하고 발주 시 빠르게 활용하세요</p>
+            <h1 className="text-2xl font-bold text-Text-Highest-100">
+              패키지 관리
+            </h1>
+            <p className="text-sm text-Text-Low-70 mt-0.5">
+              자주 사용하는 품목 묶음을 패키지로 저장하고 발주 시 빠르게
+              활용하세요
+            </p>
           </div>
           <button
             onClick={openAddModal}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-Primary-Main text-white rounded-full hover:bg-Primary-Main/90 transition-colors text-sm font-medium self-start sm:self-auto flex-shrink-0"
           >
-            <Plus size={16} />
-            새 패키지 추가
+            <Plus size={16} />새 패키지 추가
           </button>
         </div>
 
@@ -518,11 +568,18 @@ export default function PacakgePage() {
               <Info size={18} className="text-Primary-Main" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-Text-Highest-100 mb-1">패키지란?</h2>
+              <h2 className="text-sm font-semibold text-Text-Highest-100 mb-1">
+                패키지란?
+              </h2>
               <p className="text-sm text-Text-Low-70 leading-relaxed">
-                패키지는 <span className="font-medium text-Text-High-90">자주 함께 발주되는 품목들을 하나의 묶음으로 저장한 템플릿</span>입니다.
-                예를 들어 &quot;휠체어 기본 세트&quot;처럼 반복적으로 주문하는 구성을 패키지로 등록해두면,
-                발주 시 패키지를 선택하는 것만으로 품목들을 한 번에 추가할 수 있어 업무 효율을 높일 수 있습니다.
+                패키지는{" "}
+                <span className="font-medium text-Text-High-90">
+                  자주 함께 발주되는 품목들을 하나의 묶음으로 저장한 템플릿
+                </span>
+                입니다. 예를 들어 &quot;휠체어 기본 세트&quot;처럼 반복적으로
+                주문하는 구성을 패키지로 등록해두면, 발주 시 패키지를 선택하는
+                것만으로 품목들을 한 번에 추가할 수 있어 업무 효율을 높일 수
+                있습니다.
               </p>
             </div>
           </div>
@@ -541,7 +598,9 @@ export default function PacakgePage() {
         {editMode && (
           <div className="mb-6 p-6 bg-white rounded-2xl shadow-sm border border-Outline-Variant">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-Text-Highest-100">패키지 수정</h2>
+              <h2 className="text-base font-semibold text-Text-Highest-100">
+                패키지 수정
+              </h2>
               <button
                 type="button"
                 onClick={handleCancelEdit}
@@ -552,7 +611,9 @@ export default function PacakgePage() {
             </div>
             <form onSubmit={handleUpdatePackage}>
               <div className="mb-4">
-                <label className="block mb-1.5 text-sm font-medium text-Text-Highest-100">패키지 이름</label>
+                <label className="block mb-1.5 text-sm font-medium text-Text-Highest-100">
+                  패키지 이름
+                </label>
                 <input
                   type="text"
                   value={editPackageName}
@@ -563,15 +624,24 @@ export default function PacakgePage() {
               </div>
               <div className="mb-4">
                 <label className="block mb-1.5 text-sm font-medium text-Text-Highest-100">
-                  아이템 선택 <span className="text-Primary-Main font-normal">({editSelectedItems.length}개 선택됨)</span>
+                  아이템 선택{" "}
+                  <span className="text-Primary-Main font-normal">
+                    ({editSelectedItems.length}개 선택됨)
+                  </span>
                 </label>
                 <div className="max-h-60 overflow-y-auto border border-Outline-Variant rounded-xl p-3 bg-Back-Low-10">
                   {teamItems.length === 0 ? (
-                    <p className="text-Text-Low-70 text-sm">등록된 팀 아이템이 없습니다.</p>
+                    <p className="text-Text-Low-70 text-sm">
+                      등록된 팀 아이템이 없습니다.
+                    </p>
                   ) : (
                     <ul className="space-y-1.5">
                       {teamItems.map((item) => (
-                        <li key={item.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white cursor-pointer" onClick={() => handleEditItemSelect(item.itemCode)}>
+                        <li
+                          key={item.id}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white cursor-pointer"
+                          onClick={() => handleEditItemSelect(item.itemCode)}
+                        >
                           <input
                             type="checkbox"
                             id={`edit-item-${item.id}`}
@@ -596,7 +666,9 @@ export default function PacakgePage() {
                 </div>
                 {editSelectedItems.length > 0 && (
                   <div className="mt-2.5">
-                    <p className="text-xs font-semibold text-Text-Low-70 mb-1.5">선택된 아이템:</p>
+                    <p className="text-xs font-semibold text-Text-Low-70 mb-1.5">
+                      선택된 아이템:
+                    </p>
                     <div className="flex flex-wrap gap-1.5">
                       {editSelectedItems
                         .map((itemCode) => findItemByCode(itemCode))
@@ -637,16 +709,24 @@ export default function PacakgePage() {
         <div>
           <div className="flex items-center gap-2 mb-4">
             <Package className="text-Primary-Main" size={20} />
-            <h2 className="text-base font-semibold text-Text-Highest-100">패키지 목록</h2>
-            <span className="text-sm text-Text-Low-70">({packages.length}개)</span>
+            <h2 className="text-base font-semibold text-Text-Highest-100">
+              패키지 목록
+            </h2>
+            <span className="text-sm text-Text-Low-70">
+              ({packages.length}개)
+            </span>
           </div>
           {packages.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
               <div className="w-14 h-14 bg-Primary-Container rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Package className="text-Primary-Main" size={28} />
               </div>
-              <p className="text-Text-High-90 font-medium">등록된 패키지가 없습니다</p>
-              <p className="text-Text-Low-70 text-sm mt-1.5">새 패키지를 추가해보세요</p>
+              <p className="text-Text-High-90 font-medium">
+                등록된 패키지가 없습니다
+              </p>
+              <p className="text-Text-Low-70 text-sm mt-1.5">
+                새 패키지를 추가해보세요
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -674,7 +754,9 @@ export default function PacakgePage() {
                           <div className="flex items-center gap-1 text-Text-Low-70 text-xs mt-0.5">
                             <Calendar size={11} />
                             <span>
-                              {new Date(pkg.createdAt as string).toLocaleDateString("ko-KR")}
+                              {new Date(
+                                pkg.createdAt as string
+                              ).toLocaleDateString("ko-KR")}
                             </span>
                           </div>
                         </div>
@@ -706,7 +788,6 @@ export default function PacakgePage() {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

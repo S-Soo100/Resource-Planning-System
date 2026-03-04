@@ -11,6 +11,7 @@ import { Loading } from "@/components/ui/Loading";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui";
 import { Team } from "@/types/team";
+import { usePermission } from "@/hooks/usePermission";
 
 // 회사 정보 누락 여부 체크 함수
 const isCompanyInfoMissing = (team: Team | null): boolean => {
@@ -21,6 +22,7 @@ const isCompanyInfoMissing = (team: Team | null): boolean => {
 export default function MenuPage() {
   const router = useRouter();
   const auth = authStore();
+  const { isAdmin: permissionIsAdmin } = usePermission();
   const [isLoading, setIsLoading] = useState(true);
   const [showCompanyInfoModal, setShowCompanyInfoModal] = useState(false);
   const { isLoading: isTeamLoading } = useCurrentTeam();
@@ -58,7 +60,7 @@ export default function MenuPage() {
   useEffect(() => {
     if (
       !isLoading &&
-      auth.user?.isAdmin &&
+      permissionIsAdmin &&
       auth.selectedTeam &&
       isCompanyInfoMissing(auth.selectedTeam)
     ) {
@@ -77,7 +79,9 @@ export default function MenuPage() {
             <h2 className="mb-2 text-2xl md:text-3xl font-semibold text-gray-800">
               로딩 중...
             </h2>
-            <p className="text-base md:text-lg text-gray-600">KARS 시스템에 연결 중입니다</p>
+            <p className="text-base md:text-lg text-gray-600">
+              KARS 시스템에 연결 중입니다
+            </p>
           </div>
         </div>
 
@@ -91,7 +95,9 @@ export default function MenuPage() {
               >
                 {APP_NAME} v{APP_VERSION}
               </Link>
-              <p className="mt-1 text-sm md:text-base text-gray-400">{COPYRIGHT}</p>
+              <p className="mt-1 text-sm md:text-base text-gray-400">
+                {COPYRIGHT}
+              </p>
             </div>
           </div>
         </div>
@@ -119,7 +125,9 @@ export default function MenuPage() {
             >
               {APP_NAME} v{APP_VERSION}
             </Link>
-            <p className="mt-1 text-sm md:text-base text-gray-400">{COPYRIGHT}</p>
+            <p className="mt-1 text-sm md:text-base text-gray-400">
+              {COPYRIGHT}
+            </p>
           </div>
         </div>
       </div>
@@ -155,7 +163,8 @@ export default function MenuPage() {
                 팀의 회사 정보가 등록되지 않았습니다.
               </p>
               <p className="mt-2 text-sm text-gray-600">
-                원활한 시스템 사용을 위해 회사명과 사업자등록번호를 포함한 회사 정보를 등록해주세요.
+                원활한 시스템 사용을 위해 회사명과 사업자등록번호를 포함한 회사
+                정보를 등록해주세요.
               </p>
             </div>
           </div>

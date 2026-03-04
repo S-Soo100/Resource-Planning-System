@@ -46,8 +46,8 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
         console.error("사용자 정보 조회 에러:", err);
         const error = err as { response?: { status: number }; message: string };
 
-        // 401 또는 403 에러인 경우 인증 상태 초기화
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        // 401 에러인 경우 인증 상태 초기화 (403은 권한 없음일 뿐 — 로그아웃하지 않음)
+        if (error.response?.status === 401) {
           console.log("인증 에러 발생, 로그아웃 처리");
           // 토큰 제거
           localStorage.removeItem("token");
@@ -77,9 +77,9 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
     gcTime: 30 * 60 * 1000,
     staleTime: 30 * 60 * 1000,
     retry: (failureCount, error) => {
-      // 401, 403 에러는 재시도하지 않음
+      // 401 에러는 재시도하지 않음 (403은 재시도 허용)
       const err = error as { response?: { status: number } };
-      if (err.response?.status === 401 || err.response?.status === 403) {
+      if (err.response?.status === 401) {
         return false;
       }
       return failureCount < 2; // 최대 2번 재시도
@@ -93,7 +93,7 @@ export const useCurrentUser = (): UseCurrentUserReturn => {
   useEffect(() => {
     if (error) {
       const err = error as { response?: { status: number } };
-      if (err.response?.status === 401 || err.response?.status === 403) {
+      if (err.response?.status === 401) {
         console.log("useCurrentUser: 인증 에러로 인한 자동 로그아웃");
       }
     }

@@ -1,25 +1,32 @@
-'use client';
+"use client";
 
-import { useState, useMemo, useEffect } from 'react';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
-import Link from 'next/link';
-import { ArrowUpDown, ArrowUp, ArrowDown, Download, AlertCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { usePurchaseData } from '@/hooks/usePurchaseData';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useTeamItems } from '@/hooks/useTeamItems';
-import { PurchaseSummary } from '@/components/purchase/PurchaseSummary';
-import { exportPurchaseToExcel } from '@/utils/exportPurchaseToExcel';
-import { ErrorState } from '@/components/common/ErrorState';
-import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
-import { LoadingCentered } from '@/components/ui/Loading';
-import { MonthRangePicker } from '@/components/common/MonthRangePicker';
+import { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Download,
+  AlertCircle,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { usePurchaseData } from "@/hooks/usePurchaseData";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
+import { useTeamItems } from "@/hooks/useTeamItems";
+import { PurchaseSummary } from "@/components/purchase/PurchaseSummary";
+import { exportPurchaseToExcel } from "@/utils/exportPurchaseToExcel";
+import { ErrorState } from "@/components/common/ErrorState";
+import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import { LoadingCentered } from "@/components/ui/Loading";
+import { MonthRangePicker } from "@/components/common/MonthRangePicker";
+import { usePurchaseFilterStore } from "@/store/filterStore";
 import {
   PurchaseFilterParams,
   PurchaseSortField,
   SortDirection,
   PurchaseRecord,
-} from '@/types/purchase';
+} from "@/types/purchase";
 
 // 미디어 쿼리 훅
 function useMediaQuery(query: string) {
@@ -30,8 +37,8 @@ function useMediaQuery(query: string) {
       setMatches(media.matches);
     }
     const listener = () => setMatches(media.matches);
-    media.addEventListener('change', listener);
-    return () => media.removeEventListener('change', listener);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
   }, [matches, query]);
   return matches;
 }
@@ -39,28 +46,41 @@ function useMediaQuery(query: string) {
 export default function PurchasePage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { isSupplier } = usePermission();
 
   // TeamItems 데이터 (live costPrice를 가져오기 위해)
   const { useGetTeamItems } = useTeamItems();
   const { teamItems } = useGetTeamItems();
 
   // 미디어 쿼리
-  const isMobile = useMediaQuery('(max-width: 759px)');
+  const isMobile = useMediaQuery("(max-width: 759px)");
 
-  // 필터 상태 (기본값: 이번 달)
-  const [filters, setFilters] = useState<PurchaseFilterParams>({
-    startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
-    endDate: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
+  // 필터 상태 (Zustand store - 날짜는 localStorage에 보존)
+  const {
+    startDate,
+    endDate,
+    searchQuery,
+    showMissingCostOnly,
+    setStartDate,
+    setEndDate,
+    setDateRange,
+    setSearchQuery,
+    setShowMissingCostOnly,
+  } = usePurchaseFilterStore();
+
+  const filters: PurchaseFilterParams = {
+    startDate,
+    endDate,
     warehouseId: null,
     supplierId: null,
     categoryId: null,
-    searchQuery: '',
-    showMissingCostOnly: false,
-  });
+    searchQuery,
+    showMissingCostOnly,
+  };
 
   // 정렬 상태
-  const [sortField, setSortField] = useState<PurchaseSortField>('inboundDate');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortField, setSortField] = useState<PurchaseSortField>("inboundDate");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   // 데이터 조회
   const { data, isLoading, error } = usePurchaseData(filters);
@@ -91,7 +111,7 @@ export default function PurchasePage() {
     const totalAmount = records.reduce((sum, r) => {
       const costPrice = getCostPrice(r);
       if (costPrice !== null && costPrice !== undefined) {
-        return sum + (r.quantity * costPrice);
+        return sum + r.quantity * costPrice;
       }
       return sum;
     }, 0);
@@ -116,22 +136,22 @@ export default function PurchasePage() {
     if (!data?.records) return [];
 
     const sorted = [...data.records].sort((a, b) => {
-      let aValue: any = a[sortField];
-      let bValue: any = b[sortField];
+      const aValue: any = a[sortField];
+      const bValue: any = b[sortField];
 
       // null 값 처리
       if (aValue === null) return 1;
       if (bValue === null) return -1;
 
       // 문자열 비교
-      if (typeof aValue === 'string') {
-        return sortDirection === 'asc'
+      if (typeof aValue === "string") {
+        return sortDirection === "asc"
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
 
       // 숫자 비교
-      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
     });
 
     return sorted;
@@ -149,7 +169,7 @@ export default function PurchasePage() {
   }
 
   // 권한 체크: Supplier는 접근 불가
-  if (!user || user.accessLevel === 'supplier') {
+  if (!user || isSupplier) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex flex-col items-center justify-center min-h-[400px]">
@@ -162,7 +182,7 @@ export default function PurchasePage() {
               구매 내역 페이지는 팀 멤버만 접근할 수 있습니다.
             </p>
             <button
-              onClick={() => router.push('/menu')}
+              onClick={() => router.push("/menu")}
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               메인으로 돌아가기
@@ -176,10 +196,10 @@ export default function PurchasePage() {
   // 정렬 토글
   const handleSort = (field: PurchaseSortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
@@ -188,7 +208,7 @@ export default function PurchasePage() {
     if (sortField !== field) {
       return <ArrowUpDown className="w-4 h-4 ml-1" />;
     }
-    return sortDirection === 'asc' ? (
+    return sortDirection === "asc" ? (
       <ArrowUp className="w-4 h-4 ml-1" />
     ) : (
       <ArrowDown className="w-4 h-4 ml-1" />
@@ -197,20 +217,20 @@ export default function PurchasePage() {
 
   // 날짜 포맷 간소화 (2026-02-10T00:00:00.000Z → 26-02-10)
   const formatDate = (dateString: string) => {
-    if (!dateString) return '-';
+    if (!dateString) return "-";
     const date = new Date(dateString);
     const year = date.getFullYear().toString().slice(2); // 26
-    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 02
-    const day = date.getDate().toString().padStart(2, '0'); // 10
+    const month = (date.getMonth() + 1).toString().padStart(2, "0"); // 02
+    const day = date.getDate().toString().padStart(2, "0"); // 10
     return `${year}-${month}-${day}`;
   };
 
   // 비고 텍스트 처리 (최대 2줄, 이후 ... 처리)
   const truncateRemarks = (remarks: string | null) => {
-    if (!remarks) return '-';
-    const lines = remarks.split('\n');
+    if (!remarks) return "-";
+    const lines = remarks.split("\n");
     if (lines.length <= 2) return remarks;
-    return lines.slice(0, 2).join('\n') + '...';
+    return lines.slice(0, 2).join("\n") + "...";
   };
 
   // 엑셀 다운로드
@@ -252,7 +272,7 @@ export default function PurchasePage() {
         </div>
 
         <LoadingSkeleton type="summary" />
-        <LoadingSkeleton type={isMobile ? 'card' : 'table'} count={5} />
+        <LoadingSkeleton type={isMobile ? "card" : "table"} count={5} />
       </div>
     );
   }
@@ -271,14 +291,11 @@ export default function PurchasePage() {
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
         {/* 월 범위 선택 */}
         <MonthRangePicker
-          startDate={filters.startDate}
-          endDate={filters.endDate}
-          onStartDateChange={(date) =>
-            setFilters({ ...filters, startDate: date })
-          }
-          onEndDateChange={(date) =>
-            setFilters({ ...filters, endDate: date })
-          }
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          onRangeChange={setDateRange}
           className="mb-4"
         />
 
@@ -290,10 +307,8 @@ export default function PurchasePage() {
           <input
             type="text"
             placeholder="품목코드, 품목명, 비고"
-            value={filters.searchQuery}
-            onChange={(e) =>
-              setFilters({ ...filters, searchQuery: e.target.value })
-            }
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
         </div>
@@ -303,13 +318,8 @@ export default function PurchasePage() {
           <label className="flex items-center text-sm text-gray-700">
             <input
               type="checkbox"
-              checked={filters.showMissingCostOnly}
-              onChange={(e) =>
-                setFilters({
-                  ...filters,
-                  showMissingCostOnly: e.target.checked,
-                })
-              }
+              checked={showMissingCostOnly}
+              onChange={(e) => setShowMissingCostOnly(e.target.checked)}
               className="mr-2"
             />
             원가 미입력만 보기
@@ -334,7 +344,9 @@ export default function PurchasePage() {
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex items-start">
           <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-yellow-800">
-            <strong>원가 미입력 품목: {actualSummary.missingCostCount}건</strong>
+            <strong>
+              원가 미입력 품목: {actualSummary.missingCostCount}건
+            </strong>
             <br />
             정확한 구매 금액 분석을 위해 원가 정보를 입력해주세요.
           </div>
@@ -357,9 +369,7 @@ export default function PurchasePage() {
                     <h3 className="text-sm font-semibold text-gray-900 mb-1">
                       {record.itemName}
                     </h3>
-                    <p className="text-xs text-gray-500">
-                      {record.itemCode}
-                    </p>
+                    <p className="text-xs text-gray-500">{record.itemCode}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <div className="text-sm font-bold text-gray-900">
@@ -383,7 +393,8 @@ export default function PurchasePage() {
                   <div className="flex justify-between">
                     <span className="text-gray-500">공급처</span>
                     <span className="font-medium">
-                      {record.supplierName && record.originalRecord.supplierId ? (
+                      {record.supplierName &&
+                      record.originalRecord.supplierId ? (
                         <Link
                           href={`/supplier/${record.originalRecord.supplierId}`}
                           className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
@@ -391,7 +402,9 @@ export default function PurchasePage() {
                           {record.supplierName}
                         </Link>
                       ) : (
-                        <span className="text-gray-900">{record.supplierName || '-'}</span>
+                        <span className="text-gray-900">
+                          {record.supplierName || "-"}
+                        </span>
                       )}
                     </span>
                   </div>
@@ -459,38 +472,38 @@ export default function PurchasePage() {
                   </th>
                   <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('supplierName')}
+                    onClick={() => handleSort("supplierName")}
                   >
                     <div className="flex items-center">
                       공급처
-                      {renderSortIcon('supplierName')}
+                      {renderSortIcon("supplierName")}
                     </div>
                   </th>
                   <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('inboundDate')}
+                    onClick={() => handleSort("inboundDate")}
                   >
                     <div className="flex items-center">
                       입고일자
-                      {renderSortIcon('inboundDate')}
+                      {renderSortIcon("inboundDate")}
                     </div>
                   </th>
                   <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('itemName')}
+                    onClick={() => handleSort("itemName")}
                   >
                     <div className="flex items-center">
                       품목명
-                      {renderSortIcon('itemName')}
+                      {renderSortIcon("itemName")}
                     </div>
                   </th>
                   <th
                     className="px-4 py-3 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('quantity')}
+                    onClick={() => handleSort("quantity")}
                   >
                     <div className="flex items-center justify-end">
                       수량
-                      {renderSortIcon('quantity')}
+                      {renderSortIcon("quantity")}
                     </div>
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">
@@ -498,11 +511,11 @@ export default function PurchasePage() {
                   </th>
                   <th
                     className="px-4 py-3 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('totalPrice')}
+                    onClick={() => handleSort("totalPrice")}
                   >
                     <div className="flex items-center justify-end">
                       금액
-                      {renderSortIcon('totalPrice')}
+                      {renderSortIcon("totalPrice")}
                     </div>
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 w-[20%]">
@@ -512,15 +525,13 @@ export default function PurchasePage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {sortedRecords.map((record, index) => (
-                  <tr
-                    key={record.id}
-                    className="hover:bg-gray-50"
-                  >
+                  <tr key={record.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {index + 1}
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      {record.supplierName && record.originalRecord.supplierId ? (
+                      {record.supplierName &&
+                      record.originalRecord.supplierId ? (
                         <Link
                           href={`/supplier/${record.originalRecord.supplierId}`}
                           className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
@@ -528,7 +539,9 @@ export default function PurchasePage() {
                           {record.supplierName}
                         </Link>
                       ) : (
-                        <span className="text-gray-900">{record.supplierName || '-'}</span>
+                        <span className="text-gray-900">
+                          {record.supplierName || "-"}
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
@@ -536,7 +549,9 @@ export default function PurchasePage() {
                     </td>
                     <td
                       className="px-4 py-3 text-sm text-gray-900 cursor-pointer hover:bg-blue-50 transition-colors"
-                      onClick={() => handleItemClick(record.originalRecord.itemId)}
+                      onClick={() =>
+                        handleItemClick(record.originalRecord.itemId)
+                      }
                     >
                       <div className="font-medium text-blue-600 hover:text-blue-700">
                         {record.itemName}
@@ -567,7 +582,7 @@ export default function PurchasePage() {
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 max-w-0">
                       <div className="line-clamp-2 overflow-hidden text-ellipsis">
-                        {record.remarks || '-'}
+                        {record.remarks || "-"}
                       </div>
                     </td>
                   </tr>

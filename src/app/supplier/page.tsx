@@ -276,7 +276,9 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div className="w-full max-w-lg mx-4 bg-white shadow-2xl rounded-3xl animate-modal-slide-up">
               <div className="px-6 py-5 border-b border-Outline-Variant flex items-center justify-between">
-                <h3 className="text-base font-medium text-Text-Highest-100">주소 검색</h3>
+                <h3 className="text-base font-medium text-Text-Highest-100">
+                  주소 검색
+                </h3>
                 <button
                   type="button"
                   onClick={() => setShowAddressModal(false)}
@@ -376,13 +378,15 @@ export default function SupplierManagePage() {
       <div className="flex items-center justify-center min-h-screen bg-Back-Low-10">
         <div className="text-center">
           <LoadingCentered />
-          <p className="mt-4 text-sm text-Text-Low-70">데이터를 불러오는 중...</p>
+          <p className="mt-4 text-sm text-Text-Low-70">
+            데이터를 불러오는 중...
+          </p>
         </div>
       </div>
     );
   }
 
-  if (!user || (user.accessLevel !== "admin" && user.accessLevel !== "moderator" && user.accessLevel !== "user" && user.accessLevel !== "supplier")) {
+  if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-Back-Low-10">
         <div className="text-center max-w-md p-8 bg-white rounded-3xl shadow-sm">
@@ -410,8 +414,12 @@ export default function SupplierManagePage() {
     <div className="min-h-screen bg-Back-Low-10 p-6">
       {/* 페이지 헤더 */}
       <div className="mb-8">
-        <h1 className="text-3xl font-normal leading-10 text-Text-Highest-100">고객 관리</h1>
-        <p className="mt-1 text-sm text-Text-Low-70">고객 정보를 등록하고 관리합니다</p>
+        <h1 className="text-3xl font-normal leading-10 text-Text-Highest-100">
+          고객 관리
+        </h1>
+        <p className="mt-1 text-sm text-Text-Low-70">
+          고객 정보를 등록하고 관리합니다
+        </p>
       </div>
 
       {/* 검색 & 추가 */}
@@ -425,7 +433,12 @@ export default function SupplierManagePage() {
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
             <input
               type="text"
@@ -464,17 +477,24 @@ export default function SupplierManagePage() {
             <table className="min-w-full">
               <thead>
                 <tr className="bg-Back-Low-10 border-b border-Outline-Variant">
-                  {["고객명", "이메일", "주소", "전화번호", "대표자", "사업자등록번호", "메모", ""].map(
-                    (h) => (
-                      <th
-                        key={h}
-                        scope="col"
-                        className="px-5 py-3.5 text-left text-sm font-medium text-Text-High-90 whitespace-nowrap"
-                      >
-                        {h}
-                      </th>
-                    )
-                  )}
+                  {[
+                    "고객명",
+                    "이메일",
+                    "주소",
+                    "전화번호",
+                    "대표자",
+                    "사업자등록번호",
+                    "메모",
+                    "",
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      scope="col"
+                      className="px-5 py-3.5 text-left text-sm font-medium text-Text-High-90 whitespace-nowrap"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-Outline-Variant">
@@ -534,8 +554,12 @@ export default function SupplierManagePage() {
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="text-4xl mb-3">👥</div>
-            <p className="text-base font-medium text-Text-High-90">등록된 고객이 없습니다</p>
-            <p className="mt-1 text-sm text-Text-Low-70">오른쪽 상단의 버튼으로 고객을 추가해보세요</p>
+            <p className="text-base font-medium text-Text-High-90">
+              등록된 고객이 없습니다
+            </p>
+            <p className="mt-1 text-sm text-Text-Low-70">
+              오른쪽 상단의 버튼으로 고객을 추가해보세요
+            </p>
           </div>
         )}
       </div>
@@ -551,8 +575,14 @@ export default function SupplierManagePage() {
 
       <style jsx global>{`
         @keyframes modal-slide-up {
-          from { transform: translateY(16px); opacity: 0; }
-          to   { transform: translateY(0);    opacity: 1; }
+          from {
+            transform: translateY(16px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
         }
         .animate-modal-slide-up {
           animation: modal-slide-up 0.18s ease-out forwards;

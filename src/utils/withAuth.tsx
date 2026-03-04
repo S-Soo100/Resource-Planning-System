@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+import React from "react";
+import { useRouter } from "next/navigation";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 interface WithAuthOptions {
@@ -13,7 +14,9 @@ interface WithAuthOptions {
 }
 
 /**
- * 권한 체크를 위한 HOC (Higher-Order Component)
+ * 권한 체크를 위한 HOC (팀 권한 기반)
+ *
+ * usePermission()을 통해 팀 권한(TeamUserMapping.accessLevel)으로 체크합니다.
  *
  * @param Component - 래핑할 컴포넌트
  * @param options - 권한 체크 옵션
@@ -21,22 +24,6 @@ interface WithAuthOptions {
  * @param options.redirectTo - 권한 없을 때 리다이렉트할 경로 (기본값: '/menu')
  * @param options.loadingComponent - 커스텀 로딩 컴포넌트
  * @param options.unauthorizedComponent - 커스텀 권한 없음 컴포넌트
- *
- * @example
- * // 모든 로그인 사용자 허용
- * export default withAuth(MyPage);
- *
- * @example
- * // Admin, Moderator만 허용
- * export default withAuth(AdminPage, {
- *   allowedLevels: ['admin', 'moderator']
- * });
- *
- * @example
- * // Supplier 제외하고 모두 허용
- * export default withAuth(SalesPage, {
- *   allowedLevels: ['admin', 'moderator', 'user']
- * });
  */
 export function withAuth<P extends object>(
   Component: React.ComponentType<P>,
@@ -44,14 +31,17 @@ export function withAuth<P extends object>(
 ) {
   const {
     allowedLevels,
-    redirectTo = '/menu',
+    redirectTo = "/menu",
     loadingComponent,
     unauthorizedComponent,
   } = options;
 
   return function AuthenticatedComponent(props: P) {
     const router = useRouter();
-    const { user, isLoading } = useCurrentUser();
+    const { user, isLoading: isUserLoading } = useCurrentUser();
+    const { accessLevel, isLoading: isPermissionLoading } = usePermission();
+
+    const isLoading = isUserLoading || isPermissionLoading;
 
     // 로딩 상태
     if (isLoading) {
@@ -97,8 +87,8 @@ export function withAuth<P extends object>(
       );
     }
 
-    // 권한 레벨 체크 (allowedLevels가 지정된 경우만)
-    if (allowedLevels && !allowedLevels.includes(user.accessLevel)) {
+    // 팀 권한 레벨 체크 (allowedLevels가 지정된 경우만)
+    if (allowedLevels && !allowedLevels.includes(accessLevel)) {
       if (unauthorizedComponent) {
         return <>{unauthorizedComponent}</>;
       }

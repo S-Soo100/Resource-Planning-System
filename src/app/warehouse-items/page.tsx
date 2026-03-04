@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import CustomItemTable from "@/components/item/CustomItemTable";
@@ -11,8 +12,13 @@ import { LoadingCentered } from "@/components/ui/Loading";
 export default function ItemsPage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const {
+    isAdminOrModerator,
+    isReadOnly,
+    isLoading: isPermissionLoading,
+  } = usePermission();
 
-  if (isUserLoading) {
+  if (isUserLoading || isPermissionLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -23,10 +29,7 @@ export default function ItemsPage() {
     );
   }
 
-  if (
-    !user ||
-    (user.accessLevel !== "admin" && user.accessLevel !== "moderator")
-  ) {
+  if (!user || !isAdminOrModerator) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-center">
@@ -49,16 +52,17 @@ export default function ItemsPage() {
     );
   }
 
-  // moderator인 경우 읽기 전용 모드 설정
-  const isReadOnly = user.accessLevel === "moderator";
-
   return (
     <div className="p-4 min-h-screen bg-Back-Low-10">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-Text-Highest-100">창고별 품목 관리</h1>
-            <p className="text-sm text-Text-Low-70">창고 ID: {user.restrictedWhs}</p>
+            <h1 className="text-2xl font-bold text-Text-Highest-100">
+              창고별 품목 관리
+            </h1>
+            <p className="text-sm text-Text-Low-70">
+              창고 ID: {user.restrictedWhs}
+            </p>
           </div>
           {isReadOnly && (
             <div className="px-4 py-2 bg-Primary-Container text-Primary-Main rounded-full text-sm">

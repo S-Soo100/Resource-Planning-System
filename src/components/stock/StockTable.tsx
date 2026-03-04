@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { UpdateItemQuantityRequest } from "@/types/(item)/item";
@@ -8,6 +6,7 @@ import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { useItemStockManagement } from "@/hooks/useItemStockManagement";
 import EditQuantityModal from "./modal/EditQuantityModal";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import WarehouseCard from "./components/WarehouseCard";
 import StockTableHeader from "./components/StockTableHeader";
 import StockTableDesktop from "./components/StockTableDesktop";
@@ -30,6 +29,7 @@ export default function StockTable() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { isAdmin, restrictedWhs } = usePermission();
   const {
     items,
     warehouses,
@@ -43,8 +43,12 @@ export default function StockTable() {
   const [isEditQuantityModalOpen, setIsEditQuantityModalOpen] = useState(false);
 
   // URL에서 초기값 읽기
-  const [searchText, setSearchText] = useState(searchParams.get("search") || "");
-  const [hideZeroStock, setHideZeroStock] = useState(searchParams.get("hideZero") === "true");
+  const [searchText, setSearchText] = useState(
+    searchParams.get("search") || ""
+  );
+  const [hideZeroStock, setHideZeroStock] = useState(
+    searchParams.get("hideZero") === "true"
+  );
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
     searchParams.get("warehouse") ? Number(searchParams.get("warehouse")) : null
   );
@@ -118,7 +122,9 @@ export default function StockTable() {
     }
 
     const queryString = newParams.toString();
-    router.push(`/stock${queryString ? `?${queryString}` : ""}`, { scroll: false });
+    router.push(`/stock${queryString ? `?${queryString}` : ""}`, {
+      scroll: false,
+    });
   };
 
   // 페이지 로드 시 첫 번째 창고 자동 선택 (URL에 창고 파라미터가 없는 경우)
@@ -153,7 +159,7 @@ export default function StockTable() {
 
   const handleOpenEditQuantityModal = (item: any) => {
     // moderator는 재고 수량을 직접 수정할 수 없도록 처리
-    if (user?.accessLevel !== "admin") {
+    if (!isAdmin) {
       return;
     }
 
@@ -239,7 +245,11 @@ export default function StockTable() {
 
   // 창고 및 카테고리 유효성 검사
   useEffect(() => {
-    if (!isDataLoading && accessibleWarehouses && accessibleWarehouses.length > 0) {
+    if (
+      !isDataLoading &&
+      accessibleWarehouses &&
+      accessibleWarehouses.length > 0
+    ) {
       // 창고 ID 유효성 검사
       if (selectedWarehouseId !== null) {
         const isValidWarehouse = accessibleWarehouses.some(
@@ -255,13 +265,21 @@ export default function StockTable() {
 
       // 카테고리 ID 유효성 검사
       if (selectedCategoryId !== null && categories.length > 0) {
-        const isValidCategory = categories.some((cat) => cat.id === selectedCategoryId);
+        const isValidCategory = categories.some(
+          (cat) => cat.id === selectedCategoryId
+        );
         if (!isValidCategory) {
           setSelectedCategoryId(null); // 유효하지 않은 카테고리면 전체로 리셋
         }
       }
     }
-  }, [isDataLoading, accessibleWarehouses, categories, selectedWarehouseId, selectedCategoryId]);
+  }, [
+    isDataLoading,
+    accessibleWarehouses,
+    categories,
+    selectedWarehouseId,
+    selectedCategoryId,
+  ]);
 
   // 카테고리 ID로 카테고리 이름 찾기
   const getCategoryNameById = (categoryId?: number | null): string => {
@@ -296,8 +314,10 @@ export default function StockTable() {
       const passesZeroFilter = hideZeroStock ? item.itemQuantity > 0 : true;
 
       // 카테고리 필터링
-      const itemCategoryId = item.teamItem?.category?.id ?? item.teamItem?.categoryId;
-      const passesCategoryFilter = selectedCategoryId === null || itemCategoryId === selectedCategoryId;
+      const itemCategoryId =
+        item.teamItem?.category?.id ?? item.teamItem?.categoryId;
+      const passesCategoryFilter =
+        selectedCategoryId === null || itemCategoryId === selectedCategoryId;
 
       return matchesSearch && passesZeroFilter && passesCategoryFilter;
     });
@@ -311,7 +331,8 @@ export default function StockTable() {
     const categoryIds = new Set<number>();
 
     warehouseItems.forEach((item) => {
-      const categoryId = item.teamItem?.category?.id ?? item.teamItem?.categoryId;
+      const categoryId =
+        item.teamItem?.category?.id ?? item.teamItem?.categoryId;
       if (categoryId) {
         categoryIds.add(categoryId);
       }
@@ -359,14 +380,18 @@ export default function StockTable() {
               창고 선택
             </label>
             <select
-              value={selectedWarehouseId || ''}
+              value={selectedWarehouseId || ""}
               onChange={(e) => handleWarehouseSelect(Number(e.target.value))}
               className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">창고를 선택하세요</option>
               {accessibleWarehouses.map((warehouse) => (
-                <option key={`warehouse-option-${warehouse.id}`} value={warehouse.id}>
-                  {warehouse.warehouseName} ({getWarehouseItems(Number(warehouse.id)).length}개 품목)
+                <option
+                  key={`warehouse-option-${warehouse.id}`}
+                  value={warehouse.id}
+                >
+                  {warehouse.warehouseName} (
+                  {getWarehouseItems(Number(warehouse.id)).length}개 품목)
                 </option>
               ))}
             </select>
@@ -448,7 +473,7 @@ export default function StockTable() {
                         getWarehouseItems(selectedWarehouseId)
                       )}
                       onEditQuantity={handleOpenEditQuantityModal}
-                      showEditButton={user?.accessLevel === "admin"}
+                      showEditButton={isAdmin}
                     />
                   </tbody>
                 </table>
@@ -460,7 +485,7 @@ export default function StockTable() {
               <StockItemCard
                 items={getFilteredItems(getWarehouseItems(selectedWarehouseId))}
                 onEditQuantity={handleOpenEditQuantityModal}
-                showEditButton={user?.accessLevel === "admin"}
+                showEditButton={isAdmin}
               />
             </div>
           </>

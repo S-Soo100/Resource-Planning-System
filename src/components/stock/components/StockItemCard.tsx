@@ -3,7 +3,7 @@ import { Item } from "@/types/(item)/item";
 import { useCategory } from "@/hooks/useCategory";
 import { useRouter } from "next/navigation";
 import { authStore } from "@/store/authStore";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { formatCurrency } from "@/utils/stockAssetCalculator";
 
 interface StockItemCardProps {
@@ -20,10 +20,7 @@ export default function StockItemCard({
   const selectedTeam = authStore((state) => state.selectedTeam);
   const { categories } = useCategory(selectedTeam?.id);
   const router = useRouter();
-  const { user } = useCurrentUser();
-
-  // 권한 체크: Admin, Moderator만 원가 정보 열람 가능
-  const canViewCostPrice = user?.accessLevel === 'admin' || user?.accessLevel === 'moderator';
+  const { canViewCostPrice } = usePermission();
 
   const [openCategories, setOpenCategories] = useState<{
     [key: string]: boolean;
@@ -193,7 +190,9 @@ export default function StockItemCard({
                               재고 가치:{" "}
                               {item.teamItem?.costPrice ? (
                                 <span className="font-semibold text-green-600">
-                                  {formatCurrency(item.teamItem.costPrice * item.itemQuantity)}
+                                  {formatCurrency(
+                                    item.teamItem.costPrice * item.itemQuantity
+                                  )}
                                 </span>
                               ) : (
                                 <span className="text-gray-400">-</span>
@@ -292,7 +291,9 @@ export default function StockItemCard({
                         재고 가치:{" "}
                         {item.teamItem?.costPrice ? (
                           <span className="font-semibold text-green-600">
-                            {formatCurrency(item.teamItem.costPrice * item.itemQuantity)}
+                            {formatCurrency(
+                              item.teamItem.costPrice * item.itemQuantity
+                            )}
                           </span>
                         ) : (
                           <span className="text-gray-400">-</span>

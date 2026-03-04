@@ -38,13 +38,15 @@ import {
   SalesRecord,
   SalesSummary as SalesSummaryType,
 } from "@/types/sales";
+import { DepositStatus } from "@/types/(order)/order";
 import {
   getDepositStatusText,
   getDepositStatusColor,
-  getRefundStatusText,
-  getRefundStatusColor,
   DEPOSIT_FILTER_OPTIONS,
+  DEPOSIT_STATUS_OPTIONS,
 } from "@/utils/depositUtils";
+import { useUpdateOrderDetails } from "@/hooks/(useOrder)/useOrderMutations";
+import { useQueryClient } from "@tanstack/react-query";
 
 type SalesTab = "order" | "demo";
 
@@ -66,13 +68,41 @@ function useMediaQuery(query: string) {
 export default function SalesPage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
-  const { canViewMargin, isSupplier } = usePermission();
+  const { canViewMargin, isSupplier, isModerator, isAdmin } = usePermission();
+  const queryClient = useQueryClient();
 
   // 미디어 쿼리
   const isMobile = useMediaQuery("(max-width: 759px)");
 
   // 권한별 마진 컬럼 표시 여부 (Admin, Moderator만)
   const showMarginColumns = canViewMargin;
+  const canEditDeposit = isModerator || isAdmin;
+
+  // 입금상태 인라인 수정
+  const { mutateAsync: updateDetailsMutate } = useUpdateOrderDetails();
+  const [updatingDepositId, setUpdatingDepositId] = useState<number | null>(
+    null
+  );
+
+  const handleDepositStatusChange = async (
+    recordId: number,
+    orderId: number,
+    value: string
+  ) => {
+    setUpdatingDepositId(recordId);
+    try {
+      const depositStatus = (value || undefined) as DepositStatus | undefined;
+      await updateDetailsMutate({
+        id: String(orderId),
+        data: { depositStatus },
+      });
+      await queryClient.invalidateQueries({ queryKey: ["sales"] });
+    } catch (error) {
+      console.error("입금상태 변경 실패:", error);
+    } finally {
+      setUpdatingDepositId(null);
+    }
+  };
 
   // 필터 상태 (Zustand store - 날짜는 localStorage에 보존)
   const {
@@ -724,10 +754,10 @@ export default function SalesPage() {
 
                   {showMarginColumns && (
                     <>
-                      <div className="p-2 bg-orange-50 rounded-md">
+                      <div className="p-2 bg-gray-50 rounded-md">
                         <div className="flex justify-between items-center">
                           <span className="text-xs text-gray-600">원가</span>
-                          <span className="text-sm font-bold text-orange-600">
+                          <span className="text-sm font-bold text-gray-700">
                             {record.hasCostPrice &&
                             record.costAmount !== null &&
                             record.costAmount !== undefined
@@ -799,24 +829,47 @@ export default function SalesPage() {
                       {record.itemCount}종 {record.totalQuantity}개
                     </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-500">입금상태</span>
-                    <span
-                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
-                    >
-                      {getDepositStatusText(
-                        record.depositStatus,
-                        record.depositAmount
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">환급상태</span>
-                    <span
-                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getRefundStatusColor(record)}`}
-                    >
-                      {getRefundStatusText(record)}
-                    </span>
+                    {canEditDeposit ? (
+                      <select
+                        value={record.depositStatus || ""}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleDepositStatusChange(
+                            record.id,
+                            record.originalOrder.id,
+                            e.target.value
+                          );
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        disabled={updatingDepositId === record.id}
+                        className={`text-xs font-medium rounded px-2 py-0.5 border cursor-pointer ${
+                          updatingDepositId === record.id
+                            ? "opacity-50 cursor-wait"
+                            : getDepositStatusColor(
+                                record.depositStatus,
+                                record.depositAmount
+                              )
+                        }`}
+                      >
+                        <option value="">미입금</option>
+                        {DEPOSIT_STATUS_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
+                      >
+                        {getDepositStatusText(
+                          record.depositStatus,
+                          record.depositAmount
+                        )}
+                      </span>
+                    )}
                   </div>
                   {record.memo && (
                     <div className="pt-2 border-t border-gray-100 mt-2">
@@ -930,11 +983,8 @@ export default function SalesPage() {
                       </th>
                     </>
                   )}
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-20">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-24">
                     입금상태
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-20">
-                    환급상태
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-28">
                     거래명세서
@@ -990,34 +1040,30 @@ export default function SalesPage() {
                     <td className="px-4 py-3 text-sm text-center text-gray-900">
                       {record.itemCount}종 {record.totalQuantity}개
                     </td>
-                    <td className="px-4 py-3 text-sm text-right">
+                    <td className="px-4 py-3 text-sm text-right tabular-nums">
                       {record.totalPrice !== null ? (
-                        <div className="bg-blue-50 px-3 py-1.5 rounded-md inline-block">
-                          <span className="font-bold text-blue-600">
-                            ₩{record.totalPrice.toLocaleString()}
-                          </span>
-                        </div>
+                        <span className="font-semibold text-gray-900">
+                          ₩{record.totalPrice.toLocaleString()}
+                        </span>
                       ) : (
                         <span className="text-gray-400">미입력</span>
                       )}
                     </td>
                     {showMarginColumns && (
                       <>
-                        <td className="px-4 py-3 text-sm text-right">
+                        <td className="px-4 py-3 text-sm text-right tabular-nums">
                           {record.hasCostPrice &&
                           record.costAmount !== null &&
                           record.costAmount !== undefined ? (
-                            <div className="bg-orange-50 px-3 py-1.5 rounded-md inline-block">
-                              <span className="font-bold text-orange-600">
-                                ₩{record.costAmount.toLocaleString()}
-                              </span>
-                            </div>
+                            <span className="font-medium text-gray-600">
+                              ₩{record.costAmount.toLocaleString()}
+                            </span>
                           ) : (
                             <span className="text-gray-400">미입력</span>
                           )}
                         </td>
                         <td
-                          className={`px-4 py-3 text-sm text-right font-medium ${
+                          className={`px-4 py-3 text-sm text-right tabular-nums font-semibold ${
                             record.marginAmount !== null &&
                             record.marginAmount !== undefined
                               ? record.marginAmount >= 0
@@ -1032,7 +1078,7 @@ export default function SalesPage() {
                             : "-"}
                         </td>
                         <td
-                          className={`px-4 py-3 text-sm text-right font-bold ${
+                          className={`px-4 py-3 text-sm text-right tabular-nums font-semibold ${
                             record.marginRate !== null &&
                             record.marginRate !== undefined
                               ? record.marginRate >= 0
@@ -1049,21 +1095,45 @@ export default function SalesPage() {
                       </>
                     )}
                     <td className="px-4 py-3 text-center">
-                      <span
-                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
-                      >
-                        {getDepositStatusText(
-                          record.depositStatus,
-                          record.depositAmount
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span
-                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getRefundStatusColor(record)}`}
-                      >
-                        {getRefundStatusText(record)}
-                      </span>
+                      {canEditDeposit ? (
+                        <select
+                          value={record.depositStatus || ""}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleDepositStatusChange(
+                              record.id,
+                              record.originalOrder.id,
+                              e.target.value
+                            );
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          disabled={updatingDepositId === record.id}
+                          className={`text-xs font-medium rounded px-2 py-1 border cursor-pointer transition-colors ${
+                            updatingDepositId === record.id
+                              ? "opacity-50 cursor-wait"
+                              : getDepositStatusColor(
+                                  record.depositStatus,
+                                  record.depositAmount
+                                )
+                          }`}
+                        >
+                          <option value="">미입금</option>
+                          {DEPOSIT_STATUS_OPTIONS.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span
+                          className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
+                        >
+                          {getDepositStatusText(
+                            record.depositStatus,
+                            record.depositAmount
+                          )}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button
@@ -1090,23 +1160,22 @@ export default function SalesPage() {
                       {actualSummary.totalItems}종 {actualSummary.totalQuantity}
                       개
                     </td>
-                    <td className="px-4 py-3 text-sm font-bold text-right text-blue-600">
+                    <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-gray-900">
                       ₩{actualSummary.totalSales.toLocaleString()}
                     </td>
                     {showMarginColumns && (
                       <>
-                        <td className="px-4 py-3 text-sm font-bold text-right text-orange-600">
+                        <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-gray-600">
                           ₩{(actualSummary?.totalCost || 0).toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm font-bold text-right text-green-600">
+                        <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-green-600">
                           ₩{(actualSummary?.totalMargin || 0).toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm font-bold text-right text-green-600">
+                        <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-green-600">
                           {(actualSummary?.averageMarginRate || 0).toFixed(1)}%
                         </td>
                       </>
                     )}
-                    <td></td>
                     <td></td>
                     <td></td>
                   </tr>

@@ -9,6 +9,7 @@ import {
   UpdateOrderDetailsDto,
   OrderFile as OrderFileResponse,
 } from "../types/(order)/order";
+import { CustomerDocument } from "../types/customer-document";
 import { AxiosError } from "axios";
 import {
   CreateOrderCommentDto,
@@ -477,5 +478,75 @@ export const updateOrderDetails = async (
     }
 
     return { success: false, message: "주문 상세 정보 수정에 실패했습니다." };
+  }
+};
+
+// === 세금계산서 관리 API (v2.5) ===
+
+// 세금계산서 업로드
+export const uploadTaxInvoice = async (
+  orderId: number,
+  file: File,
+  memo?: string
+): Promise<ApiResponse<CustomerDocument>> => {
+  try {
+    const formData = new FormData();
+    const normalizedFileName = normalizeFileName(file);
+    const normalizedFile = new File([file], normalizedFileName, {
+      type: file.type,
+      lastModified: file.lastModified,
+    });
+    formData.append("file", normalizedFile);
+    if (memo) {
+      formData.append("memo", memo);
+    }
+
+    const response = await api.post<ApiResponse<CustomerDocument>>(
+      `/order/${orderId}/tax-invoice/upload`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("[API] 세금계산서 업로드 오류:", error);
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      return { success: false, message: error.response.data.message };
+    }
+    return { success: false, message: "세금계산서 업로드에 실패했습니다." };
+  }
+};
+
+// 세금계산서 목록 조회
+export const getTaxInvoices = async (
+  orderId: number
+): Promise<ApiResponse<CustomerDocument[]>> => {
+  try {
+    const response = await api.get<CustomerDocument[]>(
+      `/order/${orderId}/tax-invoices`
+    );
+    return { success: true, data: response.data };
+  } catch {
+    return { success: false, message: "세금계산서 목록 조회에 실패했습니다." };
+  }
+};
+
+// 세금계산서 삭제
+export const deleteTaxInvoice = async (
+  orderId: number,
+  docId: number
+): Promise<ApiResponse<CustomerDocument>> => {
+  try {
+    const response = await api.delete<CustomerDocument>(
+      `/order/${orderId}/tax-invoice/${docId}`
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("[API] 세금계산서 삭제 오류:", error);
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      return { success: false, message: error.response.data.message };
+    }
+    return { success: false, message: "세금계산서 삭제에 실패했습니다." };
   }
 };

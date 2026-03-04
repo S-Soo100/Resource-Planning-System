@@ -28,6 +28,13 @@ export interface Order {
   status: string;
   memo: string;
   totalPrice?: number | null; // 주문 총 판매가격
+  // 고객관리 필드 (v2.5)
+  isRefundApplied?: boolean;
+  isRefundReceived?: boolean;
+  isRefundNotApplicable?: boolean;
+  isTaxInvoiceIssued?: boolean;
+  depositStatus?: DepositStatus | null;
+  depositAmount?: number | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -154,6 +161,8 @@ export interface UpdateOrderStatusDto {
   status: string;
 }
 
+export type DepositStatus = "자부담금" | "전액" | "선금" | "중도금" | "잔금";
+
 // 발주 상세 정보 수정 DTO (고객 정보 등)
 export interface UpdateOrderDetailsDto {
   totalPrice?: number;
@@ -163,6 +172,13 @@ export interface UpdateOrderDetailsDto {
     vat?: number;
   }>;
   supplierId?: number;
+  // 고객관리 필드 (v2.5)
+  isRefundApplied?: boolean;
+  isRefundReceived?: boolean;
+  isRefundNotApplicable?: boolean;
+  isTaxInvoiceIssued?: boolean;
+  depositStatus?: DepositStatus;
+  depositAmount?: number;
 }
 
 export interface CreatOrderResponse {

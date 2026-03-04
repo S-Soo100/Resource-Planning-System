@@ -19,6 +19,13 @@ export interface IOrderRecord {
   status: string;
   memo: string; // 이전의 additionalItems
   totalPrice?: number | null; // 주문 총 판매가격
+  // 고객관리 필드 (v2.5)
+  isRefundApplied?: boolean;
+  isRefundReceived?: boolean;
+  isRefundNotApplicable?: boolean;
+  isTaxInvoiceIssued?: boolean;
+  depositStatus?: string | null;
+  depositAmount?: number | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

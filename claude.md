@@ -156,10 +156,11 @@ KARS는 **팀별 권한 중심 아키텍처**를 사용합니다.
 
 #### 권한 아키텍처 원칙
 
-**팀 권한 우선 (Team-Permission-Centric)**
-- `TeamUserMapping.accessLevel` (팀별 권한) 우선 사용
-- `User.accessLevel` (기본 권한)은 **레거시** - 신규 개발 시 사용 금지
-- 신규 사용자 생성 시 반드시 팀 권한을 자동 설정할 것
+**팀 권한이 유일한 기준 (Team-Permission Only)**
+- `TeamUserMapping.accessLevel`이 **유일한 권한 소스**
+- `User.accessLevel`은 **레거시** — 참조 금지, 신규 코드에서 사용 금지
+- 프론트엔드 권한 체크는 반드시 팀 권한(`useTeamRole` 등)을 기반으로 할 것
+- **API가 팀 권한대로 동작하지 않으면 API를 수정해야 함** (프론트에서 우회하지 않는다)
 
 **isAdmin 자동 계산**
 - `isAdmin` 필드는 별도로 입력받지 않음
@@ -182,15 +183,9 @@ await teamRoleApi.updateTeamRole(teamId, userId, {
 });
 ```
 
-**권한 표시 우선순위**
-```typescript
-// 팀 권한이 있으면 팀 권한만 표시
-if (teamUserMapping.accessLevel) {
-  return teamUserMapping.accessLevel; // "admin", "moderator", etc.
-} else {
-  return user.accessLevel; // 기본 권한 (레거시)
-}
-```
+**현재 마이그레이션 상태**
+> ⚠️ 현재 대부분의 페이지가 레거시 `User.accessLevel`(`useCurrentUser()`)로 권한 체크 중.
+> 팀 권한 기반(`useTeamRole()`)으로 전환이 필요한 상태. 신규/수정 작업 시 반드시 팀 권한 사용.
 
 ### 테마 색상
 | 용도         | 색상                              |

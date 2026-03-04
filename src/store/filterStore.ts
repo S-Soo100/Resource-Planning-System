@@ -15,11 +15,13 @@ interface SalesFilterState {
   endDate: string;
   searchQuery: string;
   showMissingPriceOnly: boolean;
+  depositFilter: string;
   setStartDate: (date: string) => void;
   setEndDate: (date: string) => void;
   setDateRange: (startDate: string, endDate: string) => void;
   setSearchQuery: (query: string) => void;
   setShowMissingPriceOnly: (value: boolean) => void;
+  setDepositFilter: (value: string) => void;
   reset: () => void;
 }
 
@@ -30,12 +32,14 @@ export const useSalesFilterStore = create<SalesFilterState>()(
       endDate: getDefaultEndDate(),
       searchQuery: "",
       showMissingPriceOnly: false,
+      depositFilter: "all",
 
       setStartDate: (date) => set({ startDate: date }),
       setEndDate: (date) => set({ endDate: date }),
       setDateRange: (startDate, endDate) => set({ startDate, endDate }),
       setSearchQuery: (query) => set({ searchQuery: query }),
       setShowMissingPriceOnly: (value) => set({ showMissingPriceOnly: value }),
+      setDepositFilter: (value) => set({ depositFilter: value }),
 
       reset: () =>
         set({
@@ -43,6 +47,7 @@ export const useSalesFilterStore = create<SalesFilterState>()(
           endDate: getDefaultEndDate(),
           searchQuery: "",
           showMissingPriceOnly: false,
+          depositFilter: "all",
         }),
     }),
     {

@@ -1,15 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import {
   SalesRecord,
   SalesSummary,
   SalesFilterParams,
   SalesPriceCalculation,
-} from '@/types/sales';
-import { Order } from '@/types/(order)/order';
-import { TeamItem } from '@/types/(item)/team-item';
-import { getOrdersByTeamId } from '@/api/order-api';
-import { teamItemsApi } from '@/api/team-items-api';
-import { authStore } from '@/store/authStore';
+} from "@/types/sales";
+import { Order } from "@/types/(order)/order";
+import { TeamItem } from "@/types/(item)/team-item";
+import { getOrdersByTeamId } from "@/api/order-api";
+import { teamItemsApi } from "@/api/team-items-api";
+import { authStore } from "@/store/authStore";
 
 /**
  * 발주의 총 판매 금액 계산
@@ -20,7 +20,7 @@ export const calculateOrderTotal = (order: Order): SalesPriceCalculation => {
     return {
       totalPrice: order.totalPrice,
       hasPrice: true,
-      source: 'order',
+      source: "order",
     };
   }
 
@@ -40,7 +40,7 @@ export const calculateOrderTotal = (order: Order): SalesPriceCalculation => {
       return {
         totalPrice: itemsTotal,
         hasPrice: true,
-        source: 'items',
+        source: "items",
       };
     }
   }
@@ -49,7 +49,7 @@ export const calculateOrderTotal = (order: Order): SalesPriceCalculation => {
   return {
     totalPrice: null,
     hasPrice: false,
-    source: 'none',
+    source: "none",
   };
 };
 
@@ -108,15 +108,15 @@ const transformToSalesRecord = (
 
   return {
     id: order.id,
-    purchaseDate: order.purchaseDate || '',
-    title: order.title || '',
-    supplierName: order.supplier?.supplierName || '',
-    receiver: order.receiver || '',
+    purchaseDate: order.purchaseDate || "",
+    title: order.title || "",
+    supplierName: order.supplier?.supplierName || "",
+    receiver: order.receiver || "",
     itemCount: order.orderItems?.length || 0,
     totalQuantity,
     totalPrice: priceCalc.totalPrice,
-    status: order.status || '',
-    manager: order.manager || '',
+    status: order.status || "",
+    manager: order.manager || "",
     memo: order.memo || null,
     orderItems: order.orderItems || [],
     originalOrder: order,
@@ -126,6 +126,13 @@ const transformToSalesRecord = (
     marginRate,
     hasCostPrice,
     isNegativeMargin,
+    // 고객관리 필드 (입금/환급/세금계산서)
+    depositStatus: order.depositStatus ?? null,
+    depositAmount: order.depositAmount ?? null,
+    isRefundApplied: order.isRefundApplied ?? false,
+    isRefundReceived: order.isRefundReceived ?? false,
+    isRefundNotApplicable: order.isRefundNotApplicable ?? false,
+    isTaxInvoiceIssued: order.isTaxInvoiceIssued ?? false,
   };
 };
 
@@ -185,7 +192,7 @@ export const useSalesData = (params: SalesFilterParams) => {
 
   return useQuery({
     queryKey: [
-      'sales',
+      "sales",
       selectedTeam?.id,
       params.startDate,
       params.endDate,
@@ -194,10 +201,11 @@ export const useSalesData = (params: SalesFilterParams) => {
       params.orderType,
       params.searchQuery,
       params.showMissingPriceOnly,
+      params.depositFilter,
     ],
     queryFn: async () => {
       if (!selectedTeam?.id) {
-        throw new Error('팀이 선택되지 않았습니다.');
+        throw new Error("팀이 선택되지 않았습니다.");
       }
 
       // 1. TeamItem 데이터 조회 (원가 정보)
@@ -205,7 +213,7 @@ export const useSalesData = (params: SalesFilterParams) => {
         selectedTeam.id
       );
       if (!teamItemsResponse.success || !teamItemsResponse.data) {
-        throw new Error('TeamItem 데이터 조회에 실패했습니다.');
+        throw new Error("TeamItem 데이터 조회에 실패했습니다.");
       }
 
       // TeamItem Map 생성 (teamItemId -> TeamItem)
@@ -217,7 +225,7 @@ export const useSalesData = (params: SalesFilterParams) => {
       // 2. 발주 데이터 조회
       const response = await getOrdersByTeamId(selectedTeam.id);
       if (!response.success || !response.data) {
-        throw new Error('발주 데이터 조회에 실패했습니다.');
+        throw new Error("발주 데이터 조회에 실패했습니다.");
       }
 
       const orders = response.data as Order[];
@@ -250,12 +258,12 @@ export const useSalesData = (params: SalesFilterParams) => {
       }
 
       // 패키지/개별 필터링
-      if (params.orderType && params.orderType !== 'all') {
-        if (params.orderType === 'package') {
+      if (params.orderType && params.orderType !== "all") {
+        if (params.orderType === "package") {
           salesRecords = salesRecords.filter(
             (r: SalesRecord) => r.originalOrder.packageId !== null
           );
-        } else if (params.orderType === 'individual') {
+        } else if (params.orderType === "individual") {
           salesRecords = salesRecords.filter(
             (r: SalesRecord) => r.originalOrder.packageId === null
           );
@@ -279,6 +287,29 @@ export const useSalesData = (params: SalesFilterParams) => {
         salesRecords = salesRecords.filter(
           (r: SalesRecord) => r.totalPrice === null
         );
+      }
+
+      // 입금 상태 필터
+      if (params.depositFilter && params.depositFilter !== "all") {
+        if (params.depositFilter === "none") {
+          // 미입금: depositStatus 없거나 depositAmount 없거나 0
+          salesRecords = salesRecords.filter(
+            (r: SalesRecord) =>
+              !r.depositStatus || !r.depositAmount || r.depositAmount <= 0
+          );
+        } else if (params.depositFilter === "deposited") {
+          // 입금완료 (전체): depositStatus 있고 depositAmount > 0
+          salesRecords = salesRecords.filter(
+            (r: SalesRecord) => !!r.depositStatus && (r.depositAmount ?? 0) > 0
+          );
+        } else {
+          // 특정 상태 (자부담금, 전액, 선금, 중도금, 잔금)
+          salesRecords = salesRecords.filter(
+            (r: SalesRecord) =>
+              r.depositStatus === params.depositFilter &&
+              (r.depositAmount ?? 0) > 0
+          );
+        }
       }
 
       // 요약 정보 계산

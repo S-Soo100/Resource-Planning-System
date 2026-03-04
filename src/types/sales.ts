@@ -27,6 +27,13 @@ export interface SalesRecord {
   marginRate?: number | null; // 마진율 (%) = (판매가 - 원가) / 판매가 × 100
   hasCostPrice?: boolean; // 원가 입력 여부
   isNegativeMargin?: boolean; // 역마진 여부 (마진율 < 0)
+  // 고객관리 필드 (입금/환급/세금계산서)
+  depositStatus?: string | null;
+  depositAmount?: number | null;
+  isRefundApplied?: boolean;
+  isRefundReceived?: boolean;
+  isRefundNotApplicable?: boolean;
+  isTaxInvoiceIssued?: boolean;
   // 데이터 출처 (유료 시연 통합용)
   source?: "order" | "demo"; // 기본값 'order'
   demoId?: number; // source === 'demo'일 때 원본 ID
@@ -65,6 +72,7 @@ export interface SalesFilterParams {
   orderType?: "all" | "package" | "individual"; // 패키지/개별
   searchQuery?: string;
   showMissingPriceOnly?: boolean; // 판매가 미입력만 보기
+  depositFilter?: string; // 입금 상태 필터 (all/none/deposited/자부담금/전액/선금/중도금/잔금)
 }
 
 /**

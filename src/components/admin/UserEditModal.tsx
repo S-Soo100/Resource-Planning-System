@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui";
-import { IUser, UpdateUserRequest } from "@/types/(auth)/user";
+import { IUser, UpdateUserRequest, CustomerType } from "@/types/(auth)/user";
 import { warehouseApi } from "@/api/warehouse-api";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useTeamAdmin } from "@/hooks/admin/useTeamAdmin";
@@ -119,7 +119,11 @@ export default function UserEditModal({
             ? response.data
             : (response.data as { data: Warehouse[] }).data;
           setWarehouses(warehouseArray);
-          console.log("[UserEditModal] 창고 목록 설정 완료:", warehouseArray.length, "개");
+          console.log(
+            "[UserEditModal] 창고 목록 설정 완료:",
+            warehouseArray.length,
+            "개"
+          );
         } else {
           setWarehouses(null);
           setLoadError("창고 목록을 불러오는데 실패했습니다.");
@@ -144,6 +148,12 @@ export default function UserEditModal({
       setFormData({
         name: user.name,
         email: user.email,
+        // 고객관리 필드
+        customerType: user.customerType ?? null,
+        isRecipient: user.isRecipient ?? false,
+        depositorName: user.depositorName ?? null,
+        residentId: user.residentId ?? null,
+        repurchaseCycleMonths: user.repurchaseCycleMonths ?? null,
       });
 
       // restrictedWhs 파싱 (제한된 창고)
@@ -207,8 +217,7 @@ export default function UserEditModal({
 
       const updateData: UpdateUserRequest = {
         ...formData,
-        restrictedWhs:
-          restrictedIds.length > 0 ? restrictedIds.join(",") : "",
+        restrictedWhs: restrictedIds.length > 0 ? restrictedIds.join(",") : "",
       };
 
       // 빈 필드는 제거 (restrictedWhs는 제외)
@@ -238,7 +247,10 @@ export default function UserEditModal({
 
         if (response.success && response.data) {
           setUser(response.data);
-          console.log("[UserEditModal] 수정 후 최신 데이터로 업데이트:", response.data);
+          console.log(
+            "[UserEditModal] 수정 후 최신 데이터로 업데이트:",
+            response.data
+          );
         }
       } catch (error) {
         console.error("사용자 정보 조회 실패:", error);
@@ -268,7 +280,6 @@ export default function UserEditModal({
     });
   };
 
-
   if (!isOpen) return null;
 
   // 에러 발생 시
@@ -278,11 +289,23 @@ export default function UserEditModal({
         <div className="p-6 mx-4 w-full max-w-2xl bg-white rounded-lg shadow-xl">
           <div className="flex flex-col justify-center items-center py-10">
             <div className="mb-4 text-red-500">
-              <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                className="w-16 h-16"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
-            <p className="mb-4 text-lg font-medium text-gray-900">데이터 로드 실패</p>
+            <p className="mb-4 text-lg font-medium text-gray-900">
+              데이터 로드 실패
+            </p>
             <p className="mb-6 text-sm text-gray-600">{loadError}</p>
             <button
               onClick={onClose}
@@ -307,8 +330,13 @@ export default function UserEditModal({
             <LoadingCentered size="lg" />
             <p className="mt-3 text-gray-600">
               {isLoadingUser && "사용자 정보를 불러오는 중..."}
-              {!isLoadingUser && isLoadingWarehouses && "창고 목록을 불러오는 중..."}
-              {!isLoadingUser && !isLoadingWarehouses && !isDataReady && "데이터를 준비하는 중..."}
+              {!isLoadingUser &&
+                isLoadingWarehouses &&
+                "창고 목록을 불러오는 중..."}
+              {!isLoadingUser &&
+                !isLoadingWarehouses &&
+                !isDataReady &&
+                "데이터를 준비하는 중..."}
             </p>
           </div>
         </div>
@@ -374,11 +402,150 @@ export default function UserEditModal({
             </div>
           </div>
 
+          {/* 고객 정보 */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-900">고객 정보</h4>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  고객 분류
+                </label>
+                <select
+                  value={formData.customerType || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      customerType: (e.target.value ||
+                        null) as CustomerType | null,
+                    }))
+                  }
+                  className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isReadOnly}
+                >
+                  <option value="">미설정</option>
+                  <option value="b2c">B2C (개인)</option>
+                  <option value="b2b">B2B (기업)</option>
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isRecipient || false}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        isRecipient: e.target.checked,
+                      }))
+                    }
+                    disabled={isReadOnly}
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    수급자 여부
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  입금자명
+                </label>
+                <input
+                  type="text"
+                  value={formData.depositorName || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      depositorName: e.target.value || null,
+                    }))
+                  }
+                  placeholder="입금자명 입력"
+                  className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isReadOnly}
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  주민등록번호
+                </label>
+                <input
+                  type="text"
+                  value={formData.residentId || ""}
+                  onChange={(e) => {
+                    // 숫자와 하이픈만 허용
+                    const value = e.target.value.replace(/[^0-9-]/g, "");
+                    setFormData((prev) => ({
+                      ...prev,
+                      residentId: value || null,
+                    }));
+                  }}
+                  placeholder="000000-0000000"
+                  maxLength={14}
+                  className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isReadOnly}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  재구매 주기 (개월)
+                </label>
+                <input
+                  type="number"
+                  value={formData.repurchaseCycleMonths ?? ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      repurchaseCycleMonths: e.target.value
+                        ? parseInt(e.target.value)
+                        : null,
+                    }))
+                  }
+                  placeholder="기본 3개월"
+                  min={1}
+                  max={120}
+                  className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isReadOnly}
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  재구매 예정일
+                </label>
+                <input
+                  type="text"
+                  value={
+                    user?.repurchaseDueDate
+                      ? new Date(user.repurchaseDueDate).toLocaleDateString(
+                          "ko-KR"
+                        )
+                      : "미설정"
+                  }
+                  className="px-3 py-2 w-full text-gray-500 bg-gray-50 rounded-md border border-gray-200"
+                  disabled
+                />
+                <p className="mt-1 text-xs text-gray-400">
+                  출고 완료 시 자동 갱신됩니다
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* 창고 접근 제한 */}
           <div className="space-y-4">
             <h4 className="font-medium text-gray-900">창고 접근 권한</h4>
             <p className="text-xs text-gray-500">
-              사용자의 기본 창고 접근 권한을 설정합니다. 권한은 '팀 역할' 버튼에서 설정할 수 있습니다.
+              사용자의 기본 창고 접근 권한을 설정합니다. 권한은 &apos;팀
+              역할&apos; 버튼에서 설정할 수 있습니다.
             </p>
 
             {false ? (
@@ -399,7 +566,8 @@ export default function UserEditModal({
                       {selectedWarehouses.length}개
                     </span>
                     <span className="text-sm text-gray-400">
-                      / 전체 {Array.isArray(warehouses) ? warehouses.length : 0}개
+                      / 전체 {Array.isArray(warehouses) ? warehouses.length : 0}
+                      개
                     </span>
                   </div>
                 </div>
@@ -407,7 +575,8 @@ export default function UserEditModal({
                 {/* 권한 레벨별 안내 */}
                 <div className="p-3 bg-green-50 rounded-md border border-green-200">
                   <p className="text-sm text-green-800">
-                    ✓ 체크된 창고에 접근 가능합니다. 관리자는 모든 창고에 접근할 수 있습니다.
+                    ✓ 체크된 창고에 접근 가능합니다. 관리자는 모든 창고에 접근할
+                    수 있습니다.
                   </p>
                 </div>
 
@@ -505,7 +674,8 @@ export default function UserEditModal({
                 {selectedWarehouses.length === 0 && (
                   <div className="p-2 bg-amber-50 rounded-md border border-amber-200">
                     <p className="text-sm text-amber-800">
-                      ⚠️ 접근 가능한 창고가 없습니다. 최소 1개 이상 선택해주세요.
+                      ⚠️ 접근 가능한 창고가 없습니다. 최소 1개 이상
+                      선택해주세요.
                     </p>
                   </div>
                 )}

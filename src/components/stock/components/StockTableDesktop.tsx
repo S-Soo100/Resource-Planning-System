@@ -4,7 +4,7 @@ import { Item } from "@/types/(item)/item";
 import { Package, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useCategory } from "@/hooks/useCategory";
 import { authStore } from "@/store/authStore";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { formatCurrency } from "@/utils/stockAssetCalculator";
 
 interface StockTableDesktopProps {
@@ -13,17 +13,23 @@ interface StockTableDesktopProps {
   showEditButton?: boolean;
 }
 
-type SortField = "category" | "itemName" | "itemCode" | "quantity" | "costPrice" | "assetValue";
+type SortField =
+  | "category"
+  | "itemName"
+  | "itemCode"
+  | "quantity"
+  | "costPrice"
+  | "assetValue";
 type SortOrder = "asc" | "desc" | null;
 
 // 카테고리별 색상 매핑
 const getCategoryColor = (categoryName: string): string => {
   const colorMap: { [key: string]: string } = {
-    "전동휠체어": "bg-purple-500",
-    "수동휠체어": "bg-blue-500",
-    "액세서리": "bg-green-500",
-    "부품": "bg-orange-500",
-    "기타": "bg-gray-500",
+    전동휠체어: "bg-purple-500",
+    수동휠체어: "bg-blue-500",
+    액세서리: "bg-green-500",
+    부품: "bg-orange-500",
+    기타: "bg-gray-500",
   };
 
   return colorMap[categoryName] || "bg-indigo-500";
@@ -32,11 +38,11 @@ const getCategoryColor = (categoryName: string): string => {
 // 카테고리 태그 색상
 const getCategoryTagColor = (categoryName: string): string => {
   const colorMap: { [key: string]: string } = {
-    "전동휠체어": "bg-purple-100 text-purple-700",
-    "수동휠체어": "bg-blue-100 text-blue-700",
-    "액세서리": "bg-green-100 text-green-700",
-    "부품": "bg-orange-100 text-orange-700",
-    "기타": "bg-gray-100 text-gray-700",
+    전동휠체어: "bg-purple-100 text-purple-700",
+    수동휠체어: "bg-blue-100 text-blue-700",
+    액세서리: "bg-green-100 text-green-700",
+    부품: "bg-orange-100 text-orange-700",
+    기타: "bg-gray-100 text-gray-700",
   };
 
   return colorMap[categoryName] || "bg-indigo-100 text-indigo-700";
@@ -50,12 +56,9 @@ export default function StockTableDesktop({
   const router = useRouter();
   const selectedTeam = authStore((state) => state.selectedTeam);
   const { categories } = useCategory(selectedTeam?.id);
-  const { user } = useCurrentUser();
+  const { canViewCostPrice } = usePermission();
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>(null);
-
-  // 권한 체크: Admin, Moderator만 원가 정보 열람 가능
-  const canViewCostPrice = user?.accessLevel === 'admin' || user?.accessLevel === 'moderator';
 
   // 카테고리 ID로 카테고리 이름 찾기
   const getCategoryName = (categoryId?: number | null): string => {
@@ -107,8 +110,12 @@ export default function StockTableDesktop({
 
       switch (sortField) {
         case "category":
-          aValue = getCategoryName(a.teamItem?.category?.id ?? a.teamItem?.categoryId);
-          bValue = getCategoryName(b.teamItem?.category?.id ?? b.teamItem?.categoryId);
+          aValue = getCategoryName(
+            a.teamItem?.category?.id ?? a.teamItem?.categoryId
+          );
+          bValue = getCategoryName(
+            b.teamItem?.category?.id ?? b.teamItem?.categoryId
+          );
           break;
         case "itemName":
           aValue = a.teamItem.itemName;
@@ -153,7 +160,10 @@ export default function StockTableDesktop({
   if (items.length === 0) {
     return (
       <tr>
-        <td colSpan={canViewCostPrice ? 7 : 5} className="px-6 py-12 text-center">
+        <td
+          colSpan={canViewCostPrice ? 7 : 5}
+          className="px-6 py-12 text-center"
+        >
           <p className="text-gray-400">창고가 비었습니다.</p>
         </td>
       </tr>
@@ -227,7 +237,9 @@ export default function StockTableDesktop({
 
       {/* 테이블 본문 */}
       {sortedItems.map((item, index) => {
-        const categoryName = getCategoryName(item.teamItem?.category?.id ?? item.teamItem?.categoryId);
+        const categoryName = getCategoryName(
+          item.teamItem?.category?.id ?? item.teamItem?.categoryId
+        );
         const colorClass = getCategoryColor(categoryName);
         const tagColorClass = getCategoryTagColor(categoryName);
 
@@ -247,7 +259,9 @@ export default function StockTableDesktop({
                     className="w-8 h-8 rounded-md object-cover border border-gray-200"
                   />
                 ) : (
-                  <div className={`w-8 h-8 rounded-md ${colorClass} flex items-center justify-center`}>
+                  <div
+                    className={`w-8 h-8 rounded-md ${colorClass} flex items-center justify-center`}
+                  >
                     <Package className="w-5 h-5 text-white" />
                   </div>
                 )}
@@ -256,7 +270,9 @@ export default function StockTableDesktop({
 
             {/* 카테고리 태그 */}
             <td className="px-6 py-4">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tagColorClass}`}>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${tagColorClass}`}
+              >
                 {categoryName}
               </span>
             </td>
@@ -318,7 +334,9 @@ export default function StockTableDesktop({
                 <td className="px-6 py-4 text-right">
                   {item.teamItem?.costPrice ? (
                     <span className="text-sm font-semibold text-green-600">
-                      {formatCurrency(item.teamItem.costPrice * item.itemQuantity)}
+                      {formatCurrency(
+                        item.teamItem.costPrice * item.itemQuantity
+                      )}
                     </span>
                   ) : (
                     <span className="text-sm text-gray-400">-</span>

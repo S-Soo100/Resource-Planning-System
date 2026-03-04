@@ -159,7 +159,7 @@ KARS는 **팀별 권한 중심 아키텍처**를 사용합니다.
 **팀 권한이 유일한 기준 (Team-Permission Only)**
 - `TeamUserMapping.accessLevel`이 **유일한 권한 소스**
 - `User.accessLevel`은 **레거시** — 참조 금지, 신규 코드에서 사용 금지
-- 프론트엔드 권한 체크는 반드시 팀 권한(`useTeamRole` 등)을 기반으로 할 것
+- 프론트엔드 권한 체크는 반드시 `usePermission()` 훅을 사용할 것
 - **API가 팀 권한대로 동작하지 않으면 API를 수정해야 함** (프론트에서 우회하지 않는다)
 
 **isAdmin 자동 계산**
@@ -183,9 +183,11 @@ await teamRoleApi.updateTeamRole(teamId, userId, {
 });
 ```
 
-**현재 마이그레이션 상태**
-> ⚠️ 현재 대부분의 페이지가 레거시 `User.accessLevel`(`useCurrentUser()`)로 권한 체크 중.
-> 팀 권한 기반(`useTeamRole()`)으로 전환이 필요한 상태. 신규/수정 작업 시 반드시 팀 권한 사용.
+**마이그레이션 완료 (v3.0)**
+> ✅ 모든 페이지가 `usePermission()` 훅을 통해 팀 권한(`TeamUserMapping.accessLevel`) 기반으로 전환 완료.
+> - `usePermission()`: 중앙 권한 훅 — `isAdmin`, `isModerator`, `canEditPrice`, `canViewMargin` 등 비즈니스 헬퍼 제공
+> - 유일한 예외: `team-select/page.tsx` (팀 선택 전이므로 `serverUser?.isAdmin` 사용)
+> - `User.accessLevel` / `auth.isAdmin` 직접 참조는 **금지** — 반드시 `usePermission()` 사용
 
 ### 테마 색상
 | 용도         | 색상                              |

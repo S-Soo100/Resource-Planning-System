@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { SalesRecord } from "@/types/sales";
 import { FileText, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import Link from "next/link";
 
 interface SupplierSalesTabProps {
@@ -22,9 +22,11 @@ const statusKorMap: Record<string, string> = {
   rejectedByShipper: "출고자반려",
 };
 
-export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) {
-  const { user } = useCurrentUser();
-  const canViewMargin = user?.accessLevel === "admin" || user?.accessLevel === "moderator";
+export function SupplierSalesTab({
+  records,
+  isLoading,
+}: SupplierSalesTabProps) {
+  const { canViewMargin } = usePermission();
 
   // 필터링은 useSupplierDetail에서 이미 처리됨 (요청/반려/출고자반려 제외)
   const filteredRecords = records;
@@ -56,8 +58,12 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <FileText className="w-12 h-12 text-Text-Lowest-60 mb-3" />
-        <p className="text-base font-medium text-Text-High-90">판매 내역이 없습니다</p>
-        <p className="mt-1 text-sm text-Text-Low-70">해당 기간 내 판매 거래가 없습니다</p>
+        <p className="text-base font-medium text-Text-High-90">
+          판매 내역이 없습니다
+        </p>
+        <p className="mt-1 text-sm text-Text-Low-70">
+          해당 기간 내 판매 거래가 없습니다
+        </p>
       </div>
     );
   }
@@ -99,7 +105,10 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
           </thead>
           <tbody className="divide-y divide-Outline-Variant bg-white">
             {filteredRecords.map((record, index) => (
-              <tr key={record.id} className="hover:bg-Back-Low-10 transition-colors">
+              <tr
+                key={record.id}
+                className="hover:bg-Back-Low-10 transition-colors"
+              >
                 <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
                   {index + 1}
                 </td>
@@ -127,7 +136,8 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
                 </td>
                 {canViewMargin && (
                   <td className="px-5 py-4 text-sm whitespace-nowrap">
-                    {record.marginRate !== null && record.marginRate !== undefined ? (
+                    {record.marginRate !== null &&
+                    record.marginRate !== undefined ? (
                       <span
                         className={`font-medium ${
                           record.isNegativeMargin
@@ -148,8 +158,8 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
                       record.status === "shipmentCompleted"
                         ? "bg-green-100 text-green-700"
                         : record.status === "approved"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-100 text-gray-700"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {statusKorMap[record.status] || record.status}
@@ -179,7 +189,8 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
                 {record.title}
               </p>
               <p className="text-xs text-Text-Low-70 mt-0.5">
-                #{index + 1} • {format(new Date(record.purchaseDate), "yyyy-MM-dd")}
+                #{index + 1} •{" "}
+                {format(new Date(record.purchaseDate), "yyyy-MM-dd")}
               </p>
             </div>
             <span
@@ -187,8 +198,8 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
                 record.status === "shipmentCompleted"
                   ? "bg-green-100 text-green-700"
                   : record.status === "approved"
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-gray-100 text-gray-700"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-gray-100 text-gray-700"
               }`}
             >
               {statusKorMap[record.status] || record.status}
@@ -203,7 +214,9 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
             </div>
             <div className="flex justify-between">
               <span className="text-Text-Low-70">총 수량</span>
-              <span className="text-Text-High-90">{record.totalQuantity}개</span>
+              <span className="text-Text-High-90">
+                {record.totalQuantity}개
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-Text-Low-70">판매 금액</span>
@@ -213,18 +226,22 @@ export function SupplierSalesTab({ records, isLoading }: SupplierSalesTabProps) 
                   : "-"}
               </span>
             </div>
-            {canViewMargin && record.marginRate !== null && record.marginRate !== undefined && (
-              <div className="flex justify-between">
-                <span className="text-Text-Low-70">마진율</span>
-                <span
-                  className={`font-semibold ${
-                    record.isNegativeMargin ? "text-red-600" : "text-purple-600"
-                  }`}
-                >
-                  {record.marginRate.toFixed(1)}%
-                </span>
-              </div>
-            )}
+            {canViewMargin &&
+              record.marginRate !== null &&
+              record.marginRate !== undefined && (
+                <div className="flex justify-between">
+                  <span className="text-Text-Low-70">마진율</span>
+                  <span
+                    className={`font-semibold ${
+                      record.isNegativeMargin
+                        ? "text-red-600"
+                        : "text-purple-600"
+                    }`}
+                  >
+                    {record.marginRate.toFixed(1)}%
+                  </span>
+                </div>
+              )}
           </div>
         </Link>
       ))}

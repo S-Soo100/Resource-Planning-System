@@ -1,18 +1,17 @@
 "use client";
 
 import { SalesSummary as SalesSummaryType } from "@/types/sales";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 
 interface SalesSummaryProps {
   summary: SalesSummaryType;
 }
 
 export const SalesSummary = ({ summary }: SalesSummaryProps) => {
-  const { user } = useCurrentUser();
+  const { canViewMargin } = usePermission();
 
   // 권한별 마진 카드 표시 여부
-  const showMarginCards =
-    user?.accessLevel === "admin" || user?.accessLevel === "moderator";
+  const showMarginCards = canViewMargin;
 
   // 마진 정보가 있는지 확인
   const hasMarginData =

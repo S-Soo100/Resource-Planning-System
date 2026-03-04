@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import WarehouseManagement from "@/components/admin/WarehouseManagement";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
+import { usePermission } from "@/hooks/usePermission";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { navigateByAuthStatus } from "@/utils/navigation";
 import { LoadingCentered } from "@/components/ui/Loading";
@@ -16,10 +17,21 @@ function WarehousesContent() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
   const { isLoading: isTeamLoading } = useCurrentTeam();
+  const {
+    isAdminOrModerator,
+    isReadOnly,
+    isAdmin,
+    isLoading: isPermissionLoading,
+  } = usePermission();
   const { warehouses, isLoading: isWarehousesLoading } = useWarehouseItems();
   const zustandAuth = authStore((state) => state.user);
 
-  if (isUserLoading || isTeamLoading || isWarehousesLoading) {
+  if (
+    isUserLoading ||
+    isTeamLoading ||
+    isWarehousesLoading ||
+    isPermissionLoading
+  ) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
@@ -30,10 +42,7 @@ function WarehousesContent() {
     );
   }
 
-  if (
-    !user ||
-    (user.accessLevel !== "admin" && user.accessLevel !== "moderator")
-  ) {
+  if (!user || !isAdminOrModerator) {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen">
         <div className="text-center">
@@ -56,17 +65,15 @@ function WarehousesContent() {
     );
   }
 
-  // moderator인 경우 읽기 전용 모드 설정
-  const isReadOnly = user.accessLevel === "moderator";
-
   return (
     <div className="flex flex-col p-6 min-h-full bg-Back-Low-10">
       <div className="mx-auto max-w-7xl w-full space-y-6">
         <div className="p-6 bg-white rounded-2xl shadow-sm">
-          <h1 className="mb-2 text-2xl font-bold text-Text-Highest-100">창고 관리</h1>
+          <h1 className="mb-2 text-2xl font-bold text-Text-Highest-100">
+            창고 관리
+          </h1>
           <p className="text-Text-Low-70">
-            환영합니다,{" "}
-            {user.accessLevel === "admin" ? "관리자" : "1차 승인권자"}{" "}
+            환영합니다, {isAdmin ? "관리자" : "1차 승인권자"}{" "}
             {zustandAuth?.name} 님
           </p>
           {isReadOnly && (
@@ -90,14 +97,16 @@ function WarehousesContent() {
 // 메인 WarehousesPage 컴포넌트 (Suspense로 감싸기)
 export default function WarehousesPage() {
   return (
-    <Suspense fallback={
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center">
-          <LoadingCentered size="lg" />
-          <p className="mt-4 text-gray-600">페이지를 불러오는 중...</p>
+    <Suspense
+      fallback={
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center">
+            <LoadingCentered size="lg" />
+            <p className="mt-4 text-gray-600">페이지를 불러오는 중...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <WarehousesContent />
     </Suspense>
   );

@@ -26,8 +26,13 @@ import {
   getWarehouseAccessDeniedMessage,
 } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
-import { getTodayString, formatDateToLocalString, formatDateForServer } from "@/utils/dateUtils";
+import {
+  getTodayString,
+  formatDateToLocalString,
+  formatDateForServer,
+} from "@/utils/dateUtils";
 import ItemSelectionModal from "../ui/ItemSelectionModal";
 import LoadingOverlay from "../ui/LoadingOverlay";
 import {
@@ -72,9 +77,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   const addressSearch = useAddressSearch();
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
-  const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] = useState(false);
+  const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] =
+    useState(false);
   const auth = authStore((state) => state.user);
   const { user } = useCurrentUser();
+  const { isSupplier, accessLevel: permissionAccessLevel } = usePermission();
   const { team: currentTeam } = useCurrentTeam();
 
   // 아이템 관련 상태
@@ -106,13 +113,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       setFormData((prev) => ({
         ...prev,
         requester: auth.name,
-        manager:
-          user?.accessLevel === "supplier"
-            ? "조정흠(010-3338-2722)"
-            : prev.manager,
+        manager: isSupplier ? "조정흠(010-3338-2722)" : prev.manager,
       }));
     }
-  }, [auth, user?.accessLevel]);
+  }, [auth, isSupplier]);
 
   // 훅 호출
   const { useGetPackages } = usePackages();
@@ -275,7 +279,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   };
 
   // 로컬스토리지 키
-  const FORM_DATA_KEY = `orderForm_${isPackageOrder ? 'package' : 'regular'}_${currentTeam?.id || 'default'}`;
+  const FORM_DATA_KEY = `orderForm_${isPackageOrder ? "package" : "regular"}_${currentTeam?.id || "default"}`;
 
   // 폼 데이터 로컬스토리지에 저장
   const saveFormDataToLocalStorage = useCallback(() => {
@@ -292,7 +296,14 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     } catch (error) {
       console.error("폼 데이터 저장 실패:", error);
     }
-  }, [formData, orderItems, packageQuantity, requestDate, setupDate, FORM_DATA_KEY]);
+  }, [
+    formData,
+    orderItems,
+    packageQuantity,
+    requestDate,
+    setupDate,
+    FORM_DATA_KEY,
+  ]);
 
   // 로컬스토리지에서 폼 데이터 복원
   const restoreFormDataFromLocalStorage = useCallback(() => {
@@ -403,21 +414,24 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     let itemsWithMemo: Array<{ code: string; memo?: string }> = [];
 
     // 1. packageItems 배열이 있고 비어있지 않은 경우
-    if (selectedPackage.packageItems && selectedPackage.packageItems.length > 0) {
+    if (
+      selectedPackage.packageItems &&
+      selectedPackage.packageItems.length > 0
+    ) {
       itemsWithMemo = selectedPackage.packageItems
         .filter((pkgItem) => pkgItem.deletedAt === null) // 삭제되지 않은 아이템만
         .map((pkgItem) => ({
           code: pkgItem.item.teamItem.itemCode,
-          memo: pkgItem.item.teamItem.memo || undefined  // 패키지 아이템의 메모 포함
+          memo: pkgItem.item.teamItem.memo || undefined, // 패키지 아이템의 메모 포함
         }));
     }
     // 2. packageItems가 비어있고 itemlist가 있는 경우 (구버전 데이터)
     else if (selectedPackage.itemlist) {
       itemsWithMemo = selectedPackage.itemlist
-        .split(',')
-        .map(code => code.trim())
-        .filter(code => code)
-        .map(code => ({ code, memo: undefined }));  // 구버전은 메모 없음
+        .split(",")
+        .map((code) => code.trim())
+        .filter((code) => code)
+        .map((code) => ({ code, memo: undefined })); // 구버전은 메모 없음
     }
 
     if (itemsWithMemo.length === 0) {
@@ -442,7 +456,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           stockAvailable: warehouseItem.itemQuantity >= packageQuantity,
           stockQuantity: warehouseItem.itemQuantity,
           warehouseItemId: warehouseItem.id,
-          memo: memo,  // 패키지 아이템의 메모 할당
+          memo: memo, // 패키지 아이템의 메모 할당
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -471,8 +485,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           const newQuantity = increment
             ? item.quantity + 1
             : item.quantity > 0
-            ? item.quantity - 1
-            : item.quantity;
+              ? item.quantity - 1
+              : item.quantity;
 
           // 현재 창고의 아이템에서 재고 확인
           const stockItem = currentWarehouseItems.find(
@@ -829,7 +843,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         .reduce((sum, item) => {
           const sellingPrice = parseInt(item.sellingPrice || "0", 10);
           const vat = parseInt(item.vat || "0", 10);
-          return sum + ((sellingPrice + vat) * item.quantity);
+          return sum + (sellingPrice + vat) * item.quantity;
         }, 0);
 
       const orderData: CreateOrderDto = {
@@ -855,7 +869,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             itemId: item.warehouseItemId,
             quantity: item.quantity,
             memo: item.memo || "",
-            sellingPrice: item.sellingPrice ? parseInt(item.sellingPrice, 10) : undefined,
+            sellingPrice: item.sellingPrice
+              ? parseInt(item.sellingPrice, 10)
+              : undefined,
             vat: item.vat ? parseInt(item.vat, 10) : undefined,
           })),
       };
@@ -1287,20 +1303,31 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               {/* 🆕 안내 메시지 (v2.6.0) */}
               <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  <svg
+                    className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   <div className="text-sm text-blue-800">
                     <p className="font-semibold mb-1">💡 가격 입력 방법</p>
                     <ul className="list-disc list-inside space-y-1">
                       <li>
-                        <strong>총 금액만 입력</strong>하세요. 공급가액과 부가세는 자동으로 계산됩니다.
+                        <strong>총 금액만 입력</strong>하세요. 공급가액과
+                        부가세는 자동으로 계산됩니다.
                       </li>
                       <li>
-                        <strong>일반 품목</strong>: 총 금액의 10%가 부가세로 자동 계산됩니다.
+                        <strong>일반 품목</strong>: 총 금액의 10%가 부가세로
+                        자동 계산됩니다.
                       </li>
                       <li>
-                        <strong>영세율 품목</strong>: 체크박스를 선택하면 부가세가 0원으로 처리됩니다.
+                        <strong>영세율 품목</strong>: 체크박스를 선택하면
+                        부가세가 0원으로 처리됩니다.
                       </li>
                     </ul>
                   </div>
@@ -1312,9 +1339,15 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
-                      <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">품목명</th>
-                      <th className="px-2 py-2 text-center text-sm font-medium text-gray-700">수량</th>
-                      <th className="hidden md:table-cell px-2 py-2 text-center text-sm font-medium text-gray-700">영세율</th>
+                      <th className="px-2 py-2 text-left text-sm font-medium text-gray-700">
+                        품목명
+                      </th>
+                      <th className="px-2 py-2 text-center text-sm font-medium text-gray-700">
+                        수량
+                      </th>
+                      <th className="hidden md:table-cell px-2 py-2 text-center text-sm font-medium text-gray-700">
+                        영세율
+                      </th>
                       <th className="px-2 py-2 text-right text-sm font-medium text-gray-700">
                         총 금액 (원)
                         <span className="ml-1 text-xs text-blue-600">✏️</span>
@@ -1327,14 +1360,19 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                         부가세 (원)
                         <span className="ml-1 text-xs">💡</span>
                       </th>
-                      <th className="hidden sm:table-cell px-2 py-2 text-left text-sm font-medium text-gray-700">메모</th>
-                      <th className="px-2 py-2 text-center text-sm font-medium text-gray-700">삭제</th>
+                      <th className="hidden sm:table-cell px-2 py-2 text-left text-sm font-medium text-gray-700">
+                        메모
+                      </th>
+                      <th className="px-2 py-2 text-center text-sm font-medium text-gray-700">
+                        삭제
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {orderItems.map((item, index) => {
                       // 🆕 영세율 여부 판단 (전체 또는 개별)
-                      const isZeroRated = isAllZeroRated || (item.isZeroRated ?? false);
+                      const isZeroRated =
+                        isAllZeroRated || (item.isZeroRated ?? false);
 
                       // 🆕 자동 계산
                       const { sellingPrice, vat } = calculatePriceBreakdown(
@@ -1344,25 +1382,36 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
                       const subtotal = (sellingPrice + vat) * item.quantity;
                       return (
-                        <tr key={item.warehouseItemId} className="border-b last:border-0 hover:bg-gray-50">
+                        <tr
+                          key={item.warehouseItemId}
+                          className="border-b last:border-0 hover:bg-gray-50"
+                        >
                           {/* 품목명 + 재고 정보 통합 */}
                           <td className="px-2 py-2">
                             <div className="flex flex-col">
-                              <span className="font-medium text-sm">{item.teamItem.itemName}</span>
+                              <span className="font-medium text-sm">
+                                {item.teamItem.itemName}
+                              </span>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs text-gray-500">{item.teamItem.itemCode}</span>
-                                {formData.warehouseId && item.stockQuantity !== undefined && (
-                                  <span className={`text-xs ${item.stockAvailable ? 'text-green-600' : 'text-red-500'}`}>
-                                    (재고: {item.stockQuantity}개)
-                                  </span>
-                                )}
+                                <span className="text-xs text-gray-500">
+                                  {item.teamItem.itemCode}
+                                </span>
+                                {formData.warehouseId &&
+                                  item.stockQuantity !== undefined && (
+                                    <span
+                                      className={`text-xs ${item.stockAvailable ? "text-green-600" : "text-red-500"}`}
+                                    >
+                                      (재고: {item.stockQuantity}개)
+                                    </span>
+                                  )}
                               </div>
-                              {formData.warehouseId && item.stockAvailable === false && (
-                                <div className="flex items-center text-xs text-red-500 mt-1">
-                                  <AlertCircle size={12} className="mr-1" />
-                                  재고 부족
-                                </div>
-                              )}
+                              {formData.warehouseId &&
+                                item.stockAvailable === false && (
+                                  <div className="flex items-center text-xs text-red-500 mt-1">
+                                    <AlertCircle size={12} className="mr-1" />
+                                    재고 부족
+                                  </div>
+                                )}
                             </div>
                           </td>
 
@@ -1371,15 +1420,21 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                             <div className="flex gap-0.5 items-center justify-center">
                               <button
                                 type="button"
-                                onClick={() => handleQuantityChange(index, false)}
+                                onClick={() =>
+                                  handleQuantityChange(index, false)
+                                }
                                 className="p-0.5 bg-gray-200 rounded hover:bg-gray-300"
                               >
                                 <Minus size={12} />
                               </button>
-                              <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                              <span className="w-8 text-center text-sm font-medium">
+                                {item.quantity}
+                              </span>
                               <button
                                 type="button"
-                                onClick={() => handleQuantityChange(index, true)}
+                                onClick={() =>
+                                  handleQuantityChange(index, true)
+                                }
                                 className="p-0.5 bg-gray-200 rounded hover:bg-gray-300"
                               >
                                 <Plus size={12} />
@@ -1392,10 +1447,16 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                             <input
                               type="checkbox"
                               checked={item.isZeroRated ?? false}
-                              onChange={(e) => handleZeroRatedChange(index, e.target.checked)}
+                              onChange={(e) =>
+                                handleZeroRatedChange(index, e.target.checked)
+                              }
                               disabled={isAllZeroRated}
                               className="w-3.5 h-3.5 accent-blue-600"
-                              title={isAllZeroRated ? "전체 영세율 적용 중" : "개별 영세율"}
+                              title={
+                                isAllZeroRated
+                                  ? "전체 영세율 적용 중"
+                                  : "개별 영세율"
+                              }
                             />
                           </td>
 
@@ -1407,7 +1468,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                               step="1"
                               placeholder="총액"
                               value={item.totalPrice || ""}
-                              onChange={(e) => handleTotalPriceChange(index, e.target.value)}
+                              onChange={(e) =>
+                                handleTotalPriceChange(index, e.target.value)
+                              }
                               className="w-full px-2 py-1.5 text-sm text-right border-2 border-blue-300 rounded-lg
                                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                                          bg-white font-medium"
@@ -1417,7 +1480,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                           {/* 공급가액 (자동 계산) - 모바일/태블릿 숨김 */}
                           <td className="hidden lg:table-cell px-2 py-2 text-right">
                             <span className="text-sm text-gray-600">
-                              {sellingPrice > 0 ? sellingPrice.toLocaleString() : "-"}
+                              {sellingPrice > 0
+                                ? sellingPrice.toLocaleString()
+                                : "-"}
                             </span>
                           </td>
 
@@ -1427,7 +1492,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                               {vat > 0 ? vat.toLocaleString() : "0"}
                             </span>
                             {isZeroRated && (
-                              <span className="ml-1 text-xs text-amber-600">(0%)</span>
+                              <span className="ml-1 text-xs text-amber-600">
+                                (0%)
+                              </span>
                             )}
                           </td>
 
@@ -1437,7 +1504,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                               type="text"
                               placeholder="메모"
                               value={item.memo || ""}
-                              onChange={(e) => handleMemoChange(index, e.target.value)}
+                              onChange={(e) =>
+                                handleMemoChange(index, e.target.value)
+                              }
                               className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main focus:border-Primary-Main"
                             />
                           </td>
@@ -1446,7 +1515,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                           <td className="px-2 py-2 text-center">
                             <button
                               type="button"
-                              onClick={() => handleRemoveItem(item.warehouseItemId)}
+                              onClick={() =>
+                                handleRemoveItem(item.warehouseItemId)
+                              }
                               className="p-1 text-red-600 bg-red-50 rounded hover:bg-Error-Container"
                               title="품목 제거"
                             >
@@ -1458,25 +1529,31 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                     })}
                   </tbody>
                   {/* 총 판매가격 표시 */}
-                  {orderItems.some(item => item.quantity > 0) && (
+                  {orderItems.some((item) => item.quantity > 0) && (
                     <tfoot className="bg-blue-50 border-t-2 border-blue-200">
                       <tr>
-                        <td colSpan={6} className="px-2 py-3 text-right text-base font-bold text-gray-900">
+                        <td
+                          colSpan={6}
+                          className="px-2 py-3 text-right text-base font-bold text-gray-900"
+                        >
                           총 거래금액
                         </td>
                         <td className="px-2 py-3 text-right text-lg font-bold text-blue-700">
                           {orderItems
-                            .filter(item => item.quantity > 0)
+                            .filter((item) => item.quantity > 0)
                             .reduce((sum, item) => {
                               // 🆕 자동 계산된 값 사용
-                              const isZeroRated = isAllZeroRated || (item.isZeroRated ?? false);
-                              const { sellingPrice, vat } = calculatePriceBreakdown(
-                                item.totalPrice || "",
-                                isZeroRated
-                              );
-                              return sum + ((sellingPrice + vat) * item.quantity);
+                              const isZeroRated =
+                                isAllZeroRated || (item.isZeroRated ?? false);
+                              const { sellingPrice, vat } =
+                                calculatePriceBreakdown(
+                                  item.totalPrice || "",
+                                  isZeroRated
+                                );
+                              return sum + (sellingPrice + vat) * item.quantity;
                             }, 0)
-                            .toLocaleString()}원
+                            .toLocaleString()}
+                          원
                         </td>
                         <td></td>
                       </tr>
@@ -1500,7 +1577,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             manager={formData.manager}
             onChange={handleChange}
             focusRingColor="blue"
-            userAccessLevel={user?.accessLevel}
+            userAccessLevel={permissionAccessLevel}
           />
 
           {/* 날짜 정보 */}

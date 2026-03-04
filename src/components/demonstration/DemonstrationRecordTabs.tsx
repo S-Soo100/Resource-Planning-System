@@ -20,13 +20,17 @@ import { useDemo } from "@/hooks/useDemo";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 // import { useCurrentUser } from "@/hooks/useCurrentUser"; // 제거됨
+import { usePermission } from "@/hooks/usePermission";
 import { authStore } from "@/store/authStore";
 import DemoEditModal from "./DemoEditModal";
 import DemoRecordTable from "./DemoRecordTable";
 import { useRouter } from "next/navigation";
 // import { useDeleteDemo } from "@/hooks/(useDemo)/useDemoMutations"; // 제거됨
 import { DemoStatus } from "@/types/demo/demo";
-import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
+import {
+  formatDateForDisplay,
+  formatDateForDisplayUTC,
+} from "@/utils/dateUtils";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 type TabType = "ongoing" | "long-term" | "completed";
@@ -82,7 +86,12 @@ const isNewRecord = (createdAt: string, status: string): boolean => {
 
   // 72시간 이내이고, 완료 상태가 아닌 경우
   const isWithin72Hours = hoursDiff <= 72;
-  const isNotCompleted = !["demoCompleted", "demoCompletedAndReturned", "rejected", "rejectedByShipper"].includes(status);
+  const isNotCompleted = ![
+    "demoCompleted",
+    "demoCompletedAndReturned",
+    "rejected",
+    "rejectedByShipper",
+  ].includes(status);
 
   return isWithin72Hours && isNotCompleted;
 };
@@ -133,6 +142,7 @@ const DemonstrationRecordTabs = () => {
   const { useDemosByTeam, useUpdateDemoStatus } = useDemo();
   const { team: currentTeam } = useCurrentTeam();
   // const { user: currentUser } = useCurrentUser(); // 제거됨
+  const { isAdmin: permissionIsAdmin, isAdminOrModerator } = usePermission();
   const queryClient = useQueryClient();
 
   // 상태 변경 훅
@@ -141,33 +151,16 @@ const DemonstrationRecordTabs = () => {
   // 삭제 훅 - 제거됨 (확장 기능과 함께 사용됨)
   // const deleteDemoMutation = useDeleteDemo();
 
-  // 현재 로그인한 사용자의 accessLevel 가져오기
+  // 팀 권한 기반으로 접근 레벨 동기화
   useEffect(() => {
-    const user = authStore.getState().user;
-    if (user && user.id) {
-      console.log("시연 기록 - 현재 사용자 ID:", user.id.toString());
-
-      // 사용자 접근 레벨 가져오기
-      const fetchUserInfo = async () => {
-        try {
-          const { userApi } = await import("@/api/user-api");
-          const response = await userApi.getUser(user.id.toString());
-          if (response.success && response.data) {
-            setUserAccessLevel(response.data.accessLevel);
-            console.log("시연 기록 - 사용자 접근 레벨:", response.data.accessLevel);
-          } else {
-            // 기본값: 관리자인 경우 admin, 아닌 경우 user
-            setUserAccessLevel(user.isAdmin ? "admin" : "user");
-          }
-        } catch (error) {
-          console.error("시연 기록 - 사용자 정보 가져오기 실패:", error);
-          setUserAccessLevel(user.isAdmin ? "admin" : "user");
-        }
-      };
-
-      fetchUserInfo();
+    if (permissionIsAdmin) {
+      setUserAccessLevel("admin");
+    } else if (isAdminOrModerator) {
+      setUserAccessLevel("moderator");
+    } else {
+      setUserAccessLevel("user");
     }
-  }, []);
+  }, [permissionIsAdmin, isAdminOrModerator]);
 
   // 시연 데이터 조회 - 팀별 시연 목록
   const {
@@ -254,14 +247,17 @@ const DemonstrationRecordTabs = () => {
           record.demoManagerPhone
             ?.toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          record.demoAddress?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          record.demoNationType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          record.demoAddress
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          record.demoNationType
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
           record.memo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          record.demoItems?.some(
-            (item) =>
-              item.item?.teamItem?.itemName
-                ?.toLowerCase()
-                .includes(searchTerm.toLowerCase())
+          record.demoItems?.some((item) =>
+            item.item?.teamItem?.itemName
+              ?.toLowerCase()
+              .includes(searchTerm.toLowerCase())
           ) ||
           record.user?.name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -278,58 +274,59 @@ const DemonstrationRecordTabs = () => {
   }, [demoRecords, searchTerm, statusFilter]);
 
   // 페이지네이션 및 정렬
-  const { sortedRecords, totalPages, startIndex, endIndex, currentRecords } = useMemo(() => {
-    // 정렬 적용
-    let sorted = [...filteredRecords];
+  const { sortedRecords, totalPages, startIndex, endIndex, currentRecords } =
+    useMemo(() => {
+      // 정렬 적용
+      const sorted = [...filteredRecords];
 
-    if (sortField && sortOrder) {
-      sorted.sort((a, b) => {
-        let compareResult = 0;
+      if (sortField && sortOrder) {
+        sorted.sort((a, b) => {
+          let compareResult = 0;
 
-        switch (sortField) {
-          case "createdAt": {
-            const dateA = new Date(a.createdAt);
-            const dateB = new Date(b.createdAt);
-            compareResult = dateA.getTime() - dateB.getTime();
-            break;
+          switch (sortField) {
+            case "createdAt": {
+              const dateA = new Date(a.createdAt);
+              const dateB = new Date(b.createdAt);
+              compareResult = dateA.getTime() - dateB.getTime();
+              break;
+            }
+            case "demoStartDate": {
+              const dateA = new Date(a.demoStartDate || a.createdAt);
+              const dateB = new Date(b.demoStartDate || b.createdAt);
+              compareResult = dateA.getTime() - dateB.getTime();
+              break;
+            }
+            case "demoTitle": {
+              const titleA = a.demoTitle || "";
+              const titleB = b.demoTitle || "";
+              compareResult = titleA.localeCompare(titleB);
+              break;
+            }
+            case "demoStatus": {
+              compareResult = a.demoStatus.localeCompare(b.demoStatus);
+              break;
+            }
+            default:
+              compareResult = 0;
           }
-          case "demoStartDate": {
-            const dateA = new Date(a.demoStartDate || a.createdAt);
-            const dateB = new Date(b.demoStartDate || b.createdAt);
-            compareResult = dateA.getTime() - dateB.getTime();
-            break;
-          }
-          case "demoTitle": {
-            const titleA = a.demoTitle || "";
-            const titleB = b.demoTitle || "";
-            compareResult = titleA.localeCompare(titleB);
-            break;
-          }
-          case "demoStatus": {
-            compareResult = a.demoStatus.localeCompare(b.demoStatus);
-            break;
-          }
-          default:
-            compareResult = 0;
-        }
 
-        return sortOrder === "asc" ? compareResult : -compareResult;
-      });
-    }
+          return sortOrder === "asc" ? compareResult : -compareResult;
+        });
+      }
 
-    const total = Math.ceil(sorted.length / recordsPerPage);
-    const start = (currentPage - 1) * recordsPerPage;
-    const end = start + recordsPerPage;
-    const current = sorted.slice(start, end);
+      const total = Math.ceil(sorted.length / recordsPerPage);
+      const start = (currentPage - 1) * recordsPerPage;
+      const end = start + recordsPerPage;
+      const current = sorted.slice(start, end);
 
-    return {
-      sortedRecords: sorted,
-      totalPages: total,
-      startIndex: start,
-      endIndex: end,
-      currentRecords: current,
-    };
-  }, [filteredRecords, currentPage, recordsPerPage, sortField, sortOrder]);
+      return {
+        sortedRecords: sorted,
+        totalPages: total,
+        startIndex: start,
+        endIndex: end,
+        currentRecords: current,
+      };
+    }, [filteredRecords, currentPage, recordsPerPage, sortField, sortOrder]);
 
   // 탭 변경 핸들러
   const handleTabChange = (tab: TabType) => {
@@ -535,8 +532,12 @@ const DemonstrationRecordTabs = () => {
 
   // 상태 변경 권한 확인
   const canChangeStatus = () => {
-    const hasPermission = userAccessLevel === "admin" || userAccessLevel === "moderator";
-    console.log("시연 기록 - canChangeStatus 체크:", { userAccessLevel, hasPermission });
+    const hasPermission =
+      userAccessLevel === "admin" || userAccessLevel === "moderator";
+    console.log("시연 기록 - canChangeStatus 체크:", {
+      userAccessLevel,
+      hasPermission,
+    });
     return hasPermission;
   };
 
@@ -662,8 +663,8 @@ const DemonstrationRecordTabs = () => {
             {activeTab === "ongoing"
               ? "진행 중인 시연 요청 및 진행 상황을 확인할 수 있습니다."
               : activeTab === "long-term"
-              ? "장기 시연 기록을 확인할 수 있습니다."
-              : "완료된 시연 기록을 확인할 수 있습니다."}
+                ? "장기 시연 기록을 확인할 수 있습니다."
+                : "완료된 시연 기록을 확인할 수 있습니다."}
           </p>
         </div>
         <button
@@ -716,8 +717,19 @@ const DemonstrationRecordTabs = () => {
             id: "ongoing" as TabType,
             label: "진행중",
             icon: (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
             ),
           },
@@ -725,8 +737,19 @@ const DemonstrationRecordTabs = () => {
             id: "long-term" as TabType,
             label: "장기 시연",
             icon: (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             ),
           },
@@ -734,8 +757,19 @@ const DemonstrationRecordTabs = () => {
             id: "completed" as TabType,
             label: "시연종료",
             icon: (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 sm:w-[18px] sm:h-[18px] flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             ),
           },
@@ -759,7 +793,12 @@ const DemonstrationRecordTabs = () => {
       <div className="mb-4 p-4 bg-Back-Low-10 rounded-xl">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            {activeTab === "ongoing" ? "진행중" : activeTab === "long-term" ? "장기 시연" : "시연종료"} 시연:{" "}
+            {activeTab === "ongoing"
+              ? "진행중"
+              : activeTab === "long-term"
+                ? "장기 시연"
+                : "시연종료"}{" "}
+            시연:{" "}
             <span className="font-semibold text-gray-900">
               {filteredRecords.length}
             </span>
@@ -775,14 +814,16 @@ const DemonstrationRecordTabs = () => {
       <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
         {/* 기간 정보 */}
         {(() => {
-          const paidRecords = currentRecords.filter(record => record.demoPrice && record.demoPrice > 0);
+          const paidRecords = currentRecords.filter(
+            (record) => record.demoPrice && record.demoPrice > 0
+          );
 
           if (paidRecords.length === 0) return null;
 
           const dates = paidRecords
-            .map(record => record.demoStartDate || record.createdAt)
-            .filter(date => date)
-            .map(date => new Date(date))
+            .map((record) => record.demoStartDate || record.createdAt)
+            .filter((date) => date)
+            .map((date) => new Date(date))
             .sort((a, b) => a.getTime() - b.getTime());
 
           const startDate = dates[0];
@@ -803,7 +844,13 @@ const DemonstrationRecordTabs = () => {
                   )}
                 </span>
                 <span className="text-xs text-gray-500">
-                  ({Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) + 1)}일)
+                  (
+                  {Math.ceil(
+                    (endDate.getTime() - startDate.getTime()) /
+                      (1000 * 60 * 60 * 24) +
+                      1
+                  )}
+                  일)
                 </span>
               </div>
             </div>
@@ -813,27 +860,45 @@ const DemonstrationRecordTabs = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-5 h-5 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <div>
-              <div className="text-xs text-blue-600 font-medium">현재 페이지 유료 시연</div>
+              <div className="text-xs text-blue-600 font-medium">
+                현재 페이지 유료 시연
+              </div>
               <div className="text-sm text-gray-600">
                 <span className="font-semibold text-blue-700">
-                  {currentRecords.filter(record => record.demoPrice && record.demoPrice > 0).length}
+                  {
+                    currentRecords.filter(
+                      (record) => record.demoPrice && record.demoPrice > 0
+                    ).length
+                  }
                 </span>
                 건
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-xs text-blue-600 font-medium mb-1">총 대금</div>
+            <div className="text-xs text-blue-600 font-medium mb-1">
+              총 대금
+            </div>
             <div className="text-lg font-bold text-blue-700">
               {currentRecords
-                .filter(record => record.demoPrice && record.demoPrice > 0)
+                .filter((record) => record.demoPrice && record.demoPrice > 0)
                 .reduce((sum, record) => sum + (record.demoPrice || 0), 0)
-                .toLocaleString('ko-KR')}
+                .toLocaleString("ko-KR")}
               <span className="text-sm font-medium ml-1">원</span>
             </div>
           </div>
@@ -841,28 +906,40 @@ const DemonstrationRecordTabs = () => {
 
         {/* 결제 유형별 통계 */}
         {(() => {
-          const paidRecords = currentRecords.filter(record => record.demoPrice && record.demoPrice > 0);
-          const paymentTypes = paidRecords.reduce((acc, record) => {
-            const type = record.demoPaymentType || '미지정';
-            if (!acc[type]) {
-              acc[type] = { count: 0, amount: 0 };
-            }
-            acc[type].count += 1;
-            acc[type].amount += record.demoPrice || 0;
-            return acc;
-          }, {} as Record<string, { count: number; amount: number }>);
+          const paidRecords = currentRecords.filter(
+            (record) => record.demoPrice && record.demoPrice > 0
+          );
+          const paymentTypes = paidRecords.reduce(
+            (acc, record) => {
+              const type = record.demoPaymentType || "미지정";
+              if (!acc[type]) {
+                acc[type] = { count: 0, amount: 0 };
+              }
+              acc[type].count += 1;
+              acc[type].amount += record.demoPrice || 0;
+              return acc;
+            },
+            {} as Record<string, { count: number; amount: number }>
+          );
 
           return Object.keys(paymentTypes).length > 0 ? (
             <div className="mt-3 pt-3 border-t border-blue-200">
               <div className="flex flex-wrap gap-2">
                 {Object.entries(paymentTypes).map(([type, data]) => (
-                  <div key={type} className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-blue-100">
-                    <span className="text-xs font-medium text-gray-700">{type}</span>
+                  <div
+                    key={type}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-blue-100"
+                  >
+                    <span className="text-xs font-medium text-gray-700">
+                      {type}
+                    </span>
                     <span className="text-xs text-gray-500">·</span>
-                    <span className="text-xs text-blue-600 font-semibold">{data.count}건</span>
+                    <span className="text-xs text-blue-600 font-semibold">
+                      {data.count}건
+                    </span>
                     <span className="text-xs text-gray-500">·</span>
                     <span className="text-xs text-gray-900 font-semibold">
-                      {data.amount.toLocaleString('ko-KR')}원
+                      {data.amount.toLocaleString("ko-KR")}원
                     </span>
                   </div>
                 ))}
@@ -875,7 +952,7 @@ const DemonstrationRecordTabs = () => {
       {/* 테이블형 리스트 */}
       <div>
         {isLoading() ? (
-          <LoadingSkeleton type={isMobile ? 'card' : 'table'} count={10} />
+          <LoadingSkeleton type={isMobile ? "card" : "table"} count={10} />
         ) : currentRecords.length === 0 ? (
           <div className="py-16 text-center bg-white rounded-2xl shadow-sm">
             <Package className="mx-auto w-12 h-12 text-gray-300" />
@@ -929,7 +1006,9 @@ const DemonstrationRecordTabs = () => {
                   {record.demoStartDate && (
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      <span>시작: {formatDateForDisplayUTC(record.demoStartDate)}</span>
+                      <span>
+                        시작: {formatDateForDisplayUTC(record.demoStartDate)}
+                      </span>
                     </div>
                   )}
                   {record.demoManager && (
@@ -937,9 +1016,13 @@ const DemonstrationRecordTabs = () => {
                   )}
                   {record.demoNationType && (
                     <div>
-                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                        record.demoNationType === "국내" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"
-                      }`}>
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                          record.demoNationType === "국내"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-purple-100 text-purple-700"
+                        }`}
+                      >
                         {record.demoNationType}
                       </span>
                     </div>

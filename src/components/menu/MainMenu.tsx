@@ -26,8 +26,9 @@ import {
   PiClipboardTextFill,
 } from "react-icons/pi";
 import { BiSolidPurchaseTag } from "react-icons/bi";
-import { MdPointOfSale, MdAnalytics } from "react-icons/md";
+import { MdPointOfSale, MdAnalytics, MdPeopleOutline } from "react-icons/md";
 import { useCategory } from "@/hooks/useCategory";
+import { useRepurchaseDueUsers } from "@/hooks/useCustomerDocuments";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 const MainMenu = () => {
@@ -41,12 +42,21 @@ const MainMenu = () => {
   // 새로운 useCategory 훅 사용
   const { isLoading: categoriesLoading } = useCategory(selectedTeam?.id);
 
+  // 재구매 예정 고객 수
+  const { data: repurchaseDueUsers = [] } = useRepurchaseDueUsers(
+    selectedTeam?.id
+  );
+  const repurchaseDueCount = repurchaseDueUsers.length;
+
   // 3D 기울이기 효과를 위한 상태
   const [hoveredCard, setHoveredCard] = React.useState<number | null>(null);
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
 
   // 마우스 이동 핸들러
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>, cardIndex: number) => {
+  const handleMouseMove = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    cardIndex: number
+  ) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
@@ -112,7 +122,8 @@ const MainMenu = () => {
       title: "재고 조회",
       subtitle: "창고별 재고 현황을 확인합니다",
       icon: <FaBox className="text-3xl" />,
-      onClick: () => checkAccess(`/stock`, ["admin", "user", "moderator", "supplier"]),
+      onClick: () =>
+        checkAccess(`/stock`, ["admin", "user", "moderator", "supplier"]),
       accessLevel: ["user", "admin", "moderator", "supplier"],
     },
     {
@@ -130,7 +141,8 @@ const MainMenu = () => {
       title: "고객 관리",
       subtitle: "고객 정보를 등록하고 관리합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
-      onClick: () => checkAccess(`/supplier`, ["admin", "user", "moderator", "supplier"]),
+      onClick: () =>
+        checkAccess(`/supplier`, ["admin", "user", "moderator", "supplier"]),
       accessLevel: ["user", "admin", "moderator", "supplier"],
     },
   ];
@@ -197,11 +209,7 @@ const MainMenu = () => {
       subtitle: "시연품 출고를 요청합니다",
       icon: <PiHandCoinsFill className="text-3xl" />,
       onClick: () =>
-        checkAccess(`/demonstration`, [
-          "admin",
-          "user",
-          "moderator",
-        ]),
+        checkAccess(`/demonstration`, ["admin", "user", "moderator"]),
       accessLevel: ["user", "admin", "moderator"],
     },
     {
@@ -209,11 +217,14 @@ const MainMenu = () => {
       subtitle: "시연품 출고 기록을 확인합니다",
       icon: <PiClipboardTextFill className="text-3xl" />,
       onClick: () =>
-        checkAccess(`/demonstration-record`, [
-          "admin",
-          "user",
-          "moderator",
-        ]),
+        checkAccess(`/demonstration-record`, ["admin", "user", "moderator"]),
+      accessLevel: ["user", "admin", "moderator"],
+    },
+    {
+      title: "재구매 예정 고객",
+      subtitle: "재구매 예정일이 지난 고객을 확인합니다",
+      icon: <MdPeopleOutline className="text-3xl" />,
+      onClick: () => checkAccess(`/repurchase`, ["admin", "user", "moderator"]),
       accessLevel: ["user", "admin", "moderator"],
     },
   ];
@@ -349,7 +360,9 @@ const MainMenu = () => {
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <LoadingCentered size="lg" />
-          <p className="mt-4 text-base md:text-lg text-gray-600">데이터를 불러오는 중...</p>
+          <p className="mt-4 text-base md:text-lg text-gray-600">
+            데이터를 불러오는 중...
+          </p>
         </div>
       </div>
     );
@@ -424,6 +437,33 @@ const MainMenu = () => {
         </motion.p>
       </motion.div>
 
+      {/* 재구매 예정 고객 알림 배너 */}
+      {repurchaseDueCount > 0 && user?.accessLevel !== "supplier" && (
+        <motion.button
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.15 }}
+          onClick={() => router.push("/repurchase")}
+          className="flex items-center justify-between w-full mb-4 p-4 bg-orange-50 border border-orange-200 rounded-xl shadow-sm hover:bg-orange-100 transition-colors text-left"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full">
+              <MdPeopleOutline className="text-xl text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-orange-900">
+                재구매 예정 고객{" "}
+                <span className="text-orange-600">{repurchaseDueCount}명</span>
+              </p>
+              <p className="text-xs text-orange-600">
+                재구매 예정일이 지난 고객이 있습니다
+              </p>
+            </div>
+          </div>
+          <span className="text-sm text-orange-500">확인하기 →</span>
+        </motion.button>
+      )}
+
       {/* 탭 네비게이션 — MD3 Segment Control */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -477,19 +517,38 @@ const MainMenu = () => {
                   opacity: hasAccess ? 1 : 0.5,
                   y: 0,
                   scale: hasAccess && hoveredCard === index ? 1.015 : 1,
-                  rotateX: hasAccess && hoveredCard === index ? (mousePosition.y - 0.5) * -4 : 0,
-                  rotateY: hasAccess && hoveredCard === index ? (mousePosition.x - 0.5) * 4 : 0,
+                  rotateX:
+                    hasAccess && hoveredCard === index
+                      ? (mousePosition.y - 0.5) * -4
+                      : 0,
+                  rotateY:
+                    hasAccess && hoveredCard === index
+                      ? (mousePosition.x - 0.5) * 4
+                      : 0,
                 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{
                   opacity: { duration: 0.04, delay: index * 0.01 },
-                  y: { duration: 0.04, delay: index * 0.01, type: "spring", stiffness: 300, damping: 25 },
+                  y: {
+                    duration: 0.04,
+                    delay: index * 0.01,
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 25,
+                  },
                   scale: { duration: 0.12 },
                   rotateX: { duration: 0.1, ease: "easeOut" },
                   rotateY: { duration: 0.1, ease: "easeOut" },
                 }}
                 whileTap={hasAccess ? { scale: 0.97 } : {}}
-                onClick={hasAccess ? item.onClick : () => toast.error(`접근 권한이 없습니다. 필요 권한: ${formatAccessLevel(item.accessLevel)}`)}
+                onClick={
+                  hasAccess
+                    ? item.onClick
+                    : () =>
+                        toast.error(
+                          `접근 권한이 없습니다. 필요 권한: ${formatAccessLevel(item.accessLevel)}`
+                        )
+                }
                 onMouseMove={(e) => hasAccess && handleMouseMove(e, index)}
                 onMouseLeave={handleMouseLeave}
                 style={{
@@ -556,9 +615,18 @@ const MainMenu = () => {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                       animate={{ x: [0, 4, 0] }}
-                      transition={{ duration: 0.75, repeat: Infinity, ease: "easeInOut" }}
+                      transition={{
+                        duration: 0.75,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </motion.svg>
                   </div>
                 </div>

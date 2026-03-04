@@ -4,12 +4,19 @@ import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSupplierDetail } from "@/hooks/useSupplierDetail";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { SupplierDetailHeader } from "@/components/supplier/SupplierDetailHeader";
 import { SupplierDetailSummaryComponent } from "@/components/supplier/SupplierDetailSummary";
 import { SupplierSalesTab } from "@/components/supplier/SupplierSalesTab";
 import { SupplierPurchaseTab } from "@/components/supplier/SupplierPurchaseTab";
 import { LoadingCentered } from "@/components/ui/Loading";
-import { ArrowLeft, TrendingUp, ShoppingBag, Calendar, Download } from "lucide-react";
+import {
+  ArrowLeft,
+  TrendingUp,
+  ShoppingBag,
+  Calendar,
+  Download,
+} from "lucide-react";
 import { Button } from "@/components/ui";
 import { format, subMonths, subYears } from "date-fns";
 import { exportSupplierDetailToExcel } from "@/utils/exportSupplierDetailToExcel";
@@ -22,6 +29,7 @@ export default function SupplierDetailPage() {
   const supplierId = params.id as string;
 
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { canViewMargin } = usePermission();
 
   // 날짜 범위 상태
   const [datePreset, setDatePreset] = useState<DatePreset>("3months");
@@ -78,7 +86,9 @@ export default function SupplierDetailPage() {
       <div className="flex items-center justify-center min-h-screen bg-Back-Low-10">
         <div className="text-center">
           <LoadingCentered />
-          <p className="mt-4 text-sm text-Text-Low-70">데이터를 불러오는 중...</p>
+          <p className="mt-4 text-sm text-Text-Low-70">
+            데이터를 불러오는 중...
+          </p>
         </div>
       </div>
     );
@@ -136,7 +146,7 @@ export default function SupplierDetailPage() {
   const handleExportExcel = () => {
     if (!supplier) return;
 
-    const canViewMargin = user?.accessLevel === "admin" || user?.accessLevel === "moderator";
+    const canViewMarginForExport = canViewMargin;
 
     exportSupplierDetailToExcel(
       supplier,
@@ -144,7 +154,7 @@ export default function SupplierDetailPage() {
       purchaseRecords,
       teamItemsMap,
       { startDate, endDate },
-      canViewMargin
+      canViewMarginForExport
     );
   };
 
@@ -181,7 +191,9 @@ export default function SupplierDetailPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant p-4 mb-6">
         <div className="flex items-center gap-2 mb-3">
           <Calendar className="w-4 h-4 text-Text-High-90" />
-          <span className="text-sm font-medium text-Text-High-90">조회 기간</span>
+          <span className="text-sm font-medium text-Text-High-90">
+            조회 기간
+          </span>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -242,7 +254,10 @@ export default function SupplierDetailPage() {
 
       {/* 요약 통계 */}
       <div className="mb-6">
-        <SupplierDetailSummaryComponent summary={summary} isLoading={isLoading} />
+        <SupplierDetailSummaryComponent
+          summary={summary}
+          isLoading={isLoading}
+        />
       </div>
 
       {/* 탭 UI (매출/매입 내역) */}
@@ -287,7 +302,10 @@ export default function SupplierDetailPage() {
         {/* 탭 본문 */}
         <div className="p-6">
           {activeTab === "sales" ? (
-            <SupplierSalesTab records={salesRecords} isLoading={isSalesLoading} />
+            <SupplierSalesTab
+              records={salesRecords}
+              isLoading={isSalesLoading}
+            />
           ) : (
             <SupplierPurchaseTab
               records={purchaseRecords}

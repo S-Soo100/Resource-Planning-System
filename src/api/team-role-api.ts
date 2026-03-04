@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { api, ApiResponse } from "./api";
 import {
   TeamRoleResponse,
   UpdateTeamRoleRequest,
   WarehouseAccessResponse,
 } from "@/types/team";
+import { extractErrorMessage } from "@/utils/apiErrorHandler";
 
 /**
  * 팀별 역할/권한 API
@@ -43,7 +43,7 @@ export const teamRoleApi = {
     } catch (error) {
       return {
         success: false,
-        error: "팀별 권한 조회에 실패했습니다.",
+        error: extractErrorMessage(error, "팀별 권한 조회에 실패했습니다."),
       };
     }
   },
@@ -81,7 +81,7 @@ export const teamRoleApi = {
     } catch (error) {
       return {
         success: false,
-        error: "팀별 권한 수정에 실패했습니다.",
+        error: extractErrorMessage(error, "팀별 권한 수정에 실패했습니다."),
       };
     }
   },
@@ -122,7 +122,10 @@ export const teamRoleApi = {
     } catch (error) {
       return {
         success: false,
-        error: "창고 접근 권한 확인에 실패했습니다.",
+        error: extractErrorMessage(
+          error,
+          "창고 접근 권한 확인에 실패했습니다."
+        ),
       };
     }
   },

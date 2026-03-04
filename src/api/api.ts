@@ -49,6 +49,13 @@ api.interceptors.response.use(
       }`,
       error.response?.data || error.message
     );
+    if (error.response?.status === 403) {
+      console.warn(
+        `[API 403] ${error.config?.method?.toUpperCase()} ${error.config?.url}`,
+        error.response?.data?.message || "접근 권한이 없습니다"
+      );
+      // 로그아웃하지 않음 — 권한 없음일 뿐
+    }
     if (error.response?.status === 401) {
       // 토큰 제거
       localStorage.removeItem("token");

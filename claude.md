@@ -29,24 +29,14 @@
 3. 단계적 사고 과정으로 답변
 4. 한국어로 응답
 
-### 작업 규칙 (Issue-Driven Development)
-
-> **새로운 기능 요청이나 수정 요청을 받으면, 코드를 바로 수정하지 말고 반드시 먼저 GitHub Issue 티켓을 생성한다.**
+### 작업 규칙
 
 **워크플로우:**
 1. **요청 분석**: 요구사항을 파악하고 유형 판단 (Feature / Bug / Improvement / Epic)
 2. **코드베이스 탐색**: 관련 파일, 영향 범위, 기존 패턴 분석
-3. **티켓 생성**: `gh issue create`로 구조화된 이슈 생성 (사용자 확인 후)
-4. **브랜치 생성**: `feature/이슈번호-설명` 또는 `fix/이슈번호-설명`
-5. **구현**: 승인된 티켓 내용에 따라 코드 작성
-6. **PR 생성**: `closes #이슈번호` 포함하여 PR 생성
-
-**예외 (티켓 없이 바로 수정 가능):**
-- 오타 수정, 1줄 이하의 사소한 변경
-- 사용자가 명시적으로 "바로 수정해줘"라고 요청한 경우
-- 빌드/설정 파일 변경 (chore)
-
-**참고**: `/docs/requirement-workflow.md`, `/new-ticket` 슬래시 커맨드
+3. **브랜치 생성**: `feature/설명` 또는 `fix/설명`
+4. **구현**: 승인된 내용에 따라 코드 작성
+5. **커밋**: 변경사항을 의미 있는 단위로 커밋
 
 ---
 
@@ -95,7 +85,6 @@
 | 문서                               | 주요 내용                                |
 | ---------------------------------- | ---------------------------------------- |
 | `/docs/api-error-handling.md`      | API 에러 처리 표준 가이드, 유틸리티 함수 |
-| `/docs/requirement-workflow.md`    | Issue-Driven 개발 워크플로우, 티켓 관리  |
 
 ---
 
@@ -167,10 +156,11 @@ KARS는 **팀별 권한 중심 아키텍처**를 사용합니다.
 
 #### 권한 아키텍처 원칙
 
-**팀 권한 우선 (Team-Permission-Centric)**
-- `TeamUserMapping.accessLevel` (팀별 권한) 우선 사용
-- `User.accessLevel` (기본 권한)은 **레거시** - 신규 개발 시 사용 금지
-- 신규 사용자 생성 시 반드시 팀 권한을 자동 설정할 것
+**팀 권한이 유일한 기준 (Team-Permission Only)**
+- `TeamUserMapping.accessLevel`이 **유일한 권한 소스**
+- `User.accessLevel`은 **레거시** — 참조 금지, 신규 코드에서 사용 금지
+- 프론트엔드 권한 체크는 반드시 `usePermission()` 훅을 사용할 것
+- **API가 팀 권한대로 동작하지 않으면 API를 수정해야 함** (프론트에서 우회하지 않는다)
 
 **isAdmin 자동 계산**
 - `isAdmin` 필드는 별도로 입력받지 않음
@@ -193,15 +183,11 @@ await teamRoleApi.updateTeamRole(teamId, userId, {
 });
 ```
 
-**권한 표시 우선순위**
-```typescript
-// 팀 권한이 있으면 팀 권한만 표시
-if (teamUserMapping.accessLevel) {
-  return teamUserMapping.accessLevel; // "admin", "moderator", etc.
-} else {
-  return user.accessLevel; // 기본 권한 (레거시)
-}
-```
+**마이그레이션 완료 (v3.0)**
+> ✅ 모든 페이지가 `usePermission()` 훅을 통해 팀 권한(`TeamUserMapping.accessLevel`) 기반으로 전환 완료.
+> - `usePermission()`: 중앙 권한 훅 — `isAdmin`, `isModerator`, `canEditPrice`, `canViewMargin` 등 비즈니스 헬퍼 제공
+> - 유일한 예외: `team-select/page.tsx` (팀 선택 전이므로 `serverUser?.isAdmin` 사용)
+> - `User.accessLevel` / `auth.isAdmin` 직접 참조는 **금지** — 반드시 `usePermission()` 사용
 
 ### 테마 색상
 | 용도         | 색상                              |

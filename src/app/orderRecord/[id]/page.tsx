@@ -8,7 +8,11 @@ import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
 import { ArrowLeft, Package, Truck, Printer, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useUpdateOrderStatus, useDeleteOrder } from "@/hooks/(useOrder)/useOrderMutations";
+import { usePermission } from "@/hooks/usePermission";
+import {
+  useUpdateOrderStatus,
+  useDeleteOrder,
+} from "@/hooks/(useOrder)/useOrderMutations";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useSuppliers } from "@/hooks/useSupplier";
@@ -28,9 +32,14 @@ import {
 } from "@/types/(order)/orderComment";
 import { OrderComment } from "@/types/(order)/orderComment";
 import { IUser } from "@/types/(auth)/user";
-import { formatDateForDisplay, formatDateForDisplayUTC } from "@/utils/dateUtils";
+import {
+  formatDateForDisplay,
+  formatDateForDisplayUTC,
+} from "@/utils/dateUtils";
 import { uploadMultipleOrderFileById, deleteOrderFile } from "@/api/order-api";
 import OrderChangeHistory from "@/components/orderRecord/OrderChangeHistory";
+import TaxInvoiceSection from "@/components/orderRecord/TaxInvoiceSection";
+import CustomerDocumentSection from "@/components/orderRecord/CustomerDocumentSection";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 // 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
@@ -151,6 +160,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
   const [newComment, setNewComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState("");
+  const { isAdmin: isCommentAdmin } = usePermission();
 
   // 실제 API를 사용한 댓글 관리
   const {
@@ -174,9 +184,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
   const canDeleteComment = (comment: OrderComment) => {
     if (!currentUser) return false;
     // 삭제는 본인 댓글 + Admin은 모든 댓글 가능
-    return (
-      comment.userId === currentUser.id || currentUser.accessLevel === "admin"
-    );
+    return comment.userId === currentUser.id || isCommentAdmin;
   };
 
   // 댓글 작성 시간 포맷팅
@@ -386,6 +394,14 @@ const OrderRecordDetail = () => {
   const [isOrderItemsExpanded, setIsOrderItemsExpanded] = useState(true);
 
   const { user: auth } = useCurrentUser();
+  const {
+    isAdmin,
+    isModerator,
+    isAdminOrModerator,
+    isSupplier,
+    canEditPrice: permissionCanEditPrice,
+    canDeleteRecord,
+  } = usePermission();
   const queryClient = useQueryClient();
   const updateOrderStatusMutation = useUpdateOrderStatus();
   const deleteOrderMutation = useDeleteOrder();
@@ -484,7 +500,7 @@ const OrderRecordDetail = () => {
     if (!order || !selectedStatus) return;
 
     // moderator 권한 사용자가 본인이 생성한 발주를 승인/반려하려고 할 때 제한
-    if (auth?.accessLevel === "moderator") {
+    if (isModerator) {
       if (order.userId === auth?.id) {
         if (
           selectedStatus === OrderStatus.approved ||
@@ -608,16 +624,15 @@ const OrderRecordDetail = () => {
   // 수정 권한 확인
   const hasPermissionToEdit = (record: IOrderRecord) => {
     if (!auth) return false;
-    const isAdmin = auth.isAdmin;
-    const isAuthor = record.userId === auth.id;
     if (isAdmin) return true;
+    const isAuthor = record.userId === auth.id;
     const isRequestedStatus = record.status === OrderStatus.requested;
     return isAuthor && isRequestedStatus;
   };
 
   // 상태 변경 권한 확인
   const hasPermissionToChangeStatus = () => {
-    return auth?.accessLevel === "admin" || auth?.accessLevel === "moderator";
+    return isAdminOrModerator;
   };
 
   // 권한별 상태 변경 가능 여부 확인
@@ -625,7 +640,7 @@ const OrderRecordDetail = () => {
     if (!auth) return false;
 
     // Moderator 권한 체크
-    if (auth.accessLevel === "moderator") {
+    if (isModerator) {
       // Moderator는 requested, approved, rejected 상태만 변경 가능
       const canChange = [
         OrderStatus.requested,
@@ -636,7 +651,7 @@ const OrderRecordDetail = () => {
     }
 
     // Admin 권한 체크 - 모든 상태 변경 가능
-    if (auth.accessLevel === "admin") {
+    if (isAdmin) {
       return true;
     }
 
@@ -647,7 +662,7 @@ const OrderRecordDetail = () => {
   const getAvailableStatusOptions = () => {
     if (!auth) return [];
 
-    if (auth.accessLevel === "moderator") {
+    if (isModerator) {
       // Moderator는 초기 승인 단계만 담당
       return [
         { value: OrderStatus.requested, label: "요청" },
@@ -664,7 +679,7 @@ const OrderRecordDetail = () => {
       ];
     }
 
-    if (auth.accessLevel === "admin") {
+    if (isAdmin) {
       // Admin은 모든 상태 변경 가능
       return [
         { value: OrderStatus.requested, label: "요청" },
@@ -681,7 +696,7 @@ const OrderRecordDetail = () => {
 
   // 삭제 권한 확인 (Admin만 가능)
   const canDeleteOrder = () => {
-    return auth?.accessLevel === "admin";
+    return canDeleteRecord;
   };
 
   // 발주 삭제 핸들러
@@ -785,14 +800,22 @@ const OrderRecordDetail = () => {
 
   // 이미지 파일 여부 확인
   const isImageFile = (fileName: string): boolean => {
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+    const imageExtensions = [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".webp",
+      ".bmp",
+      ".svg",
+    ];
     const lowerFileName = fileName.toLowerCase();
-    return imageExtensions.some(ext => lowerFileName.endsWith(ext));
+    return imageExtensions.some((ext) => lowerFileName.endsWith(ext));
   };
 
   // 가격 수정 권한 확인 (moderator 이상)
   const canEditPrice = () => {
-    return auth?.accessLevel === "admin" || auth?.accessLevel === "moderator";
+    return permissionCanEditPrice;
   };
 
   if (isLoading) {
@@ -917,7 +940,7 @@ const OrderRecordDetail = () => {
                       </button>
                     )}
                     {/* moderator/admin만 발주 정보 수정 버튼 표시 */}
-                    {(auth?.accessLevel === "admin" || auth?.accessLevel === "moderator") && (
+                    {isAdminOrModerator && (
                       <button
                         onClick={() => setIsDetailsEditModalOpen(true)}
                         className="px-4 py-2 text-white bg-green-500 rounded-lg transition-colors hover:bg-green-600"
@@ -1004,10 +1027,10 @@ const OrderRecordDetail = () => {
                         }
                         disabled={
                           isUpdatingStatus ||
-                          (auth?.accessLevel === "moderator" &&
-                           order.status !== OrderStatus.requested &&
-                           order.status !== OrderStatus.approved &&
-                           order.status !== OrderStatus.rejected)
+                          (isModerator &&
+                            order.status !== OrderStatus.requested &&
+                            order.status !== OrderStatus.approved &&
+                            order.status !== OrderStatus.rejected)
                         }
                         className="px-3 py-2 bg-white rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -1019,7 +1042,7 @@ const OrderRecordDetail = () => {
                           >
                             {option.label}
                             {option.disabled &&
-                            auth?.accessLevel === "moderator" &&
+                            isModerator &&
                             order?.userId === auth?.id
                               ? " (본인 발주)"
                               : ""}
@@ -1037,23 +1060,22 @@ const OrderRecordDetail = () => {
                       >
                         {isUpdatingStatus ? "변경 중..." : "상태 변경"}
                       </button>
-                      {isUpdatingStatus && (
-                        <LoadingCentered size="sm" />
-                      )}
+                      {isUpdatingStatus && <LoadingCentered size="sm" />}
                     </div>
                     <div className="mt-3 text-xs text-gray-500">
-                      {auth?.accessLevel === "moderator" ? (
+                      {isModerator ? (
                         <>
-                          1차승인권자는 초기 승인 단계(요청, 승인, 반려)만 담당합니다.
+                          1차승인권자는 초기 승인 단계(요청, 승인, 반려)만
+                          담당합니다.
                           {order.status !== OrderStatus.requested &&
-                           order.status !== OrderStatus.approved &&
-                           order.status !== OrderStatus.rejected && (
-                            <span className="block mt-1 text-amber-700">
-                              ⚠️ 현재 상태에서는 상태 변경이 불가능합니다.
-                            </span>
-                          )}
+                            order.status !== OrderStatus.approved &&
+                            order.status !== OrderStatus.rejected && (
+                              <span className="block mt-1 text-amber-700">
+                                ⚠️ 현재 상태에서는 상태 변경이 불가능합니다.
+                              </span>
+                            )}
                         </>
-                      ) : auth?.accessLevel === "admin" ? (
+                      ) : isAdmin ? (
                         "관리자는 모든 상태를 변경할 수 있습니다."
                       ) : (
                         "상태 변경 권한이 없습니다."
@@ -1154,7 +1176,9 @@ const OrderRecordDetail = () => {
                 {/* 품목 정보 */}
                 <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
                   <button
-                    onClick={() => setIsOrderItemsExpanded(!isOrderItemsExpanded)}
+                    onClick={() =>
+                      setIsOrderItemsExpanded(!isOrderItemsExpanded)
+                    }
                     className="flex justify-between items-center w-full mb-4 text-left group hover:bg-gray-50 -mx-2 px-2 py-1 rounded-lg transition-colors"
                   >
                     <h2 className="text-lg font-semibold text-gray-900">
@@ -1162,17 +1186,22 @@ const OrderRecordDetail = () => {
                     </h2>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-500 group-hover:text-gray-700">
-                        {isOrderItemsExpanded ? '접기' : '펼치기'}
+                        {isOrderItemsExpanded ? "접기" : "펼치기"}
                       </span>
                       <svg
                         className={`w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-all ${
-                          isOrderItemsExpanded ? 'rotate-180' : ''
+                          isOrderItemsExpanded ? "rotate-180" : ""
                         }`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2.5}
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     </div>
                   </button>
@@ -1180,24 +1209,36 @@ const OrderRecordDetail = () => {
                   {/* 출고 창고 정보 */}
                   {isOrderItemsExpanded && order.warehouse && (
                     <div className="mb-3 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 text-gray-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z"
+                          clipRule="evenodd"
+                        />
                       </svg>
-                      <span className="text-sm font-medium text-gray-700">출고 창고:</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        출고 창고:
+                      </span>
                       <span className="px-2 py-1 text-sm font-semibold text-blue-700 bg-blue-50 rounded-md border border-blue-200">
                         {order.warehouse.warehouseName}
                       </span>
                     </div>
                   )}
 
-                  {isOrderItemsExpanded && order.orderItems && order.orderItems.length > 0 ? (
+                  {isOrderItemsExpanded &&
+                  order.orderItems &&
+                  order.orderItems.length > 0 ? (
                     <>
                       <div className="overflow-hidden border border-gray-200 rounded-lg">
                         <table className="min-w-full divide-y divide-gray-200 table-fixed">
                           <colgroup>
                             <col className="w-[60%]" />
                             <col className="w-[12%]" />
-                            {(auth?.accessLevel === 'admin' || auth?.accessLevel === 'moderator' || auth?.accessLevel === 'user') && (
+                            {!isSupplier && (
                               <>
                                 <col className="w-[10%]" />
                                 <col className="w-[8%]" />
@@ -1213,7 +1254,7 @@ const OrderRecordDetail = () => {
                               <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 수량
                               </th>
-                              {(auth?.accessLevel === 'admin' || auth?.accessLevel === 'moderator' || auth?.accessLevel === 'user') && (
+                              {!isSupplier && (
                                 <>
                                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     공급가
@@ -1231,12 +1272,20 @@ const OrderRecordDetail = () => {
                           <tbody className="bg-white divide-y divide-gray-200">
                             {order.orderItems.map((item, index) => {
                               const sellingPrice = item.sellingPrice ?? 0;
-                              const vat = item.vat ?? (sellingPrice > 0 ? Math.round(sellingPrice * 0.1) : 0);
-                              const subtotal = (sellingPrice + vat) * item.quantity;
+                              const vat =
+                                item.vat ??
+                                (sellingPrice > 0
+                                  ? Math.round(sellingPrice * 0.1)
+                                  : 0);
+                              const subtotal =
+                                (sellingPrice + vat) * item.quantity;
                               const hasPriceInfo = item.sellingPrice != null;
 
                               return (
-                                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                <tr
+                                  key={index}
+                                  className="hover:bg-gray-50 transition-colors"
+                                >
                                   <td className="px-4 py-3">
                                     <div className="text-sm font-medium">
                                       {item.item?.id ? (
@@ -1244,11 +1293,13 @@ const OrderRecordDetail = () => {
                                           href={`/item/${item.item.id}`}
                                           className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
                                         >
-                                          {item.item?.teamItem?.itemName || "알 수 없는 품목"}
+                                          {item.item?.teamItem?.itemName ||
+                                            "알 수 없는 품목"}
                                         </Link>
                                       ) : (
                                         <span className="text-gray-900">
-                                          {item.item?.teamItem?.itemName || "알 수 없는 품목"}
+                                          {item.item?.teamItem?.itemName ||
+                                            "알 수 없는 품목"}
                                         </span>
                                       )}
                                       {item.item?.teamItem?.itemCode && (
@@ -1259,26 +1310,50 @@ const OrderRecordDetail = () => {
                                     </div>
                                     {!order.packageId && item.memo && (
                                       <div className="mt-1 text-xs text-blue-600 flex items-center gap-1">
-                                        <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg
+                                          className="w-3 h-3 flex-shrink-0"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
                                           <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                         </svg>
-                                        <span className="line-clamp-2">{item.memo}</span>
+                                        <span className="line-clamp-2">
+                                          {item.memo}
+                                        </span>
                                       </div>
                                     )}
                                   </td>
                                   <td className="px-4 py-3 text-center text-sm font-medium text-gray-900 whitespace-nowrap">
                                     {item.quantity}개
                                   </td>
-                                  {(auth?.accessLevel === 'admin' || auth?.accessLevel === 'moderator' || auth?.accessLevel === 'user') && (
+                                  {!isSupplier && (
                                     <>
                                       <td className="px-4 py-3 text-right text-sm text-gray-900 whitespace-nowrap">
-                                        {hasPriceInfo ? `${sellingPrice.toLocaleString()}원` : <span className="text-yellow-600 font-medium">미입력</span>}
+                                        {hasPriceInfo ? (
+                                          `${sellingPrice.toLocaleString()}원`
+                                        ) : (
+                                          <span className="text-yellow-600 font-medium">
+                                            미입력
+                                          </span>
+                                        )}
                                       </td>
                                       <td className="px-4 py-3 text-right text-sm text-gray-600 whitespace-nowrap">
-                                        {hasPriceInfo ? `${vat.toLocaleString()}원` : <span className="text-yellow-600">-</span>}
+                                        {hasPriceInfo ? (
+                                          `${vat.toLocaleString()}원`
+                                        ) : (
+                                          <span className="text-yellow-600">
+                                            -
+                                          </span>
+                                        )}
                                       </td>
                                       <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">
-                                        {hasPriceInfo ? `${subtotal.toLocaleString()}원` : <span className="text-yellow-600">-</span>}
+                                        {hasPriceInfo ? (
+                                          `${subtotal.toLocaleString()}원`
+                                        ) : (
+                                          <span className="text-yellow-600">
+                                            -
+                                          </span>
+                                        )}
                                       </td>
                                     </>
                                   )}
@@ -1287,33 +1362,49 @@ const OrderRecordDetail = () => {
                             })}
                           </tbody>
                           {/* 총액 표시 - supplier 제외 */}
-                          {(auth?.accessLevel === 'admin' || auth?.accessLevel === 'moderator' || auth?.accessLevel === 'user') && (
+                          {!isSupplier && (
                             <tfoot className="bg-blue-50">
                               <tr>
-                                <td colSpan={4} className="px-2 sm:px-4 py-3 text-right text-sm font-bold text-gray-900">
+                                <td
+                                  colSpan={4}
+                                  className="px-2 sm:px-4 py-3 text-right text-sm font-bold text-gray-900"
+                                >
                                   <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2">
                                     {/* moderator/admin만 가격 수정 버튼 표시 */}
                                     {canEditPrice() && (
                                       <button
-                                        onClick={() => setIsPriceEditModalOpen(true)}
+                                        onClick={() =>
+                                          setIsPriceEditModalOpen(true)
+                                        }
                                         className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-700 bg-white border-2 border-blue-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-all shadow-sm whitespace-nowrap"
                                         title="발주 상태와 무관하게 가격만 수정할 수 있습니다"
                                       >
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg
+                                          className="w-4 h-4"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
                                           <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                         </svg>
-                                        <span className="hidden sm:inline">가격 수정</span>
+                                        <span className="hidden sm:inline">
+                                          가격 수정
+                                        </span>
                                         <span className="sm:hidden">수정</span>
                                       </button>
                                     )}
-                                    <span className="whitespace-nowrap">총 거래금액</span>
+                                    <span className="whitespace-nowrap">
+                                      총 거래금액
+                                    </span>
                                   </div>
                                 </td>
                                 <td className="px-2 sm:px-4 py-3 text-right text-sm sm:text-base font-bold text-blue-700 whitespace-nowrap">
-                                  {order.totalPrice != null && order.totalPrice > 0 ? (
+                                  {order.totalPrice != null &&
+                                  order.totalPrice > 0 ? (
                                     <>{order.totalPrice.toLocaleString()}원</>
                                   ) : (
-                                    <span className="text-yellow-600 font-medium">미입력</span>
+                                    <span className="text-yellow-600 font-medium">
+                                      미입력
+                                    </span>
                                   )}
                                 </td>
                               </tr>
@@ -1338,6 +1429,105 @@ const OrderRecordDetail = () => {
                     </p>
                   </div>
                 )}
+
+                {/* 고객관리 상태 정보 (출고완료 시) */}
+                {order.status === "shipmentCompleted" && !isSupplier && (
+                  <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                      고객관리 정보
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* 환급 정보 */}
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h3 className="text-sm font-medium text-gray-600 mb-2">
+                          환급
+                        </h3>
+                        {order.isRefundNotApplicable ? (
+                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                            해당없음
+                          </span>
+                        ) : (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full ${order.isRefundApplied ? "bg-green-500" : "bg-gray-300"}`}
+                              />
+                              <span className="text-sm text-gray-700">
+                                환급 신청{" "}
+                                {order.isRefundApplied ? "완료" : "미신청"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full ${order.isRefundReceived ? "bg-green-500" : "bg-gray-300"}`}
+                              />
+                              <span className="text-sm text-gray-700">
+                                환급금{" "}
+                                {order.isRefundReceived
+                                  ? "입금 완료"
+                                  : "미입금"}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 세금계산서 */}
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h3 className="text-sm font-medium text-gray-600 mb-2">
+                          세금계산서
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-block w-2 h-2 rounded-full ${order.isTaxInvoiceIssued ? "bg-green-500" : "bg-gray-300"}`}
+                          />
+                          <span className="text-sm text-gray-700">
+                            매입세금계산서{" "}
+                            {order.isTaxInvoiceIssued ? "발행 완료" : "미발행"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 입금 정보 */}
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h3 className="text-sm font-medium text-gray-600 mb-2">
+                          입금
+                        </h3>
+                        <div className="space-y-1">
+                          <div className="text-sm text-gray-700">
+                            상태:{" "}
+                            <span className="font-medium">
+                              {order.depositStatus || "미설정"}
+                            </span>
+                          </div>
+                          {order.depositAmount != null && (
+                            <div className="text-sm text-gray-700">
+                              금액:{" "}
+                              <span className="font-medium">
+                                {order.depositAmount.toLocaleString()}원
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 세금계산서 (출고완료 시) */}
+                {order.status === "shipmentCompleted" && !isSupplier && (
+                  <TaxInvoiceSection orderId={order.id} />
+                )}
+
+                {/* 고객 서류 (출고완료 시) */}
+                {order.status === "shipmentCompleted" &&
+                  !isSupplier &&
+                  order.userId && (
+                    <CustomerDocumentSection
+                      userId={order.userId}
+                      orderId={order.id}
+                    />
+                  )}
 
                 {/* 첨부파일 */}
                 <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
@@ -1399,7 +1589,9 @@ const OrderRecordDetail = () => {
                                     src={file.fileUrl}
                                     alt={getDisplayFileName(file.fileName)}
                                     className="object-cover w-full h-full cursor-pointer transition-transform hover:scale-110"
-                                    onClick={() => window.open(file.fileUrl, "_blank")}
+                                    onClick={() =>
+                                      window.open(file.fileUrl, "_blank")
+                                    }
                                   />
                                 </div>
                               ) : (
@@ -1443,7 +1635,9 @@ const OrderRecordDetail = () => {
                                 disabled={isDeletingFile === file.id}
                                 className="px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded-md transition-colors hover:bg-red-100 disabled:opacity-50"
                               >
-                                {isDeletingFile === file.id ? "삭제 중..." : "삭제"}
+                                {isDeletingFile === file.id
+                                  ? "삭제 중..."
+                                  : "삭제"}
                               </button>
                             </div>
                           </div>
@@ -1452,13 +1646,14 @@ const OrderRecordDetail = () => {
                     </div>
                   ) : (
                     <p className="py-8 text-sm text-center text-gray-500">
-                      첨부된 파일이 없습니다. 위의 &apos;파일 추가&apos; 버튼을 눌러 파일을 업로드하세요.
+                      첨부된 파일이 없습니다. 위의 &apos;파일 추가&apos; 버튼을
+                      눌러 파일을 업로드하세요.
                     </p>
                   )}
                 </div>
 
                 {/* 변경 이력 - Admin/Moderator만 */}
-                {order && (auth?.accessLevel === 'admin' || auth?.accessLevel === 'moderator') && (
+                {order && isAdminOrModerator && (
                   <OrderChangeHistory orderId={order.id} />
                 )}
 
@@ -1501,7 +1696,6 @@ const OrderRecordDetail = () => {
                     }}
                   />
                 )}
-
               </div>
             </div>
           )}

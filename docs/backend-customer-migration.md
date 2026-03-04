@@ -2,9 +2,28 @@
 
 > E-006: 고객관리 데이터 모델 리팩토링 (User → Supplier 통합)
 
-## 배경
+## 배경 및 현재 문제
 
-현재 "고객" 데이터가 User 테이블에 저장되어 팀 멤버와 혼동됨. 발주 시스템에서는 이미 Supplier를 "고객"으로 사용 중이므로, Supplier 기반으로 통합 필요.
+### 왜 이 변경이 필요한가?
+
+KARS에서 **"고객"은 보조기기를 구매하는 거래처(Supplier)**를 의미한다. 그런데 현재 고객 데이터가 **User 테이블에 저장**되어 있어서, "팀 멤버"와 "고객"이 같은 테이블을 공유하는 구조적 문제가 있다.
+
+### 현재 문제점
+
+1. **데이터 모델 혼동**: 고객 필드 6개(`customerType`, `isRecipient`, `depositorName`, `residentId`, `repurchaseCycleMonths`, `repurchaseDueDate`)가 User 테이블에 존재. 팀 멤버(직원)에게는 의미 없는 필드가 User에 포함됨.
+
+2. **이중 "고객" 개념**: 발주 시스템에서는 이미 Supplier를 "고객"으로 사용 중 (발주 시 `SelectSupplierModal` = "고객 선택"). 즉, 발주의 고객은 Supplier인데, 고객관리 페이지의 고객은 User — 같은 "고객"이 서로 다른 테이블을 가리킴.
+
+3. **API 경로 부정합**: 고객 서류가 `/user/:userId/documents`에 연결되어 있어, 서류를 조회하려면 userId가 필요. 하지만 실제 비즈니스에서 서류는 거래처(Supplier) 단위로 관리되어야 함.
+
+4. **N+1 쿼리 문제**: 고객 목록을 가져올 때, 팀 멤버 매핑(teamUserMap)에서 userId를 추출한 후 각 사용자를 개별 조회하는 비효율적인 구조. Supplier 기반이면 `GET /supplier/team/:teamId` 단일 호출로 해결.
+
+### 목표 상태
+
+- **고객 = Supplier** (단일 진실 소스)
+- 고객 필드, 고객 서류, 재구매 관리 모두 Supplier 테이블/API 기반
+- User 테이블은 순수하게 팀 멤버(인증/권한) 용도로만 사용
+- 프론트엔드는 이미 Supplier 기반으로 전환 완료 (신규 API 실패 시 graceful degradation 적용)
 
 ---
 

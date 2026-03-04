@@ -7,8 +7,6 @@ import { useTeamAdmin } from "@/hooks/admin/useTeamAdmin";
 import { Warehouse } from "@/types/warehouse";
 import { IMappingUser } from "@/types/mappingUser";
 import { LoadingCentered } from "@/components/ui/Loading";
-import CustomerDocumentSection from "@/components/orderRecord/CustomerDocumentSection";
-
 interface UserEditModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -547,11 +545,6 @@ export default function UserEditModal({
               </div>
             </div>
           </div>
-
-          {/* 고객 서류 */}
-          {selectedUserId && (
-            <CustomerDocumentSection userId={selectedUserId} />
-          )}
 
           {/* 창고 접근 제한 */}
           <div className="space-y-4">

@@ -48,7 +48,7 @@ export const useTeamRole = (teamId: number, userId: number) => {
       }
       return response.data;
     },
-    enabled: !!teamId && !!userId,
+    enabled: !!teamId && teamId > 0 && !!userId && userId > 0,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
   });
@@ -67,7 +67,9 @@ export const useTeamRole = (teamId: number, userId: number) => {
     },
     onSuccess: () => {
       // 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ["team-role", teamId, userId] });
+      queryClient.invalidateQueries({
+        queryKey: ["team-role", teamId, userId],
+      });
       queryClient.invalidateQueries({ queryKey: ["team", teamId] });
       queryClient.invalidateQueries({ queryKey: ["user", userId] });
       toast.success("팀별 권한이 성공적으로 수정되었습니다.");

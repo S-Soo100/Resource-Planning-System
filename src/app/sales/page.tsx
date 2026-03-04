@@ -38,6 +38,13 @@ import {
   SalesRecord,
   SalesSummary as SalesSummaryType,
 } from "@/types/sales";
+import {
+  getDepositStatusText,
+  getDepositStatusColor,
+  getRefundStatusText,
+  getRefundStatusColor,
+  DEPOSIT_FILTER_OPTIONS,
+} from "@/utils/depositUtils";
 
 type SalesTab = "order" | "demo";
 
@@ -73,11 +80,13 @@ export default function SalesPage() {
     endDate,
     searchQuery,
     showMissingPriceOnly,
+    depositFilter,
     setStartDate,
     setEndDate,
     setDateRange,
     setSearchQuery,
     setShowMissingPriceOnly,
+    setDepositFilter,
   } = useSalesFilterStore();
 
   // 검색 debounce (300ms)
@@ -91,6 +100,7 @@ export default function SalesPage() {
     orderType: "all",
     searchQuery: debouncedSearchQuery,
     showMissingPriceOnly,
+    depositFilter,
   };
 
   // 정렬 상태
@@ -544,6 +554,24 @@ export default function SalesPage() {
           />
         </div>
 
+        {/* 입금 상태 필터 */}
+        <div className="mt-3">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            입금 상태
+          </label>
+          <select
+            value={depositFilter}
+            onChange={(e) => setDepositFilter(e.target.value)}
+            className="w-full sm:w-48 px-3 py-2 border border-gray-300 rounded-md text-sm"
+          >
+            {DEPOSIT_FILTER_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* 하단 버튼 */}
         <div className="flex items-center justify-between mt-4">
           <label className="flex items-center text-sm text-gray-700">
@@ -771,6 +799,25 @@ export default function SalesPage() {
                       {record.itemCount}종 {record.totalQuantity}개
                     </span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">입금상태</span>
+                    <span
+                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
+                    >
+                      {getDepositStatusText(
+                        record.depositStatus,
+                        record.depositAmount
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">환급상태</span>
+                    <span
+                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getRefundStatusColor(record)}`}
+                    >
+                      {getRefundStatusText(record)}
+                    </span>
+                  </div>
                   {record.memo && (
                     <div className="pt-2 border-t border-gray-100 mt-2">
                       <span className="text-gray-500">비고:</span>
@@ -883,6 +930,12 @@ export default function SalesPage() {
                       </th>
                     </>
                   )}
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-20">
+                    입금상태
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-20">
+                    환급상태
+                  </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-28">
                     거래명세서
                   </th>
@@ -996,6 +1049,23 @@ export default function SalesPage() {
                       </>
                     )}
                     <td className="px-4 py-3 text-center">
+                      <span
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
+                      >
+                        {getDepositStatusText(
+                          record.depositStatus,
+                          record.depositAmount
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getRefundStatusColor(record)}`}
+                      >
+                        {getRefundStatusText(record)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => handleOpenStatement(record)}
                         className="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
@@ -1036,6 +1106,8 @@ export default function SalesPage() {
                         </td>
                       </>
                     )}
+                    <td></td>
+                    <td></td>
                     <td></td>
                   </tr>
                 )}

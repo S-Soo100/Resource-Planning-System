@@ -1,6 +1,10 @@
 import * as XLSX from "xlsx";
 import { SalesRecord } from "@/types/sales";
 import { format } from "date-fns";
+import {
+  getDepositStatusText,
+  getRefundStatusText,
+} from "@/utils/depositUtils";
 
 /**
  * 판매 데이터를 엑셀로 내보내기 (권한별 컬럼 차별화)
@@ -41,6 +45,13 @@ export const exportSalesToExcel = (
           : "-";
     }
 
+    baseData.입금상태 = getDepositStatusText(
+      record.depositStatus,
+      record.depositAmount
+    );
+    baseData.입금액 = record.depositAmount ?? "-";
+    baseData.환급상태 = getRefundStatusText(record);
+    baseData.세금계산서 = record.isTaxInvoiceIssued ? "발행" : "미발행";
     baseData.상태 = record.status;
     baseData.담당자 = record.manager;
     baseData.비고 = record.memo || "-";
@@ -95,6 +106,10 @@ export const exportSalesToExcel = (
     totalRow.마진율 = `${avgMarginRate.toFixed(1)}%`;
   }
 
+  totalRow.입금상태 = "";
+  totalRow.입금액 = "";
+  totalRow.환급상태 = "";
+  totalRow.세금계산서 = "";
   totalRow.상태 = "";
   totalRow.담당자 = "";
   totalRow.비고 = "";

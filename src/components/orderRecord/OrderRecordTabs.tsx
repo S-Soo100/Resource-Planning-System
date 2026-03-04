@@ -1283,6 +1283,7 @@ const OrderRecordTabs = () => {
             sortField={sortField}
             sortOrder={sortOrder}
             onSort={handleSort}
+            shipmentTab={shipmentTab}
           />
         )}
 

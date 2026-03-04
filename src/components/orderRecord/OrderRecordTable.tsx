@@ -1,9 +1,21 @@
 import React from "react";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
-import { ArrowUpDown, ArrowUp, ArrowDown, Package, Sparkles } from "lucide-react";
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Package,
+  Sparkles,
+} from "lucide-react";
 import { formatDateForDisplayUTC } from "@/utils/dateUtils";
 import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
+import {
+  getDepositStatusText,
+  getDepositStatusColor,
+  getRefundStatusText,
+  getRefundStatusColor,
+} from "@/utils/depositUtils";
 
 // 새로운 기록인지 확인하는 함수
 const isNewRecord = (createdAt: string, status: string): boolean => {
@@ -13,7 +25,11 @@ const isNewRecord = (createdAt: string, status: string): boolean => {
 
   // 72시간 이내이고, 완료 상태가 아닌 경우
   const isWithin72Hours = hoursDiff <= 72;
-  const isNotCompleted = !["shipmentCompleted", "rejected", "rejectedByShipper"].includes(status);
+  const isNotCompleted = ![
+    "shipmentCompleted",
+    "rejected",
+    "rejectedByShipper",
+  ].includes(status);
 
   return isWithin72Hours && isNotCompleted;
 };
@@ -35,6 +51,7 @@ interface OrderRecordTableProps {
   sortField: SortField;
   sortOrder: SortOrder;
   onSort: (field: SortField) => void;
+  shipmentTab?: "pending" | "completed";
 }
 
 export default function OrderRecordTable({
@@ -51,7 +68,9 @@ export default function OrderRecordTable({
   sortField,
   sortOrder,
   onSort,
+  shipmentTab,
 }: OrderRecordTableProps) {
+  const isCompletedTab = shipmentTab === "completed";
   // 정렬 핸들러 - 부모 컴포넌트로 위임
   const handleSort = (field: SortField) => {
     onSort(field);
@@ -75,14 +94,14 @@ export default function OrderRecordTable({
   const getPeriodInfo = () => {
     if (records.length === 0) return "";
 
-    const dates = records.map(r => new Date(r.createdAt));
-    const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
-    const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+    const dates = records.map((r) => new Date(r.createdAt));
+    const minDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+    const maxDate = new Date(Math.max(...dates.map((d) => d.getTime())));
 
     const formatDate = (date: Date) => {
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
       return `${year}.${month}.${day}`;
     };
 
@@ -155,6 +174,19 @@ export default function OrderRecordTable({
             <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
               거래금액
             </th>
+            {isCompletedTab && (
+              <>
+                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                  입금상태
+                </th>
+                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                  환급상태
+                </th>
+                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                  세금계산서
+                </th>
+              </>
+            )}
             <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
               작업
             </th>
@@ -168,9 +200,7 @@ export default function OrderRecordTable({
               onClick={() => onDetailClick(record)}
             >
               {/* 번호 */}
-              <td className="px-4 py-3 text-sm text-gray-500">
-                {index + 1}
-              </td>
+              <td className="px-4 py-3 text-sm text-gray-500">{index + 1}</td>
 
               {/* 유형 */}
               <td className="px-4 py-3">
@@ -181,9 +211,7 @@ export default function OrderRecordTable({
                       : "bg-blue-100 text-blue-700"
                   }`}
                 >
-                  {record.packageId && record.packageId > 0
-                    ? "패키지"
-                    : "개별"}
+                  {record.packageId && record.packageId > 0 ? "패키지" : "개별"}
                 </span>
               </td>
 
@@ -193,11 +221,9 @@ export default function OrderRecordTable({
                   <div className="text-sm font-medium text-gray-900 truncate max-w-md">
                     {record.title ||
                       `${
-                        record.warehouse?.warehouseName ||
-                        "알 수 없는 창고"
+                        record.warehouse?.warehouseName || "알 수 없는 창고"
                       }에서 ${
-                        record.orderItems &&
-                        record.orderItems.length > 0
+                        record.orderItems && record.orderItems.length > 0
                           ? record.orderItems.length > 1
                             ? `${
                                 record.orderItems[0]?.item?.teamItem
@@ -241,14 +267,17 @@ export default function OrderRecordTable({
                         value={record.status}
                         onChange={(e) => {
                           e.stopPropagation();
-                          handleStatusChange(record.id, e.target.value as OrderStatus);
+                          handleStatusChange(
+                            record.id,
+                            e.target.value as OrderStatus
+                          );
                         }}
                         disabled={
                           isUpdatingStatus === record.id ||
                           (userAccessLevel === "moderator" &&
-                           record.status !== OrderStatus.requested &&
-                           record.status !== OrderStatus.approved &&
-                           record.status !== OrderStatus.rejected)
+                            record.status !== OrderStatus.requested &&
+                            record.status !== OrderStatus.approved &&
+                            record.status !== OrderStatus.rejected)
                         }
                         className={`inline-flex px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-1 ${getStatusColorClass(
                           record.status
@@ -258,10 +287,16 @@ export default function OrderRecordTable({
                         {userAccessLevel === "moderator" ? (
                           <>
                             <option value={OrderStatus.requested}>요청</option>
-                            <option value={OrderStatus.approved} disabled={record.userId === auth?.id}>
+                            <option
+                              value={OrderStatus.approved}
+                              disabled={record.userId === auth?.id}
+                            >
                               승인{record.userId === auth?.id ? " (본인)" : ""}
                             </option>
-                            <option value={OrderStatus.rejected} disabled={record.userId === auth?.id}>
+                            <option
+                              value={OrderStatus.rejected}
+                              disabled={record.userId === auth?.id}
+                            >
                               반려{record.userId === auth?.id ? " (본인)" : ""}
                             </option>
                           </>
@@ -270,15 +305,19 @@ export default function OrderRecordTable({
                             <option value={OrderStatus.requested}>요청</option>
                             <option value={OrderStatus.approved}>승인</option>
                             <option value={OrderStatus.rejected}>반려</option>
-                            <option value={OrderStatus.confirmedByShipper}>출고팀 확인</option>
-                            <option value={OrderStatus.shipmentCompleted}>출고 완료</option>
-                            <option value={OrderStatus.rejectedByShipper}>출고 보류</option>
+                            <option value={OrderStatus.confirmedByShipper}>
+                              출고팀 확인
+                            </option>
+                            <option value={OrderStatus.shipmentCompleted}>
+                              출고 완료
+                            </option>
+                            <option value={OrderStatus.rejectedByShipper}>
+                              출고 보류
+                            </option>
                           </>
                         ) : null}
                       </select>
-                      {isUpdatingStatus === record.id && (
-                        <LoadingCentered />
-                      )}
+                      {isUpdatingStatus === record.id && <LoadingCentered />}
                     </>
                   ) : (
                     <span
@@ -299,6 +338,36 @@ export default function OrderRecordTable({
                   : "-"}
               </td>
 
+              {/* 입금/환급/세금계산서 (출고완료 탭만) */}
+              {isCompletedTab && (
+                <>
+                  <td className="px-4 py-3 text-center">
+                    <span
+                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
+                    >
+                      {getDepositStatusText(
+                        record.depositStatus,
+                        record.depositAmount
+                      )}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span
+                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getRefundStatusColor(record)}`}
+                    >
+                      {getRefundStatusText(record)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span
+                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${record.isTaxInvoiceIssued ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}
+                    >
+                      {record.isTaxInvoiceIssued ? "발행" : "미발행"}
+                    </span>
+                  </td>
+                </>
+              )}
+
               {/* 상세보기 버튼 */}
               <td className="px-4 py-3 text-right">
                 <button
@@ -315,7 +384,10 @@ export default function OrderRecordTable({
           ))}
           {/* 합계 행 */}
           <tr className="bg-blue-50 border-t-2 border-blue-200">
-            <td colSpan={6} className="px-4 py-3 text-sm font-bold text-gray-900 text-right">
+            <td
+              colSpan={isCompletedTab ? 6 : 6}
+              className="px-4 py-3 text-sm font-bold text-gray-900 text-right"
+            >
               <div className="flex flex-col items-end gap-1">
                 <span>합계</span>
                 <span className="text-xs font-normal text-gray-600">
@@ -331,6 +403,13 @@ export default function OrderRecordTable({
                 return total > 0 ? `${total.toLocaleString()}원` : "-";
               })()}
             </td>
+            {isCompletedTab && (
+              <>
+                <td className="px-4 py-3"></td>
+                <td className="px-4 py-3"></td>
+                <td className="px-4 py-3"></td>
+              </>
+            )}
             <td className="px-4 py-3"></td>
           </tr>
         </tbody>

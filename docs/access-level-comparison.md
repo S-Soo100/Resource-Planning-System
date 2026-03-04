@@ -1,8 +1,12 @@
 # 권한 레벨 비교 (Admin, Moderator, User, Supplier)
 
-> **최종 업데이트**: 2026-02-10
-> **버전**: 2.0
+> **최종 업데이트**: 2026-03-04
+> **버전**: 3.0
 > **상태**: ✅ 구현 완료
+
+> ⚠️ **중요**: 모든 권한은 `TeamUserMapping.accessLevel` 기반입니다.
+> `User.accessLevel`은 레거시이며 참조하지 않습니다.
+> API가 팀 권한대로 동작하지 않으면 API를 수정해야 합니다.
 
 ## 1. 권한 레벨 개요
 
@@ -154,46 +158,30 @@ getRestrictedWarehouseIds(user: IUser): number[]
 
 ## 6. 권한 체크 구현 방법
 
-### 6.1 재사용 가능한 유틸리티 (v2.0 신규)
+> ⚠️ 모든 권한 체크는 **팀 권한(`TeamUserMapping.accessLevel`)** 기반으로 수행합니다.
+> `User.accessLevel`이나 `useCurrentUser().accessLevel`로 체크하는 코드는 레거시입니다.
 
-#### HOC (Higher-Order Component)
+### 6.1 팀 권한 기반 체크 (권장)
 ```typescript
-import { withAuth } from '@/utils/withAuth';
-
-// 모든 로그인 사용자 허용
-export default withAuth(MyPage);
-
-// Admin, Moderator만 허용
-export default withAuth(AdminPage, {
-  allowedLevels: ['admin', 'moderator']
-});
-```
-
-#### 커스텀 훅
-```typescript
-import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { useTeamRole } from '@/hooks/useTeamRole';
 
 function MyPage() {
-  const { user, isAuthorized } = useRequireAuth({
-    allowedLevels: ['admin', 'moderator']
-  });
+  const { teamRole, isLoading } = useTeamRole(teamId, userId);
 
-  if (!isAuthorized) return null;
+  if (isLoading) return <LoadingSpinner />;
+
+  if (!teamRole || teamRole.accessLevel === 'supplier') {
+    return <AccessDenied />;
+  }
   // ...
 }
 ```
 
-### 6.2 직접 구현 패턴
+### 6.2 레거시 패턴 (전환 필요)
 ```typescript
-const { user, isLoading } = useCurrentUser();
-
-// 로딩 체크
-if (isLoading) return <LoadingSpinner />;
-
-// 권한 체크
-if (!user || user.accessLevel === 'supplier') {
-  return <AccessDenied />;
-}
+// ❌ 레거시 — 팀 권한 기반으로 전환 필요
+const { user } = useCurrentUser();
+if (user.accessLevel === 'admin') { ... }
 ```
 
 ## 7. 요약

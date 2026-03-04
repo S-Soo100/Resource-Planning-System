@@ -122,10 +122,10 @@ export const userApi = {
     teamId: number
   ): Promise<ApiResponse<RepurchaseDueUser[]>> => {
     try {
-      const response = await api.get<RepurchaseDueUser[]>(
+      const response = await api.get<ApiResponse<RepurchaseDueUser[]>>(
         `/user/repurchase-due?teamId=${teamId}`
       );
-      return { success: true, data: response.data };
+      return response.data;
     } catch (error) {
       return { success: false, error: "재구매 예정 고객 조회에 실패했습니다." };
     }
@@ -177,10 +177,10 @@ export const userApi = {
   ): Promise<ApiResponse<CustomerDocument[]>> => {
     try {
       const params = documentType ? `?documentType=${documentType}` : "";
-      const response = await api.get<CustomerDocument[]>(
+      const response = await api.get<ApiResponse<CustomerDocument[]>>(
         `/user/${userId}/documents${params}`
       );
-      return { success: true, data: response.data };
+      return response.data;
     } catch (error) {
       return { success: false, error: "고객 서류 조회에 실패했습니다." };
     }
@@ -192,10 +192,10 @@ export const userApi = {
     docId: number
   ): Promise<ApiResponse<CustomerDocument>> => {
     try {
-      const response = await api.delete<CustomerDocument>(
+      const response = await api.delete<ApiResponse<CustomerDocument>>(
         `/user/${userId}/documents/${docId}`
       );
-      return { success: true, data: response.data };
+      return response.data;
     } catch (error) {
       return { success: false, error: "고객 서류 삭제에 실패했습니다." };
     }

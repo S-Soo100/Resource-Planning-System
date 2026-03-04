@@ -36,10 +36,13 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
     useUpdateOrderDetails();
 
   // 선택된 고객 정보
+  const supplierList = Array.isArray(suppliers) ? suppliers : [];
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(
     () => {
       if (order.supplier && order.supplierId) {
-        const fullSupplier = suppliers.find((s) => s.id === order.supplierId);
+        const fullSupplier = supplierList.find(
+          (s) => s.id === order.supplierId
+        );
         return fullSupplier || null;
       }
       return null;

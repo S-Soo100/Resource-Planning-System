@@ -523,10 +523,10 @@ export const getTaxInvoices = async (
   orderId: number
 ): Promise<ApiResponse<CustomerDocument[]>> => {
   try {
-    const response = await api.get<CustomerDocument[]>(
+    const response = await api.get<ApiResponse<CustomerDocument[]>>(
       `/order/${orderId}/tax-invoices`
     );
-    return { success: true, data: response.data };
+    return response.data;
   } catch {
     return { success: false, message: "세금계산서 목록 조회에 실패했습니다." };
   }
@@ -538,10 +538,10 @@ export const deleteTaxInvoice = async (
   docId: number
 ): Promise<ApiResponse<CustomerDocument>> => {
   try {
-    const response = await api.delete<CustomerDocument>(
+    const response = await api.delete<ApiResponse<CustomerDocument>>(
       `/order/${orderId}/tax-invoice/${docId}`
     );
-    return { success: true, data: response.data };
+    return response.data;
   } catch (error) {
     console.error("[API] 세금계산서 삭제 오류:", error);
     if (error instanceof AxiosError && error.response?.data?.message) {

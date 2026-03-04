@@ -1428,6 +1428,90 @@ const OrderRecordDetail = () => {
                   </div>
                 )}
 
+                {/* 고객관리 상태 정보 (출고완료 시) */}
+                {order.status === "shipmentCompleted" && !isSupplier && (
+                  <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                      고객관리 정보
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* 환급 정보 */}
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h3 className="text-sm font-medium text-gray-600 mb-2">
+                          환급
+                        </h3>
+                        {order.isRefundNotApplicable ? (
+                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                            해당없음
+                          </span>
+                        ) : (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full ${order.isRefundApplied ? "bg-green-500" : "bg-gray-300"}`}
+                              />
+                              <span className="text-sm text-gray-700">
+                                환급 신청{" "}
+                                {order.isRefundApplied ? "완료" : "미신청"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full ${order.isRefundReceived ? "bg-green-500" : "bg-gray-300"}`}
+                              />
+                              <span className="text-sm text-gray-700">
+                                환급금{" "}
+                                {order.isRefundReceived
+                                  ? "입금 완료"
+                                  : "미입금"}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 세금계산서 */}
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h3 className="text-sm font-medium text-gray-600 mb-2">
+                          세금계산서
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-block w-2 h-2 rounded-full ${order.isTaxInvoiceIssued ? "bg-green-500" : "bg-gray-300"}`}
+                          />
+                          <span className="text-sm text-gray-700">
+                            매입세금계산서{" "}
+                            {order.isTaxInvoiceIssued ? "발행 완료" : "미발행"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 입금 정보 */}
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h3 className="text-sm font-medium text-gray-600 mb-2">
+                          입금
+                        </h3>
+                        <div className="space-y-1">
+                          <div className="text-sm text-gray-700">
+                            상태:{" "}
+                            <span className="font-medium">
+                              {order.depositStatus || "미설정"}
+                            </span>
+                          </div>
+                          {order.depositAmount != null && (
+                            <div className="text-sm text-gray-700">
+                              금액:{" "}
+                              <span className="font-medium">
+                                {order.depositAmount.toLocaleString()}원
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* 첨부파일 */}
                 <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
                   <h2 className="flex gap-2 items-center justify-between mb-4 text-lg font-semibold text-gray-900">

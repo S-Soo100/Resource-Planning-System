@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { api, ApiResponse } from "./api";
 import {
   Supplier,
   CreateSupplierRequest,
   UpdateSupplierRequest,
+  RepurchaseDueSupplier,
 } from "@/types/supplier";
+import { CustomerDocument, DocumentType } from "@/types/customer-document";
 
 export const supplierApi = {
   // 납품처 생성
@@ -65,6 +66,77 @@ export const supplierApi = {
       return { success: true, data: response.data };
     } catch (error) {
       return { success: false, error: "납품처 삭제에 실패했습니다." };
+    }
+  },
+
+  // === 고객 서류 관리 (v3.1 - E-006) ===
+
+  // 고객 서류 업로드
+  uploadDocument: async (
+    supplierId: number,
+    file: File,
+    documentType: DocumentType,
+    memo?: string
+  ): Promise<ApiResponse<CustomerDocument>> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("documentType", documentType);
+      if (memo) formData.append("memo", memo);
+
+      const response = await api.post<CustomerDocument>(
+        `/supplier/${supplierId}/documents/upload`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: "서류 업로드에 실패했습니다." };
+    }
+  },
+
+  // 고객 서류 목록 조회
+  getDocuments: async (
+    supplierId: number,
+    documentType?: DocumentType
+  ): Promise<ApiResponse<CustomerDocument[]>> => {
+    try {
+      const params = documentType ? { documentType } : undefined;
+      const response = await api.get<CustomerDocument[]>(
+        `/supplier/${supplierId}/documents`,
+        { params }
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: "서류 목록 조회에 실패했습니다." };
+    }
+  },
+
+  // 고객 서류 삭제
+  deleteDocument: async (
+    supplierId: number,
+    documentId: number
+  ): Promise<ApiResponse<void>> => {
+    try {
+      await api.delete(`/supplier/${supplierId}/documents/${documentId}`);
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: "서류 삭제에 실패했습니다." };
+    }
+  },
+
+  // 재구매 예정 고객 조회
+  getRepurchaseDueSuppliers: async (
+    teamId: number
+  ): Promise<ApiResponse<RepurchaseDueSupplier[]>> => {
+    try {
+      const response = await api.get<RepurchaseDueSupplier[]>(
+        "/supplier/repurchase-due",
+        { params: { teamId } }
+      );
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: "재구매 예정 고객 조회에 실패했습니다." };
     }
   },
 };

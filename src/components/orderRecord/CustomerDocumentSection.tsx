@@ -2,14 +2,21 @@
 
 import { useState, useRef } from "react";
 import {
-  useUserDocuments,
-  useUploadUserDocument,
-  useDeleteUserDocument,
+  useSupplierDocuments,
+  useUploadSupplierDocument,
+  useDeleteSupplierDocument,
 } from "@/hooks/useCustomerDocuments";
 import { DocumentType, DOCUMENT_TYPE_LABELS } from "@/types/customer-document";
 import { toast } from "react-hot-toast";
 import { LoadingInline } from "@/components/ui/Loading";
-import { FolderOpen, Upload, Trash2, Download, Filter } from "lucide-react";
+import {
+  FolderOpen,
+  Upload,
+  Trash2,
+  Download,
+  Filter,
+  Info,
+} from "lucide-react";
 import { formatDateForDisplay } from "@/utils/dateUtils";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -35,30 +42,47 @@ const DOCUMENT_TYPES: DocumentType[] = [
 ];
 
 interface CustomerDocumentSectionProps {
-  userId: number;
-  orderId?: number;
+  supplierId: number;
 }
 
 export default function CustomerDocumentSection({
-  userId,
-  orderId,
+  supplierId,
 }: CustomerDocumentSectionProps) {
   const [filterType, setFilterType] = useState<DocumentType | undefined>(
     undefined
   );
-  const { data: documents = [], isLoading } = useUserDocuments(
-    userId,
-    filterType
-  );
+  const {
+    data: documents = [],
+    isLoading,
+    isError,
+  } = useSupplierDocuments(supplierId, filterType);
   const { mutateAsync: uploadDocument, isPending: isUploading } =
-    useUploadUserDocument();
+    useUploadSupplierDocument();
   const { mutateAsync: deleteDocument, isPending: isDeleting } =
-    useDeleteUserDocument();
+    useDeleteSupplierDocument();
 
   const [selectedType, setSelectedType] =
     useState<DocumentType>("prescription");
   const [memo, setMemo] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // API 미연결 시 안내 메시지
+  if (isError || (documents.length === 0 && isError)) {
+    return (
+      <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
+          <FolderOpen className="w-5 h-5 text-gray-500" />
+          고객 서류
+        </h2>
+        <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <Info className="w-5 h-5 text-blue-500 flex-shrink-0" />
+          <p className="text-sm text-blue-700">
+            서류 기능 준비 중입니다. 곧 사용 가능합니다.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,20 +100,16 @@ export default function CustomerDocumentSection({
 
     try {
       const result = await uploadDocument({
-        userId,
+        supplierId,
         file,
         documentType: selectedType,
         memo: memo.trim() || undefined,
-        orderId,
       });
       if (result.success) {
         toast.success("서류가 업로드되었습니다");
         setMemo("");
       } else {
-        toast.error(
-          ("message" in result ? result.message : result.error) ||
-            "업로드에 실패했습니다"
-        );
+        toast.error(result.error || "업로드에 실패했습니다");
       }
     } catch {
       toast.error("서류 업로드에 실패했습니다");
@@ -104,14 +124,11 @@ export default function CustomerDocumentSection({
     if (!confirm(`"${fileName}"을(를) 삭제하시겠습니까?`)) return;
 
     try {
-      const result = await deleteDocument({ userId, docId });
+      const result = await deleteDocument({ supplierId, docId });
       if (result.success) {
         toast.success("서류가 삭제되었습니다");
       } else {
-        toast.error(
-          ("message" in result ? result.message : result.error) ||
-            "삭제에 실패했습니다"
-        );
+        toast.error(result.error || "삭제에 실패했습니다");
       }
     } catch {
       toast.error("서류 삭제에 실패했습니다");

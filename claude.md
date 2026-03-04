@@ -79,7 +79,8 @@
 | ------------------------------- | ---------- |
 | `/docs/item-management.md`      | 작성 필요  |
 | `/docs/warehouse-management.md` | 작성 필요  |
-| `/docs/supplier-management.md`  | 작성 필요  |
+| `/docs/supplier-management.md`  | v3.1 완료 (고객 관리 통합) |
+| `/docs/backend-customer-migration.md` | v3.1 백엔드 마이그레이션 요구사항 |
 
 ### 👥 관리자 & 팀 관리
 | 문서                               | 주요 내용                                        |

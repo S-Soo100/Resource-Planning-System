@@ -9,6 +9,10 @@ import { SupplierDetailHeader } from "@/components/supplier/SupplierDetailHeader
 import { SupplierDetailSummaryComponent } from "@/components/supplier/SupplierDetailSummary";
 import { SupplierSalesTab } from "@/components/supplier/SupplierSalesTab";
 import { SupplierPurchaseTab } from "@/components/supplier/SupplierPurchaseTab";
+import CustomerInfoCard from "@/components/customer/CustomerInfoCard";
+import CustomerInfoEditModal from "@/components/customer/CustomerInfoEditModal";
+import CustomerDocumentSection from "@/components/orderRecord/CustomerDocumentSection";
+import CustomerOrderHistory from "@/components/customer/CustomerOrderHistory";
 import { LoadingCentered } from "@/components/ui/Loading";
 import {
   ArrowLeft,
@@ -16,12 +20,16 @@ import {
   ShoppingBag,
   Calendar,
   Download,
+  UserCircle,
+  FolderOpen,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui";
 import { format, subMonths, subYears } from "date-fns";
 import { exportSupplierDetailToExcel } from "@/utils/exportSupplierDetailToExcel";
 
 type DatePreset = "1month" | "3months" | "6months" | "1year" | "all";
+type TabType = "sales" | "purchase" | "info" | "documents" | "orders";
 
 export default function SupplierDetailPage() {
   const params = useParams();
@@ -29,10 +37,11 @@ export default function SupplierDetailPage() {
   const supplierId = params.id as string;
 
   const { user, isLoading: isUserLoading } = useCurrentUser();
-  const { canViewMargin } = usePermission();
+  const { canViewMargin, isAdminOrModerator } = usePermission();
 
   // 날짜 범위 상태
   const [datePreset, setDatePreset] = useState<DatePreset>("3months");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // 날짜 프리셋 계산
   const getDateRange = (): { startDate: string; endDate: string } => {
@@ -40,7 +49,7 @@ export default function SupplierDetailPage() {
     const endDate = format(today, "yyyy-MM-dd");
 
     if (datePreset === "all") {
-      return { startDate: "2020-01-01", endDate }; // 전체 조회 (충분히 과거)
+      return { startDate: "2020-01-01", endDate };
     }
 
     if (datePreset === "1month") {
@@ -76,9 +85,7 @@ export default function SupplierDetailPage() {
     isPurchaseLoading,
   } = useSupplierDetail(supplierId, startDate, endDate);
 
-  const [activeTab, setActiveTab] = useState<"sales" | "purchase">("sales");
-
-  // 워딩: 판매→매출, 구매→매입
+  const [activeTab, setActiveTab] = useState<TabType>("sales");
 
   // 권한 체크
   if (isUserLoading || isLoading) {
@@ -158,6 +165,68 @@ export default function SupplierDetailPage() {
     );
   };
 
+  const tabs: { key: TabType; label: string; icon: React.ReactNode }[] = [
+    {
+      key: "sales",
+      label: "매출 내역",
+      icon: <TrendingUp className="w-4 h-4" />,
+    },
+    {
+      key: "purchase",
+      label: "매입 내역",
+      icon: <ShoppingBag className="w-4 h-4" />,
+    },
+    {
+      key: "info",
+      label: "고객 정보",
+      icon: <UserCircle className="w-4 h-4" />,
+    },
+    {
+      key: "documents",
+      label: "고객 서류",
+      icon: <FolderOpen className="w-4 h-4" />,
+    },
+    {
+      key: "orders",
+      label: "발주 이력",
+      icon: <ClipboardList className="w-4 h-4" />,
+    },
+  ];
+
+  const getTabColor = (tab: TabType) => {
+    switch (tab) {
+      case "sales":
+        return "text-blue-600";
+      case "purchase":
+        return "text-orange-600";
+      case "info":
+        return "text-purple-600";
+      case "documents":
+        return "text-green-600";
+      case "orders":
+        return "text-indigo-600";
+      default:
+        return "text-blue-600";
+    }
+  };
+
+  const getTabIndicatorColor = (tab: TabType) => {
+    switch (tab) {
+      case "sales":
+        return "bg-blue-600";
+      case "purchase":
+        return "bg-orange-600";
+      case "info":
+        return "bg-purple-600";
+      case "documents":
+        return "bg-green-600";
+      case "orders":
+        return "bg-indigo-600";
+      default:
+        return "bg-blue-600";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-Back-Low-10 p-4 md:p-6">
       {/* 뒤로가기 버튼 & 다운로드 */}
@@ -187,134 +256,118 @@ export default function SupplierDetailPage() {
         />
       </div>
 
-      {/* 날짜 범위 선택기 (위치 이동: 요약 카드 위로) */}
-      <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant p-4 mb-6">
-        <div className="flex items-center gap-2 mb-3">
-          <Calendar className="w-4 h-4 text-Text-High-90" />
-          <span className="text-sm font-medium text-Text-High-90">
-            조회 기간
-          </span>
+      {/* 날짜 범위 선택기 (매출/매입 탭에서만 표시) */}
+      {(activeTab === "sales" || activeTab === "purchase") && (
+        <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant p-4 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar className="w-4 h-4 text-Text-High-90" />
+            <span className="text-sm font-medium text-Text-High-90">
+              조회 기간
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                { key: "1month", label: "최근 1개월" },
+                { key: "3months", label: "최근 3개월" },
+                { key: "6months", label: "최근 6개월" },
+                { key: "1year", label: "최근 1년" },
+                { key: "all", label: "전체" },
+              ] as { key: DatePreset; label: string }[]
+            ).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setDatePreset(key)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  datePreset === key
+                    ? "bg-blue-600 text-white"
+                    : "bg-Back-Mid-20 text-Text-High-90 hover:bg-Back-Mid-30"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 text-xs text-Text-Low-70">
+            현재 조회 중: {startDate} ~ {endDate}
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setDatePreset("1month")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              datePreset === "1month"
-                ? "bg-blue-600 text-white"
-                : "bg-Back-Mid-20 text-Text-High-90 hover:bg-Back-Mid-30"
-            }`}
-          >
-            최근 1개월
-          </button>
-          <button
-            onClick={() => setDatePreset("3months")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              datePreset === "3months"
-                ? "bg-blue-600 text-white"
-                : "bg-Back-Mid-20 text-Text-High-90 hover:bg-Back-Mid-30"
-            }`}
-          >
-            최근 3개월
-          </button>
-          <button
-            onClick={() => setDatePreset("6months")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              datePreset === "6months"
-                ? "bg-blue-600 text-white"
-                : "bg-Back-Mid-20 text-Text-High-90 hover:bg-Back-Mid-30"
-            }`}
-          >
-            최근 6개월
-          </button>
-          <button
-            onClick={() => setDatePreset("1year")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              datePreset === "1year"
-                ? "bg-blue-600 text-white"
-                : "bg-Back-Mid-20 text-Text-High-90 hover:bg-Back-Mid-30"
-            }`}
-          >
-            최근 1년
-          </button>
-          <button
-            onClick={() => setDatePreset("all")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              datePreset === "all"
-                ? "bg-blue-600 text-white"
-                : "bg-Back-Mid-20 text-Text-High-90 hover:bg-Back-Mid-30"
-            }`}
-          >
-            전체
-          </button>
-        </div>
-        <div className="mt-3 text-xs text-Text-Low-70">
-          현재 조회 중: {startDate} ~ {endDate}
-        </div>
-      </div>
+      )}
 
-      {/* 요약 통계 */}
-      <div className="mb-6">
-        <SupplierDetailSummaryComponent
-          summary={summary}
-          isLoading={isLoading}
-        />
-      </div>
+      {/* 요약 통계 (매출/매입 탭에서만 표시) */}
+      {(activeTab === "sales" || activeTab === "purchase") && (
+        <div className="mb-6">
+          <SupplierDetailSummaryComponent
+            summary={summary}
+            isLoading={isLoading}
+          />
+        </div>
+      )}
 
-      {/* 탭 UI (매출/매입 내역) */}
+      {/* 탭 UI */}
       <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant overflow-hidden">
         {/* 탭 헤더 */}
-        <div className="flex border-b border-Outline-Variant bg-Back-Low-10">
-          <button
-            onClick={() => setActiveTab("sales")}
-            className={`flex-1 px-6 py-4 text-sm font-medium transition-all relative ${
-              activeTab === "sales"
-                ? "text-blue-600 bg-white"
-                : "text-Text-High-90 hover:text-Text-Highest-100 hover:bg-Back-Mid-20"
-            }`}
-          >
-            <div className="flex items-center justify-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              매출 내역
-            </div>
-            {activeTab === "sales" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("purchase")}
-            className={`flex-1 px-6 py-4 text-sm font-medium transition-all relative ${
-              activeTab === "purchase"
-                ? "text-orange-600 bg-white"
-                : "text-Text-High-90 hover:text-Text-Highest-100 hover:bg-Back-Mid-20"
-            }`}
-          >
-            <div className="flex items-center justify-center gap-2">
-              <ShoppingBag className="w-4 h-4" />
-              매입 내역
-            </div>
-            {activeTab === "purchase" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600"></div>
-            )}
-          </button>
+        <div className="flex border-b border-Outline-Variant bg-Back-Low-10 overflow-x-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-shrink-0 px-4 md:px-6 py-4 text-sm font-medium transition-all relative ${
+                activeTab === tab.key
+                  ? `${getTabColor(tab.key)} bg-white`
+                  : "text-Text-High-90 hover:text-Text-Highest-100 hover:bg-Back-Mid-20"
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                {tab.icon}
+                <span className="hidden sm:inline">{tab.label}</span>
+              </div>
+              {activeTab === tab.key && (
+                <div
+                  className={`absolute bottom-0 left-0 right-0 h-0.5 ${getTabIndicatorColor(tab.key)}`}
+                ></div>
+              )}
+            </button>
+          ))}
         </div>
 
         {/* 탭 본문 */}
         <div className="p-6">
-          {activeTab === "sales" ? (
+          {activeTab === "sales" && (
             <SupplierSalesTab
               records={salesRecords}
               isLoading={isSalesLoading}
             />
-          ) : (
+          )}
+          {activeTab === "purchase" && (
             <SupplierPurchaseTab
               records={purchaseRecords}
               teamItemsMap={teamItemsMap}
               isLoading={isPurchaseLoading}
             />
           )}
+          {activeTab === "info" && (
+            <CustomerInfoCard
+              supplier={supplier}
+              onEdit={() => setIsEditModalOpen(true)}
+              canEdit={isAdminOrModerator}
+            />
+          )}
+          {activeTab === "documents" && (
+            <CustomerDocumentSection supplierId={supplier.id} />
+          )}
+          {activeTab === "orders" && (
+            <CustomerOrderHistory supplierId={supplier.id} />
+          )}
         </div>
       </div>
+
+      {/* 고객 정보 수정 모달 */}
+      <CustomerInfoEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        supplier={supplier}
+      />
     </div>
   );
 }

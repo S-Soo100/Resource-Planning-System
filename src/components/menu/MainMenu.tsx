@@ -28,7 +28,7 @@ import {
 import { BiSolidPurchaseTag } from "react-icons/bi";
 import { MdPointOfSale, MdAnalytics, MdPeopleOutline } from "react-icons/md";
 import { useCategory } from "@/hooks/useCategory";
-import { useRepurchaseDueUsers } from "@/hooks/useCustomerDocuments";
+import { useRepurchaseDueSuppliers } from "@/hooks/useCustomerDocuments";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 const MainMenu = () => {
@@ -43,10 +43,10 @@ const MainMenu = () => {
   const { isLoading: categoriesLoading } = useCategory(selectedTeam?.id);
 
   // 재구매 예정 고객 수
-  const { data: repurchaseDueUsers = [] } = useRepurchaseDueUsers(
+  const { data: repurchaseDueSuppliers = [] } = useRepurchaseDueSuppliers(
     selectedTeam?.id
   );
-  const repurchaseDueCount = repurchaseDueUsers.length;
+  const repurchaseDueCount = repurchaseDueSuppliers.length;
 
   // 3D 기울이기 효과를 위한 상태
   const [hoveredCard, setHoveredCard] = React.useState<number | null>(null);
@@ -135,19 +135,12 @@ const MainMenu = () => {
     },
   ];
 
-  // 고객 관리 메뉴
+  // 고객 관리 메뉴 (E-006: 통합)
   const customerMenuItems = [
     {
       title: "고객 관리",
-      subtitle: "고객 정보를 조회하고 관리합니다",
+      subtitle: "고객 정보를 등록하고 관리합니다",
       icon: <FaUsers className="text-3xl" />,
-      onClick: () => checkAccess(`/customers`, ["admin", "user", "moderator"]),
-      accessLevel: ["user", "admin", "moderator"],
-    },
-    {
-      title: "거래처 관리",
-      subtitle: "거래처 정보를 등록하고 관리합니다",
-      icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () =>
         checkAccess(`/supplier`, ["admin", "user", "moderator", "supplier"]),
       accessLevel: ["user", "admin", "moderator", "supplier"],

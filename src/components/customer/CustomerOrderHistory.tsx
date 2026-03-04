@@ -7,7 +7,7 @@ import { ClipboardList } from "lucide-react";
 import Link from "next/link";
 
 interface CustomerOrderHistoryProps {
-  userId: number;
+  supplierId: number;
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -19,9 +19,9 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export default function CustomerOrderHistory({
-  userId,
+  supplierId,
 }: CustomerOrderHistoryProps) {
-  const { data: orders = [], isLoading } = useCustomerOrders(userId);
+  const { data: orders = [], isLoading } = useCustomerOrders(supplierId);
 
   if (isLoading) {
     return <LoadingCentered />;

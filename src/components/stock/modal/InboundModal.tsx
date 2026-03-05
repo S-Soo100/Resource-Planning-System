@@ -57,6 +57,7 @@ export default function InboundModal({
   onCategoryChange,
   onSupplierSelect,
 }: InboundModalProps) {
+  const supplierList = Array.isArray(suppliers) ? suppliers : [];
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] =
@@ -374,7 +375,7 @@ export default function InboundModal({
                       >
                         {inboundValues.supplierId ? (
                           <span className="text-gray-900">
-                            {suppliers.find(
+                            {supplierList.find(
                               (s) => s.id === inboundValues.supplierId
                             )?.supplierName || "고객 선택"}
                           </span>
@@ -605,7 +606,7 @@ export default function InboundModal({
         isOpen={isSelectSupplierModalOpen}
         onClose={() => setIsSelectSupplierModalOpen(false)}
         onSelect={handleSupplierSelect}
-        suppliers={suppliers}
+        suppliers={supplierList}
       />
     </>
   );

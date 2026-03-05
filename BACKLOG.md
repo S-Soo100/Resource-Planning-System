@@ -57,6 +57,54 @@
   - `src/app/customers/[id]/page.tsx` — 고객 상세 (유지)
   - `src/components/orderRecord/CustomerDocumentSection.tsx` — 컴포넌트 자체는 유지
 
+### E-007: 발주 상세 페이지 고객관리 정보 UX 개선
+- **우선순위**: High
+- **상태**: [x]
+- **설명**: `/orderRecord/[id]` 페이지의 "정보수정" 버튼 뒤에 숨겨진 고객관리 정보(환급, 세금계산서, 입금)를 메인 페이지에서 직접 확인·수정할 수 있도록 UX 개선. 현재 DTO에는 데이터가 있지만 UI가 이를 제대로 노출하지 못하고 있음.
+
+#### 현재 문제점
+1. **"정보수정" 버튼명이 비직관적** — 무엇을 수정하는 건지 알 수 없음
+2. **정보가 모달 뒤에 숨겨져 있음** — 환급/세금계산서/입금 정보를 보려면 모달을 열어야 함
+3. **환급 정보 조건부 표시 필요** — 고객이 환급대상자(`isRecipient` 등)인 경우만 환급 섹션을 표시해야 하는데 현재 구분 없음
+4. **입금 정보가 덜 눈에 띔** — 출고상태만큼 중요한 정보인데 하위 섹션에 묻혀 있음
+5. **DTO 변경 대비 UI 미반영** — 데이터 모델은 업데이트됐지만 UI가 따라가지 못함
+
+#### 작업 내용
+- [x] **E-007-1**: 고객관리 정보 섹션을 메인 페이지에 인라인으로 표시 (모달 진입 없이 바로 확인 가능)
+- [x] **E-007-2**: 입금 상태를 발주 상단 요약 영역에 배치 (출고상태와 동급 가시성 확보), 인라인 수정 지원
+- [x] **E-007-3**: 환급 정보는 고객이 환급대상자인 경우에만 조건부 렌더링 (Supplier의 `isRecipient` 필드 기반)
+- [x] **E-007-4**: 세금계산서 발행 상태 인라인 토글 (체크박스)
+- [x] **E-007-5**: "정보수정" → "고객 변경"으로 역할 재정의 (DetailsEditModal을 고객 변경 전용으로 축소)
+- [x] **E-007-6**: `status === "shipmentCompleted"` 조건 제거 — 모든 상태에서 고객관리 정보 표시
+
+- **관련 파일**:
+  - `src/app/orderRecord/[id]/page.tsx` — 발주 상세 메인 페이지
+  - `src/components/orderRecord/DetailsEditModal.tsx` — 현재 정보수정 모달 (축소/제거 대상)
+  - `src/types/(order)/orderRecord.ts` — OrderRecord DTO
+  - `src/types/(order)/order.ts` — DepositStatus, UpdateOrderDetailsDto
+
+---
+
+## Bug
+
+### B-001: SupplierSection.tsx suppliers undefined 방어 코드 누락
+- **우선순위**: High
+- **상태**: [x]
+- **설명**: `suppliers` prop이 undefined일 때 `.find()`, `.length` 호출에서 런타임 에러 발생. `Array.isArray` 방어 코드 추가.
+- **관련 파일**: `src/components/common/SupplierSection.tsx`
+
+### B-002: InboundModal.tsx suppliers undefined 방어 코드 누락
+- **우선순위**: High
+- **상태**: [x]
+- **설명**: `suppliers` prop이 undefined일 때 `.find()` 호출에서 런타임 에러 발생. `Array.isArray` 방어 코드 추가.
+- **관련 파일**: `src/components/stock/modal/InboundModal.tsx`
+
+### B-003: OutboundModal.tsx suppliers undefined 방어 코드 누락
+- **우선순위**: High
+- **상태**: [x]
+- **설명**: `suppliers` prop이 undefined일 때 `.find()` 호출에서 런타임 에러 발생. `Array.isArray` 방어 코드 추가.
+- **관련 파일**: `src/components/stock/modal/OutboundModal.tsx`
+
 ---
 
 ## Epic

@@ -117,7 +117,7 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
         {/* 본문 */}
         <div className="mt-6 space-y-6">
           {/* Suppliers 데이터 없음 경고 */}
-          {suppliers.length === 0 && (
+          {supplierList.length === 0 && (
             <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               <p className="text-sm text-yellow-800">
                 ⚠️{" "}
@@ -137,12 +137,12 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSupplierModalOpen(true)}
-                disabled={suppliers.length === 0}
+                disabled={supplierList.length === 0}
                 className={`flex-1 px-4 py-3 text-left rounded-lg border-2 transition-all ${
                   selectedSupplier
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-300 bg-white hover:border-blue-400"
-                } ${suppliers.length === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+                } ${supplierList.length === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {selectedSupplier ? (
                   <div>
@@ -155,7 +155,7 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
                   </div>
                 ) : (
                   <div className="text-gray-500">
-                    {suppliers.length === 0
+                    {supplierList.length === 0
                       ? "고객 목록이 비어있습니다"
                       : "고객을 선택하세요"}
                   </div>
@@ -195,7 +195,7 @@ const DetailsEditModal: React.FC<DetailsEditModalProps> = ({
       <SelectSupplierModal
         isOpen={isSupplierModalOpen}
         onClose={() => setIsSupplierModalOpen(false)}
-        suppliers={suppliers}
+        suppliers={supplierList}
         onSelect={handleSupplierSelect}
         selectedSupplierId={selectedSupplier?.id || null}
       />

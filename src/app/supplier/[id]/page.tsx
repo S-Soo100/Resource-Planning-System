@@ -10,7 +10,7 @@ import { SupplierDetailSummaryComponent } from "@/components/supplier/SupplierDe
 import { SupplierSalesTab } from "@/components/supplier/SupplierSalesTab";
 import { SupplierPurchaseTab } from "@/components/supplier/SupplierPurchaseTab";
 import CustomerInfoCard from "@/components/customer/CustomerInfoCard";
-import CustomerInfoEditModal from "@/components/customer/CustomerInfoEditModal";
+// CustomerInfoEditModal 제거 — CustomerInfoCard에서 인라인 편집 지원
 import CustomerDocumentSection from "@/components/orderRecord/CustomerDocumentSection";
 import CustomerOrderHistory from "@/components/customer/CustomerOrderHistory";
 import { LoadingCentered } from "@/components/ui/Loading";
@@ -41,7 +41,7 @@ export default function SupplierDetailPage() {
 
   // 날짜 범위 상태
   const [datePreset, setDatePreset] = useState<DatePreset>("3months");
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // isEditModalOpen 제거 — 인라인 편집으로 전환
 
   // 날짜 프리셋 계산
   const getDateRange = (): { startDate: string; endDate: string } => {
@@ -85,7 +85,7 @@ export default function SupplierDetailPage() {
     isPurchaseLoading,
   } = useSupplierDetail(supplierId, startDate, endDate);
 
-  const [activeTab, setActiveTab] = useState<TabType>("sales");
+  const [activeTab, setActiveTab] = useState<TabType>("info");
 
   // 권한 체크
   if (isUserLoading || isLoading) {
@@ -167,16 +167,6 @@ export default function SupplierDetailPage() {
 
   const tabs: { key: TabType; label: string; icon: React.ReactNode }[] = [
     {
-      key: "sales",
-      label: "매출 내역",
-      icon: <TrendingUp className="w-4 h-4" />,
-    },
-    {
-      key: "purchase",
-      label: "매입 내역",
-      icon: <ShoppingBag className="w-4 h-4" />,
-    },
-    {
       key: "info",
       label: "고객 정보",
       icon: <UserCircle className="w-4 h-4" />,
@@ -185,6 +175,16 @@ export default function SupplierDetailPage() {
       key: "documents",
       label: "고객 서류",
       icon: <FolderOpen className="w-4 h-4" />,
+    },
+    {
+      key: "sales",
+      label: "매출 내역",
+      icon: <TrendingUp className="w-4 h-4" />,
+    },
+    {
+      key: "purchase",
+      label: "매입 내역",
+      icon: <ShoppingBag className="w-4 h-4" />,
     },
     {
       key: "orders",
@@ -250,59 +250,50 @@ export default function SupplierDetailPage() {
 
       {/* 고객 기본 정보 */}
       <div className="mb-6">
-        <SupplierDetailHeader
-          supplier={supplier}
-          onEdit={() => router.push(`/supplier?edit=${supplierId}`)}
-        />
+        <SupplierDetailHeader supplier={supplier} />
       </div>
 
-      {/* 날짜 범위 선택기 (매출/매입 탭에서만 표시) */}
-      {(activeTab === "sales" || activeTab === "purchase") && (
-        <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant p-4 mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Calendar className="w-4 h-4 text-Text-High-90" />
-            <span className="text-sm font-medium text-Text-High-90">
-              조회 기간
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {(
-              [
-                { key: "1month", label: "최근 1개월" },
-                { key: "3months", label: "최근 3개월" },
-                { key: "6months", label: "최근 6개월" },
-                { key: "1year", label: "최근 1년" },
-                { key: "all", label: "전체" },
-              ] as { key: DatePreset; label: string }[]
-            ).map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => setDatePreset(key)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  datePreset === key
-                    ? "bg-blue-600 text-white"
-                    : "bg-Back-Mid-20 text-Text-High-90 hover:bg-Back-Mid-30"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="mt-3 text-xs text-Text-Low-70">
-            현재 조회 중: {startDate} ~ {endDate}
-          </div>
+      {/* 조회 기간 (항상 표시, 1줄 컴팩트) */}
+      <div className="flex items-center flex-wrap gap-x-3 gap-y-1 bg-white rounded-xl border border-Outline-Variant px-4 py-2 mb-3 text-sm">
+        <div className="flex items-center gap-1.5 text-Text-Low-70 shrink-0">
+          <Calendar className="w-3.5 h-3.5" />
+          <span className="text-xs font-medium">조회 기간</span>
         </div>
-      )}
+        <div className="flex flex-wrap gap-1.5">
+          {(
+            [
+              { key: "1month", label: "1개월" },
+              { key: "3months", label: "3개월" },
+              { key: "6months", label: "6개월" },
+              { key: "1year", label: "1년" },
+              { key: "all", label: "전체" },
+            ] as { key: DatePreset; label: string }[]
+          ).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setDatePreset(key)}
+              className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
+                datePreset === key
+                  ? "bg-blue-600 text-white"
+                  : "bg-Back-Mid-20 text-Text-High-90 hover:bg-Back-Mid-30"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <span className="text-[11px] text-Text-Low-70">
+          {startDate} ~ {endDate}
+        </span>
+      </div>
 
-      {/* 요약 통계 (매출/매입 탭에서만 표시) */}
-      {(activeTab === "sales" || activeTab === "purchase") && (
-        <div className="mb-6">
-          <SupplierDetailSummaryComponent
-            summary={summary}
-            isLoading={isLoading}
-          />
-        </div>
-      )}
+      {/* 요약 통계 (항상 표시, 1줄 컴팩트) */}
+      <div className="mb-4">
+        <SupplierDetailSummaryComponent
+          summary={summary}
+          isLoading={isLoading}
+        />
+      </div>
 
       {/* 탭 UI */}
       <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant overflow-hidden">
@@ -349,7 +340,6 @@ export default function SupplierDetailPage() {
           {activeTab === "info" && (
             <CustomerInfoCard
               supplier={supplier}
-              onEdit={() => setIsEditModalOpen(true)}
               canEdit={isAdminOrModerator}
             />
           )}
@@ -362,12 +352,7 @@ export default function SupplierDetailPage() {
         </div>
       </div>
 
-      {/* 고객 정보 수정 모달 */}
-      <CustomerInfoEditModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        supplier={supplier}
-      />
+      {/* 고객 정보는 CustomerInfoCard 내 인라인 편집으로 처리 */}
     </div>
   );
 }

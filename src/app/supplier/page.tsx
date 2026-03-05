@@ -13,6 +13,12 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ArrowLeft, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
+import {
+  getCustomerTypeBadge,
+  getRecipientBadge,
+  getFieldVisibility,
+} from "@/utils/customerFieldUtils";
+import { CustomerType } from "@/types/supplier";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 // Daum 주소 검색 모달 동적 임포트
@@ -60,7 +66,17 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
     registrationNumber: "",
     memo: "",
     teamId: Number(currentTeamId),
+    customerType: null,
+    isRecipient: false,
+    depositorName: null,
+    residentId: null,
+    repurchaseCycleMonths: null,
   });
+
+  const formVisibility = getFieldVisibility(
+    formData.customerType,
+    formData.isRecipient
+  );
 
   const handleAddressComplete = (data: Address) => {
     const selectedAddress = data.roadAddress || data.jibunAddress;
@@ -109,6 +125,11 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
           registrationNumber: editingSupplier.registrationNumber,
           memo: editingSupplier.memo,
           teamId: Number(currentTeamId),
+          customerType: editingSupplier.customerType ?? null,
+          isRecipient: editingSupplier.isRecipient ?? false,
+          depositorName: editingSupplier.depositorName ?? null,
+          residentId: editingSupplier.residentId ?? null,
+          repurchaseCycleMonths: editingSupplier.repurchaseCycleMonths ?? null,
         });
       } else {
         setFormData({
@@ -120,6 +141,11 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
           registrationNumber: "",
           memo: "",
           teamId: Number(currentTeamId),
+          customerType: null,
+          isRecipient: false,
+          depositorName: null,
+          residentId: null,
+          repurchaseCycleMonths: null,
         });
         setBaseAddress("");
         setDetailAddress("");
@@ -251,6 +277,133 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
                 placeholder="추가 정보를 입력하세요"
               />
             </div>
+
+            {/* 고객 분류 */}
+            <div className="md:col-span-2 pt-3 border-t border-Outline-Variant">
+              <p className="text-sm font-medium text-Text-High-90 mb-3">
+                고객 분류
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelCls}>고객 유형</label>
+                  <select
+                    value={formData.customerType || ""}
+                    onChange={(e) => {
+                      const newType = (e.target.value ||
+                        null) as CustomerType | null;
+                      setFormData((prev) => ({
+                        ...prev,
+                        customerType: newType,
+                        ...(newType === "b2b" && {
+                          isRecipient: false,
+                          residentId: null,
+                          depositorName: null,
+                          repurchaseCycleMonths: null,
+                        }),
+                        ...(newType === "b2c" &&
+                          !prev.isRecipient && {
+                            depositorName: null,
+                            repurchaseCycleMonths: null,
+                          }),
+                      }));
+                    }}
+                    className={inputCls}
+                  >
+                    <option value="">미설정</option>
+                    <option value="b2c">B2C (개인)</option>
+                    <option value="b2b">B2B (기업)</option>
+                  </select>
+                </div>
+                {formVisibility.showIsRecipient && (
+                  <div className="flex items-end pb-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isRecipient ?? false}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setFormData((prev) => ({
+                            ...prev,
+                            isRecipient: checked,
+                            ...(!checked && {
+                              depositorName: null,
+                              repurchaseCycleMonths: null,
+                            }),
+                          }));
+                        }}
+                        className="w-4 h-4 text-blue-600 rounded border-gray-300"
+                      />
+                      <span className="text-sm font-medium text-Text-High-90">
+                        수급자 여부
+                      </span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 주민등록번호 (B2C / 미설정) */}
+            {formVisibility.showResidentId && (
+              <div>
+                <label className={labelCls}>주민등록번호</label>
+                <input
+                  type="text"
+                  value={formData.residentId || ""}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9-]/g, "");
+                    setFormData((prev) => ({
+                      ...prev,
+                      residentId: value || null,
+                    }));
+                  }}
+                  className={inputCls}
+                  placeholder="000000-0000000"
+                  maxLength={14}
+                />
+              </div>
+            )}
+
+            {/* 입금자명 (수급자 전용) */}
+            {formVisibility.showDepositorName && (
+              <div>
+                <label className={labelCls}>입금자명</label>
+                <input
+                  type="text"
+                  value={formData.depositorName || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      depositorName: e.target.value || null,
+                    }))
+                  }
+                  className={inputCls}
+                  placeholder="지자체 환급 시 입금자명"
+                />
+              </div>
+            )}
+
+            {/* 재구매 주기 (수급자 전용) */}
+            {formVisibility.showRepurchaseCycle && (
+              <div>
+                <label className={labelCls}>재구매 주기 (개월)</label>
+                <input
+                  type="number"
+                  value={formData.repurchaseCycleMonths ?? ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      repurchaseCycleMonths: e.target.value
+                        ? parseInt(e.target.value)
+                        : null,
+                    }))
+                  }
+                  className={inputCls}
+                  placeholder="기본 3개월"
+                  min={1}
+                  max={120}
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 mt-6 pt-5 border-t border-Outline-Variant">
@@ -306,6 +459,9 @@ export default function SupplierManagePage() {
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState<boolean>(false);
   const [suppliersList, setSuppliersList] = useState<Supplier[]>([]);
+  const [typeFilter, setTypeFilter] = useState<
+    "all" | "b2c" | "b2b" | "recipient" | "none"
+  >("all");
 
   const {
     useGetSuppliers,
@@ -466,6 +622,51 @@ export default function SupplierManagePage() {
         </div>
       </div>
 
+      {/* 필터 */}
+      {suppliersList.length > 0 && (
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {(
+            [
+              { key: "all", label: "전체", count: suppliersList.length },
+              {
+                key: "b2c",
+                label: "B2C",
+                count: suppliersList.filter((s) => s.customerType === "b2c")
+                  .length,
+              },
+              {
+                key: "b2b",
+                label: "B2B",
+                count: suppliersList.filter((s) => s.customerType === "b2b")
+                  .length,
+              },
+              {
+                key: "recipient",
+                label: "수급자",
+                count: suppliersList.filter((s) => s.isRecipient).length,
+              },
+              {
+                key: "none",
+                label: "미분류",
+                count: suppliersList.filter((s) => !s.customerType).length,
+              },
+            ] as const
+          ).map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setTypeFilter(key)}
+              className={`h-8 px-3 rounded-full text-xs font-medium transition-all ${
+                typeFilter === key
+                  ? "bg-Primary-Main text-white"
+                  : "bg-Back-Mid-20 text-Text-High-90 hover:bg-Back-Mid-20/80"
+              }`}
+            >
+              {label} ({count})
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* 고객 목록 */}
       <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant overflow-hidden">
         {isLoading ? (
@@ -498,56 +699,93 @@ export default function SupplierManagePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-Outline-Variant">
-                {suppliersList.map((supplier) => (
-                  <tr
-                    key={supplier.id}
-                    className="hover:bg-Back-Low-10 transition-colors"
-                  >
-                    <td className="px-5 py-4 text-sm font-medium whitespace-nowrap">
-                      <a
-                        href={`/supplier/${supplier.id}`}
-                        className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                      >
-                        {supplier.supplierName}
-                      </a>
-                    </td>
-                    <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
-                      {supplier.email || "-"}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-Text-High-90 max-w-[200px] truncate">
-                      {supplier.supplierAddress || "-"}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
-                      {supplier.supplierPhoneNumber || "-"}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
-                      {supplier.representativeName || "-"}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
-                      {supplier.registrationNumber || "-"}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-Text-Low-70 max-w-[160px] truncate">
-                      {supplier.memo || "-"}
-                    </td>
-                    <td className="px-5 py-4 whitespace-nowrap">
-                      <div className="flex gap-1.5">
-                        <button
-                          onClick={() => handleEditClick(supplier)}
-                          className="h-8 px-3 bg-Primary-Container text-Primary-Main rounded-lg text-xs font-medium hover:bg-Primary-Container/70 transition-all"
-                        >
-                          수정
-                        </button>
-                        <button
-                          onClick={() => handleDelete(supplier.id)}
-                          disabled={isDeleting}
-                          className="h-8 px-3 bg-Error-Container text-Error-Main rounded-lg text-xs font-medium hover:bg-Error-Container/70 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                        >
-                          삭제
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {suppliersList
+                  .filter((s) => {
+                    if (typeFilter === "all") return true;
+                    if (typeFilter === "b2c") return s.customerType === "b2c";
+                    if (typeFilter === "b2b") return s.customerType === "b2b";
+                    if (typeFilter === "recipient") return s.isRecipient;
+                    if (typeFilter === "none") return !s.customerType;
+                    return true;
+                  })
+                  .map((supplier) => (
+                    <tr
+                      key={supplier.id}
+                      className="hover:bg-Back-Low-10 transition-colors"
+                    >
+                      <td className="px-5 py-4 text-sm font-medium whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <a
+                            href={`/supplier/${supplier.id}`}
+                            className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                          >
+                            {supplier.supplierName}
+                          </a>
+                          {(() => {
+                            const typeBadge = getCustomerTypeBadge(
+                              supplier.customerType
+                            );
+                            const recipientBadge = getRecipientBadge(
+                              supplier.isRecipient
+                            );
+                            return (
+                              <>
+                                {typeBadge && (
+                                  <span
+                                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${typeBadge.color}`}
+                                  >
+                                    {typeBadge.text}
+                                  </span>
+                                )}
+                                {recipientBadge && (
+                                  <span
+                                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${recipientBadge.color}`}
+                                  >
+                                    {recipientBadge.text}
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
+                        {supplier.email || "-"}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-Text-High-90 max-w-[200px] truncate">
+                        {supplier.supplierAddress || "-"}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
+                        {supplier.supplierPhoneNumber || "-"}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
+                        {supplier.representativeName || "-"}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-Text-High-90 whitespace-nowrap">
+                        {supplier.registrationNumber || "-"}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-Text-Low-70 max-w-[160px] truncate">
+                        {supplier.memo || "-"}
+                      </td>
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => handleEditClick(supplier)}
+                            className="h-8 px-3 bg-Primary-Container text-Primary-Main rounded-lg text-xs font-medium hover:bg-Primary-Container/70 transition-all"
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={() => handleDelete(supplier.id)}
+                            disabled={isDeleting}
+                            className="h-8 px-3 bg-Error-Container text-Error-Main rounded-lg text-xs font-medium hover:bg-Error-Container/70 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          >
+                            삭제
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

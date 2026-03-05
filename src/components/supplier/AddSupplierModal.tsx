@@ -7,6 +7,8 @@ import { supplierApi } from "@/api/supplier-api";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
 import { authStore } from "@/store/authStore";
+import { CustomerType } from "@/types/supplier";
+import { getFieldVisibility } from "@/utils/customerFieldUtils";
 
 interface SupplierInitialData {
   supplierName?: string;
@@ -43,7 +45,17 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
     representativeName: "",
     registrationNumber: "",
     supplierNote: "",
+    customerType: null as CustomerType | null,
+    isRecipient: false,
+    depositorName: "",
+    residentId: "",
+    repurchaseCycleMonths: null as number | null,
   });
+
+  const formVisibility = getFieldVisibility(
+    formData.customerType,
+    formData.isRecipient
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
   const [hasInitialData, setHasInitialData] = useState(false);
@@ -56,11 +68,16 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
         supplierName: initialData.supplierName || prev.supplierName,
         supplierPhone: initialData.supplierPhone || prev.supplierPhone,
         address: initialData.address || prev.address,
-        representativeName: initialData.representativeName || prev.representativeName,
+        representativeName:
+          initialData.representativeName || prev.representativeName,
       }));
       setHasInitialData(true);
 
-      if (initialData.supplierName || initialData.supplierPhone || initialData.address) {
+      if (
+        initialData.supplierName ||
+        initialData.supplierPhone ||
+        initialData.address
+      ) {
         toast.success("기존 입력된 정보가 자동으로 채워졌습니다", {
           duration: 3000,
           icon: "✅",
@@ -103,7 +120,8 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const fullAddress = `${formData.address} ${formData.detailAddress}`.trim();
+      const fullAddress =
+        `${formData.address} ${formData.detailAddress}`.trim();
 
       const requestData = {
         supplierName: formData.supplierName.trim(),
@@ -114,6 +132,11 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
         registrationNumber: formData.registrationNumber.trim() || undefined,
         memo: formData.supplierNote.trim() || undefined,
         teamId: selectedTeam.id,
+        customerType: formData.customerType,
+        isRecipient: formData.isRecipient,
+        depositorName: formData.depositorName.trim() || null,
+        residentId: formData.residentId.trim() || null,
+        repurchaseCycleMonths: formData.repurchaseCycleMonths,
       };
 
       const response = await supplierApi.createSupplier(requestData);
@@ -144,6 +167,11 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
       representativeName: "",
       registrationNumber: "",
       supplierNote: "",
+      customerType: null,
+      isRecipient: false,
+      depositorName: "",
+      residentId: "",
+      repurchaseCycleMonths: null,
     });
     setIsAddressOpen(false);
     onClose();
@@ -154,7 +182,9 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-Outline-Variant">
-          <h2 className="text-xl font-medium text-Text-Highest-100">고객 추가</h2>
+          <h2 className="text-xl font-medium text-Text-Highest-100">
+            고객 추가
+          </h2>
           <button
             onClick={handleClose}
             disabled={isSubmitting}
@@ -263,7 +293,9 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
           <div>
             <label className={labelCls}>
               사업자 번호{" "}
-              <span className="text-xs font-normal text-Text-Lowest-60">(선택)</span>
+              <span className="text-xs font-normal text-Text-Lowest-60">
+                (선택)
+              </span>
             </label>
             <input
               type="text"
@@ -288,6 +320,132 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
               placeholder="추가 정보를 입력하세요"
               disabled={isSubmitting}
             />
+          </div>
+
+          {/* 고객 분류 */}
+          <div className="pt-3 border-t border-Outline-Variant">
+            <p className="text-sm font-medium text-Text-High-90 mb-3">
+              고객 분류
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>고객 유형</label>
+                <select
+                  value={formData.customerType || ""}
+                  onChange={(e) => {
+                    const newType = (e.target.value ||
+                      null) as CustomerType | null;
+                    setFormData((prev) => ({
+                      ...prev,
+                      customerType: newType,
+                      ...(newType === "b2b" && {
+                        isRecipient: false,
+                        residentId: "",
+                        depositorName: "",
+                        repurchaseCycleMonths: null,
+                      }),
+                      ...(newType === "b2c" &&
+                        !prev.isRecipient && {
+                          depositorName: "",
+                          repurchaseCycleMonths: null,
+                        }),
+                    }));
+                  }}
+                  disabled={isSubmitting}
+                  className={inputCls}
+                >
+                  <option value="">미설정</option>
+                  <option value="b2c">B2C (개인)</option>
+                  <option value="b2b">B2B (기업)</option>
+                </select>
+              </div>
+              {formVisibility.showIsRecipient && (
+                <div className="flex items-end pb-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isRecipient}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setFormData((prev) => ({
+                          ...prev,
+                          isRecipient: checked,
+                          ...(!checked && {
+                            depositorName: "",
+                            repurchaseCycleMonths: null,
+                          }),
+                        }));
+                      }}
+                      disabled={isSubmitting}
+                      className="w-4 h-4 text-blue-600 rounded border-gray-300"
+                    />
+                    <span className="text-sm font-medium text-Text-High-90">
+                      수급자 여부
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
+
+            {formVisibility.showResidentId && (
+              <div className="mt-3">
+                <label className={labelCls}>주민등록번호</label>
+                <input
+                  type="text"
+                  value={formData.residentId}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9-]/g, "");
+                    setFormData((prev) => ({ ...prev, residentId: value }));
+                  }}
+                  className={inputCls}
+                  placeholder="000000-0000000"
+                  maxLength={14}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
+
+            {formVisibility.showDepositorName && (
+              <div className="mt-3">
+                <label className={labelCls}>입금자명</label>
+                <input
+                  type="text"
+                  value={formData.depositorName}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      depositorName: e.target.value,
+                    }))
+                  }
+                  className={inputCls}
+                  placeholder="지자체 환급 시 입금자명"
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
+
+            {formVisibility.showRepurchaseCycle && (
+              <div className="mt-3">
+                <label className={labelCls}>재구매 주기 (개월)</label>
+                <input
+                  type="number"
+                  value={formData.repurchaseCycleMonths ?? ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      repurchaseCycleMonths: e.target.value
+                        ? parseInt(e.target.value)
+                        : null,
+                    }))
+                  }
+                  className={inputCls}
+                  placeholder="기본 3개월"
+                  min={1}
+                  max={120}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
           </div>
 
           {/* 버튼 */}

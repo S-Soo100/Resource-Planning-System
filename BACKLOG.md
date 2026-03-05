@@ -99,6 +99,79 @@
   - `src/types/(order)/order.ts`
   - `src/components/admin/UserEditModal.tsx`
 
+### E-009: 고객 유형(B2B/B2C)별 UI 분기 및 표시 개선
+- **우선순위**: High
+- **상태**: [x]
+- **설명**: customerType 필드는 저장/편집 가능하지만 UI에서 충분히 활용되지 않음. B2B/B2C별 조건부 필드 표시, 목록 배지, 필터 등 UX 전반 개선.
+
+#### 필드 표시 규칙 (핵심)
+> 상세: `docs/supplier-management.md` "고객 유형별 필드 표시 규칙" 참조
+
+| 필드 | B2B | B2C (비수급자) | B2C (수급자) | 미설정 |
+|------|-----|---------------|-------------|--------|
+| 사업자등록번호 | ✅ | ❌ | ❌ | ✅ |
+| 대표자명 | ✅ | ❌ | ❌ | ✅ |
+| 주민등록번호 | ❌ | ✅ | ✅ | ✅ |
+| 수급자 여부 | ❌ | ✅ | ✅ | ✅ |
+| 입금자명 | ❌ | ❌ | ✅ | ✅ |
+| 재구매 주기 | ❌ | ❌ | ✅ | ✅ |
+| 재구매 예정일 | ❌ | ❌ | ✅ | ✅ |
+
+- **입금자명**: 수급자일 경우, 지자체에서 수급자 비용을 회사 통장에 환급할 때 사용하는 입금자명 (수급자 전용)
+- **재구매 주기/예정일**: 보조기기 수급자 재지급 주기 관리용 (수급자 전용)
+
+#### Phase 1: 조회 화면 — 조건부 필드 표시 + 배지
+- [x] **E-009-1**: `CustomerInfoCard.tsx` — B2B/B2C별 조건부 필드 표시 (위 규칙 적용)
+- [x] **E-009-2**: `supplier/page.tsx` 고객 목록 — 고객명 옆 B2B/B2C 배지 + 수급자 배지 추가
+- [x] **E-009-3**: `SelectSupplierModal.tsx` — 고객 카드에 B2B/B2C + 수급자 배지 추가
+- [x] **E-009-4**: `SupplierDetailHeader.tsx` — 헤더에 고객 유형 배지 추가
+
+#### Phase 2: 생성/편집 — 유형별 필드 동적 표시
+- [x] **E-009-5**: `SupplierFormModal` (supplier/page.tsx 내부) — 고객 분류 셀렉트 + 유형별 필드 동적 표시
+- [x] **E-009-6**: `AddSupplierModal.tsx` — 고객 분류 + 유형별 필드 동적 표시
+- [x] **E-009-7**: `CustomerInfoEditModal.tsx` — 고객 분류별 조건부 필드 표시
+
+#### Phase 3: 필터링
+- [x] **E-009-8**: `supplier/page.tsx` — B2B/B2C/수급자/미분류 필터 추가
+- [x] **E-009-9**: `SelectSupplierModal.tsx` — 고객 유형별 필터 추가
+
+#### Phase 4: 발주 상세 페이지 연동
+- [x] **E-009-10**: `orderRecord/[id]/page.tsx` — 고객관리 정보 섹션에서 위 필드 표시 규칙 적용 (환급 섹션, 입금자명, 재구매 정보 조건부 렌더링)
+
+- **참고**: `/repurchase/page.tsx`의 B2B/B2C 배지 및 필터 패턴을 모델로 활용
+- **관련 파일**:
+  - `src/components/customer/CustomerInfoCard.tsx`
+  - `src/components/customer/CustomerInfoEditModal.tsx`
+  - `src/app/supplier/page.tsx`
+  - `src/components/supplier/SelectSupplierModal.tsx`
+  - `src/components/supplier/AddSupplierModal.tsx`
+  - `src/components/supplier/SupplierDetailHeader.tsx`
+  - `src/app/orderRecord/[id]/page.tsx`
+
+### E-010: 고객 상세 페이지 UX 개선 (인라인 편집 + 레이아웃 컴팩트화)
+- **우선순위**: High
+- **상태**: [x]
+- **설명**: 고객 상세 페이지(`/supplier/[id]`)의 사용성 전면 개선.
+
+#### 변경 내역
+- [x] **E-010-1**: 모달 편집 → 인라인 편집 전환 — `CustomerInfoCard`에서 모든 필드를 클릭하여 즉시 수정 (모달 제거)
+- [x] **E-010-2**: 빈 값 UX — "-" 대신 `"[placeholder] 입력"` + 점선 테두리 + 넓은 클릭 영역 + 호버 피드백
+- [x] **E-010-3**: 기본 탭을 "고객 정보"로 변경 (기존: 매출 내역)
+- [x] **E-010-4**: 요약 통계 항상 표시 + 1줄 컴팩트 레이아웃 (기존: 매출/매입 탭에서만 카드 그리드)
+- [x] **E-010-5**: 조회 기간 필터 항상 표시 + 1줄 컴팩트 pill 버튼 (기존: 매출/매입 탭에서만 표시)
+- [x] **E-010-6**: `SupplierDetailHeader`에서 "정보 수정" 버튼 제거 (인라인 편집으로 대체)
+- [x] **E-010-7**: API 응답 래핑 대응 — `getSupplier`, `getDocuments`에 `{ success, data }` 자동 언래핑
+- [x] **E-010-8**: 고객 서류/발주 이력 404 에러 방어 — `retry: false` + `Array.isArray` 검증
+
+- **관련 파일**:
+  - `src/components/customer/CustomerInfoCard.tsx` (인라인 편집 전면 재작성)
+  - `src/components/supplier/SupplierDetailSummary.tsx` (1줄 컴팩트)
+  - `src/components/supplier/SupplierDetailHeader.tsx` (편집 버튼 제거)
+  - `src/app/supplier/[id]/page.tsx` (탭 순서, 레이아웃, 모달 제거)
+  - `src/api/supplier-api.ts` (응답 래핑 대응)
+  - `src/hooks/useCustomers.ts` (에러 방어)
+  - `src/hooks/useCustomerDocuments.ts` (에러 방어)
+
 ---
 
 ## Bug

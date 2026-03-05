@@ -39,9 +39,26 @@ export const supplierApi = {
   // 단일 납품처 조회
   getSupplier: async (id: string): Promise<ApiResponse<Supplier>> => {
     try {
-      const response = await api.get<Supplier>(`/supplier/${id}`);
-      return { success: true, data: response.data };
+      const response = await api.get<
+        Supplier | { success: boolean; data: Supplier }
+      >(`/supplier/${id}`);
+      console.log("[supplier-api] getSupplier raw response:", response.data);
+      // 백엔드가 { success, data } 래핑할 수 있음
+      const rawData = response.data;
+      if (
+        rawData &&
+        typeof rawData === "object" &&
+        "success" in rawData &&
+        "data" in rawData
+      ) {
+        return {
+          success: true,
+          data: (rawData as { success: boolean; data: Supplier }).data,
+        };
+      }
+      return { success: true, data: rawData as Supplier };
     } catch (error) {
+      console.error("[supplier-api] getSupplier error:", error);
       return { success: false, error: "납품처 조회에 실패했습니다." };
     }
   },
@@ -52,9 +69,12 @@ export const supplierApi = {
     data: UpdateSupplierRequest
   ): Promise<ApiResponse<Supplier>> => {
     try {
+      console.log("[supplier-api] updateSupplier request:", id, data);
       const response = await api.patch<Supplier>(`/supplier/${id}`, data);
+      console.log("[supplier-api] updateSupplier response:", response.data);
       return { success: true, data: response.data };
     } catch (error) {
+      console.error("[supplier-api] updateSupplier error:", error);
       return { success: false, error: "납품처 정보 수정에 실패했습니다." };
     }
   },
@@ -102,11 +122,21 @@ export const supplierApi = {
   ): Promise<ApiResponse<CustomerDocument[]>> => {
     try {
       const params = documentType ? { documentType } : undefined;
-      const response = await api.get<CustomerDocument[]>(
-        `/supplier/${supplierId}/documents`,
-        { params }
-      );
-      return { success: true, data: response.data };
+      const response = await api.get<
+        CustomerDocument[] | { success: boolean; data: CustomerDocument[] }
+      >(`/supplier/${supplierId}/documents`, { params });
+      const rawData = response.data;
+      // 백엔드 래핑 대응
+      if (
+        rawData &&
+        !Array.isArray(rawData) &&
+        typeof rawData === "object" &&
+        "data" in rawData
+      ) {
+        const inner = (rawData as { data: CustomerDocument[] }).data;
+        return { success: true, data: Array.isArray(inner) ? inner : [] };
+      }
+      return { success: true, data: Array.isArray(rawData) ? rawData : [] };
     } catch (error) {
       return { success: false, error: "서류 목록 조회에 실패했습니다." };
     }

@@ -3,6 +3,10 @@
 import React, { useState, useMemo } from "react";
 import { X, Search, Building2, Phone, Plus } from "lucide-react";
 import { Supplier } from "@/types/supplier";
+import {
+  getCustomerTypeBadge,
+  getRecipientBadge,
+} from "@/utils/customerFieldUtils";
 
 interface SelectSupplierModalProps {
   isOpen: boolean;
@@ -35,21 +39,41 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
       ? "text-purple-600 bg-purple-50 border-purple-200 hover:bg-purple-100"
       : "text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100";
 
+  const [typeFilter, setTypeFilter] = useState<
+    "all" | "b2c" | "b2b" | "recipient" | "none"
+  >("all");
+
   const selectedBorderColor =
     focusRingColor === "purple" ? "border-purple-500" : "border-blue-500";
 
-  // 검색 필터링
+  // 검색 + 유형 필터링
   const filteredSuppliers = useMemo(() => {
-    if (!searchTerm.trim()) return suppliers;
+    let result = suppliers;
 
-    const lowerSearch = searchTerm.toLowerCase();
-    return suppliers.filter(
-      (supplier) =>
-        supplier.supplierName.toLowerCase().includes(lowerSearch) ||
-        supplier.supplierPhoneNumber?.toLowerCase().includes(lowerSearch) ||
-        supplier.supplierAddress?.toLowerCase().includes(lowerSearch)
-    );
-  }, [suppliers, searchTerm]);
+    // 검색
+    if (searchTerm.trim()) {
+      const lowerSearch = searchTerm.toLowerCase();
+      result = result.filter(
+        (supplier) =>
+          supplier.supplierName.toLowerCase().includes(lowerSearch) ||
+          supplier.supplierPhoneNumber?.toLowerCase().includes(lowerSearch) ||
+          supplier.supplierAddress?.toLowerCase().includes(lowerSearch)
+      );
+    }
+
+    // 유형 필터
+    if (typeFilter !== "all") {
+      result = result.filter((s) => {
+        if (typeFilter === "b2c") return s.customerType === "b2c";
+        if (typeFilter === "b2b") return s.customerType === "b2b";
+        if (typeFilter === "recipient") return s.isRecipient;
+        if (typeFilter === "none") return !s.customerType;
+        return true;
+      });
+    }
+
+    return result;
+  }, [suppliers, searchTerm, typeFilter]);
 
   if (!isOpen) return null;
 
@@ -95,9 +119,38 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
               autoFocus
             />
           </div>
-          <p className="mt-2 text-xs text-gray-500">
-            {filteredSuppliers.length}개의 고객이 검색되었습니다
-          </p>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <p className="text-xs text-gray-500">
+              {filteredSuppliers.length}개의 고객
+            </p>
+            <div className="flex gap-1 ml-auto">
+              {(["all", "b2c", "b2b", "recipient", "none"] as const).map(
+                (key) => {
+                  const labels = {
+                    all: "전체",
+                    b2c: "B2C",
+                    b2b: "B2B",
+                    recipient: "수급자",
+                    none: "미분류",
+                  };
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setTypeFilter(key)}
+                      className={`px-2 py-0.5 text-[10px] font-medium rounded-full transition-all ${
+                        typeFilter === key
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {labels[key]}
+                    </button>
+                  );
+                }
+              )}
+            </div>
+          </div>
         </div>
 
         {/* 고객 목록 */}
@@ -141,9 +194,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
             <div className="py-16 text-center">
               <Building2 className="mx-auto mb-4 text-gray-300" size={64} />
               <p className="text-lg font-medium text-gray-600">
-                {searchTerm
-                  ? "검색 결과가 없습니다"
-                  : "등록된 고객이 없습니다"}
+                {searchTerm ? "검색 결과가 없습니다" : "등록된 고객이 없습니다"}
               </p>
               <p className="mt-2 text-sm text-gray-500">
                 {searchTerm
@@ -169,7 +220,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Building2
                             className={
                               isSelected ? "text-blue-600" : "text-gray-400"
@@ -179,8 +230,36 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
                           <h3 className="text-lg font-semibold text-gray-900">
                             {supplier.supplierName}
                           </h3>
+                          {(() => {
+                            const typeBadge = getCustomerTypeBadge(
+                              supplier.customerType
+                            );
+                            const recipientBadge = getRecipientBadge(
+                              supplier.isRecipient
+                            );
+                            return (
+                              <>
+                                {typeBadge && (
+                                  <span
+                                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${typeBadge.color}`}
+                                  >
+                                    {typeBadge.text}
+                                  </span>
+                                )}
+                                {recipientBadge && (
+                                  <span
+                                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded-full ${recipientBadge.color}`}
+                                  >
+                                    {recipientBadge.text}
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                           {isSelected && (
-                            <span className={`px-2 py-0.5 text-xs font-bold text-white rounded ${accentColor.includes("purple") ? "bg-purple-500" : "bg-blue-500"}`}>
+                            <span
+                              className={`px-2 py-0.5 text-xs font-bold text-white rounded ${accentColor.includes("purple") ? "bg-purple-500" : "bg-blue-500"}`}
+                            >
                               선택됨
                             </span>
                           )}

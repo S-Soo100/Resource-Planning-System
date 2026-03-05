@@ -2,29 +2,17 @@
 
 import React from "react";
 import { Supplier } from "@/types/supplier";
+import { Building2, User, Phone, FileText, MapPin, Mail } from "lucide-react";
 import {
-  Building2,
-  User,
-  Phone,
-  FileText,
-  MapPin,
-  Mail,
-  Edit,
-} from "lucide-react";
-import { usePermission } from "@/hooks/usePermission";
+  getCustomerTypeBadge,
+  getRecipientBadge,
+} from "@/utils/customerFieldUtils";
 
 interface SupplierDetailHeaderProps {
   supplier: Supplier;
-  onEdit?: () => void;
 }
 
-export function SupplierDetailHeader({
-  supplier,
-  onEdit,
-}: SupplierDetailHeaderProps) {
-  const { isAdminOrModerator } = usePermission();
-  const canEdit = isAdminOrModerator;
-
+export function SupplierDetailHeader({ supplier }: SupplierDetailHeaderProps) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant p-6">
       {/* 헤더 (고객명 + 수정 버튼) */}
@@ -34,22 +22,38 @@ export function SupplierDetailHeader({
             <Building2 className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-2xl font-medium text-Text-Highest-100">
-              {supplier.supplierName}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-medium text-Text-Highest-100">
+                {supplier.supplierName}
+              </h1>
+              {(() => {
+                const typeBadge = getCustomerTypeBadge(supplier.customerType);
+                const recipientBadge = getRecipientBadge(supplier.isRecipient);
+                return (
+                  <>
+                    {typeBadge && (
+                      <span
+                        className={`px-2 py-0.5 text-xs font-medium rounded-full ${typeBadge.color}`}
+                      >
+                        {typeBadge.text}
+                      </span>
+                    )}
+                    {recipientBadge && (
+                      <span
+                        className={`px-2 py-0.5 text-xs font-medium rounded-full ${recipientBadge.color}`}
+                      >
+                        {recipientBadge.text}
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
             <p className="text-sm text-Text-Low-70 mt-0.5">고객 상세 정보</p>
           </div>
         </div>
 
-        {canEdit && onEdit && (
-          <button
-            onClick={onEdit}
-            className="h-10 px-5 bg-Primary-Main text-white rounded-full text-sm font-medium hover:brightness-90 active:brightness-85 transition-all flex items-center gap-2"
-          >
-            <Edit className="w-4 h-4" />
-            정보 수정
-          </button>
-        )}
+        {/* 정보 수정은 고객 정보 탭에서 인라인 편집 */}
       </div>
 
       {/* 고객 정보 그리드 */}

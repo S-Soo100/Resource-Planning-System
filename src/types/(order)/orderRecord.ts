@@ -38,6 +38,13 @@ export interface IOrderRecord {
     id: number;
     supplierName: string;
     supplierPhoneNumber: string;
+    // 고객 필드 (v3.2 - E-009: 유형별 UI 분기)
+    customerType?: "b2c" | "b2b" | null;
+    isRecipient?: boolean;
+    depositorName?: string | null;
+    residentId?: string | null;
+    repurchaseCycleMonths?: number | null;
+    repurchaseDueDate?: string | null;
   };
   package?: {
     id: number;

@@ -46,6 +46,7 @@ import {
   getDepositStatusText,
   DEPOSIT_STATUS_OPTIONS,
 } from "@/utils/depositUtils";
+import { getFieldVisibility } from "@/utils/customerFieldUtils";
 
 // 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
 
@@ -425,6 +426,10 @@ const OrderRecordDetail = () => {
     ? supplierList.find((s) => s.id === order.supplierId)
     : null;
   const showRefundSection = matchedSupplier?.isRecipient === true;
+  const orderFieldVisibility = getFieldVisibility(
+    order?.supplier?.customerType,
+    matchedSupplier?.isRecipient
+  );
 
   // authStore에서 하이드레이션 상태 구독
   const hasHydrated = authStore((state) => state._hasHydrated);
@@ -1592,7 +1597,13 @@ const OrderRecordDetail = () => {
                     </h2>
                     <div
                       className={`grid grid-cols-1 gap-4 ${
-                        showRefundSection ? "md:grid-cols-3" : "md:grid-cols-2"
+                        showRefundSection &&
+                        orderFieldVisibility.showRepurchaseCycle
+                          ? "md:grid-cols-4"
+                          : showRefundSection ||
+                              orderFieldVisibility.showRepurchaseCycle
+                            ? "md:grid-cols-3"
+                            : "md:grid-cols-2"
                       }`}
                     >
                       {/* 환급 정보 (조건부) */}
@@ -1827,8 +1838,47 @@ const OrderRecordDetail = () => {
                               </span>
                             )}
                           </div>
+                          {/* 입금자명 (수급자 전용) */}
+                          {orderFieldVisibility.showDepositorName &&
+                            order.supplier?.depositorName && (
+                              <div className="text-sm text-gray-700">
+                                입금자명:{" "}
+                                <span className="font-medium">
+                                  {order.supplier.depositorName}
+                                </span>
+                              </div>
+                            )}
                         </div>
                       </div>
+
+                      {/* 재구매 정보 (수급자 전용) */}
+                      {orderFieldVisibility.showRepurchaseCycle && (
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <h3 className="text-sm font-medium text-gray-600 mb-2">
+                            재구매
+                          </h3>
+                          <div className="space-y-1">
+                            <div className="text-sm text-gray-700">
+                              주기:{" "}
+                              <span className="font-medium">
+                                {matchedSupplier?.repurchaseCycleMonths
+                                  ? `${matchedSupplier.repurchaseCycleMonths}개월`
+                                  : "기본 3개월"}
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              예정일:{" "}
+                              <span className="font-medium">
+                                {matchedSupplier?.repurchaseDueDate
+                                  ? new Date(
+                                      matchedSupplier.repurchaseDueDate
+                                    ).toLocaleDateString("ko-KR")
+                                  : "미설정"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

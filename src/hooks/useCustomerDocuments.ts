@@ -76,12 +76,11 @@ export const useSupplierDocuments = (
           supplierId,
           documentType
         );
-        if (response.success && response.data) {
+        if (response.success && Array.isArray(response.data)) {
           return response.data;
         }
         return [];
       } catch {
-        console.warn("[E-006] 서류 API 미연결 - supplierId:", supplierId);
         return [];
       }
     },

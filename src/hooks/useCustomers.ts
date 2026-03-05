@@ -47,13 +47,22 @@ export const useCustomerOrders = (supplierId: number | undefined) => {
     queryKey: ["customerOrders", supplierId],
     queryFn: async () => {
       if (!supplierId) return [];
-      const response = await getOrdersBySupplierId(supplierId.toString());
-      if (response.success && response.data) {
-        return response.data as Order[];
+      try {
+        const response = await getOrdersBySupplierId(supplierId.toString());
+        if (response.success && response.data) {
+          return response.data as Order[];
+        }
+        return [];
+      } catch {
+        console.warn(
+          "[useCustomerOrders] 발주 이력 조회 실패 - supplierId:",
+          supplierId
+        );
+        return [];
       }
-      return [];
     },
     enabled: !!supplierId,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 };

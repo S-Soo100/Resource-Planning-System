@@ -58,6 +58,7 @@ export default function OutboundModal({
   onCategoryChange,
   onSupplierSelect,
 }: OutboundModalProps) {
+  const supplierList = Array.isArray(suppliers) ? suppliers : [];
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] =
@@ -370,7 +371,7 @@ export default function OutboundModal({
                         >
                           {outboundValues.supplierId ? (
                             <span className="text-gray-900">
-                              {suppliers.find(
+                              {supplierList.find(
                                 (s) => s.id === outboundValues.supplierId
                               )?.supplierName || "고객 선택"}
                             </span>
@@ -612,7 +613,7 @@ export default function OutboundModal({
         isOpen={isSelectSupplierModalOpen}
         onClose={() => setIsSelectSupplierModalOpen(false)}
         onSelect={handleSupplierSelect}
-        suppliers={suppliers}
+        suppliers={supplierList}
       />
     </>
   );

@@ -23,16 +23,17 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
     focusRingColor === "purple" ? "bg-purple-50" : "bg-blue-50";
 
   const borderColorClass =
-    focusRingColor === "purple"
-      ? "border-purple-200"
-      : "border-blue-200";
+    focusRingColor === "purple" ? "border-purple-200" : "border-blue-200";
 
   const buttonColorClass =
     focusRingColor === "purple"
       ? "bg-purple-600 hover:bg-purple-700 focus:ring-purple-500"
       : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500";
 
-  const selectedSupplier = suppliers?.find((s) => s.id === selectedSupplierId);
+  const supplierList = Array.isArray(suppliers) ? suppliers : [];
+  const selectedSupplier = supplierList.find(
+    (s) => s.id === selectedSupplierId
+  );
 
   return (
     <div
@@ -53,8 +54,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
             onClick={onAddSupplier}
             className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-white rounded-full hover:bg-blue-50 transition-colors border border-blue-200"
           >
-            <Plus className="w-3 h-3" />
-            새 고객 등록
+            <Plus className="w-3 h-3" />새 고객 등록
           </button>
         )}
       </div>
@@ -139,8 +139,8 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
               <option value="" disabled>
                 👉 고객을 선택하세요
               </option>
-              {Array.isArray(suppliers) && suppliers?.length > 0 ? (
-                suppliers.map((supplier: Supplier) => (
+              {supplierList.length > 0 ? (
+                supplierList.map((supplier: Supplier) => (
                   <option key={supplier.id} value={supplier.id}>
                     {supplier.supplierName}
                   </option>
@@ -157,7 +157,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
             ⚠️ 고객을 선택해주세요
           </p>
 
-          {suppliers?.length === 0 && (
+          {supplierList.length === 0 && (
             <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
               <p className="text-sm text-yellow-800">등록된 고객이 없습니다.</p>
               {onAddSupplier && (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui";
-import { IUser, UpdateUserRequest, CustomerType } from "@/types/(auth)/user";
+import { IUser, UpdateUserRequest } from "@/types/(auth)/user";
 import { warehouseApi } from "@/api/warehouse-api";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useTeamAdmin } from "@/hooks/admin/useTeamAdmin";
@@ -147,12 +147,6 @@ export default function UserEditModal({
       setFormData({
         name: user.name,
         email: user.email,
-        // 고객관리 필드
-        customerType: user.customerType ?? null,
-        isRecipient: user.isRecipient ?? false,
-        depositorName: user.depositorName ?? null,
-        residentId: user.residentId ?? null,
-        repurchaseCycleMonths: user.repurchaseCycleMonths ?? null,
       });
 
       // restrictedWhs 파싱 (제한된 창고)
@@ -398,151 +392,6 @@ export default function UserEditModal({
                 className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isReadOnly}
               />
-            </div>
-          </div>
-
-          {/* 고객 정보 */}
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">고객 정보</h4>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  고객 분류
-                </label>
-                <select
-                  value={formData.customerType || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      customerType: (e.target.value ||
-                        null) as CustomerType | null,
-                    }))
-                  }
-                  className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isReadOnly}
-                >
-                  <option value="">미설정</option>
-                  <option value="b2c">B2C (개인)</option>
-                  <option value="b2b">B2B (기업)</option>
-                </select>
-              </div>
-
-              <div className="flex items-end">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.isRecipient || false}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        isRecipient: e.target.checked,
-                      }))
-                    }
-                    disabled={isReadOnly}
-                    className="w-4 h-4 text-blue-600 rounded border-gray-300"
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    수급자 여부
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  입금자명
-                </label>
-                <input
-                  type="text"
-                  value={formData.depositorName || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      depositorName: e.target.value || null,
-                    }))
-                  }
-                  placeholder="입금자명 입력"
-                  className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isReadOnly}
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  주민등록번호
-                </label>
-                <input
-                  type="text"
-                  value={
-                    isReadOnly && formData.residentId
-                      ? formData.residentId.replace(
-                          /^(\d{6}-?)\d{7}$/,
-                          "$1*******"
-                        )
-                      : formData.residentId || ""
-                  }
-                  onChange={(e) => {
-                    // 숫자와 하이픈만 허용
-                    const value = e.target.value.replace(/[^0-9-]/g, "");
-                    setFormData((prev) => ({
-                      ...prev,
-                      residentId: value || null,
-                    }));
-                  }}
-                  placeholder="000000-0000000"
-                  maxLength={14}
-                  className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isReadOnly}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  재구매 주기 (개월)
-                </label>
-                <input
-                  type="number"
-                  value={formData.repurchaseCycleMonths ?? ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      repurchaseCycleMonths: e.target.value
-                        ? parseInt(e.target.value)
-                        : null,
-                    }))
-                  }
-                  placeholder="기본 3개월"
-                  min={1}
-                  max={120}
-                  className="px-3 py-2 w-full rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isReadOnly}
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  재구매 예정일
-                </label>
-                <input
-                  type="text"
-                  value={
-                    user?.repurchaseDueDate
-                      ? new Date(user.repurchaseDueDate).toLocaleDateString(
-                          "ko-KR"
-                        )
-                      : "미설정"
-                  }
-                  className="px-3 py-2 w-full text-gray-500 bg-gray-50 rounded-md border border-gray-200"
-                  disabled
-                />
-                <p className="mt-1 text-xs text-gray-400">
-                  출고 완료 시 자동 갱신됩니다
-                </p>
-              </div>
             </div>
           </div>
 

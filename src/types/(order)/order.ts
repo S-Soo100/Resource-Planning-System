@@ -57,6 +57,13 @@ export interface OrderSupplier {
   id: number;
   supplierName: string;
   supplierPhoneNumber: string;
+  // 고객 필드 (v3.1 - E-006: User → Supplier 이전)
+  customerType?: "b2c" | "b2b" | null;
+  isRecipient?: boolean;
+  depositorName?: string | null;
+  residentId?: string | null;
+  repurchaseCycleMonths?: number | null;
+  repurchaseDueDate?: string | null;
 }
 
 export interface OrderPackage {

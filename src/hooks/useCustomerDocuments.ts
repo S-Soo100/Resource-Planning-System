@@ -153,14 +153,3 @@ export const useRepurchaseDueSuppliers = (teamId: number | undefined) => {
     retry: false,
   });
 };
-
-// === 레거시 호환 (deprecated) ===
-
-/** @deprecated useSupplierDocuments 사용 권장 */
-export const useUserDocuments = useSupplierDocuments;
-/** @deprecated useUploadSupplierDocument 사용 권장 */
-export const useUploadUserDocument = useUploadSupplierDocument;
-/** @deprecated useDeleteSupplierDocument 사용 권장 */
-export const useDeleteUserDocument = useDeleteSupplierDocument;
-/** @deprecated useRepurchaseDueSuppliers 사용 권장 */
-export const useRepurchaseDueUsers = useRepurchaseDueSuppliers;

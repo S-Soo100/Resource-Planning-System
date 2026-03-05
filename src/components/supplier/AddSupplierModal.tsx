@@ -196,7 +196,90 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
 
         {/* 폼 */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* 고객 이름 */}
+          {/* ── 1. 고객 유형 선택 (버튼형 — 아래 필드 구성을 결정) ── */}
+          <div>
+            <p className="text-sm font-medium text-Text-High-90 mb-2">
+              고객 유형을 선택하세요
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                {
+                  type: "b2c" as const,
+                  label: "B2C",
+                  sub: "개인 고객",
+                  active: "border-indigo-500 bg-indigo-50 text-indigo-700",
+                },
+                {
+                  type: "b2b" as const,
+                  label: "B2B",
+                  sub: "기업 고객",
+                  active: "border-emerald-500 bg-emerald-50 text-emerald-700",
+                },
+              ].map(({ type, label, sub, active }) => {
+                const isSelected = formData.customerType === type;
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => {
+                      const newType = isSelected ? null : type;
+                      setFormData((prev) => ({
+                        ...prev,
+                        customerType: newType,
+                        ...(newType === "b2b" && {
+                          isRecipient: false,
+                          residentId: "",
+                          depositorName: "",
+                          repurchaseCycleMonths: null,
+                        }),
+                        ...(newType === "b2c" &&
+                          !prev.isRecipient && {
+                            depositorName: "",
+                            repurchaseCycleMonths: null,
+                          }),
+                      }));
+                    }}
+                    disabled={isSubmitting}
+                    className={`flex flex-col items-center gap-0.5 py-3 rounded-xl border-2 transition-all text-center ${
+                      isSelected
+                        ? active
+                        : "border-Outline-Variant bg-Back-Low-10 text-Text-High-90 hover:border-gray-400"
+                    } disabled:opacity-50`}
+                  >
+                    <span className="text-base font-semibold">{label}</span>
+                    <span className="text-xs opacity-70">{sub}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* B2C 선택 시 수급자 체크박스 */}
+            {formData.customerType === "b2c" && (
+              <label className="flex items-center gap-2 mt-2.5 px-1 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.isRecipient}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setFormData((prev) => ({
+                      ...prev,
+                      isRecipient: checked,
+                      ...(!checked && {
+                        depositorName: "",
+                        repurchaseCycleMonths: null,
+                      }),
+                    }));
+                  }}
+                  disabled={isSubmitting}
+                  className="w-4 h-4 text-indigo-600 rounded border-gray-300"
+                />
+                <span className="text-sm font-medium text-Text-High-90">
+                  수급자 (보조기기 지원 대상)
+                </span>
+              </label>
+            )}
+          </div>
+
+          {/* ── 2. 기본 정보 (유형 선택 후 표시) ── */}
           <div>
             <label className={labelCls}>
               고객 이름 <span className="text-Error-Main">*</span>
@@ -213,35 +296,133 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
             />
           </div>
 
-          {/* 전화번호 */}
-          <div>
-            <label className={labelCls}>전화번호</label>
-            <input
-              type="tel"
-              name="supplierPhone"
-              value={formData.supplierPhone}
-              onChange={handleChange}
-              className={inputCls}
-              placeholder="전화번호를 입력하세요"
-              disabled={isSubmitting}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>전화번호</label>
+              <input
+                type="tel"
+                name="supplierPhone"
+                value={formData.supplierPhone}
+                onChange={handleChange}
+                className={inputCls}
+                placeholder="전화번호"
+                disabled={isSubmitting}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>이메일</label>
+              <input
+                type="email"
+                name="supplierEmail"
+                value={formData.supplierEmail}
+                onChange={handleChange}
+                className={inputCls}
+                placeholder="이메일"
+                disabled={isSubmitting}
+              />
+            </div>
           </div>
 
-          {/* 이메일 */}
-          <div>
-            <label className={labelCls}>이메일</label>
-            <input
-              type="email"
-              name="supplierEmail"
-              value={formData.supplierEmail}
-              onChange={handleChange}
-              className={inputCls}
-              placeholder="이메일을 입력하세요"
-              disabled={isSubmitting}
-            />
-          </div>
+          {/* ── 3. 유형별 조건부 필드 ── */}
+          {/* B2B: 대표자명 + 사업자번호 */}
+          {formVisibility.showRepresentativeName && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>대표자명</label>
+                <input
+                  type="text"
+                  name="representativeName"
+                  value={formData.representativeName}
+                  onChange={handleChange}
+                  className={inputCls}
+                  placeholder="대표자명"
+                  disabled={isSubmitting}
+                />
+              </div>
+              {formVisibility.showRegistrationNumber && (
+                <div>
+                  <label className={labelCls}>사업자번호</label>
+                  <input
+                    type="text"
+                    name="registrationNumber"
+                    value={formData.registrationNumber}
+                    onChange={handleChange}
+                    className={inputCls}
+                    placeholder="123-45-67890"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* 주소 */}
+          {/* B2C: 주민등록번호 */}
+          {formVisibility.showResidentId && (
+            <div>
+              <label className={labelCls}>주민등록번호</label>
+              <input
+                type="text"
+                value={formData.residentId}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9-]/g, "");
+                  setFormData((prev) => ({ ...prev, residentId: value }));
+                }}
+                className={inputCls}
+                placeholder="000000-0000000"
+                maxLength={14}
+                disabled={isSubmitting}
+              />
+            </div>
+          )}
+
+          {/* 수급자 전용: 입금자명 + 재구매 주기 */}
+          {(formVisibility.showDepositorName ||
+            formVisibility.showRepurchaseCycle) && (
+            <div className="grid grid-cols-2 gap-3">
+              {formVisibility.showDepositorName && (
+                <div>
+                  <label className={labelCls}>입금자명</label>
+                  <input
+                    type="text"
+                    value={formData.depositorName}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        depositorName: e.target.value,
+                      }))
+                    }
+                    className={inputCls}
+                    placeholder="지자체 환급 입금자명"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              )}
+              {formVisibility.showRepurchaseCycle && (
+                <div>
+                  <label className={labelCls}>재구매 주기 (개월)</label>
+                  <input
+                    type="number"
+                    value={formData.repurchaseCycleMonths ?? ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        repurchaseCycleMonths: e.target.value
+                          ? parseInt(e.target.value)
+                          : null,
+                      }))
+                    }
+                    className={inputCls}
+                    placeholder="기본 3개월"
+                    min={1}
+                    max={120}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── 4. 주소 ── */}
           <div>
             <label className={labelCls}>주소</label>
             <div className="flex gap-2 mb-2">
@@ -275,177 +456,18 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
             />
           </div>
 
-          {/* 대표자 이름 */}
-          <div>
-            <label className={labelCls}>대표자 이름</label>
-            <input
-              type="text"
-              name="representativeName"
-              value={formData.representativeName}
-              onChange={handleChange}
-              className={inputCls}
-              placeholder="대표자 이름을 입력하세요"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          {/* 사업자 번호 */}
-          <div>
-            <label className={labelCls}>
-              사업자 번호{" "}
-              <span className="text-xs font-normal text-Text-Lowest-60">
-                (선택)
-              </span>
-            </label>
-            <input
-              type="text"
-              name="registrationNumber"
-              value={formData.registrationNumber}
-              onChange={handleChange}
-              className={inputCls}
-              placeholder="예: 123-45-67890"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          {/* 비고 */}
+          {/* ── 5. 비고 ── */}
           <div>
             <label className={labelCls}>비고</label>
             <textarea
               name="supplierNote"
               value={formData.supplierNote}
               onChange={handleChange}
-              rows={3}
+              rows={2}
               className={inputCls + " resize-none"}
               placeholder="추가 정보를 입력하세요"
               disabled={isSubmitting}
             />
-          </div>
-
-          {/* 고객 분류 */}
-          <div className="pt-3 border-t border-Outline-Variant">
-            <p className="text-sm font-medium text-Text-High-90 mb-3">
-              고객 분류
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>고객 유형</label>
-                <select
-                  value={formData.customerType || ""}
-                  onChange={(e) => {
-                    const newType = (e.target.value ||
-                      null) as CustomerType | null;
-                    setFormData((prev) => ({
-                      ...prev,
-                      customerType: newType,
-                      ...(newType === "b2b" && {
-                        isRecipient: false,
-                        residentId: "",
-                        depositorName: "",
-                        repurchaseCycleMonths: null,
-                      }),
-                      ...(newType === "b2c" &&
-                        !prev.isRecipient && {
-                          depositorName: "",
-                          repurchaseCycleMonths: null,
-                        }),
-                    }));
-                  }}
-                  disabled={isSubmitting}
-                  className={inputCls}
-                >
-                  <option value="">미설정</option>
-                  <option value="b2c">B2C (개인)</option>
-                  <option value="b2b">B2B (기업)</option>
-                </select>
-              </div>
-              {formVisibility.showIsRecipient && (
-                <div className="flex items-end pb-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.isRecipient}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setFormData((prev) => ({
-                          ...prev,
-                          isRecipient: checked,
-                          ...(!checked && {
-                            depositorName: "",
-                            repurchaseCycleMonths: null,
-                          }),
-                        }));
-                      }}
-                      disabled={isSubmitting}
-                      className="w-4 h-4 text-blue-600 rounded border-gray-300"
-                    />
-                    <span className="text-sm font-medium text-Text-High-90">
-                      수급자 여부
-                    </span>
-                  </label>
-                </div>
-              )}
-            </div>
-
-            {formVisibility.showResidentId && (
-              <div className="mt-3">
-                <label className={labelCls}>주민등록번호</label>
-                <input
-                  type="text"
-                  value={formData.residentId}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9-]/g, "");
-                    setFormData((prev) => ({ ...prev, residentId: value }));
-                  }}
-                  className={inputCls}
-                  placeholder="000000-0000000"
-                  maxLength={14}
-                  disabled={isSubmitting}
-                />
-              </div>
-            )}
-
-            {formVisibility.showDepositorName && (
-              <div className="mt-3">
-                <label className={labelCls}>입금자명</label>
-                <input
-                  type="text"
-                  value={formData.depositorName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      depositorName: e.target.value,
-                    }))
-                  }
-                  className={inputCls}
-                  placeholder="지자체 환급 시 입금자명"
-                  disabled={isSubmitting}
-                />
-              </div>
-            )}
-
-            {formVisibility.showRepurchaseCycle && (
-              <div className="mt-3">
-                <label className={labelCls}>재구매 주기 (개월)</label>
-                <input
-                  type="number"
-                  value={formData.repurchaseCycleMonths ?? ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      repurchaseCycleMonths: e.target.value
-                        ? parseInt(e.target.value)
-                        : null,
-                    }))
-                  }
-                  className={inputCls}
-                  placeholder="기본 3개월"
-                  min={1}
-                  max={120}
-                  disabled={isSubmitting}
-                />
-              </div>
-            )}
           </div>
 
           {/* 버튼 */}

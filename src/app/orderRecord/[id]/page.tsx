@@ -5,13 +5,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getOrder } from "@/api/order-api";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
-import { OrderStatus } from "@/types/(order)/order";
+import { OrderStatus, DepositStatus } from "@/types/(order)/order";
 import { ArrowLeft, Package, Truck, Printer, Trash2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePermission } from "@/hooks/usePermission";
 import {
   useUpdateOrderStatus,
   useDeleteOrder,
+  useUpdateOrderDetails,
 } from "@/hooks/(useOrder)/useOrderMutations";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -40,6 +41,11 @@ import { uploadMultipleOrderFileById, deleteOrderFile } from "@/api/order-api";
 import OrderChangeHistory from "@/components/orderRecord/OrderChangeHistory";
 import TaxInvoiceSection from "@/components/orderRecord/TaxInvoiceSection";
 import { LoadingCentered } from "@/components/ui/Loading";
+import {
+  getDepositStatusColor,
+  getDepositStatusText,
+  DEPOSIT_STATUS_OPTIONS,
+} from "@/utils/depositUtils";
 
 // 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
 
@@ -391,6 +397,9 @@ const OrderRecordDetail = () => {
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState<number | null>(null);
   const [isOrderItemsExpanded, setIsOrderItemsExpanded] = useState(true);
+  const [isUpdatingDeposit, setIsUpdatingDeposit] = useState(false);
+  const [isEditingDepositAmount, setIsEditingDepositAmount] = useState(false);
+  const [editDepositAmount, setEditDepositAmount] = useState("");
 
   const { user: auth } = useCurrentUser();
   const {
@@ -404,10 +413,17 @@ const OrderRecordDetail = () => {
   const queryClient = useQueryClient();
   const updateOrderStatusMutation = useUpdateOrderStatus();
   const deleteOrderMutation = useDeleteOrder();
+  const { mutateAsync: updateDetailsMutate } = useUpdateOrderDetails();
 
   // Suppliers 데이터 가져오기
   const { useGetSuppliers } = useSuppliers();
   const { suppliers = [] } = useGetSuppliers();
+
+  // 환급대상자 판별
+  const matchedSupplier = order
+    ? suppliers.find((s) => s.id === order.supplierId)
+    : null;
+  const showRefundSection = matchedSupplier?.isRecipient === true;
 
   // authStore에서 하이드레이션 상태 구독
   const hasHydrated = authStore((state) => state._hasHydrated);
@@ -493,6 +509,105 @@ const OrderRecordDetail = () => {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | null>(
     null
   );
+
+  // 입금상태 인라인 변경
+  const handleDepositStatusChange = async (value: string) => {
+    if (!order) return;
+    setIsUpdatingDeposit(true);
+    try {
+      const depositStatus = (value || undefined) as DepositStatus | undefined;
+      await updateDetailsMutate({
+        id: String(order.id),
+        data: { depositStatus },
+      });
+      setOrder({ ...order, depositStatus: depositStatus || null });
+      toast.success("입금상태가 변경되었습니다");
+    } catch (error) {
+      console.error("입금상태 변경 실패:", error);
+      toast.error("입금상태 변경에 실패했습니다");
+    } finally {
+      setIsUpdatingDeposit(false);
+    }
+  };
+
+  // 입금금액 인라인 저장
+  const handleDepositAmountSave = async () => {
+    if (!order) return;
+    const newAmount = editDepositAmount
+      ? parseInt(editDepositAmount)
+      : undefined;
+    const oldAmount = order.depositAmount ?? undefined;
+    if (newAmount === oldAmount) {
+      setIsEditingDepositAmount(false);
+      return;
+    }
+    setIsUpdatingDeposit(true);
+    try {
+      await updateDetailsMutate({
+        id: String(order.id),
+        data: { depositAmount: newAmount },
+      });
+      setOrder({ ...order, depositAmount: newAmount ?? null });
+      toast.success("입금금액이 변경되었습니다");
+    } catch (error) {
+      console.error("입금금액 변경 실패:", error);
+      toast.error("입금금액 변경에 실패했습니다");
+    } finally {
+      setIsUpdatingDeposit(false);
+      setIsEditingDepositAmount(false);
+    }
+  };
+
+  // 환급 필드 인라인 변경
+  const handleRefundFieldChange = async (
+    field: "isRefundApplied" | "isRefundReceived" | "isRefundNotApplicable",
+    value: boolean
+  ) => {
+    if (!order) return;
+    setIsUpdatingDeposit(true);
+    try {
+      const data: Record<string, boolean> = { [field]: value };
+      // 해당없음 체크 시 나머지 false 처리
+      if (field === "isRefundNotApplicable" && value) {
+        data.isRefundApplied = false;
+        data.isRefundReceived = false;
+      }
+      await updateDetailsMutate({
+        id: String(order.id),
+        data,
+      });
+      setOrder({ ...order, ...data });
+      toast.success("환급 정보가 변경되었습니다");
+    } catch (error) {
+      console.error("환급 정보 변경 실패:", error);
+      toast.error("환급 정보 변경에 실패했습니다");
+    } finally {
+      setIsUpdatingDeposit(false);
+    }
+  };
+
+  // 세금계산서 인라인 토글
+  const handleTaxInvoiceToggle = async (checked: boolean) => {
+    if (!order) return;
+    setIsUpdatingDeposit(true);
+    try {
+      await updateDetailsMutate({
+        id: String(order.id),
+        data: { isTaxInvoiceIssued: checked },
+      });
+      setOrder({ ...order, isTaxInvoiceIssued: checked });
+      toast.success(
+        checked
+          ? "세금계산서 발행 완료로 변경되었습니다"
+          : "세금계산서 미발행으로 변경되었습니다"
+      );
+    } catch (error) {
+      console.error("세금계산서 상태 변경 실패:", error);
+      toast.error("세금계산서 상태 변경에 실패했습니다");
+    } finally {
+      setIsUpdatingDeposit(false);
+    }
+  };
 
   // 상태 변경 핸들러
   const handleStatusChange = async () => {
@@ -917,16 +1032,55 @@ const OrderRecordDetail = () => {
                 </div>
 
                 <div className="flex justify-between mb-6">
-                  {/* 현재 상태 표시 */}
-                  <div
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${getStatusColorClass(
-                      order.status
-                    )}`}
-                  >
-                    {getStatusIcon(order.status)}
-                    <span className="font-medium">
-                      {getStatusText(order.status)}
-                    </span>
+                  {/* 현재 상태 + 입금상태 표시 */}
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${getStatusColorClass(
+                        order.status
+                      )}`}
+                    >
+                      {getStatusIcon(order.status)}
+                      <span className="font-medium">
+                        {getStatusText(order.status)}
+                      </span>
+                    </div>
+                    {/* 입금상태 배지/드롭다운 */}
+                    {!isSupplier && (
+                      <>
+                        {isAdminOrModerator ? (
+                          <select
+                            value={order.depositStatus || ""}
+                            onChange={(e) =>
+                              handleDepositStatusChange(e.target.value)
+                            }
+                            disabled={isUpdatingDeposit}
+                            className={`px-3 py-2 text-sm font-medium rounded-lg border cursor-pointer transition-colors ${getDepositStatusColor(
+                              order.depositStatus,
+                              order.depositAmount
+                            )} ${isUpdatingDeposit ? "opacity-50" : ""}`}
+                          >
+                            <option value="">미입금</option>
+                            {DEPOSIT_STATUS_OPTIONS.map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span
+                            className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg ${getDepositStatusColor(
+                              order.depositStatus,
+                              order.depositAmount
+                            )}`}
+                          >
+                            {getDepositStatusText(
+                              order.depositStatus,
+                              order.depositAmount
+                            )}
+                          </span>
+                        )}
+                      </>
+                    )}
                   </div>
                   {/* 수정 버튼들 */}
                   <div className="flex gap-2">
@@ -938,14 +1092,14 @@ const OrderRecordDetail = () => {
                         발주 수정
                       </button>
                     )}
-                    {/* moderator/admin만 발주 정보 수정 버튼 표시 */}
+                    {/* moderator/admin만 고객 변경 버튼 표시 */}
                     {isAdminOrModerator && (
                       <button
                         onClick={() => setIsDetailsEditModalOpen(true)}
                         className="px-4 py-2 text-white bg-green-500 rounded-lg transition-colors hover:bg-green-600"
-                        title="고객 정보 등을 수정할 수 있습니다 (레거시 데이터 수정)"
+                        title="발주의 고객(납품처)을 변경합니다"
                       >
-                        정보 수정
+                        고객 변경
                       </button>
                     )}
                   </div>
@@ -1429,62 +1583,175 @@ const OrderRecordDetail = () => {
                   </div>
                 )}
 
-                {/* 고객관리 상태 정보 (출고완료 시) */}
-                {order.status === "shipmentCompleted" && !isSupplier && (
+                {/* 고객관리 정보 (상태 무관, Supplier 제외) */}
+                {!isSupplier && (
                   <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
                     <h2 className="mb-4 text-lg font-semibold text-gray-900">
                       고객관리 정보
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* 환급 정보 */}
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <h3 className="text-sm font-medium text-gray-600 mb-2">
-                          환급
-                        </h3>
-                        {order.isRefundNotApplicable ? (
-                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-                            해당없음
-                          </span>
-                        ) : (
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`inline-block w-2 h-2 rounded-full ${order.isRefundApplied ? "bg-green-500" : "bg-gray-300"}`}
-                              />
-                              <span className="text-sm text-gray-700">
-                                환급 신청{" "}
-                                {order.isRefundApplied ? "완료" : "미신청"}
-                              </span>
+                    <div
+                      className={`grid grid-cols-1 gap-4 ${
+                        showRefundSection ? "md:grid-cols-3" : "md:grid-cols-2"
+                      }`}
+                    >
+                      {/* 환급 정보 (조건부) */}
+                      {showRefundSection && (
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <h3 className="text-sm font-medium text-gray-600 mb-2">
+                            환급
+                          </h3>
+                          {isAdminOrModerator ? (
+                            <div className="space-y-2">
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={order.isRefundApplied ?? false}
+                                  onChange={(e) =>
+                                    handleRefundFieldChange(
+                                      "isRefundApplied",
+                                      e.target.checked
+                                    )
+                                  }
+                                  disabled={
+                                    isUpdatingDeposit ||
+                                    (order.isRefundNotApplicable ?? false)
+                                  }
+                                  className="w-4 h-4 text-blue-600 rounded border-gray-300 disabled:opacity-50"
+                                />
+                                <span
+                                  className={`text-sm ${
+                                    order.isRefundNotApplicable
+                                      ? "text-gray-400"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  환급 신청
+                                </span>
+                              </label>
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={order.isRefundReceived ?? false}
+                                  onChange={(e) =>
+                                    handleRefundFieldChange(
+                                      "isRefundReceived",
+                                      e.target.checked
+                                    )
+                                  }
+                                  disabled={
+                                    isUpdatingDeposit ||
+                                    (order.isRefundNotApplicable ?? false)
+                                  }
+                                  className="w-4 h-4 text-blue-600 rounded border-gray-300 disabled:opacity-50"
+                                />
+                                <span
+                                  className={`text-sm ${
+                                    order.isRefundNotApplicable
+                                      ? "text-gray-400"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  환급금 입금 완료
+                                </span>
+                              </label>
+                              <div className="border-t border-gray-200 pt-2">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={
+                                      order.isRefundNotApplicable ?? false
+                                    }
+                                    onChange={(e) =>
+                                      handleRefundFieldChange(
+                                        "isRefundNotApplicable",
+                                        e.target.checked
+                                      )
+                                    }
+                                    disabled={isUpdatingDeposit}
+                                    className="w-4 h-4 text-orange-600 rounded border-gray-300"
+                                  />
+                                  <span className="text-sm text-gray-700">
+                                    해당없음
+                                  </span>
+                                </label>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`inline-block w-2 h-2 rounded-full ${order.isRefundReceived ? "bg-green-500" : "bg-gray-300"}`}
-                              />
-                              <span className="text-sm text-gray-700">
-                                환급금{" "}
-                                {order.isRefundReceived
-                                  ? "입금 완료"
-                                  : "미입금"}
-                              </span>
+                          ) : order.isRefundNotApplicable ? (
+                            <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                              해당없음
+                            </span>
+                          ) : (
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`inline-block w-2 h-2 rounded-full ${
+                                    order.isRefundApplied
+                                      ? "bg-green-500"
+                                      : "bg-gray-300"
+                                  }`}
+                                />
+                                <span className="text-sm text-gray-700">
+                                  환급 신청{" "}
+                                  {order.isRefundApplied ? "완료" : "미신청"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`inline-block w-2 h-2 rounded-full ${
+                                    order.isRefundReceived
+                                      ? "bg-green-500"
+                                      : "bg-gray-300"
+                                  }`}
+                                />
+                                <span className="text-sm text-gray-700">
+                                  환급금{" "}
+                                  {order.isRefundReceived
+                                    ? "입금 완료"
+                                    : "미입금"}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* 세금계산서 */}
                       <div className="p-4 bg-gray-50 rounded-lg">
                         <h3 className="text-sm font-medium text-gray-600 mb-2">
                           세금계산서
                         </h3>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`inline-block w-2 h-2 rounded-full ${order.isTaxInvoiceIssued ? "bg-green-500" : "bg-gray-300"}`}
-                          />
-                          <span className="text-sm text-gray-700">
-                            매입세금계산서{" "}
-                            {order.isTaxInvoiceIssued ? "발행 완료" : "미발행"}
-                          </span>
-                        </div>
+                        {isAdminOrModerator ? (
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={order.isTaxInvoiceIssued ?? false}
+                              onChange={(e) =>
+                                handleTaxInvoiceToggle(e.target.checked)
+                              }
+                              disabled={isUpdatingDeposit}
+                              className="w-4 h-4 text-blue-600 rounded border-gray-300"
+                            />
+                            <span className="text-sm text-gray-700">
+                              매입세금계산서 발행 완료
+                            </span>
+                          </label>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full ${
+                                order.isTaxInvoiceIssued
+                                  ? "bg-green-500"
+                                  : "bg-gray-300"
+                              }`}
+                            />
+                            <span className="text-sm text-gray-700">
+                              매입세금계산서{" "}
+                              {order.isTaxInvoiceIssued
+                                ? "발행 완료"
+                                : "미발행"}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* 입금 정보 */}
@@ -1492,21 +1759,73 @@ const OrderRecordDetail = () => {
                         <h3 className="text-sm font-medium text-gray-600 mb-2">
                           입금
                         </h3>
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           <div className="text-sm text-gray-700">
                             상태:{" "}
-                            <span className="font-medium">
-                              {order.depositStatus || "미설정"}
+                            <span
+                              className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getDepositStatusColor(
+                                order.depositStatus,
+                                order.depositAmount
+                              )}`}
+                            >
+                              {getDepositStatusText(
+                                order.depositStatus,
+                                order.depositAmount
+                              )}
                             </span>
                           </div>
-                          {order.depositAmount != null && (
-                            <div className="text-sm text-gray-700">
-                              금액:{" "}
+                          <div className="text-sm text-gray-700">
+                            금액:{" "}
+                            {isAdminOrModerator ? (
+                              isEditingDepositAmount ? (
+                                <input
+                                  type="text"
+                                  value={editDepositAmount}
+                                  onChange={(e) => {
+                                    const value = e.target.value.replace(
+                                      /[^0-9]/g,
+                                      ""
+                                    );
+                                    setEditDepositAmount(value);
+                                  }}
+                                  onBlur={handleDepositAmountSave}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter")
+                                      handleDepositAmountSave();
+                                    if (e.key === "Escape") {
+                                      setIsEditingDepositAmount(false);
+                                    }
+                                  }}
+                                  autoFocus
+                                  disabled={isUpdatingDeposit}
+                                  placeholder="금액 입력"
+                                  className="w-24 px-2 py-0.5 text-sm border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                />
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    setEditDepositAmount(
+                                      order.depositAmount != null
+                                        ? order.depositAmount.toString()
+                                        : ""
+                                    );
+                                    setIsEditingDepositAmount(true);
+                                  }}
+                                  className="font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                                >
+                                  {order.depositAmount != null
+                                    ? `${order.depositAmount.toLocaleString()}원`
+                                    : "미입력"}
+                                </button>
+                              )
+                            ) : (
                               <span className="font-medium">
-                                {order.depositAmount.toLocaleString()}원
+                                {order.depositAmount != null
+                                  ? `${order.depositAmount.toLocaleString()}원`
+                                  : "미입력"}
                               </span>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1674,7 +1993,7 @@ const OrderRecordDetail = () => {
                   />
                 )}
 
-                {/* 발주 정보 수정 모달 */}
+                {/* 고객 변경 모달 */}
                 {isDetailsEditModalOpen && order && (
                   <DetailsEditModal
                     isOpen={isDetailsEditModalOpen}
@@ -1682,6 +2001,9 @@ const OrderRecordDetail = () => {
                     suppliers={suppliers}
                     onClose={() => {
                       setIsDetailsEditModalOpen(false);
+                    }}
+                    onSave={(updatedFields) => {
+                      setOrder({ ...order, ...updatedFields });
                     }}
                   />
                 )}

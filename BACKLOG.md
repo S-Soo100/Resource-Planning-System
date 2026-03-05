@@ -83,6 +83,22 @@
   - `src/types/(order)/orderRecord.ts` — OrderRecord DTO
   - `src/types/(order)/order.ts` — DepositStatus, UpdateOrderDetailsDto
 
+### E-008: User → Supplier 마이그레이션 레거시 코드 정리
+- **우선순위**: Medium
+- **상태**: [x]
+- **설명**: 백엔드 마이그레이션 완료에 따라 프론트엔드 레거시 코드 정리
+- **작업 내용**:
+  - [x] **E-008-1**: user-api.ts 레거시 서류/재구매 메서드 제거 (삭제된 엔드포인트)
+  - [x] **E-008-2**: useCustomerDocuments.ts 레거시 별칭(useUserDocuments 등) 제거
+  - [x] **E-008-3**: User 타입에서 고객 필드 6개 제거 + UserEditModal 고객 섹션 제거
+  - [x] **E-008-4**: OrderSupplier 타입에 고객 필드 6개 추가 (백엔드 응답 반영)
+- **관련 파일**:
+  - `src/api/user-api.ts`
+  - `src/hooks/useCustomerDocuments.ts`
+  - `src/types/(auth)/user.ts`
+  - `src/types/(order)/order.ts`
+  - `src/components/admin/UserEditModal.tsx`
+
 ---
 
 ## Bug

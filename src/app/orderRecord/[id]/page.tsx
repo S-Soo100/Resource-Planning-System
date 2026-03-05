@@ -420,8 +420,9 @@ const OrderRecordDetail = () => {
   const { suppliers = [] } = useGetSuppliers();
 
   // 환급대상자 판별
+  const supplierList = Array.isArray(suppliers) ? suppliers : [];
   const matchedSupplier = order
-    ? suppliers.find((s) => s.id === order.supplierId)
+    ? supplierList.find((s) => s.id === order.supplierId)
     : null;
   const showRefundSection = matchedSupplier?.isRecipient === true;
 

@@ -278,68 +278,84 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
               />
             </div>
 
-            {/* 고객 분류 */}
+            {/* 고객 유형 (버튼형 선택) */}
             <div className="md:col-span-2 pt-3 border-t border-Outline-Variant">
-              <p className="text-sm font-medium text-Text-High-90 mb-3">
-                고객 분류
+              <p className="text-sm font-medium text-Text-High-90 mb-2">
+                고객 유형
               </p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelCls}>고객 유형</label>
-                  <select
-                    value={formData.customerType || ""}
-                    onChange={(e) => {
-                      const newType = (e.target.value ||
-                        null) as CustomerType | null;
-                      setFormData((prev) => ({
-                        ...prev,
-                        customerType: newType,
-                        ...(newType === "b2b" && {
-                          isRecipient: false,
-                          residentId: null,
-                          depositorName: null,
-                          repurchaseCycleMonths: null,
-                        }),
-                        ...(newType === "b2c" &&
-                          !prev.isRecipient && {
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  {
+                    type: "b2c" as const,
+                    label: "B2C",
+                    sub: "개인 고객",
+                    active: "border-indigo-500 bg-indigo-50 text-indigo-700",
+                  },
+                  {
+                    type: "b2b" as const,
+                    label: "B2B",
+                    sub: "기업 고객",
+                    active: "border-emerald-500 bg-emerald-50 text-emerald-700",
+                  },
+                ].map(({ type, label, sub, active }) => {
+                  const isSelected = formData.customerType === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => {
+                        const newType = isSelected ? null : type;
+                        setFormData((prev) => ({
+                          ...prev,
+                          customerType: newType,
+                          ...(newType === "b2b" && {
+                            isRecipient: false,
+                            residentId: null,
                             depositorName: null,
                             repurchaseCycleMonths: null,
                           }),
-                      }));
-                    }}
-                    className={inputCls}
-                  >
-                    <option value="">미설정</option>
-                    <option value="b2c">B2C (개인)</option>
-                    <option value="b2b">B2B (기업)</option>
-                  </select>
-                </div>
-                {formVisibility.showIsRecipient && (
-                  <div className="flex items-end pb-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.isRecipient ?? false}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setFormData((prev) => ({
-                            ...prev,
-                            isRecipient: checked,
-                            ...(!checked && {
+                          ...(newType === "b2c" &&
+                            !prev.isRecipient && {
                               depositorName: null,
                               repurchaseCycleMonths: null,
                             }),
-                          }));
-                        }}
-                        className="w-4 h-4 text-blue-600 rounded border-gray-300"
-                      />
-                      <span className="text-sm font-medium text-Text-High-90">
-                        수급자 여부
-                      </span>
-                    </label>
-                  </div>
-                )}
+                        }));
+                      }}
+                      className={`flex flex-col items-center gap-0.5 py-3 rounded-xl border-2 transition-all text-center ${
+                        isSelected
+                          ? active
+                          : "border-Outline-Variant bg-Back-Low-10 text-Text-High-90 hover:border-gray-400"
+                      }`}
+                    >
+                      <span className="text-base font-semibold">{label}</span>
+                      <span className="text-xs opacity-70">{sub}</span>
+                    </button>
+                  );
+                })}
               </div>
+              {formData.customerType === "b2c" && (
+                <label className="flex items-center gap-2 mt-2.5 px-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isRecipient ?? false}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setFormData((prev) => ({
+                        ...prev,
+                        isRecipient: checked,
+                        ...(!checked && {
+                          depositorName: null,
+                          repurchaseCycleMonths: null,
+                        }),
+                      }));
+                    }}
+                    className="w-4 h-4 text-indigo-600 rounded border-gray-300"
+                  />
+                  <span className="text-sm font-medium text-Text-High-90">
+                    수급자 (보조기기 지원 대상)
+                  </span>
+                </label>
+              )}
             </div>
 
             {/* 주민등록번호 (B2C / 미설정) */}

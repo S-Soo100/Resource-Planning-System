@@ -54,10 +54,6 @@ export const useCustomerOrders = (supplierId: number | undefined) => {
         }
         return [];
       } catch {
-        console.warn(
-          "[useCustomerOrders] 발주 이력 조회 실패 - supplierId:",
-          supplierId
-        );
         return [];
       }
     },

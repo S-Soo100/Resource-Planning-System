@@ -1950,22 +1950,19 @@ const OrderRecordDetail = () => {
                         </div>
                       </div>
                     </div>
-
-                    {/* 세금계산서 파일 + 발행 상태 */}
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <TaxInvoiceSection
-                        orderId={order.id}
-                        embedded
-                        isTaxInvoiceIssued={order.isTaxInvoiceIssued ?? false}
-                        onTaxInvoiceToggle={
-                          isAdminOrModerator
-                            ? handleTaxInvoiceToggle
-                            : undefined
-                        }
-                        isToggling={isUpdatingDeposit}
-                      />
-                    </div>
                   </div>
+                )}
+
+                {/* 세금계산서 (독립 카드) */}
+                {!isSupplier && (
+                  <TaxInvoiceSection
+                    orderId={order.id}
+                    isTaxInvoiceIssued={order.isTaxInvoiceIssued ?? false}
+                    onTaxInvoiceToggle={
+                      isAdminOrModerator ? handleTaxInvoiceToggle : undefined
+                    }
+                    isToggling={isUpdatingDeposit}
+                  />
                 )}
 
                 {/* 첨부파일 */}

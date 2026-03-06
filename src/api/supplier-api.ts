@@ -42,7 +42,6 @@ export const supplierApi = {
       const response = await api.get<
         Supplier | { success: boolean; data: Supplier }
       >(`/supplier/${id}`);
-      console.log("[supplier-api] getSupplier raw response:", response.data);
       // 백엔드가 { success, data } 래핑할 수 있음
       const rawData = response.data;
       if (
@@ -58,7 +57,6 @@ export const supplierApi = {
       }
       return { success: true, data: rawData as Supplier };
     } catch (error) {
-      console.error("[supplier-api] getSupplier error:", error);
       return { success: false, error: "납품처 조회에 실패했습니다." };
     }
   },
@@ -69,12 +67,9 @@ export const supplierApi = {
     data: UpdateSupplierRequest
   ): Promise<ApiResponse<Supplier>> => {
     try {
-      console.log("[supplier-api] updateSupplier request:", id, data);
       const response = await api.patch<Supplier>(`/supplier/${id}`, data);
-      console.log("[supplier-api] updateSupplier response:", response.data);
       return { success: true, data: response.data };
     } catch (error) {
-      console.error("[supplier-api] updateSupplier error:", error);
       return { success: false, error: "납품처 정보 수정에 실패했습니다." };
     }
   },

@@ -54,12 +54,10 @@ export default function CustomerInfoCard({
   ) => {
     setSaving(fieldName);
     try {
-      console.log("[CustomerInfoCard] updateField:", supplier.id, data);
       const response = await supplierApi.updateSupplier(
         String(supplier.id),
         data
       );
-      console.log("[CustomerInfoCard] response:", response);
 
       if (response.success) {
         toast.success("저장되었습니다");
@@ -72,7 +70,6 @@ export default function CustomerInfoCard({
         toast.error(response.error || "수정에 실패했습니다");
       }
     } catch (error) {
-      console.error("[CustomerInfoCard] updateField error:", error);
       toast.error("저장 중 오류가 발생했습니다");
     } finally {
       setSaving(null);

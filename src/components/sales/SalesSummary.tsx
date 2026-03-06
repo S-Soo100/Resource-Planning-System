@@ -72,6 +72,49 @@ export const SalesSummary = ({ summary }: SalesSummaryProps) => {
         </div>
       </div>
 
+      {/* 입금 현황 카드 (E-001) */}
+      {summary.unpaidCount !== undefined && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-lg border border-green-200 p-4">
+            <div className="text-sm text-gray-500 mb-1">입금 완료</div>
+            <div className="text-2xl font-bold text-green-600">
+              ₩{(summary.paidAmount || 0).toLocaleString()}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {summary.totalOrders - (summary.unpaidCount || 0)}건 입금
+            </div>
+          </div>
+          <div className="bg-white rounded-lg border border-red-200 p-4">
+            <div className="text-sm text-gray-500 mb-1">미수금</div>
+            <div className="text-2xl font-bold text-red-600">
+              ₩{(summary.unpaidAmount || 0).toLocaleString()}
+            </div>
+            <div className="text-xs text-red-500 mt-1">
+              {summary.unpaidCount}건 미입금
+            </div>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div className="text-sm text-gray-500 mb-1">수금률</div>
+            <div
+              className={`text-2xl font-bold ${
+                summary.totalSales > 0 &&
+                (summary.paidAmount || 0) / summary.totalSales >= 0.8
+                  ? "text-green-600"
+                  : "text-orange-600"
+              }`}
+            >
+              {summary.totalSales > 0
+                ? (
+                    ((summary.paidAmount || 0) / summary.totalSales) *
+                    100
+                  ).toFixed(1)
+                : "0.0"}
+              %
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 마진 분석 카드 (Admin/Moderator만, 3개 균등) */}
       {showMarginCards && hasMarginData && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

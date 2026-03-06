@@ -312,6 +312,20 @@ export default function SalesPage() {
           recordsWithMargin.length
         : 0;
 
+    // 미수금 계산 (E-001)
+    const unpaidRecords = allRecords.filter(
+      (r) => !r.depositStatus || !r.depositAmount || r.depositAmount <= 0
+    );
+    const unpaidCount = unpaidRecords.length;
+    const unpaidAmount = unpaidRecords.reduce(
+      (sum, r) => sum + (r.totalPrice || 0),
+      0
+    );
+    const paidAmount = allRecords.reduce(
+      (sum, r) => sum + (r.depositAmount || 0),
+      0
+    );
+
     return {
       totalOrders: orderCount + demoCount,
       totalItems: actualSummary.totalItems + demoSummary.totalItems,
@@ -325,6 +339,9 @@ export default function SalesPage() {
       averageMarginRate: combinedAvgMarginRate,
       negativeMarginCount: actualSummary.negativeMarginCount || 0,
       missingCostCount: actualSummary.missingCostCount || 0,
+      unpaidCount,
+      unpaidAmount,
+      paidAmount,
       orderCount,
       demoCount,
       demoSalesAmount,
@@ -871,6 +888,14 @@ export default function SalesPage() {
                       </span>
                     )}
                   </div>
+                  {record.depositAmount && record.depositAmount > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500">입금액</span>
+                      <span className="text-green-600 font-medium text-sm">
+                        ₩{record.depositAmount.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
                   {record.memo && (
                     <div className="pt-2 border-t border-gray-100 mt-2">
                       <span className="text-gray-500">비고:</span>
@@ -985,6 +1010,9 @@ export default function SalesPage() {
                   )}
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-24">
                     입금상태
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 w-24">
+                    입금액
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-28">
                     거래명세서
@@ -1133,6 +1161,15 @@ export default function SalesPage() {
                             record.depositAmount
                           )}
                         </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm tabular-nums">
+                      {record.depositAmount && record.depositAmount > 0 ? (
+                        <span className="text-green-600 font-medium">
+                          ₩{record.depositAmount.toLocaleString()}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">

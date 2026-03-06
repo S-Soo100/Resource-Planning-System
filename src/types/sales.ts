@@ -55,6 +55,10 @@ export interface SalesSummary {
   averageMarginRate?: number; // 평균 마진율 (%)
   negativeMarginCount?: number; // 역마진 건수
   missingCostCount?: number; // 원가 미입력 건수
+  // 입금 현황 (E-001)
+  unpaidCount?: number; // 미입금 건수
+  unpaidAmount?: number; // 미수금 총액
+  paidAmount?: number; // 입금 총액
   // 유료 시연 통합용
   orderCount?: number; // 발주 건수
   demoCount?: number; // 시연 건수

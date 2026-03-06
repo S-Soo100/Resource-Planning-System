@@ -8,7 +8,14 @@ import {
 } from "@/hooks/useCustomerDocuments";
 import { toast } from "react-hot-toast";
 import { LoadingInline } from "@/components/ui/Loading";
-import { FileText, Upload, Trash2, Download } from "lucide-react";
+import {
+  FileText,
+  Upload,
+  Trash2,
+  Download,
+  Plus,
+  ChevronUp,
+} from "lucide-react";
 import { formatDateForDisplay } from "@/utils/dateUtils";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -28,7 +35,6 @@ const ACCEPTED_TYPES = [
 
 interface TaxInvoiceSectionProps {
   orderId: number;
-  embedded?: boolean;
   isTaxInvoiceIssued?: boolean;
   onTaxInvoiceToggle?: (checked: boolean) => void;
   isToggling?: boolean;
@@ -36,7 +42,6 @@ interface TaxInvoiceSectionProps {
 
 export default function TaxInvoiceSection({
   orderId,
-  embedded,
   isTaxInvoiceIssued,
   onTaxInvoiceToggle,
   isToggling,
@@ -48,19 +53,18 @@ export default function TaxInvoiceSection({
     useDeleteTaxInvoice();
 
   const [memo, setMemo] = useState("");
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 파일 크기 검증
     if (file.size > MAX_FILE_SIZE) {
       toast.error("파일 크기는 10MB 이하만 가능합니다");
       return;
     }
 
-    // 파일 형식 검증
     if (!ACCEPTED_TYPES.includes(file.type)) {
       toast.error("지원하지 않는 파일 형식입니다");
       return;
@@ -75,6 +79,7 @@ export default function TaxInvoiceSection({
       if (result.success) {
         toast.success("세금계산서가 업로드되었습니다");
         setMemo("");
+        setIsUploadOpen(false);
       } else {
         toast.error(result.message || "업로드에 실패했습니다");
       }
@@ -82,7 +87,6 @@ export default function TaxInvoiceSection({
       toast.error("세금계산서 업로드에 실패했습니다");
     }
 
-    // 파일 입력 초기화
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -103,31 +107,22 @@ export default function TaxInvoiceSection({
     }
   };
 
-  const Wrapper = embedded
-    ? "div"
-    : ({ children, ...props }: React.ComponentProps<"div">) => (
-        <div
-          className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm"
-          {...props}
-        >
-          {children}
-        </div>
-      );
-
   return (
-    <Wrapper>
-      <div className={`flex items-center justify-between mb-4`}>
-        <h2
-          className={`flex gap-2 items-center ${embedded ? "text-sm font-medium text-gray-600" : "text-lg font-semibold text-gray-900"}`}
-        >
-          <FileText
-            className={`${embedded ? "w-4 h-4" : "w-5 h-5"} text-gray-500`}
-          />
-          세금계산서 ({invoices.length})
+    <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+      {/* 헤더: 타이틀 + 발행 상태 */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="flex gap-2 items-center text-lg font-semibold text-gray-900">
+          <FileText className="w-5 h-5 text-gray-500" />
+          세금계산서
+          {invoices.length > 0 && (
+            <span className="text-sm font-normal text-gray-500">
+              ({invoices.length})
+            </span>
+          )}
         </h2>
         {isTaxInvoiceIssued !== undefined &&
           (onTaxInvoiceToggle ? (
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={isTaxInvoiceIssued}
@@ -159,57 +154,17 @@ export default function TaxInvoiceSection({
           ))}
       </div>
 
-      {/* 업로드 영역 */}
-      <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-        <div className="flex items-end gap-3">
-          <div className="flex-1">
-            <label className="block text-sm text-gray-600 mb-1">메모</label>
-            <input
-              type="text"
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              placeholder="메모 (선택)"
-              className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <label className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md cursor-pointer hover:bg-blue-700 transition-colors">
-            {isUploading ? (
-              <>
-                <LoadingInline />
-                업로드 중...
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4" />
-                파일 선택
-              </>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              onChange={handleFileSelect}
-              accept={ACCEPTED_TYPES.join(",")}
-              disabled={isUploading}
-              className="hidden"
-            />
-          </label>
-        </div>
-        <p className="mt-2 text-xs text-gray-400">
-          이미지, PDF, 문서, 스프레드시트 (최대 10MB)
-        </p>
-      </div>
-
-      {/* 목록 */}
+      {/* 파일 목록 */}
       {isLoading ? (
         <div className="flex justify-center py-4">
           <LoadingInline />
         </div>
       ) : invoices.length === 0 ? (
-        <p className="text-sm text-gray-500 text-center py-4">
+        <p className="text-sm text-gray-400 text-center py-3">
           등록된 세금계산서가 없습니다
         </p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2 mb-4">
           {invoices.map((invoice) => (
             <div
               key={invoice.id}
@@ -232,7 +187,7 @@ export default function TaxInvoiceSection({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+              <div className="flex items-center gap-1 flex-shrink-0 ml-3">
                 <a
                   href={invoice.fileUrl}
                   target="_blank"
@@ -255,6 +210,69 @@ export default function TaxInvoiceSection({
           ))}
         </div>
       )}
-    </Wrapper>
+
+      {/* 업로드 토글 버튼 / 접이식 업로드 영역 */}
+      {isUploadOpen ? (
+        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-gray-700">
+              세금계산서 업로드
+            </span>
+            <button
+              onClick={() => setIsUploadOpen(false)}
+              className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
+            >
+              <ChevronUp className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <label className="block text-xs text-gray-500 mb-1">
+                파일 메모
+              </label>
+              <input
+                type="text"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                placeholder="세금계산서에 대한 메모 (선택)"
+                className="w-full px-3 py-2 text-sm rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <label className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md cursor-pointer hover:bg-blue-700 transition-colors flex-shrink-0">
+              {isUploading ? (
+                <>
+                  <LoadingInline />
+                  업로드 중...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  파일 선택
+                </>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileSelect}
+                accept={ACCEPTED_TYPES.join(",")}
+                disabled={isUploading}
+                className="hidden"
+              />
+            </label>
+          </div>
+          <p className="mt-2 text-xs text-gray-400">
+            이미지, PDF, 문서, 스프레드시트 (최대 10MB)
+          </p>
+        </div>
+      ) : (
+        <button
+          onClick={() => setIsUploadOpen(true)}
+          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg border border-dashed border-blue-300 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          세금계산서 업로드
+        </button>
+      )}
+    </div>
   );
 }

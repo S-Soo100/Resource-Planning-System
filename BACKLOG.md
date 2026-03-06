@@ -162,6 +162,21 @@
   - `src/app/orderRecord/[id]/page.tsx` — 발주 상세 페이지
   - `src/components/orderRecord/TaxInvoiceSection.tsx` — 세금계산서 컴포넌트
 
+### E-012: 세금계산서 섹션 거래 정보에서 분리 및 UI 개선
+- **우선순위**: High
+- **상태**: [x]
+- **설명**: 세금계산서가 거래 정보 카드 안에 `border-t`로만 분리되어 있어, 환급/입금 상태 정보와 파일 업로드 UI가 뒤섞임. 특히 업로드 영역의 "메모" 입력이 발주 메모와 혼동됨. 세금계산서를 독립 카드로 분리하고, 업로드 영역을 접이식으로 변경.
+
+#### 작업 내용
+- [x] **E-012-1**: 세금계산서를 거래 정보 카드에서 꺼내 독립 카드로 분리
+- [x] **E-012-2**: 업로드 영역을 접이식(collapse)으로 변경 — "[+ 세금계산서 업로드]" 클릭 시 확장
+- [x] **E-012-3**: "메모" 라벨을 "파일 메모"로 명확화
+- [x] **E-012-4**: embedded prop 제거 및 TaxInvoiceSection 단순화
+
+- **관련 파일**:
+  - `src/app/orderRecord/[id]/page.tsx` — 거래 정보 섹션
+  - `src/components/orderRecord/TaxInvoiceSection.tsx` — 세금계산서 컴포넌트
+
 ### E-010: 고객 상세 페이지 UX 개선 (인라인 편집 + 레이아웃 컴팩트화)
 - **우선순위**: High
 - **상태**: [x]

@@ -177,6 +177,20 @@
   - `src/app/orderRecord/[id]/page.tsx` — 거래 정보 섹션
   - `src/components/orderRecord/TaxInvoiceSection.tsx` — 세금계산서 컴포넌트
 
+### E-013: "고객 변경" 버튼 제거 및 발주 수정으로 통합
+- **우선순위**: High
+- **상태**: [x]
+- **설명**: 발주 상세 페이지의 "고객 변경" 버튼(DetailsEditModal)이 supplierId만 변경하고 배송 정보(수령자/연락처/주소)는 그대로 남겨 데이터 불일치 발생. OrderEditModal에 이미 고객 선택 + 자동 채우기가 구현되어 있으므로, DetailsEditModal은 중복이며 불완전함. 완전 제거.
+
+#### 작업 내용
+- [x] **E-013-1**: "고객 변경" 버튼 및 관련 state 제거
+- [x] **E-013-2**: DetailsEditModal import 및 렌더링 제거
+- [x] **E-013-3**: DetailsEditModal 컴포넌트 파일 삭제
+
+- **관련 파일**:
+  - `src/app/orderRecord/[id]/page.tsx` — 버튼 + 모달 사용처
+  - `src/components/orderRecord/DetailsEditModal.tsx` — 삭제 대상
+
 ### E-010: 고객 상세 페이지 UX 개선 (인라인 편집 + 레이아웃 컴팩트화)
 - **우선순위**: High
 - **상태**: [x]

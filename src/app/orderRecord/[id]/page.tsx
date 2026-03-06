@@ -20,7 +20,6 @@ import { useSuppliers } from "@/hooks/useSupplier";
 // useWarehouseItems 훅 제거 - 발주 상세 페이지에서는 불필요
 import OrderEditModal from "@/components/orderRecord/OrderEditModal";
 import PriceEditModal from "@/components/orderRecord/PriceEditModal";
-import DetailsEditModal from "@/components/orderRecord/DetailsEditModal";
 import LoginModal from "@/components/login/LoginModal";
 import { IAuth } from "@/types/(auth)/auth";
 import { authService } from "@/services/authService";
@@ -393,7 +392,6 @@ const OrderRecordDetail = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPriceEditModalOpen, setIsPriceEditModalOpen] = useState(false);
-  const [isDetailsEditModalOpen, setIsDetailsEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState<number | null>(null);
@@ -1096,16 +1094,6 @@ const OrderRecordDetail = () => {
                         className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
                       >
                         발주 수정
-                      </button>
-                    )}
-                    {/* moderator/admin만 고객 변경 버튼 표시 */}
-                    {isAdminOrModerator && (
-                      <button
-                        onClick={() => setIsDetailsEditModalOpen(true)}
-                        className="px-4 py-2 text-white bg-green-500 rounded-lg transition-colors hover:bg-green-600"
-                        title="발주의 고객(납품처)을 변경합니다"
-                      >
-                        고객 변경
                       </button>
                     )}
                   </div>
@@ -2117,21 +2105,6 @@ const OrderRecordDetail = () => {
                     order={order}
                     onClose={() => {
                       setIsPriceEditModalOpen(false);
-                    }}
-                  />
-                )}
-
-                {/* 고객 변경 모달 */}
-                {isDetailsEditModalOpen && order && (
-                  <DetailsEditModal
-                    isOpen={isDetailsEditModalOpen}
-                    order={order}
-                    suppliers={suppliers}
-                    onClose={() => {
-                      setIsDetailsEditModalOpen(false);
-                    }}
-                    onSave={(updatedFields) => {
-                      setOrder({ ...order, ...updatedFields });
                     }}
                   />
                 )}

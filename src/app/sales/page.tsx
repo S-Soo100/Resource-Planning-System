@@ -954,7 +954,7 @@ export default function SalesPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100 w-28"
                     onClick={() => handleSort("purchaseDate")}
                   >
                     <div className="flex items-center">
@@ -963,7 +963,7 @@ export default function SalesPage() {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100 w-24"
                     onClick={() => handleSort("supplierName")}
                   >
                     <div className="flex items-center">
@@ -972,7 +972,7 @@ export default function SalesPage() {
                     </div>
                   </th>
                   <th
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort("title")}
                   >
                     <div className="flex items-center">
@@ -980,242 +980,236 @@ export default function SalesPage() {
                       {renderSortIcon("title")}
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500">
-                    담당자
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500">
-                    품목 수
-                  </th>
                   <th
-                    className="px-4 py-3 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100 w-32"
+                    className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 cursor-pointer hover:bg-gray-100 w-32"
                     onClick={() => handleSort("totalPrice")}
                   >
                     <div className="flex items-center justify-end">
-                      판매가
+                      {showMarginColumns ? "판매가/마진" : "판매가"}
                       {renderSortIcon("totalPrice")}
                     </div>
                   </th>
-                  {showMarginColumns && (
-                    <>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 w-32">
-                        원가
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 w-32">
-                        마진액
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 w-24">
-                        마진율
-                      </th>
-                    </>
-                  )}
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-24">
-                    입금상태
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 w-24">
-                    입금액
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 w-28">
-                    거래명세서
+                  <th className="px-4 py-2.5 text-center text-xs font-medium text-gray-500 w-20">
+                    명세서
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {sortedRecords.map((record) => (
-                  <tr
-                    key={record.id}
-                    className={`hover:bg-gray-50 ${
-                      showMarginColumns && record.isNegativeMargin
-                        ? "bg-red-50"
-                        : ""
-                    }`}
-                  >
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {formatDateForDisplay(record.purchaseDate)}
-                    </td>
-                    <td className="px-4 py-3 text-sm">
-                      {record.supplierName &&
-                      record.originalOrder.supplierId ? (
-                        <Link
-                          href={`/supplier/${record.originalOrder.supplierId}`}
-                          className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                        >
-                          {record.supplierName}
-                        </Link>
-                      ) : (
-                        <span className="text-gray-900">
-                          {record.supplierName || record.receiver}
-                        </span>
-                      )}
-                    </td>
-                    <td
-                      className="px-4 py-3 text-sm text-gray-900 cursor-pointer hover:bg-blue-50 transition-colors"
-                      onClick={() => handleTitleClick(record.id)}
+                  <React.Fragment key={record.id}>
+                    {/* 메인 행: 핵심 정보 */}
+                    <tr
+                      className={`${
+                        showMarginColumns && record.isNegativeMargin
+                          ? "bg-red-50"
+                          : "hover:bg-gray-50"
+                      }`}
                     >
-                      <div className="space-y-1">
-                        <div className="font-medium text-blue-600 hover:text-blue-700">
+                      <td className="px-4 pt-3 pb-2.5 text-sm text-gray-900 align-top">
+                        {formatDateForDisplay(record.purchaseDate)}
+                      </td>
+                      <td className="px-4 pt-3 pb-2.5 text-sm align-top max-w-[6rem]">
+                        {record.supplierName &&
+                        record.originalOrder.supplierId ? (
+                          <Link
+                            href={`/supplier/${record.originalOrder.supplierId}`}
+                            className="text-blue-600 hover:text-blue-800 hover:underline transition-colors block truncate"
+                            title={record.supplierName}
+                          >
+                            {record.supplierName}
+                          </Link>
+                        ) : (
+                          <span
+                            className="text-gray-900 block truncate"
+                            title={record.supplierName || record.receiver}
+                          >
+                            {record.supplierName || record.receiver}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 pt-3 pb-2.5 text-sm text-gray-900 align-top">
+                        <div
+                          className="font-medium text-blue-600 hover:text-blue-700 cursor-pointer"
+                          onClick={() => handleTitleClick(record.id)}
+                        >
                           {generateSalesTitle(record)}
                         </div>
                         {record.title && (
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500 mt-0.5">
                             {record.title}
                           </div>
                         )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900">
-                      {record.manager || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center text-gray-900">
-                      {record.itemCount}종 {record.totalQuantity}개
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right tabular-nums">
-                      {record.totalPrice !== null ? (
-                        <span className="font-semibold text-gray-900">
-                          ₩{record.totalPrice.toLocaleString()}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">미입력</span>
-                      )}
-                    </td>
-                    {showMarginColumns && (
-                      <>
-                        <td className="px-4 py-3 text-sm text-right tabular-nums">
-                          {record.hasCostPrice &&
-                          record.costAmount !== null &&
-                          record.costAmount !== undefined ? (
-                            <span className="font-medium text-gray-600">
-                              ₩{record.costAmount.toLocaleString()}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 mt-1">
+                          <span>
+                            담당자:{" "}
+                            <span className="text-gray-700">
+                              {record.manager || "-"}
+                            </span>
+                          </span>
+                          <span className="text-gray-300">|</span>
+                          <span>
+                            품목:{" "}
+                            <span className="text-gray-700">
+                              {record.itemCount}종 {record.totalQuantity}개
+                            </span>
+                          </span>
+                          <span className="text-gray-300">|</span>
+                          <span className="inline-flex items-center gap-1">
+                            입금:
+                            {canEditDeposit ? (
+                              <select
+                                value={record.depositStatus || ""}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleDepositStatusChange(
+                                    record.id,
+                                    record.originalOrder.id,
+                                    e.target.value
+                                  );
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                disabled={updatingDepositId === record.id}
+                                className={`text-xs font-medium rounded px-1.5 py-0.5 border cursor-pointer transition-colors ${
+                                  updatingDepositId === record.id
+                                    ? "opacity-50 cursor-wait"
+                                    : getDepositStatusColor(
+                                        record.depositStatus,
+                                        record.depositAmount
+                                      )
+                                }`}
+                              >
+                                <option value="">미입금</option>
+                                {DEPOSIT_STATUS_OPTIONS.map((opt) => (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <span
+                                className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
+                              >
+                                {getDepositStatusText(
+                                  record.depositStatus,
+                                  record.depositAmount
+                                )}
+                              </span>
+                            )}
+                            {record.depositAmount &&
+                              record.depositAmount > 0 && (
+                                <span className="text-green-600 font-medium">
+                                  ₩{record.depositAmount.toLocaleString()}
+                                </span>
+                              )}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 pt-3 pb-2.5 text-sm text-right tabular-nums align-top">
+                        <div>
+                          {record.totalPrice !== null ? (
+                            <span className="font-semibold text-gray-900">
+                              ₩{record.totalPrice.toLocaleString()}
                             </span>
                           ) : (
                             <span className="text-gray-400">미입력</span>
                           )}
-                        </td>
-                        <td
-                          className={`px-4 py-3 text-sm text-right tabular-nums font-semibold ${
-                            record.marginAmount !== null &&
-                            record.marginAmount !== undefined
-                              ? record.marginAmount >= 0
-                                ? "text-green-600"
-                                : "text-red-600"
-                              : "text-gray-400"
-                          }`}
+                        </div>
+                        {showMarginColumns && (
+                          <div className="mt-0.5 text-xs space-y-0.5 whitespace-nowrap">
+                            <div className="text-gray-500">
+                              원가:{" "}
+                              <span className="text-gray-700">
+                                {record.hasCostPrice &&
+                                record.costAmount !== null &&
+                                record.costAmount !== undefined
+                                  ? `₩${record.costAmount.toLocaleString()}`
+                                  : "미입력"}
+                              </span>
+                            </div>
+                            <div>
+                              마진:{" "}
+                              <span
+                                className={`font-medium ${
+                                  record.marginAmount !== null &&
+                                  record.marginAmount !== undefined
+                                    ? record.marginAmount >= 0
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                    : "text-gray-400"
+                                }`}
+                              >
+                                {record.marginAmount !== null &&
+                                record.marginAmount !== undefined
+                                  ? `₩${record.marginAmount.toLocaleString()}`
+                                  : "-"}
+                              </span>
+                              {record.marginRate !== null &&
+                                record.marginRate !== undefined && (
+                                  <span
+                                    className={`ml-0.5 font-medium ${
+                                      record.marginRate >= 0
+                                        ? "text-green-600"
+                                        : "text-red-600"
+                                    }`}
+                                  >
+                                    ({record.marginRate.toFixed(1)}%)
+                                  </span>
+                                )}
+                            </div>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 pt-3 pb-2.5 text-center align-top">
+                        <button
+                          onClick={() => handleOpenStatement(record)}
+                          className="inline-flex items-center justify-center p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                          title="거래명세서 보기"
                         >
-                          {record.marginAmount !== null &&
-                          record.marginAmount !== undefined
-                            ? `₩${record.marginAmount.toLocaleString()}`
-                            : "-"}
-                        </td>
-                        <td
-                          className={`px-4 py-3 text-sm text-right tabular-nums font-semibold ${
-                            record.marginRate !== null &&
-                            record.marginRate !== undefined
-                              ? record.marginRate >= 0
-                                ? "text-green-600"
-                                : "text-red-600"
-                              : "text-gray-400"
-                          }`}
-                        >
-                          {record.marginRate !== null &&
-                          record.marginRate !== undefined
-                            ? `${record.marginRate.toFixed(1)}%`
-                            : "-"}
-                        </td>
-                      </>
-                    )}
-                    <td className="px-4 py-3 text-center">
-                      {canEditDeposit ? (
-                        <select
-                          value={record.depositStatus || ""}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            handleDepositStatusChange(
-                              record.id,
-                              record.originalOrder.id,
-                              e.target.value
-                            );
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          disabled={updatingDepositId === record.id}
-                          className={`text-xs font-medium rounded px-2 py-1 border cursor-pointer transition-colors ${
-                            updatingDepositId === record.id
-                              ? "opacity-50 cursor-wait"
-                              : getDepositStatusColor(
-                                  record.depositStatus,
-                                  record.depositAmount
-                                )
-                          }`}
-                        >
-                          <option value="">미입금</option>
-                          {DEPOSIT_STATUS_OPTIONS.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span
-                          className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
-                        >
-                          {getDepositStatusText(
-                            record.depositStatus,
-                            record.depositAmount
-                          )}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right text-sm tabular-nums">
-                      {record.depositAmount && record.depositAmount > 0 ? (
-                        <span className="text-green-600 font-medium">
-                          ₩{record.depositAmount.toLocaleString()}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => handleOpenStatement(record)}
-                        className="inline-flex items-center justify-center p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                        title="거래명세서 보기"
-                      >
-                        <FileText className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
+                          <FileText className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  </React.Fragment>
                 ))}
 
                 {/* 합계 행 */}
                 {actualSummary && (
-                  <tr className="bg-blue-50 border-t-2 border-blue-200">
-                    <td
-                      colSpan={4}
-                      className="px-4 py-3 text-sm font-bold text-right text-gray-900"
-                    >
-                      합계
-                    </td>
-                    <td className="px-4 py-3 text-sm font-bold text-center text-gray-900">
-                      {actualSummary.totalItems}종 {actualSummary.totalQuantity}
-                      개
-                    </td>
-                    <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-gray-900">
-                      ₩{actualSummary.totalSales.toLocaleString()}
-                    </td>
-                    {showMarginColumns && (
-                      <>
-                        <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-gray-600">
-                          ₩{(actualSummary?.totalCost || 0).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-green-600">
-                          ₩{(actualSummary?.totalMargin || 0).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-green-600">
-                          {(actualSummary?.averageMarginRate || 0).toFixed(1)}%
-                        </td>
-                      </>
-                    )}
-                    <td></td>
-                    <td></td>
-                  </tr>
+                  <>
+                    <tr className="bg-blue-50 border-t-2 border-blue-200">
+                      <td
+                        colSpan={3}
+                        className="px-4 py-2.5 text-sm font-bold text-right text-gray-900"
+                      >
+                        합계 ({actualSummary.totalItems}종{" "}
+                        {actualSummary.totalQuantity}개)
+                      </td>
+                      <td className="px-4 py-2.5 text-sm text-right tabular-nums align-top">
+                        <div className="font-bold text-gray-900">
+                          ₩{actualSummary.totalSales.toLocaleString()}
+                        </div>
+                        {showMarginColumns && (
+                          <div className="mt-0.5 text-xs space-y-0.5">
+                            <div className="text-gray-600">
+                              원가: ₩
+                              {(actualSummary?.totalCost || 0).toLocaleString()}
+                            </div>
+                            <div className="text-green-600 font-medium">
+                              마진: ₩
+                              {(
+                                actualSummary?.totalMargin || 0
+                              ).toLocaleString()}{" "}
+                              (
+                              {(actualSummary?.averageMarginRate || 0).toFixed(
+                                1
+                              )}
+                              %)
+                            </div>
+                          </div>
+                        )}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </>
                 )}
               </tbody>
             </table>

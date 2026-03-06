@@ -1589,21 +1589,69 @@ const OrderRecordDetail = () => {
                   </div>
                 )}
 
-                {/* 고객관리 정보 (상태 무관, Supplier 제외) */}
+                {/* 거래 정보 (상태 무관, Supplier 제외) */}
                 {!isSupplier && (
                   <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-                    <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                      고객관리 정보
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        거래 정보
+                      </h2>
+                      {(() => {
+                        const items: { label: string; done: boolean }[] = [];
+                        if (showRefundSection) {
+                          items.push({
+                            label: "환급",
+                            done:
+                              (order.isRefundNotApplicable ?? false) ||
+                              ((order.isRefundApplied ?? false) &&
+                                (order.isRefundReceived ?? false)),
+                          });
+                        }
+                        items.push({
+                          label: "세금계산서",
+                          done: order.isTaxInvoiceIssued ?? false,
+                        });
+                        const hasTotal =
+                          order.totalPrice != null && order.totalPrice > 0;
+                        items.push({
+                          label: "입금",
+                          done: hasTotal
+                            ? (order.depositAmount ?? 0) >= order.totalPrice!
+                            : order.depositStatus === "입금완료",
+                        });
+                        const doneCount = items.filter((i) => i.done).length;
+                        const allDone = doneCount === items.length;
+                        return (
+                          <div className="flex items-center gap-2">
+                            {items.map((item) => (
+                              <span
+                                key={item.label}
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${
+                                  item.done
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-gray-100 text-gray-500"
+                                }`}
+                              >
+                                <span
+                                  className={`inline-block w-1.5 h-1.5 rounded-full ${
+                                    item.done ? "bg-green-500" : "bg-gray-300"
+                                  }`}
+                                />
+                                {item.label}
+                              </span>
+                            ))}
+                            {allDone && (
+                              <span className="inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-full bg-green-600 text-white">
+                                완결
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
                     <div
                       className={`grid grid-cols-1 gap-4 ${
-                        showRefundSection &&
-                        orderFieldVisibility.showRepurchaseCycle
-                          ? "md:grid-cols-4"
-                          : showRefundSection ||
-                              orderFieldVisibility.showRepurchaseCycle
-                            ? "md:grid-cols-3"
-                            : "md:grid-cols-2"
+                        showRefundSection ? "md:grid-cols-2" : "md:grid-cols-1"
                       }`}
                     >
                       {/* 환급 정보 (조건부) */}
@@ -1727,92 +1775,85 @@ const OrderRecordDetail = () => {
                         </div>
                       )}
 
-                      {/* 세금계산서 */}
-                      <div className="p-4 bg-gray-50 rounded-lg">
-                        <h3 className="text-sm font-medium text-gray-600 mb-2">
-                          세금계산서
-                        </h3>
-                        {isAdminOrModerator ? (
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={order.isTaxInvoiceIssued ?? false}
-                              onChange={(e) =>
-                                handleTaxInvoiceToggle(e.target.checked)
-                              }
-                              disabled={isUpdatingDeposit}
-                              className="w-4 h-4 text-blue-600 rounded border-gray-300"
-                            />
-                            <span className="text-sm text-gray-700">
-                              매입세금계산서 발행 완료
-                            </span>
-                          </label>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`inline-block w-2 h-2 rounded-full ${
-                                order.isTaxInvoiceIssued
-                                  ? "bg-green-500"
-                                  : "bg-gray-300"
-                              }`}
-                            />
-                            <span className="text-sm text-gray-700">
-                              매입세금계산서{" "}
-                              {order.isTaxInvoiceIssued
-                                ? "발행 완료"
-                                : "미발행"}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
                       {/* 입금 정보 */}
                       <div className="p-4 bg-gray-50 rounded-lg">
-                        <h3 className="text-sm font-medium text-gray-600 mb-2">
+                        <h3 className="text-sm font-medium text-gray-600 mb-3">
                           입금
                         </h3>
-                        <div className="space-y-2">
-                          <div className="text-sm text-gray-700">
-                            상태:{" "}
-                            <span
-                              className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${getDepositStatusColor(
-                                order.depositStatus,
-                                order.depositAmount
-                              )}`}
-                            >
-                              {getDepositStatusText(
-                                order.depositStatus,
-                                order.depositAmount
-                              )}
-                            </span>
+                        <div className="space-y-3">
+                          {/* 입금상태 */}
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">
+                              입금상태
+                            </label>
+                            {isAdminOrModerator ? (
+                              <select
+                                value={order.depositStatus || ""}
+                                onChange={(e) =>
+                                  handleDepositStatusChange(e.target.value)
+                                }
+                                disabled={isUpdatingDeposit}
+                                className={`w-full px-3 py-2 text-sm font-medium rounded-lg border cursor-pointer transition-colors ${getDepositStatusColor(
+                                  order.depositStatus,
+                                  order.depositAmount
+                                )} ${isUpdatingDeposit ? "opacity-50" : ""}`}
+                              >
+                                <option value="">미입금</option>
+                                {DEPOSIT_STATUS_OPTIONS.map((opt) => (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <span
+                                className={`inline-flex px-3 py-2 text-sm font-medium rounded-lg ${getDepositStatusColor(
+                                  order.depositStatus,
+                                  order.depositAmount
+                                )}`}
+                              >
+                                {getDepositStatusText(
+                                  order.depositStatus,
+                                  order.depositAmount
+                                )}
+                              </span>
+                            )}
                           </div>
-                          <div className="text-sm text-gray-700">
-                            금액:{" "}
+                          {/* 입금금액 */}
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">
+                              입금금액
+                            </label>
                             {isAdminOrModerator ? (
                               isEditingDepositAmount ? (
-                                <input
-                                  type="text"
-                                  value={editDepositAmount}
-                                  onChange={(e) => {
-                                    const value = e.target.value.replace(
-                                      /[^0-9]/g,
-                                      ""
-                                    );
-                                    setEditDepositAmount(value);
-                                  }}
-                                  onBlur={handleDepositAmountSave}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter")
-                                      handleDepositAmountSave();
-                                    if (e.key === "Escape") {
-                                      setIsEditingDepositAmount(false);
-                                    }
-                                  }}
-                                  autoFocus
-                                  disabled={isUpdatingDeposit}
-                                  placeholder="금액 입력"
-                                  className="w-24 px-2 py-0.5 text-sm border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                />
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={editDepositAmount}
+                                    onChange={(e) => {
+                                      const value = e.target.value.replace(
+                                        /[^0-9]/g,
+                                        ""
+                                      );
+                                      setEditDepositAmount(value);
+                                    }}
+                                    onBlur={handleDepositAmountSave}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter")
+                                        handleDepositAmountSave();
+                                      if (e.key === "Escape") {
+                                        setIsEditingDepositAmount(false);
+                                      }
+                                    }}
+                                    autoFocus
+                                    disabled={isUpdatingDeposit}
+                                    placeholder="금액 입력"
+                                    className="w-full px-3 py-2 text-sm border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  />
+                                  <span className="text-sm text-gray-500 flex-shrink-0">
+                                    원
+                                  </span>
+                                </div>
                               ) : (
                                 <button
                                   onClick={() => {
@@ -1823,69 +1864,108 @@ const OrderRecordDetail = () => {
                                     );
                                     setIsEditingDepositAmount(true);
                                   }}
-                                  className="font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                                  className="w-full text-left px-3 py-2 text-sm font-medium rounded-lg border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 cursor-pointer transition-colors"
                                 >
                                   {order.depositAmount != null
                                     ? `${order.depositAmount.toLocaleString()}원`
-                                    : "미입력"}
+                                    : "클릭하여 입력"}
                                 </button>
                               )
                             ) : (
-                              <span className="font-medium">
+                              <span className="block px-3 py-2 text-sm font-medium text-gray-900">
                                 {order.depositAmount != null
                                   ? `${order.depositAmount.toLocaleString()}원`
                                   : "미입력"}
                               </span>
                             )}
                           </div>
+                          {/* 입금 진행률 (총 거래금액 대비) */}
+                          {order.totalPrice != null && order.totalPrice > 0 && (
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">
+                                입금 진행률
+                              </label>
+                              {(() => {
+                                const deposited = order.depositAmount ?? 0;
+                                const total = order.totalPrice!;
+                                const percent = Math.min(
+                                  Math.round((deposited / total) * 100),
+                                  100
+                                );
+                                const remaining = total - deposited;
+                                const isComplete = deposited >= total;
+                                return (
+                                  <div>
+                                    <div className="flex items-center justify-between text-xs mb-1">
+                                      <span className="text-gray-600">
+                                        {deposited.toLocaleString()}원 /{" "}
+                                        {total.toLocaleString()}원
+                                      </span>
+                                      <span
+                                        className={`font-medium ${
+                                          isComplete
+                                            ? "text-green-600"
+                                            : "text-orange-600"
+                                        }`}
+                                      >
+                                        {percent}%
+                                      </span>
+                                    </div>
+                                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                                      <div
+                                        className={`h-full rounded-full transition-all ${
+                                          isComplete
+                                            ? "bg-green-500"
+                                            : percent > 0
+                                              ? "bg-blue-500"
+                                              : "bg-gray-300"
+                                        }`}
+                                        style={{
+                                          width: `${percent}%`,
+                                        }}
+                                      />
+                                    </div>
+                                    {!isComplete && remaining > 0 && (
+                                      <p className="text-xs text-orange-600 mt-1">
+                                        잔액 {remaining.toLocaleString()}원
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          )}
                           {/* 입금자명 (수급자 전용) */}
                           {orderFieldVisibility.showDepositorName &&
                             order.supplier?.depositorName && (
-                              <div className="text-sm text-gray-700">
-                                입금자명:{" "}
-                                <span className="font-medium">
+                              <div>
+                                <label className="block text-xs text-gray-500 mb-1">
+                                  입금자명
+                                </label>
+                                <span className="block px-3 py-2 text-sm font-medium text-gray-900">
                                   {order.supplier.depositorName}
                                 </span>
                               </div>
                             )}
                         </div>
                       </div>
+                    </div>
 
-                      {/* 재구매 정보 (수급자 전용) */}
-                      {orderFieldVisibility.showRepurchaseCycle && (
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                          <h3 className="text-sm font-medium text-gray-600 mb-2">
-                            재구매
-                          </h3>
-                          <div className="space-y-1">
-                            <div className="text-sm text-gray-700">
-                              주기:{" "}
-                              <span className="font-medium">
-                                {matchedSupplier?.repurchaseCycleMonths
-                                  ? `${matchedSupplier.repurchaseCycleMonths}개월`
-                                  : "기본 3개월"}
-                              </span>
-                            </div>
-                            <div className="text-sm text-gray-700">
-                              예정일:{" "}
-                              <span className="font-medium">
-                                {matchedSupplier?.repurchaseDueDate
-                                  ? new Date(
-                                      matchedSupplier.repurchaseDueDate
-                                    ).toLocaleDateString("ko-KR")
-                                  : "미설정"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                    {/* 세금계산서 파일 + 발행 상태 */}
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <TaxInvoiceSection
+                        orderId={order.id}
+                        embedded
+                        isTaxInvoiceIssued={order.isTaxInvoiceIssued ?? false}
+                        onTaxInvoiceToggle={
+                          isAdminOrModerator
+                            ? handleTaxInvoiceToggle
+                            : undefined
+                        }
+                        isToggling={isUpdatingDeposit}
+                      />
                     </div>
                   </div>
-                )}
-
-                {/* 세금계산서 (출고완료 시) */}
-                {order.status === "shipmentCompleted" && !isSupplier && (
-                  <TaxInvoiceSection orderId={order.id} />
                 )}
 
                 {/* 첨부파일 */}

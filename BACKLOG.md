@@ -148,6 +148,20 @@
   - `src/components/supplier/SupplierDetailHeader.tsx`
   - `src/app/orderRecord/[id]/page.tsx`
 
+### E-011: 발주 상세 거래 정보 섹션 UX 향상
+- **우선순위**: Medium
+- **상태**: [x]
+- **설명**: `/orderRecord/[id]` 거래 정보 섹션의 사용성 향상. 입금 진행률 시각화, 세금계산서 발행 체크+파일 업로드 통합, 거래 완결 상태 한눈에 파악 가능하도록 개선.
+
+#### 하위 티켓
+- [x] **E-011-1**: 입금금액 vs 총 거래금액 비교 — 프로그레스 바 + 잔액 텍스트 표시
+- [x] **E-011-2**: 세금계산서 발행 체크박스를 파일 업로드 영역 헤더로 이동하여 통합
+- [x] **E-011-3**: 섹션 헤더에 거래 완결 상태 배지 표시 (환급/세금계산서/입금 완료 현황)
+
+- **관련 파일**:
+  - `src/app/orderRecord/[id]/page.tsx` — 발주 상세 페이지
+  - `src/components/orderRecord/TaxInvoiceSection.tsx` — 세금계산서 컴포넌트
+
 ### E-010: 고객 상세 페이지 UX 개선 (인라인 편집 + 레이아웃 컴팩트화)
 - **우선순위**: High
 - **상태**: [x]

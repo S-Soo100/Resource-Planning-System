@@ -145,6 +145,13 @@ const MainMenu = () => {
         checkAccess(`/supplier`, ["admin", "user", "moderator", "supplier"]),
       accessLevel: ["user", "admin", "moderator", "supplier"],
     },
+    {
+      title: "재구매 예정 고객",
+      subtitle: "재구매 예정일이 지난 고객을 확인합니다",
+      icon: <MdPeopleOutline className="text-3xl" />,
+      onClick: () => checkAccess(`/repurchase`, ["admin", "user", "moderator"]),
+      accessLevel: ["user", "admin", "moderator"],
+    },
   ];
 
   // 발주 메뉴
@@ -218,13 +225,6 @@ const MainMenu = () => {
       icon: <PiClipboardTextFill className="text-3xl" />,
       onClick: () =>
         checkAccess(`/demonstration-record`, ["admin", "user", "moderator"]),
-      accessLevel: ["user", "admin", "moderator"],
-    },
-    {
-      title: "재구매 예정 고객",
-      subtitle: "재구매 예정일이 지난 고객을 확인합니다",
-      icon: <MdPeopleOutline className="text-3xl" />,
-      onClick: () => checkAccess(`/repurchase`, ["admin", "user", "moderator"]),
       accessLevel: ["user", "admin", "moderator"],
     },
   ];

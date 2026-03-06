@@ -159,7 +159,19 @@ export const supplierApi = {
         "/supplier/repurchase-due",
         { params: { teamId } }
       );
-      return { success: true, data: response.data };
+      const rawData = response.data;
+      // API 응답이 { success, data } 래퍼로 올 수 있음
+      if (
+        rawData &&
+        !Array.isArray(rawData) &&
+        typeof rawData === "object" &&
+        "data" in rawData
+      ) {
+        const inner = (rawData as unknown as { data: RepurchaseDueSupplier[] })
+          .data;
+        return { success: true, data: Array.isArray(inner) ? inner : [] };
+      }
+      return { success: true, data: Array.isArray(rawData) ? rawData : [] };
     } catch (error) {
       return { success: false, error: "재구매 예정 고객 조회에 실패했습니다." };
     }

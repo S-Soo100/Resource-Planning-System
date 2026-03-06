@@ -139,7 +139,7 @@ export const useRepurchaseDueSuppliers = (teamId: number | undefined) => {
       if (!teamId) return [];
       try {
         const response = await supplierApi.getRepurchaseDueSuppliers(teamId);
-        if (response.success && response.data) {
+        if (response.success && Array.isArray(response.data)) {
           return response.data;
         }
         return [];

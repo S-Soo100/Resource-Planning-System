@@ -28,9 +28,19 @@ const ACCEPTED_TYPES = [
 
 interface TaxInvoiceSectionProps {
   orderId: number;
+  embedded?: boolean;
+  isTaxInvoiceIssued?: boolean;
+  onTaxInvoiceToggle?: (checked: boolean) => void;
+  isToggling?: boolean;
 }
 
-export default function TaxInvoiceSection({ orderId }: TaxInvoiceSectionProps) {
+export default function TaxInvoiceSection({
+  orderId,
+  embedded,
+  isTaxInvoiceIssued,
+  onTaxInvoiceToggle,
+  isToggling,
+}: TaxInvoiceSectionProps) {
   const { data: invoices = [], isLoading } = useTaxInvoices(orderId);
   const { mutateAsync: uploadInvoice, isPending: isUploading } =
     useUploadTaxInvoice();
@@ -93,12 +103,61 @@ export default function TaxInvoiceSection({ orderId }: TaxInvoiceSectionProps) {
     }
   };
 
+  const Wrapper = embedded
+    ? "div"
+    : ({ children, ...props }: React.ComponentProps<"div">) => (
+        <div
+          className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm"
+          {...props}
+        >
+          {children}
+        </div>
+      );
+
   return (
-    <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-      <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
-        <FileText className="w-5 h-5 text-gray-500" />
-        세금계산서 ({invoices.length})
-      </h2>
+    <Wrapper>
+      <div className={`flex items-center justify-between mb-4`}>
+        <h2
+          className={`flex gap-2 items-center ${embedded ? "text-sm font-medium text-gray-600" : "text-lg font-semibold text-gray-900"}`}
+        >
+          <FileText
+            className={`${embedded ? "w-4 h-4" : "w-5 h-5"} text-gray-500`}
+          />
+          세금계산서 ({invoices.length})
+        </h2>
+        {isTaxInvoiceIssued !== undefined &&
+          (onTaxInvoiceToggle ? (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isTaxInvoiceIssued}
+                onChange={(e) => onTaxInvoiceToggle(e.target.checked)}
+                disabled={isToggling}
+                className="w-4 h-4 text-green-600 rounded border-gray-300 disabled:opacity-50"
+              />
+              <span
+                className={`text-sm ${isTaxInvoiceIssued ? "text-green-700 font-medium" : "text-gray-600"}`}
+              >
+                발행 완료
+              </span>
+            </label>
+          ) : (
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${
+                isTaxInvoiceIssued
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-100 text-gray-500"
+              }`}
+            >
+              <span
+                className={`inline-block w-1.5 h-1.5 rounded-full ${
+                  isTaxInvoiceIssued ? "bg-green-500" : "bg-gray-300"
+                }`}
+              />
+              {isTaxInvoiceIssued ? "발행 완료" : "미발행"}
+            </span>
+          ))}
+      </div>
 
       {/* 업로드 영역 */}
       <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
@@ -196,6 +255,6 @@ export default function TaxInvoiceSection({ orderId }: TaxInvoiceSectionProps) {
           ))}
         </div>
       )}
-    </div>
+    </Wrapper>
   );
 }

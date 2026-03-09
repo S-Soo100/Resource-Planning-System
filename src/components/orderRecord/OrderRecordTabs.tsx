@@ -70,6 +70,13 @@ const convertToOrderRecord = (order: Order): IOrderRecord => {
     status: order.status || OrderStatus.requested,
     memo: order.memo || "",
     totalPrice: order.totalPrice ?? null, // 주문 총 판매가격 추가
+    // 고객관리 필드
+    depositStatus: order.depositStatus ?? null,
+    depositAmount: order.depositAmount ?? null,
+    isRefundApplied: order.isRefundApplied,
+    isRefundReceived: order.isRefundReceived,
+    isRefundNotApplicable: order.isRefundNotApplicable,
+    isTaxInvoiceIssued: order.isTaxInvoiceIssued,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt || order.createdAt,
     deletedAt: order.deletedAt || null,

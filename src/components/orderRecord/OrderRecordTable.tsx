@@ -125,7 +125,7 @@ export default function OrderRecordTable({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
       <table className="w-full">
         <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
@@ -154,7 +154,7 @@ export default function OrderRecordTable({
               </div>
             </th>
             <th
-              className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none w-28"
+              className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none w-28 whitespace-nowrap"
               onClick={() => handleSort("outboundDate")}
             >
               <div className="flex items-center">
@@ -176,13 +176,13 @@ export default function OrderRecordTable({
             </th>
             {isCompletedTab && (
               <>
-                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   입금상태
                 </th>
-                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   환급상태
                 </th>
-                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   세금계산서
                 </th>
               </>
@@ -341,7 +341,7 @@ export default function OrderRecordTable({
               {/* 입금/환급/세금계산서 (출고완료 탭만) */}
               {isCompletedTab && (
                 <>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-3 py-3 text-center whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
                     >
@@ -351,14 +351,14 @@ export default function OrderRecordTable({
                       )}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-3 py-3 text-center whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getRefundStatusColor(record)}`}
                     >
                       {getRefundStatusText(record)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-3 py-3 text-center whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${record.isTaxInvoiceIssued ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}
                     >

@@ -13,6 +13,12 @@ import {
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { getDisplayFileName } from "@/utils/fileUtils";
 import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
+import {
+  getDepositStatusText,
+  getDepositStatusColor,
+  getRefundStatusText,
+  getRefundStatusColor,
+} from "@/utils/depositUtils";
 
 interface Props {
   records: IOrderRecord[];
@@ -37,6 +43,8 @@ interface Props {
   // 카드 토글 관련 props 추가
   expandedCards?: Set<number>;
   onCardToggle?: (id: number) => void;
+  // 출고 탭 구분
+  shipmentTab?: "pending" | "completed";
 }
 
 // 댓글 섹션 컴포넌트
@@ -360,11 +368,16 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
   // 카드 토글 관련 props 추가
   expandedCards,
   onCardToggle,
+  // 출고 탭 구분
+  shipmentTab,
 }) => {
+  const isCompletedTab = shipmentTab === "completed";
   const { user: currentUser } = useCurrentUser();
 
   // 내부 상태로 expandedCards 관리 (props로 받지 않은 경우)
-  const [internalExpandedCards, setInternalExpandedCards] = React.useState<Set<number>>(new Set());
+  const [internalExpandedCards, setInternalExpandedCards] = React.useState<
+    Set<number>
+  >(new Set());
 
   const currentExpandedCards = expandedCards || internalExpandedCards;
 
@@ -372,7 +385,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
     if (onCardToggle) {
       onCardToggle(recordId);
     } else {
-      setInternalExpandedCards(prev => {
+      setInternalExpandedCards((prev) => {
         const newSet = new Set(prev);
         if (newSet.has(recordId)) {
           newSet.delete(recordId);
@@ -402,7 +415,10 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
     }
 
     // 출고 완료 상태는 Admin만 변경 가능
-    if (record.status === OrderStatus.shipmentCompleted && userAccessLevel !== "admin") {
+    if (
+      record.status === OrderStatus.shipmentCompleted &&
+      userAccessLevel !== "admin"
+    ) {
       return (
         <div className="flex gap-2 items-center">
           <div
@@ -541,11 +557,15 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
             </div>
             {/* 2번째 줄: 발주자 + 날짜 정보 */}
             <div className="flex gap-1 items-center text-xs text-gray-500 mb-2">
-              <span className="font-medium text-gray-700">{record.requester}</span>
+              <span className="font-medium text-gray-700">
+                {record.requester}
+              </span>
               <span>•</span>
               <span>생성: {formatDateForDisplayUTC(record.createdAt)}</span>
               <span>•</span>
-              <span>출고예정: {formatDateForDisplayUTC(record.outboundDate)}</span>
+              <span>
+                출고예정: {formatDateForDisplayUTC(record.outboundDate)}
+              </span>
             </div>
             {/* 3번째 줄: 수령자 + 상태 + 상세보기 버튼 */}
             <div className="flex justify-between items-center">
@@ -582,6 +602,29 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                 </button>
               </span>
             </div>
+            {/* 4번째 줄: 입금/환급/세금계산서 (출고완료 탭) */}
+            {isCompletedTab && (
+              <div className="flex gap-2 mt-2">
+                <span
+                  className={`px-2 py-0.5 text-xs font-medium rounded ${getDepositStatusColor(record.depositStatus, record.depositAmount)}`}
+                >
+                  {getDepositStatusText(
+                    record.depositStatus,
+                    record.depositAmount
+                  )}
+                </span>
+                <span
+                  className={`px-2 py-0.5 text-xs font-medium rounded ${getRefundStatusColor(record)}`}
+                >
+                  {getRefundStatusText(record)}
+                </span>
+                <span
+                  className={`px-2 py-0.5 text-xs font-medium rounded ${record.isTaxInvoiceIssued ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}
+                >
+                  {record.isTaxInvoiceIssued ? "발행" : "미발행"}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* 확장된 내용 영역 - 클릭 이벤트 차단 */}
@@ -594,20 +637,30 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
               <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 shadow-sm">
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-700">발주 기간:</span>
+                    <span className="font-medium text-gray-700">
+                      발주 기간:
+                    </span>
                     <span className="text-gray-600 text-xs">
-                      {formatDateForDisplayUTC(record.createdAt)} ~ {formatDateForDisplayUTC(record.outboundDate)}
+                      {formatDateForDisplayUTC(record.createdAt)} ~{" "}
+                      {formatDateForDisplayUTC(record.outboundDate)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-700">발주 창고:</span>
+                    <span className="font-medium text-gray-700">
+                      발주 창고:
+                    </span>
                     <span className="text-gray-600 text-xs">
                       {record.warehouse?.warehouseName || "창고 정보 없음"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-700">배송 주소:</span>
-                    <span className="text-gray-600 text-xs truncate max-w-[150px]" title={record.receiverAddress}>
+                    <span className="font-medium text-gray-700">
+                      배송 주소:
+                    </span>
+                    <span
+                      className="text-gray-600 text-xs truncate max-w-[150px]"
+                      title={record.receiverAddress}
+                    >
                       {record.receiverAddress || "배송 주소 미정"}
                     </span>
                   </div>
@@ -618,16 +671,24 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                     </span>
                   </div>
                   <div className="border-t pt-2">
-                    <span className="font-medium text-gray-700">발주 품목:</span>
+                    <span className="font-medium text-gray-700">
+                      발주 품목:
+                    </span>
                     <div className="mt-1 space-y-1">
                       {record.orderItems && record.orderItems.length > 0 ? (
                         record.orderItems.map((item, itemIndex) => (
-                          <div key={itemIndex} className="text-gray-600 text-xs ml-2">
-                            • {item.item?.teamItem?.itemName || "품목명 없음"} ({item.quantity || 0}개)
+                          <div
+                            key={itemIndex}
+                            className="text-gray-600 text-xs ml-2"
+                          >
+                            • {item.item?.teamItem?.itemName || "품목명 없음"} (
+                            {item.quantity || 0}개)
                           </div>
                         ))
                       ) : (
-                        <div className="text-gray-600 text-xs ml-2">품목 정보 없음</div>
+                        <div className="text-gray-600 text-xs ml-2">
+                          품목 정보 없음
+                        </div>
                       )}
                     </div>
                   </div>

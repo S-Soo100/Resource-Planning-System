@@ -16,8 +16,6 @@ import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 import {
   getDepositStatusText,
   getDepositStatusColor,
-  getRefundStatusText,
-  getRefundStatusColor,
 } from "@/utils/depositUtils";
 
 interface Props {
@@ -602,7 +600,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                 </button>
               </span>
             </div>
-            {/* 4번째 줄: 입금/환급/세금계산서 (출고완료 탭) */}
+            {/* 4번째 줄: 입금/세금계산서 (출고완료 탭) */}
             {isCompletedTab && (
               <div className="flex gap-2 mt-2">
                 <span
@@ -612,11 +610,6 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                     record.depositStatus,
                     record.depositAmount
                   )}
-                </span>
-                <span
-                  className={`px-2 py-0.5 text-xs font-medium rounded ${getRefundStatusColor(record)}`}
-                >
-                  {getRefundStatusText(record)}
                 </span>
                 <span
                   className={`px-2 py-0.5 text-xs font-medium rounded ${record.isTaxInvoiceIssued ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}

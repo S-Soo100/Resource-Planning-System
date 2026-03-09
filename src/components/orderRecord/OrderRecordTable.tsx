@@ -13,8 +13,6 @@ import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 import {
   getDepositStatusText,
   getDepositStatusColor,
-  getRefundStatusText,
-  getRefundStatusColor,
 } from "@/utils/depositUtils";
 
 // 새로운 기록인지 확인하는 함수
@@ -180,9 +178,6 @@ export default function OrderRecordTable({
                   입금상태
                 </th>
                 <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  환급상태
-                </th>
-                <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   세금계산서
                 </th>
               </>
@@ -338,7 +333,7 @@ export default function OrderRecordTable({
                   : "-"}
               </td>
 
-              {/* 입금/환급/세금계산서 (출고완료 탭만) */}
+              {/* 입금/세금계산서 (출고완료 탭만) */}
               {isCompletedTab && (
                 <>
                   <td className="px-3 py-3 text-center whitespace-nowrap">
@@ -349,13 +344,6 @@ export default function OrderRecordTable({
                         record.depositStatus,
                         record.depositAmount
                       )}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 text-center whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getRefundStatusColor(record)}`}
-                    >
-                      {getRefundStatusText(record)}
                     </span>
                   </td>
                   <td className="px-3 py-3 text-center whitespace-nowrap">
@@ -405,7 +393,6 @@ export default function OrderRecordTable({
             </td>
             {isCompletedTab && (
               <>
-                <td className="px-4 py-3"></td>
                 <td className="px-4 py-3"></td>
                 <td className="px-4 py-3"></td>
               </>

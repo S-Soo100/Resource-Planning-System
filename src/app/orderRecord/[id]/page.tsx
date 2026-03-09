@@ -428,12 +428,10 @@ const OrderRecordDetail = () => {
   const { useGetSuppliers } = useSuppliers();
   const { suppliers = [] } = useGetSuppliers();
 
-  // 환급대상자 판별
   const supplierList = Array.isArray(suppliers) ? suppliers : [];
   const matchedSupplier = order
     ? supplierList.find((s) => s.id === order.supplierId)
     : null;
-  const showRefundSection = matchedSupplier?.isRecipient === true;
   const orderFieldVisibility = getFieldVisibility(
     order?.supplier?.customerType,
     matchedSupplier?.isRecipient
@@ -569,34 +567,6 @@ const OrderRecordDetail = () => {
     } finally {
       setIsUpdatingDeposit(false);
       setIsEditingDepositAmount(false);
-    }
-  };
-
-  // 환급 필드 인라인 변경
-  const handleRefundFieldChange = async (
-    field: "isRefundApplied" | "isRefundReceived" | "isRefundNotApplicable",
-    value: boolean
-  ) => {
-    if (!order) return;
-    setIsUpdatingDeposit(true);
-    try {
-      const data: Record<string, boolean> = { [field]: value };
-      // 해당없음 체크 시 나머지 false 처리
-      if (field === "isRefundNotApplicable" && value) {
-        data.isRefundApplied = false;
-        data.isRefundReceived = false;
-      }
-      await updateDetailsMutate({
-        id: String(order.id),
-        data,
-      });
-      setOrder({ ...order, ...data });
-      toast.success("환급 정보가 변경되었습니다");
-    } catch (error) {
-      console.error("환급 정보 변경 실패:", error);
-      toast.error("환급 정보 변경에 실패했습니다");
-    } finally {
-      setIsUpdatingDeposit(false);
     }
   };
 
@@ -1603,15 +1573,6 @@ const OrderRecordDetail = () => {
                       </h2>
                       {(() => {
                         const items: { label: string; done: boolean }[] = [];
-                        if (showRefundSection) {
-                          items.push({
-                            label: "환급",
-                            done:
-                              (order.isRefundNotApplicable ?? false) ||
-                              ((order.isRefundApplied ?? false) &&
-                                (order.isRefundReceived ?? false)),
-                          });
-                        }
                         items.push({
                           label: "세금계산서",
                           done: order.isTaxInvoiceIssued ?? false,
@@ -1654,132 +1615,7 @@ const OrderRecordDetail = () => {
                         );
                       })()}
                     </div>
-                    <div
-                      className={`grid grid-cols-1 gap-4 ${
-                        showRefundSection ? "md:grid-cols-2" : "md:grid-cols-1"
-                      }`}
-                    >
-                      {/* 환급 정보 (조건부) */}
-                      {showRefundSection && (
-                        <div className="p-4 bg-gray-50 rounded-lg">
-                          <h3 className="text-sm font-medium text-gray-600 mb-2">
-                            환급
-                          </h3>
-                          {isAdminOrModerator ? (
-                            <div className="space-y-2">
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={order.isRefundApplied ?? false}
-                                  onChange={(e) =>
-                                    handleRefundFieldChange(
-                                      "isRefundApplied",
-                                      e.target.checked
-                                    )
-                                  }
-                                  disabled={
-                                    isUpdatingDeposit ||
-                                    (order.isRefundNotApplicable ?? false)
-                                  }
-                                  className="w-4 h-4 text-blue-600 rounded border-gray-300 disabled:opacity-50"
-                                />
-                                <span
-                                  className={`text-sm ${
-                                    order.isRefundNotApplicable
-                                      ? "text-gray-400"
-                                      : "text-gray-700"
-                                  }`}
-                                >
-                                  환급 신청
-                                </span>
-                              </label>
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={order.isRefundReceived ?? false}
-                                  onChange={(e) =>
-                                    handleRefundFieldChange(
-                                      "isRefundReceived",
-                                      e.target.checked
-                                    )
-                                  }
-                                  disabled={
-                                    isUpdatingDeposit ||
-                                    (order.isRefundNotApplicable ?? false)
-                                  }
-                                  className="w-4 h-4 text-blue-600 rounded border-gray-300 disabled:opacity-50"
-                                />
-                                <span
-                                  className={`text-sm ${
-                                    order.isRefundNotApplicable
-                                      ? "text-gray-400"
-                                      : "text-gray-700"
-                                  }`}
-                                >
-                                  환급금 입금 완료
-                                </span>
-                              </label>
-                              <div className="border-t border-gray-200 pt-2">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    checked={
-                                      order.isRefundNotApplicable ?? false
-                                    }
-                                    onChange={(e) =>
-                                      handleRefundFieldChange(
-                                        "isRefundNotApplicable",
-                                        e.target.checked
-                                      )
-                                    }
-                                    disabled={isUpdatingDeposit}
-                                    className="w-4 h-4 text-orange-600 rounded border-gray-300"
-                                  />
-                                  <span className="text-sm text-gray-700">
-                                    해당없음
-                                  </span>
-                                </label>
-                              </div>
-                            </div>
-                          ) : order.isRefundNotApplicable ? (
-                            <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-                              해당없음
-                            </span>
-                          ) : (
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`inline-block w-2 h-2 rounded-full ${
-                                    order.isRefundApplied
-                                      ? "bg-green-500"
-                                      : "bg-gray-300"
-                                  }`}
-                                />
-                                <span className="text-sm text-gray-700">
-                                  환급 신청{" "}
-                                  {order.isRefundApplied ? "완료" : "미신청"}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`inline-block w-2 h-2 rounded-full ${
-                                    order.isRefundReceived
-                                      ? "bg-green-500"
-                                      : "bg-gray-300"
-                                  }`}
-                                />
-                                <span className="text-sm text-gray-700">
-                                  환급금{" "}
-                                  {order.isRefundReceived
-                                    ? "입금 완료"
-                                    : "미입금"}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
+                    <div className="grid grid-cols-1 gap-4">
                       {/* 입금 정보 */}
                       <div className="p-4 bg-gray-50 rounded-lg">
                         <h3 className="text-sm font-medium text-gray-600 mb-3">

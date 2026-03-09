@@ -6,7 +6,14 @@ import { useEffect, useState } from "react";
 import { getOrder } from "@/api/order-api";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus, DepositStatus } from "@/types/(order)/order";
-import { ArrowLeft, Package, Truck, Printer, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Package,
+  Truck,
+  Printer,
+  Trash2,
+  FileText,
+} from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePermission } from "@/hooks/usePermission";
 import {
@@ -40,6 +47,8 @@ import { uploadMultipleOrderFileById, deleteOrderFile } from "@/api/order-api";
 import OrderChangeHistory from "@/components/orderRecord/OrderChangeHistory";
 import TaxInvoiceSection from "@/components/orderRecord/TaxInvoiceSection";
 import { LoadingCentered } from "@/components/ui/Loading";
+import { TransactionStatementModal } from "@/components/sales/TransactionStatementModal";
+import { orderToSalesRecord } from "@/utils/orderToSalesRecord";
 import {
   getDepositStatusColor,
   getDepositStatusText,
@@ -393,6 +402,7 @@ const OrderRecordDetail = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPriceEditModalOpen, setIsPriceEditModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const [isDeletingFile, setIsDeletingFile] = useState<number | null>(null);
   const [isOrderItemsExpanded, setIsOrderItemsExpanded] = useState(true);
@@ -1000,6 +1010,13 @@ const OrderRecordDetail = () => {
                     >
                       <Printer size={16} />
                       <span>인쇄</span>
+                    </button>
+                    <button
+                      onClick={() => setIsStatementModalOpen(true)}
+                      className="flex gap-2 items-center px-4 py-2 text-blue-600 bg-blue-50 border border-blue-200 rounded-lg transition-colors hover:bg-blue-100"
+                    >
+                      <FileText size={16} />
+                      <span>거래명세서</span>
                     </button>
                     {/* Admin 전용 삭제 버튼 */}
                     {canDeleteOrder() && (
@@ -2106,6 +2123,15 @@ const OrderRecordDetail = () => {
                     onClose={() => {
                       setIsPriceEditModalOpen(false);
                     }}
+                  />
+                )}
+
+                {/* 거래명세서 모달 */}
+                {isStatementModalOpen && order && (
+                  <TransactionStatementModal
+                    isOpen={isStatementModalOpen}
+                    onClose={() => setIsStatementModalOpen(false)}
+                    record={orderToSalesRecord(order)}
                   />
                 )}
               </div>

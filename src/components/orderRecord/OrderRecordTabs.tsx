@@ -1271,6 +1271,7 @@ const OrderRecordTabs = () => {
             isUpdatingStatus={isUpdatingStatus}
             userAccessLevel={userAccessLevel}
             auth={currentUser}
+            shipmentTab={shipmentTab}
           />
         ) : (
           /* 테이블형 리스트 */

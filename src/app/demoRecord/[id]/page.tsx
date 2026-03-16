@@ -797,14 +797,6 @@ const DemoRecordDetail = () => {
   const canChangeStatus = (currentStatus: string) => {
     if (!auth) return false;
 
-    // console.log("🔍 권한 디버깅:", {
-    //   userAccessLevel: auth.accessLevel,
-    //   currentStatus: currentStatus,
-    //   isAdmin: auth.isAdmin,
-    //   userId: auth.id,
-    //   demoUserId: demo?.userId,
-    // });
-
     // Moderator 권한 체크
     if (isModerator) {
       // Moderator는 requested, approved, rejected 상태만 변경 가능

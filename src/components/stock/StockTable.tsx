@@ -74,7 +74,7 @@ export default function StockTable() {
 
   // 사용자가 접근 가능한 창고만 필터링
   const accessibleWarehouses = user
-    ? filterAccessibleWarehouses(user, warehouses)
+    ? filterAccessibleWarehouses({ isAdmin, restrictedWhs }, warehouses)
     : warehouses;
 
   // 허용된 창고와 제한된 창고 콘솔 출력

@@ -10,6 +10,7 @@ import { filterRecordsByDateRange } from "@/utils/dateFilter";
 import InventoryRecordDetail from "./InventoryRecordDetail";
 import { Button } from "@/components/ui/button";
 import { filterAccessibleWarehouses } from "@/utils/warehousePermissions";
+import { usePermission } from "@/hooks/usePermission";
 import { CreateInventoryRecordDto } from "@/types/(inventoryRecord)/inventory-record";
 import { AttachedFile } from "@/types/common";
 import InboundModal from "../stock/modal/InboundModal";
@@ -48,6 +49,7 @@ type TypeFilter = "all" | "inbound" | "outbound";
 
 export default function IoHistoryList() {
   const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { isAdmin, restrictedWhs } = usePermission();
   const { warehouses = [], items, invalidateInventory } = useWarehouseItems();
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
     null
@@ -756,7 +758,7 @@ export default function IoHistoryList() {
 
   // 사용자가 접근 가능한 창고만 필터링
   const accessibleWarehouses = user
-    ? filterAccessibleWarehouses(user, warehouses)
+    ? filterAccessibleWarehouses({ isAdmin, restrictedWhs }, warehouses)
     : warehouses;
 
   // 허용된 창고와 제한된 창고 콘솔 출력

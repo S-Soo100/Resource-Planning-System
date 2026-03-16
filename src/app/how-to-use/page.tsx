@@ -2,6 +2,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import {
   FaArrowLeft,
   FaUser,
@@ -23,6 +24,7 @@ import { Accessibility } from "lucide-react";
 const HowToUsePage = () => {
   const router = useRouter();
   const { user } = useCurrentUser();
+  const { accessLevel } = usePermission();
 
   const accessLevelInfo = {
     admin: {
@@ -42,8 +44,7 @@ const HowToUsePage = () => {
     },
     moderator: {
       title: "1차승인권자",
-      description:
-        "발주/시연 승인 권한, 재무 데이터 조회, 팀 멤버 관리 가능",
+      description: "발주/시연 승인 권한, 재무 데이터 조회, 팀 멤버 관리 가능",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       icon: <FaUser className="text-2xl" />,
@@ -159,8 +160,7 @@ const HowToUsePage = () => {
         },
         {
           title: "발주 기록",
-          description:
-            "발주건의 기록과 상태를 확인합니다 (거래처 필수 선택)",
+          description: "발주건의 기록과 상태를 확인합니다 (거래처 필수 선택)",
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <PiNewspaperClippingFill className="text-lg" />,
         },
@@ -201,8 +201,7 @@ const HowToUsePage = () => {
         },
         {
           title: "마진 분석",
-          description:
-            "판매가/원가 비교, 역마진 식별, 품목별 수익성 분석",
+          description: "판매가/원가 비교, 역마진 식별, 품목별 수익성 분석",
           accessLevels: ["admin", "moderator"],
           icon: <PiChartLineUpFill className="text-lg" />,
         },
@@ -240,8 +239,7 @@ const HowToUsePage = () => {
         },
         {
           title: "팀 멤버 관리",
-          description:
-            "팀 구성원 추가, 팀별 역할/권한 설정 (v2.3 신규)",
+          description: "팀 구성원 추가, 팀별 역할/권한 설정 (v2.3 신규)",
           accessLevels: ["admin", "moderator"],
           icon: <FaUser className="text-lg" />,
         },
@@ -299,33 +297,29 @@ const HowToUsePage = () => {
       {user && (
         <div
           className={`mb-8 p-6 rounded-xl border-2 ${
-            accessLevelInfo[user.accessLevel as keyof typeof accessLevelInfo]
+            accessLevelInfo[accessLevel as keyof typeof accessLevelInfo]
               ?.bgColor
           } border-gray-200`}
         >
           <div className="flex gap-3 items-center mb-3">
-            {
-              accessLevelInfo[user.accessLevel as keyof typeof accessLevelInfo]
-                ?.icon
-            }
+            {accessLevelInfo[accessLevel as keyof typeof accessLevelInfo]?.icon}
             <h2 className="text-xl font-semibold text-gray-800">
               현재 권한:{" "}
               {
-                accessLevelInfo[
-                  user.accessLevel as keyof typeof accessLevelInfo
-                ]?.title
+                accessLevelInfo[accessLevel as keyof typeof accessLevelInfo]
+                  ?.title
               }
             </h2>
           </div>
           <p className="mb-3 text-gray-600">
             {
-              accessLevelInfo[user.accessLevel as keyof typeof accessLevelInfo]
+              accessLevelInfo[accessLevel as keyof typeof accessLevelInfo]
                 ?.description
             }
           </p>
           <ul className="space-y-1 text-sm text-gray-700">
             {accessLevelInfo[
-              user.accessLevel as keyof typeof accessLevelInfo
+              accessLevel as keyof typeof accessLevelInfo
             ]?.details.map((detail, idx) => (
               <li key={idx}>• {detail}</li>
             ))}
@@ -379,12 +373,12 @@ const HowToUsePage = () => {
               팀별 권한이 없으면 → <strong>기본 사용자 권한</strong>으로 폴백
             </li>
             <li>
-              <strong>팀 관리자(isAdmin)</strong> 플래그가 true이면 → 모든
-              창고 접근 가능
+              <strong>팀 관리자(isAdmin)</strong> 플래그가 true이면 → 모든 창고
+              접근 가능
             </li>
             <li>
-              <strong>창고 접근 제한(restrictedWhs)</strong>이 설정되어 있으면
-              → 지정된 창고만 접근
+              <strong>창고 접근 제한(restrictedWhs)</strong>이 설정되어 있으면 →
+              지정된 창고만 접근
             </li>
           </ol>
         </div>
@@ -838,8 +832,8 @@ const HowToUsePage = () => {
                 금지, 직접 입력
               </li>
               <li>
-                • <strong>시연품</strong>: 시연품 창고 입고는 구매 집계에서
-                자동 제외
+                • <strong>시연품</strong>: 시연품 창고 입고는 구매 집계에서 자동
+                제외
               </li>
             </ul>
           </div>

@@ -67,7 +67,8 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
   const [isFileUploading, setIsFileUploading] = useState(false);
   const auth = authStore((state) => state.user);
   const { user } = useCurrentUser();
-  const { isAdmin: permissionIsAdmin } = usePermission();
+  const { isAdmin: permissionIsAdmin, restrictedWhs: permissionRestrictedWhs } =
+    usePermission();
 
   // 아이템 관련 상태 - 패키지와 개별 아이템 분리 관리
   const [packageItems, setPackageItems] = useState<OrderItemWithDetails[]>([]);
@@ -1122,7 +1123,14 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                   <option value="0">창고 선택</option>
                   {warehousesList?.map((warehouse: Warehouse) => {
                     const hasAccess =
-                      !user || hasWarehouseAccess(user, warehouse.id);
+                      !user ||
+                      hasWarehouseAccess(
+                        {
+                          isAdmin: permissionIsAdmin,
+                          restrictedWhs: permissionRestrictedWhs,
+                        },
+                        warehouse.id
+                      );
                     return (
                       <option
                         key={warehouse.id}

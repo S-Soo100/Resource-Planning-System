@@ -1,11 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
-import { User, X, LogOut, RefreshCcw, UserCircle, ArrowLeft, Home } from "lucide-react";
+import {
+  User,
+  X,
+  LogOut,
+  RefreshCcw,
+  UserCircle,
+  ArrowLeft,
+  Home,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { authStore } from "@/store/authStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 
 const Appbar = () => {
   const pathname = usePathname();
@@ -13,6 +22,7 @@ const Appbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { user } = useCurrentUser();
+  const { accessLevel } = usePermission();
   const selectedTeam = authStore((state) => state.selectedTeam);
 
   // 권한 레벨 한글화 함수 추가
@@ -85,9 +95,9 @@ const Appbar = () => {
             <span className="text-sm font-medium text-gray-800">
               {user?.name || "사용자"}
             </span>
-            {user?.accessLevel && (
+            {accessLevel && (
               <span className="text-xs text-gray-500">
-                {getAccessLevelKorean(user.accessLevel)}
+                {getAccessLevelKorean(accessLevel)}
               </span>
             )}
           </div>
@@ -135,13 +145,15 @@ const Appbar = () => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  <UserCircle className="mr-2 w-4 h-4 text-Primary-Main" />내 계정
+                  <UserCircle className="mr-2 w-4 h-4 text-Primary-Main" />내
+                  계정
                 </li>
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={handleTeamReset}
                 >
-                  <RefreshCcw className="mr-2 w-4 h-4 text-Primary-Main" />팀 변경
+                  <RefreshCcw className="mr-2 w-4 h-4 text-Primary-Main" />팀
+                  변경
                 </li>
                 <li
                   className="flex items-center text-sm text-Error-Main px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
@@ -174,13 +186,15 @@ const Appbar = () => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  <UserCircle className="mr-2 w-4 h-4 text-Primary-Main" />내 계정
+                  <UserCircle className="mr-2 w-4 h-4 text-Primary-Main" />내
+                  계정
                 </li>
                 <li
                   className="flex items-center text-sm text-gray-800 px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
                   onClick={handleTeamReset}
                 >
-                  <RefreshCcw className="mr-2 w-4 h-4 text-Primary-Main" />팀 변경
+                  <RefreshCcw className="mr-2 w-4 h-4 text-Primary-Main" />팀
+                  변경
                 </li>
                 <li
                   className="flex items-center text-sm text-Error-Main px-4 py-2.5 hover:bg-gray-50 cursor-pointer"

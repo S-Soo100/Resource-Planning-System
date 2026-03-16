@@ -7,6 +7,7 @@ import { authStore } from "@/store/authStore";
 import { teamApi } from "@/api/team-api";
 import { filterAccessibleWarehouses } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { useMemo } from "react";
 
 interface useWarehouseItemsReturn {
@@ -32,15 +33,16 @@ interface UseWarehouseItemsOptions {
 export function useWarehouseItems(
   options: UseWarehouseItemsOptions = {}
 ): useWarehouseItemsReturn {
-  const { 
-    enabled = true, 
+  const {
+    enabled = true,
     staleTime = 10 * 60 * 1000, // 10분
-    gcTime = 30 * 60 * 1000 // 30분
+    gcTime = 30 * 60 * 1000, // 30분
   } = options;
-  
+
   const queryClient = useQueryClient();
   const selectedTeamId = authStore((state) => state.selectedTeam?.id);
   const { user } = useCurrentUser();
+  const { isAdmin, restrictedWhs } = usePermission();
 
   // 더 엄격한 조건부 실행
   const shouldEnableQueries = enabled && !!selectedTeamId && !!user;
@@ -132,14 +134,19 @@ export function useWarehouseItems(
   const accessibleWarehouses = useMemo(() => {
     if (!user || !allWarehousesData?.warehouses) return [];
 
-    const filtered = filterAccessibleWarehouses(user, allWarehousesData.warehouses);
+    const filtered = filterAccessibleWarehouses(
+      { isAdmin, restrictedWhs },
+      allWarehousesData.warehouses
+    );
 
     // sortOrder 기준 정렬
     return filtered.sort((a, b) => {
       // sortOrder가 모두 null인 경우 → createdAt 기준 정렬 (오름차순)
       if (a.sortOrder === null && b.sortOrder === null) {
         if (!a.createdAt || !b.createdAt) return 0;
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        return (
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
       }
       // a만 null인 경우 뒤로
       if (a.sortOrder === null) return 1;
@@ -148,7 +155,7 @@ export function useWarehouseItems(
       // 둘 다 숫자인 경우 오름차순
       return a.sortOrder - b.sortOrder;
     });
-  }, [user, allWarehousesData?.warehouses]);
+  }, [user, isAdmin, restrictedWhs, allWarehousesData?.warehouses]);
 
   // 접근 가능한 창고의 아이템만 필터링
   const accessibleItems = useMemo(() => {

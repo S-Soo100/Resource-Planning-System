@@ -81,7 +81,12 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     useState(false);
   const auth = authStore((state) => state.user);
   const { user } = useCurrentUser();
-  const { isSupplier, accessLevel: permissionAccessLevel } = usePermission();
+  const {
+    isSupplier,
+    isAdmin: permissionIsAdmin,
+    restrictedWhs: permissionRestrictedWhs,
+    accessLevel: permissionAccessLevel,
+  } = usePermission();
   const { team: currentTeam } = useCurrentTeam();
 
   // 아이템 관련 상태
@@ -673,7 +678,14 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     const warehouseId = parseInt(e.target.value);
 
     // 창고 접근 권한 체크
-    if (warehouseId !== 0 && user && !hasWarehouseAccess(user, warehouseId)) {
+    if (
+      warehouseId !== 0 &&
+      user &&
+      !hasWarehouseAccess(
+        { isAdmin: permissionIsAdmin, restrictedWhs: permissionRestrictedWhs },
+        warehouseId
+      )
+    ) {
       const warehouseName =
         effectiveWarehousesList.find((w) => w.id === warehouseId)
           ?.warehouseName || `창고 ${warehouseId}`;
@@ -1177,7 +1189,14 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               <option value="0">창고 선택</option>
               {effectiveWarehousesList.map((warehouse) => {
                 const hasAccess =
-                  !user || hasWarehouseAccess(user, warehouse.id);
+                  !user ||
+                  hasWarehouseAccess(
+                    {
+                      isAdmin: permissionIsAdmin,
+                      restrictedWhs: permissionRestrictedWhs,
+                    },
+                    warehouse.id
+                  );
                 return (
                   <option
                     key={warehouse.id}
@@ -1193,7 +1212,14 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             </select>
             {user &&
               effectiveWarehousesList.some(
-                (w) => !hasWarehouseAccess(user, w.id)
+                (w) =>
+                  !hasWarehouseAccess(
+                    {
+                      isAdmin: permissionIsAdmin,
+                      restrictedWhs: permissionRestrictedWhs,
+                    },
+                    w.id
+                  )
               ) && (
                 <p className="text-xs text-amber-600">
                   일부 창고는 접근 권한이 제한되어 있습니다.
@@ -1577,7 +1603,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             manager={formData.manager}
             onChange={handleChange}
             focusRingColor="blue"
-            userAccessLevel={permissionAccessLevel}
+            isSupplier={isSupplier}
           />
 
           {/* 날짜 정보 */}

@@ -1,29 +1,19 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import Calendar from "@/components/calendar/Calendar";
 import { FaArrowLeft, FaCalendarAlt } from "react-icons/fa";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 export default function CalendarPage() {
   const router = useRouter();
-  const { user, isLoading: userLoading } = useCurrentUser();
-
-  // 권한 체크 및 리다이렉트 처리
-  useEffect(() => {
-    if (!userLoading) {
-      if (!user) {
-        router.push("/signin");
-      } else if (user.accessLevel === "supplier") {
-        router.push("/menu");
-      }
-    }
-  }, [user, userLoading, router]);
-
+  const { isLoading, isAuthorized } = useRequireAuth({
+    allowedLevels: ["admin", "moderator", "user"],
+  });
 
   // 로딩 중이거나 권한 확인 중
-  if (userLoading || (!user || user.accessLevel === "supplier")) {
+  if (isLoading || !isAuthorized) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
@@ -54,7 +44,8 @@ export default function CalendarPage() {
           </div>
         </div>
         <p className="mt-2 text-sm md:text-lg text-gray-600">
-          발주와 시연 일정을 주별로 관리하고 메모를 작성할 수 있습니다.(메모 기능 개발중 by noah)
+          발주와 시연 일정을 주별로 관리하고 메모를 작성할 수 있습니다.(메모
+          기능 개발중 by noah)
         </p>
       </div>
 

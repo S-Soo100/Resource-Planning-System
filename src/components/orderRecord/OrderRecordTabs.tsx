@@ -177,6 +177,7 @@ const OrderRecordTabs = () => {
     isAdmin: permissionIsAdmin,
     isAdminOrModerator,
     isSupplier: permissionIsSupplier,
+    restrictedWhs: permissionRestrictedWhs,
   } = usePermission();
   const auth = authStore((state) => state.user);
   // const router = useRouter();
@@ -394,7 +395,10 @@ const OrderRecordTabs = () => {
       // 창고 접근 권한 체크 (Admin이 아닌 경우에만)
       if (currentUser && !permissionIsAdmin && order.warehouseId) {
         const warehouseAccessible = hasWarehouseAccess(
-          currentUser,
+          {
+            isAdmin: permissionIsAdmin,
+            restrictedWhs: permissionRestrictedWhs,
+          },
           order.warehouseId
         );
         if (!warehouseAccessible) {
@@ -827,22 +831,6 @@ const OrderRecordTabs = () => {
     const isRequestedStatus = record.status === OrderStatus.requested;
     return isAuthor && isRequestedStatus;
   };
-
-  // 삭제 권한 확인 함수 - 확장 기능 제거로 인해 주석 처리
-  // const canDeleteOrder = (record: IOrderRecord) => {
-  //   if (!auth) return false;
-
-  //   const isAdmin = auth.isAdmin;
-  //   const isAuthor = record.userId === auth.id;
-
-  //   // admin인 경우 상태에 상관없이 삭제 가능
-  //   if (isAdmin) return true;
-
-  //   // 일반 사용자는 자신이 작성한 requested 상태의 발주만 삭제 가능
-  //   const isRequestedStatus =
-  //     record.status === OrderStatus.requested || record.status === "주문 접수";
-  //   return isAuthor && isRequestedStatus;
-  // };
 
   // 수정 모달 열기 핸들러
   const handleEditClick = (record: IOrderRecord) => {

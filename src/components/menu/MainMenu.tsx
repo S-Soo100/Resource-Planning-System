@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { authStore } from "@/store/authStore";
 import { menuTabStore } from "@/store/menuTabStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -35,6 +36,7 @@ const MainMenu = () => {
   const router = useRouter();
   const { user, isLoading: userLoading } = useCurrentUser();
   const selectedTeam = authStore((state) => state.selectedTeam);
+  const { accessLevel, isSupplier, isAdminOrModerator } = usePermission();
 
   // 탭 상태 관리를 menuTabStore로 변경
   const { activeTab, setActiveTab, setTabForUser } = menuTabStore();
@@ -68,14 +70,12 @@ const MainMenu = () => {
     setHoveredCard(null);
   };
 
-  // 사용자 권한에 따른 탭 유효성 검사 및 설정
+  // 팀 권한에 따른 탭 유효성 검사 및 설정
   useEffect(() => {
-    if (user?.accessLevel) {
-      // 현재 선택된 탭이 권한에 맞지 않으면 기본 탭으로 변경
-      // 권한에 맞으면 localStorage에 저장된 탭 유지
-      setTabForUser(user.accessLevel);
+    if (accessLevel) {
+      setTabForUser(accessLevel);
     }
-  }, [user?.accessLevel, setTabForUser]);
+  }, [accessLevel, setTabForUser]);
 
   // 권한 레벨을 한글로 변환하는 함수
   const formatAccessLevel = (accessLevels: string[]): string => {
@@ -103,13 +103,13 @@ const MainMenu = () => {
     return `${levelMap[lowestLevel]} 이상`;
   };
 
-  // 권한 체크 함수
+  // 권한 체크 함수 (팀 권한 기반)
   const checkAccess = (
     path: string,
     allowedAccessLevels: string[]
   ): boolean => {
-    if (!user || !allowedAccessLevels.includes(user.accessLevel)) {
-      toast.error(`접근 권한이 없습니다. (${user?.accessLevel || "미인증"})`);
+    if (!user || !allowedAccessLevels.includes(accessLevel)) {
+      toast.error(`접근 권한이 없습니다. (${accessLevel || "미인증"})`);
       return false;
     }
     router.push(path);
@@ -323,7 +323,7 @@ const MainMenu = () => {
   ];
 
   // user, admin, moderator에게 판매&구매 탭 표시 (supplier 제외)
-  if (user?.accessLevel !== "supplier") {
+  if (!isSupplier) {
     tabs.push({
       id: "analytics",
       title: "판매 & 구매",
@@ -332,7 +332,7 @@ const MainMenu = () => {
   }
 
   // 관리자 또는 1차 승인권자인 경우 관리 탭 추가
-  if (user?.accessLevel === "admin" || user?.accessLevel === "moderator") {
+  if (isAdminOrModerator) {
     tabs.push({
       id: "admin",
       title: "관리",
@@ -405,7 +405,7 @@ const MainMenu = () => {
             transition={{ duration: 0.3, delay: 0.1 }}
             className="flex gap-2 items-center"
           >
-            {user.accessLevel !== "supplier" && (
+            {!isSupplier && (
               <motion.button
                 whileHover={{ scale: 1.04, y: -1 }}
                 whileTap={{ scale: 0.97 }}
@@ -438,7 +438,7 @@ const MainMenu = () => {
       </motion.div>
 
       {/* 재구매 예정 고객 알림 배너 */}
-      {repurchaseDueCount > 0 && user?.accessLevel !== "supplier" && (
+      {repurchaseDueCount > 0 && !isSupplier && (
         <motion.button
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -508,7 +508,7 @@ const MainMenu = () => {
           className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2"
         >
           {currentTab.items.map((item, index) => {
-            const hasAccess = item.accessLevel.includes(user.accessLevel);
+            const hasAccess = item.accessLevel.includes(accessLevel);
             return (
               <motion.button
                 key={index}

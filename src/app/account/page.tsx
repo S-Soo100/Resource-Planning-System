@@ -2,6 +2,7 @@
 
 import { useEffect, useState, ReactNode, useCallback } from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import {
   User,
   Edit,
@@ -123,6 +124,7 @@ export default function AccountPage() {
   // useCurrentUser 훅을 사용하여 사용자 정보 가져오기 (React Query와 동기화)
   const { user: currentUser, isLoading } = useCurrentUser();
   const user = currentUser as ExtendedUser | null;
+  const { accessLevel } = usePermission();
 
   const fetchUserTeams = useCallback(async () => {
     if (!user?.id) return;
@@ -240,10 +242,10 @@ export default function AccountPage() {
                   <p className="mt-1 text-sm text-gray-500 truncate sm:text-base">
                     {user?.email || "이메일 정보 없음"}
                   </p>
-                  {user?.accessLevel && (
+                  {accessLevel && (
                     <div className="mt-3">
                       {(() => {
-                        const display = getAccessLevelDisplay(user.accessLevel);
+                        const display = getAccessLevelDisplay(accessLevel);
                         const IconComponent = display.icon;
                         return (
                           <span
@@ -321,11 +323,9 @@ export default function AccountPage() {
                       권한 레벨
                     </h3>
                     <div className="p-3 bg-gray-50 rounded-md">
-                      {user?.accessLevel ? (
+                      {accessLevel ? (
                         (() => {
-                          const display = getAccessLevelDisplay(
-                            user.accessLevel
-                          );
+                          const display = getAccessLevelDisplay(accessLevel);
                           const IconComponent = display.icon;
                           return (
                             <div className="flex items-center">

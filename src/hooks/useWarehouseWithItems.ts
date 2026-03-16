@@ -5,6 +5,7 @@ import { ApiResponse } from "@/types/common";
 import { warehouseApi } from "@/api/warehouse-api";
 import { hasWarehouseAccess } from "@/utils/warehousePermissions";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 
 /**
  * 창고 목록과 창고별 아이템 정보를 관리하는 커스텀 훅
@@ -14,6 +15,7 @@ export function useWarehouseWithItems() {
   // 창고 목록 상태
   const { warehouses } = useWarehouseItems();
   const { user } = useCurrentUser();
+  const { isAdmin, restrictedWhs } = usePermission();
 
   // 창고별 아이템 정보를 저장할 객체
   const [warehouseItems, setWarehouseItems] = useState<{
@@ -26,7 +28,10 @@ export function useWarehouseWithItems() {
   ): Promise<ApiResponse> => {
     try {
       // 창고 접근 권한 체크
-      if (user && !hasWarehouseAccess(user, warehouseId)) {
+      if (
+        user &&
+        !hasWarehouseAccess({ isAdmin, restrictedWhs }, warehouseId)
+      ) {
         return {
           success: false,
           error: "해당 창고에 대한 접근 권한이 없습니다.",

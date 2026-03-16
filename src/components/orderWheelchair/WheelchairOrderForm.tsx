@@ -20,6 +20,7 @@ import { Item } from "@/types/(item)/item";
 import { uploadMultipleOrderFileById } from "@/api/order-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { getTodayString } from "@/utils/dateUtils";
 import ItemSelectionModal from "../ui/ItemSelectionModal";
 import {
@@ -53,7 +54,8 @@ export default function WheelchairOrderForm() {
   const addressSearch = useAddressSearch();
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
-  const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] = useState(false);
+  const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] =
+    useState(false);
   const auth = authStore((state) => state.user);
 
   // 아이템 관련 상태
@@ -90,6 +92,7 @@ export default function WheelchairOrderForm() {
   const { useCreateOrder } = useOrder();
   const { mutate: createOrder } = useCreateOrder();
   const { user } = useCurrentUser();
+  const { isSupplier } = usePermission();
 
   // 현재 창고의 모든 아이템들 (카테고리 제한 없음)
   const currentWarehouseItems = useMemo(() => {
@@ -148,19 +151,16 @@ export default function WheelchairOrderForm() {
       setFormData((prev) => ({
         ...prev,
         requester: auth.name,
-        manager:
-          user?.accessLevel === "supplier"
-            ? "조정흠(010-3338-2722)"
-            : prev.manager,
+        manager: isSupplier ? "조정흠(010-3338-2722)" : prev.manager,
       }));
     }
-  }, [auth, user?.accessLevel]);
+  }, [auth, isSupplier]);
 
   // 사용자 권한에 따른 예외 처리 (0.2초 후 실행)
   useEffect(() => {
     const timer = setTimeout(() => {
       if (user && auth?.name) {
-        if (user.accessLevel === "supplier") {
+        if (isSupplier) {
           // supplier인 경우에도 requester는 본인 이름 유지
           setFormData((prev) => ({
             ...prev,
@@ -172,7 +172,7 @@ export default function WheelchairOrderForm() {
     }, 200); // 0.2초 후 실행
 
     return () => clearTimeout(timer);
-  }, [user, auth?.name]);
+  }, [isSupplier, auth?.name]);
 
   // 현재 창고의 아이템 데이터가 변경되면 재고 상태 업데이트
   useEffect(() => {
@@ -247,8 +247,8 @@ export default function WheelchairOrderForm() {
           const newQuantity = increment
             ? item.quantity + 1
             : item.quantity > 0
-            ? item.quantity - 1
-            : item.quantity;
+              ? item.quantity - 1
+              : item.quantity;
 
           const stockItem = currentWarehouseItems.find(
             (stockItem) =>
@@ -437,7 +437,7 @@ export default function WheelchairOrderForm() {
         .filter((item) => item.quantity > 0 && item.sellingPrice)
         .reduce((sum, item) => {
           const price = parseInt(item.sellingPrice || "0", 10);
-          return sum + (price * item.quantity);
+          return sum + price * item.quantity;
         }, 0);
 
       const orderData: CreateOrderDto = {
@@ -463,7 +463,9 @@ export default function WheelchairOrderForm() {
             itemId: item.warehouseItemId,
             quantity: item.quantity,
             memo: item.memo || "",
-            sellingPrice: item.sellingPrice ? parseInt(item.sellingPrice, 10) : undefined,
+            sellingPrice: item.sellingPrice
+              ? parseInt(item.sellingPrice, 10)
+              : undefined,
             vat: item.vat ? parseInt(item.vat, 10) : undefined,
           })),
       };
@@ -695,26 +697,48 @@ export default function WheelchairOrderForm() {
               <table className="w-full">
                 <thead className="bg-purple-50 border-b">
                   <tr>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">품목명</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">품목코드</th>
-                    <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">재고</th>
-                    <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">수량</th>
-                    <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">단가 (원)</th>
-                    <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">소계 (원)</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">메모</th>
-                    <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">작업</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                      품목명
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                      품목코드
+                    </th>
+                    <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">
+                      재고
+                    </th>
+                    <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">
+                      수량
+                    </th>
+                    <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">
+                      단가 (원)
+                    </th>
+                    <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">
+                      소계 (원)
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                      메모
+                    </th>
+                    <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">
+                      작업
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {orderItems.map((item, index) => {
-                    const subtotal = item.sellingPrice && item.quantity > 0
-                      ? parseInt(item.sellingPrice) * item.quantity
-                      : 0;
+                    const subtotal =
+                      item.sellingPrice && item.quantity > 0
+                        ? parseInt(item.sellingPrice) * item.quantity
+                        : 0;
                     return (
-                      <tr key={item.warehouseItemId} className="border-b last:border-0 hover:bg-purple-50">
+                      <tr
+                        key={item.warehouseItemId}
+                        className="border-b last:border-0 hover:bg-purple-50"
+                      >
                         <td className="px-4 py-2">
                           <div className="flex flex-col">
-                            <span className="font-medium text-sm">{item.teamItem.itemName}</span>
+                            <span className="font-medium text-sm">
+                              {item.teamItem.itemName}
+                            </span>
                             {item.stockAvailable === false && (
                               <div className="flex items-center text-xs text-red-500 mt-1">
                                 <AlertCircle size={12} className="mr-1" />
@@ -740,7 +764,9 @@ export default function WheelchairOrderForm() {
                             >
                               <Minus size={14} />
                             </button>
-                            <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
+                            <span className="w-10 text-center text-sm font-medium">
+                              {item.quantity}
+                            </span>
                             <button
                               type="button"
                               onClick={() => handleQuantityChange(index, true)}
@@ -757,7 +783,9 @@ export default function WheelchairOrderForm() {
                             step="1"
                             placeholder="0"
                             value={item.sellingPrice || ""}
-                            onChange={(e) => handleSellingPriceChange(index, e.target.value)}
+                            onChange={(e) =>
+                              handleSellingPriceChange(index, e.target.value)
+                            }
                             className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
                           />
                         </td>
@@ -769,14 +797,18 @@ export default function WheelchairOrderForm() {
                             type="text"
                             placeholder="메모 입력"
                             value={item.memo || ""}
-                            onChange={(e) => handleMemoChange(index, e.target.value)}
+                            onChange={(e) =>
+                              handleMemoChange(index, e.target.value)
+                            }
                             className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
                           />
                         </td>
                         <td className="px-4 py-2 text-center">
                           <button
                             type="button"
-                            onClick={() => handleRemoveItem(item.warehouseItemId)}
+                            onClick={() =>
+                              handleRemoveItem(item.warehouseItemId)
+                            }
                             className="p-1 text-red-600 bg-red-50 rounded hover:bg-red-100"
                             title="품목 제거"
                           >
@@ -788,18 +820,28 @@ export default function WheelchairOrderForm() {
                   })}
                 </tbody>
                 {/* 총 판매가격 표시 */}
-                {orderItems.some(item => item.sellingPrice && item.quantity > 0) && (
+                {orderItems.some(
+                  (item) => item.sellingPrice && item.quantity > 0
+                ) && (
                   <tfoot className="bg-purple-50 border-t-2 border-purple-200">
                     <tr>
-                      <td colSpan={6} className="px-4 py-3 text-right text-base font-bold text-gray-900">
+                      <td
+                        colSpan={6}
+                        className="px-4 py-3 text-right text-base font-bold text-gray-900"
+                      >
                         총 거래금액
                       </td>
                       <td className="px-4 py-3 text-right text-lg font-bold text-purple-700">
                         {orderItems
-                          .filter(item => item.quantity > 0 && item.sellingPrice)
+                          .filter(
+                            (item) => item.quantity > 0 && item.sellingPrice
+                          )
                           .reduce((sum, item) => {
-                            const price = parseInt(item.sellingPrice || "0", 10);
-                            return sum + (price * item.quantity);
+                            const price = parseInt(
+                              item.sellingPrice || "0",
+                              10
+                            );
+                            return sum + price * item.quantity;
                           }, 0)
                           .toLocaleString()}
                       </td>
@@ -825,7 +867,7 @@ export default function WheelchairOrderForm() {
           manager={formData.manager}
           onChange={handleChange}
           focusRingColor="purple"
-          userAccessLevel={user?.accessLevel}
+          isSupplier={isSupplier}
         />
 
         {/* 날짜 정보 */}

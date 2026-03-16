@@ -6,7 +6,7 @@ interface ContactInfoSectionProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRequesterChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   focusRingColor?: string;
-  userAccessLevel?: string;
+  isSupplier?: boolean;
 }
 
 const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({
@@ -15,7 +15,7 @@ const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({
   onChange,
   onRequesterChange,
   focusRingColor = "blue",
-  userAccessLevel,
+  isSupplier = false,
 }) => {
   const focusRingClass =
     focusRingColor === "purple"
@@ -23,7 +23,7 @@ const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({
       : "focus:ring-blue-500";
 
   const getManagerTitle = () => {
-    if (userAccessLevel === "supplier") {
+    if (isSupplier) {
       return "캥스터즈 담당자";
     }
     return "업체 담당자";

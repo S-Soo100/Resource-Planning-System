@@ -19,7 +19,7 @@
 
 ### E-002: 발주기록 출고완료 모바일 카드에 입금/환급 정보 추가
 - **우선순위**: Low
-- **상태**: [ ]
+- **상태**: [x]
 - **설명**: `OrderRecordTabs` 모바일 카드 뷰에 입금/환급/세금계산서 상태 미반영.
 - **관련 파일**: `OrderRecordTabs.tsx`
 
@@ -240,6 +240,64 @@
 ---
 
 ## Epic
+
+### E-015: 전체 메뉴/페이지 팀 권한 전환 점검 (Team-Permission Audit)
+- **우선순위**: High
+- **상태**: [x]
+- **설명**: 모든 메뉴/버튼/페이지의 권한 체크가 `user.accessLevel`(레거시)이 아닌 `usePermission()` 훅(팀 권한 기반)을 사용하도록 전환. CLAUDE.md에 "User.accessLevel / auth.isAdmin 직접 참조 금지"로 명시되어 있지만, 아직 10곳 이상에서 레거시 패턴이 사용 중.
+
+#### 현재 문제점
+- `MainMenu.tsx`: 메뉴 탭 표시/숨김이 `user.accessLevel` 직접 참조로 제어됨
+- `warehousePermissions.ts`: 창고 접근 유틸리티가 `user.accessLevel === 'admin'` 직접 체크
+- `calendar/page.tsx`, `ioHistory/page.tsx`: 라우트 가드가 `user.accessLevel` 직접 체크
+- `WheelchairOrderForm.tsx`: supplier 체크가 `user.accessLevel` 직접 참조
+- `how-to-use/page.tsx`: 권한별 표시 로직이 `user.accessLevel` 직접 참조
+- `account/page.tsx`, `Appbar.tsx`: 권한 표시가 `user.accessLevel` 직접 참조
+
+#### 유일한 예외
+- `team-select/page.tsx`: 팀 선택 전이므로 `serverUser?.isAdmin` 사용 허용 (문서화된 예외)
+
+#### 하위 티켓
+
+**Phase 1: 핵심 — 메뉴 & 라우트 가드 (접근 제어 직결)**
+- [x] **E-015-1**: `MainMenu.tsx` — 메뉴 탭 표시/숨김/접근 제어를 `usePermission()` 기반으로 전환
+  - `setTabForUser(user.accessLevel)` → `usePermission()` 활용
+  - `allowedAccessLevels.includes(user.accessLevel)` → permission 헬퍼 사용
+  - `user.accessLevel !== "supplier"` → `!isSupplier` 사용
+  - `item.accessLevel.includes(user.accessLevel)` → permission 기반 매핑
+- [x] **E-015-2**: `calendar/page.tsx` — `user.accessLevel === "supplier"` 체크를 `useRequireAuth()` 또는 `usePermission()` 전환
+- [x] **E-015-3**: `ioHistory/page.tsx` — `user.accessLevel === "supplier"` 체크를 `useRequireAuth()` 또는 `usePermission()` 전환
+
+**Phase 2: 유틸리티 & 폼 로직**
+- [x] **E-015-4**: `warehousePermissions.ts` — `user.accessLevel === 'admin'` 직접 체크를 permission 객체 기반으로 리팩토링
+  - `hasWarehouseAccess()`: isAdmin 파라미터 받도록 변경
+  - `filterAccessibleWarehouses()`: 동일하게 변경
+  - 호출부도 함께 수정
+- [x] **E-015-5**: `WheelchairOrderForm.tsx` — `user.accessLevel === "supplier"` → `usePermission().isSupplier` 전환
+
+**Phase 3: 표시용 (기능 영향 낮음)**
+- [x] **E-015-6**: `how-to-use/page.tsx` — 권한별 콘텐츠 표시를 `usePermission()` 기반으로 전환
+- [x] **E-015-7**: `account/page.tsx` — 권한 레벨 표시를 `usePermission()` 기반으로 전환
+- [x] **E-015-8**: `Appbar.tsx` — 권한 레벨 한글 표시를 `usePermission()` 기반으로 전환
+
+**Phase 4: 정리**
+- [x] **E-015-9**: 주석 처리된 레거시 코드 제거 (`demoRecord/[id]/page.tsx`, `OrderRecordTabs.tsx`)
+- [x] **E-015-10**: `usePermission()` 훅의 fallback 로직 검토 — 팀 권한 없을 때 `user.accessLevel` fallback이 적절한지 확인
+
+- **관련 파일**:
+  - `src/components/menu/MainMenu.tsx` — 메뉴 접근 제어 (핵심)
+  - `src/utils/warehousePermissions.ts` — 창고 접근 유틸리티
+  - `src/app/calendar/page.tsx` — 캘린더 페이지 가드
+  - `src/app/ioHistory/page.tsx` — 입출고 이력 페이지 가드
+  - `src/components/orderWheelchair/WheelchairOrderForm.tsx` — 휠체어 발주 폼
+  - `src/app/how-to-use/page.tsx` — 사용법 페이지
+  - `src/app/account/page.tsx` — 계정 페이지
+  - `src/components/appbar/Appbar.tsx` — 앱바
+  - `src/hooks/usePermission.ts` — 권한 훅 (수정 검토)
+  - `src/app/demoRecord/[id]/page.tsx` — 레거시 주석 정리
+  - `src/components/orderRecord/OrderRecordTabs.tsx` — 레거시 주석 정리
+
+---
 
 ### E-006: 고객관리 데이터 모델 리팩토링 (User → Supplier 통합)
 - **우선순위**: High

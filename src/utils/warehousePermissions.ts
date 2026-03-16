@@ -1,23 +1,31 @@
-import { IUser } from "@/types/(auth)/user";
 import { Warehouse } from "@/types/warehouse";
 
 /**
+ * 창고 권한 체크에 필요한 컨텍스트
+ * usePermission() 훅의 반환값에서 { isAdmin, restrictedWhs }를 전달
+ */
+interface WarehousePermissionContext {
+  isAdmin: boolean;
+  restrictedWhs: string | number[] | null;
+}
+
+/**
  * 사용자가 특정 창고에 접근할 수 있는지 확인
- * @param user 현재 사용자
+ * @param context 권한 컨텍스트 (usePermission()에서 제공)
  * @param warehouseId 확인할 창고 ID
  * @returns 접근 가능 여부
  */
 export function hasWarehouseAccess(
-  user: IUser,
+  context: WarehousePermissionContext,
   warehouseId: number
 ): boolean {
   // Admin은 모든 창고에 접근 가능
-  if (user.accessLevel === 'admin') {
+  if (context.isAdmin) {
     return true;
   }
 
   // 제한된 창고 ID 목록 가져오기
-  const restrictedIds = getRestrictedWarehouseIds(user);
+  const restrictedIds = getRestrictedWarehouseIds(context.restrictedWhs);
 
   // 제한된 창고 목록이 없으면 모든 창고 접근 가능
   if (restrictedIds.length === 0) {
@@ -30,12 +38,12 @@ export function hasWarehouseAccess(
 
 /**
  * 사용자가 접근 가능한 창고만 필터링
- * @param user 현재 사용자
+ * @param context 권한 컨텍스트 (usePermission()에서 제공)
  * @param warehouses 전체 창고 목록
  * @returns 접근 가능한 창고 목록
  */
 export function filterAccessibleWarehouses(
-  user: IUser,
+  context: WarehousePermissionContext,
   warehouses: Warehouse[]
 ): Warehouse[] {
   if (!warehouses || warehouses.length === 0) {
@@ -43,12 +51,12 @@ export function filterAccessibleWarehouses(
   }
 
   // Admin은 모든 창고 접근 가능
-  if (user.accessLevel === 'admin') {
+  if (context.isAdmin) {
     return warehouses;
   }
 
   // 제한된 창고 ID 목록 가져오기
-  const restrictedIds = getRestrictedWarehouseIds(user);
+  const restrictedIds = getRestrictedWarehouseIds(context.restrictedWhs);
 
   // 제한된 창고 목록이 없으면 모든 창고 반환
   if (restrictedIds.length === 0) {
@@ -62,29 +70,31 @@ export function filterAccessibleWarehouses(
 }
 
 /**
- * 사용자에게 제한된 창고 목록을 반환
- * @param user 현재 사용자
+ * 제한된 창고 ID 목록을 파싱하여 반환
+ * @param restrictedWhs 제한된 창고 (문자열 "1,3,5" 또는 숫자 배열)
  * @returns 제한된 창고 ID 목록
  */
-export function getRestrictedWarehouseIds(user: IUser): number[] {
+export function getRestrictedWarehouseIds(
+  restrictedWhs: string | number[] | null
+): number[] {
   if (
-    !user.restrictedWhs ||
-    user.restrictedWhs === "" ||
-    (Array.isArray(user.restrictedWhs) && user.restrictedWhs.length === 0)
+    !restrictedWhs ||
+    restrictedWhs === "" ||
+    (Array.isArray(restrictedWhs) && restrictedWhs.length === 0)
   ) {
     return [];
   }
 
-  if (typeof user.restrictedWhs === "string") {
-    if (user.restrictedWhs.trim() === "") {
+  if (typeof restrictedWhs === "string") {
+    if (restrictedWhs.trim() === "") {
       return [];
     }
-    return user.restrictedWhs
+    return restrictedWhs
       .split(",")
       .map((id) => parseInt(id.trim()))
       .filter((id) => !isNaN(id));
-  } else if (Array.isArray(user.restrictedWhs)) {
-    return user.restrictedWhs.map((id) =>
+  } else if (Array.isArray(restrictedWhs)) {
+    return restrictedWhs.map((id) =>
       typeof id === "string" ? parseInt(id) : id
     );
   }

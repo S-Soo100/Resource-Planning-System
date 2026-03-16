@@ -110,20 +110,20 @@ export default function TeamMembers({
     return level === "admin"
       ? "관리자"
       : level === "moderator"
-      ? "1차승인권자"
-      : level === "supplier"
-      ? "납품처"
-      : "일반 사용자";
+        ? "1차승인권자"
+        : level === "supplier"
+          ? "납품처"
+          : "일반 사용자";
   };
 
   const accessLevelColor = (level: string) => {
     return level === "admin"
       ? "bg-Primary-Container text-Primary-Main"
       : level === "moderator"
-      ? "bg-Back-Mid-20 text-Text-High-90"
-      : level === "supplier"
-      ? "bg-Back-Mid-20 text-Text-Low-70"
-      : "bg-Back-Low-10 text-Text-Low-70";
+        ? "bg-Back-Mid-20 text-Text-High-90"
+        : level === "supplier"
+          ? "bg-Back-Mid-20 text-Text-Low-70"
+          : "bg-Back-Low-10 text-Text-Low-70";
   };
 
   const handleEditRole = (member: IMappingUser) => {
@@ -146,8 +146,12 @@ export default function TeamMembers({
       {/* 헤더 */}
       <div className="flex justify-between items-center px-6 py-4 border-b border-Outline-Variant">
         <div>
-          <h2 className="text-lg font-semibold text-Text-Highest-100">팀 멤버 관리</h2>
-          <p className="text-sm text-Text-Low-70 mt-0.5">팀원 초대 및 권한 관리</p>
+          <h2 className="text-lg font-semibold text-Text-Highest-100">
+            팀 멤버 관리
+          </h2>
+          <p className="text-sm text-Text-Low-70 mt-0.5">
+            팀원 초대 및 권한 관리
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {isReadOnly && (
@@ -180,9 +184,6 @@ export default function TeamMembers({
                   이메일
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
-                  기본 권한
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
                   팀 권한
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-Text-Low-70 uppercase tracking-wider">
@@ -192,8 +193,6 @@ export default function TeamMembers({
             </thead>
             <tbody className="divide-y divide-Outline-Variant">
               {teamUsers.map((member: IMappingUser) => {
-                const userLevel =
-                  (member.user as { accessLevel?: string }).accessLevel || "user";
                 const teamLevel = member.accessLevel;
                 const hasTeamRole = !!teamLevel;
                 return (
@@ -217,13 +216,6 @@ export default function TeamMembers({
                       {member.user.email}
                     </td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${accessLevelColor(userLevel)}`}
-                      >
-                        {accessLevelLabel(userLevel)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
                       <div className="flex flex-col gap-1">
                         {hasTeamRole ? (
                           <>
@@ -244,8 +236,8 @@ export default function TeamMembers({
                             )}
                           </>
                         ) : (
-                          <span className="text-xs text-Text-Low-70 italic">
-                            기본 권한 사용
+                          <span className="text-xs text-amber-600 italic">
+                            미설정 — 팀 역할을 지정해주세요
                           </span>
                         )}
                       </div>
@@ -264,7 +256,9 @@ export default function TeamMembers({
                             <Button
                               variant="secondary"
                               size="sm"
-                              onClick={() => handleEditUser(member.user as IUser)}
+                              onClick={() =>
+                                handleEditUser(member.user as IUser)
+                              }
                             >
                               정보 수정
                             </Button>
@@ -289,7 +283,9 @@ export default function TeamMembers({
                             <Button
                               variant="secondary"
                               size="sm"
-                              onClick={() => handleEditUser(member.user as IUser)}
+                              onClick={() =>
+                                handleEditUser(member.user as IUser)
+                              }
                             >
                               정보 조회
                             </Button>

@@ -15,6 +15,7 @@ export default function ItemsPage() {
   const {
     isAdminOrModerator,
     isReadOnly,
+    restrictedWhs,
     isLoading: isPermissionLoading,
   } = usePermission();
 
@@ -60,9 +61,7 @@ export default function ItemsPage() {
             <h1 className="text-2xl font-bold text-Text-Highest-100">
               창고별 품목 관리
             </h1>
-            <p className="text-sm text-Text-Low-70">
-              창고 ID: {user.restrictedWhs}
-            </p>
+            <p className="text-sm text-Text-Low-70">창고 ID: {restrictedWhs}</p>
           </div>
           {isReadOnly && (
             <div className="px-4 py-2 bg-Primary-Container text-Primary-Main rounded-full text-sm">

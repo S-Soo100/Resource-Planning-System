@@ -10,6 +10,7 @@ import { Item } from "@/types/(item)/item";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import ItemQuantityHistory from "@/components/item/ItemQuantityHistory";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -24,6 +25,7 @@ export default function ItemDetailPage() {
     useInventoryRecordsByTeamId();
   const { warehouses } = useWarehouseItems();
   const { user } = useCurrentUser();
+  const { isAdminOrModerator } = usePermission();
   const { useUpdateTeamItem } = useTeamItems();
   const { updateTeamItemAsync } = useUpdateTeamItem();
   const queryClient = useQueryClient();
@@ -45,11 +47,9 @@ export default function ItemDetailPage() {
 
   // 단가 편집 시작
   const handleCostPriceClick = () => {
-    if ((user?.accessLevel !== "admin" && user?.accessLevel !== "moderator") || !item) return;
+    if (!isAdminOrModerator || !item) return;
     setIsEditingCostPrice(true);
-    setEditedCostPrice(
-      item.teamItem.costPrice?.toString() || ""
-    );
+    setEditedCostPrice(item.teamItem.costPrice?.toString() || "");
   };
 
   // 단가 저장
@@ -57,9 +57,8 @@ export default function ItemDetailPage() {
     if (!item) return;
 
     try {
-      const newCostPrice = editedCostPrice.trim() === ""
-        ? null
-        : Number(editedCostPrice);
+      const newCostPrice =
+        editedCostPrice.trim() === "" ? null : Number(editedCostPrice);
 
       // 숫자가 아닌 경우 에러 처리
       if (editedCostPrice.trim() !== "" && isNaN(newCostPrice as number)) {
@@ -149,8 +148,12 @@ export default function ItemDetailPage() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* 페이지 헤더 */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">품목 상세 정보</h1>
-          <p className="text-gray-600">품목의 상세 정보와 입출고 내역을 확인하세요</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            품목 상세 정보
+          </h1>
+          <p className="text-gray-600">
+            품목의 상세 정보와 입출고 내역을 확인하세요
+          </p>
         </div>
 
         {/* 품목 기본 정보 */}
@@ -158,7 +161,10 @@ export default function ItemDetailPage() {
           {/* 이미지 섹션 */}
           {item.teamItem.imageUrl && (
             <div className="mb-8 flex justify-center">
-              <div className="relative group cursor-pointer" onClick={() => setLightboxUrl(item.teamItem.imageUrl || null)}>
+              <div
+                className="relative group cursor-pointer"
+                onClick={() => setLightboxUrl(item.teamItem.imageUrl || null)}
+              >
                 <img
                   src={item.teamItem.imageUrl}
                   alt={item.teamItem.itemName}
@@ -173,8 +179,18 @@ export default function ItemDetailPage() {
           <div className="mb-8">
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-5 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                <svg
+                  className="w-5 h-5 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
                 </svg>
                 <p className="text-lg font-bold text-gray-800">
                   {warehouse?.warehouseName || "-"}
@@ -192,42 +208,91 @@ export default function ItemDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                  />
                 </svg>
                 <p className="text-sm text-gray-600 font-medium">품목 코드</p>
               </div>
-              <p className="text-lg font-semibold text-gray-900">{item.teamItem.itemCode}</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {item.teamItem.itemCode}
+              </p>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
                 </svg>
                 <p className="text-sm text-gray-600 font-medium">품목명</p>
               </div>
-              <p className="text-lg font-semibold text-gray-900">{item.teamItem.itemName}</p>
+              <p className="text-lg font-semibold text-gray-900">
+                {item.teamItem.itemName}
+              </p>
             </div>
 
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200 hover:border-green-300 transition-colors">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                <svg
+                  className="w-4 h-4 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
                 </svg>
                 <p className="text-sm text-green-700 font-medium">현재 수량</p>
               </div>
-              <p className="text-2xl font-bold text-green-700">{item.itemQuantity} <span className="text-base font-normal">개</span></p>
+              <p className="text-2xl font-bold text-green-700">
+                {item.itemQuantity}{" "}
+                <span className="text-base font-normal">개</span>
+              </p>
             </div>
 
             {/* 단가 (Admin/Moderator 전용 - User/Supplier 제외) */}
-            {(user?.accessLevel === "admin" || user?.accessLevel === "moderator") && (
+            {isAdminOrModerator && (
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200 hover:border-purple-300 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
-                  <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-4 h-4 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
-                  <p className="text-sm text-purple-700 font-medium">단가 (원가)</p>
+                  <p className="text-sm text-purple-700 font-medium">
+                    단가 (원가)
+                  </p>
                 </div>
                 {isEditingCostPrice ? (
                   <div className="flex items-center gap-2">
@@ -241,30 +306,51 @@ export default function ItemDetailPage() {
                       placeholder="단가 입력"
                       className="w-full px-3 py-2 border-2 border-purple-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg font-semibold"
                     />
-                    <span className="text-sm text-purple-600 font-medium whitespace-nowrap">원</span>
+                    <span className="text-sm text-purple-600 font-medium whitespace-nowrap">
+                      원
+                    </span>
                   </div>
                 ) : (
                   <p
                     onClick={handleCostPriceClick}
                     className="text-lg font-semibold text-purple-700 cursor-pointer hover:text-purple-600 hover:underline transition-colors flex items-center gap-1 group"
                   >
-                    {item.teamItem.costPrice !== null && item.teamItem.costPrice !== undefined
-                      ? (
-                        <>
-                          {item.teamItem.costPrice.toLocaleString()}
-                          <span className="text-base font-normal">원</span>
-                        </>
-                      )
-                      : (
-                        <span className="flex items-center gap-1 text-purple-500">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                          클릭하여 입력
-                        </span>
-                      )}
-                    <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    {item.teamItem.costPrice !== null &&
+                    item.teamItem.costPrice !== undefined ? (
+                      <>
+                        {item.teamItem.costPrice.toLocaleString()}
+                        <span className="text-base font-normal">원</span>
+                      </>
+                    ) : (
+                      <span className="flex items-center gap-1 text-purple-500">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
+                          />
+                        </svg>
+                        클릭하여 입력
+                      </span>
+                    )}
+                    <svg
+                      className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                      />
                     </svg>
                   </p>
                 )}
@@ -273,8 +359,18 @@ export default function ItemDetailPage() {
 
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
                 <p className="text-sm text-gray-600 font-medium">생성일</p>
               </div>
@@ -285,8 +381,18 @@ export default function ItemDetailPage() {
 
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-blue-300 transition-colors">
               <div className="flex items-center gap-2 mb-2">
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <p className="text-sm text-gray-600 font-medium">최종 수정일</p>
               </div>
@@ -298,159 +404,208 @@ export default function ItemDetailPage() {
         </div>
 
         {/* 재고 변동 이력 (Admin/Moderator 전용) */}
-        {(user?.accessLevel === "admin" || user?.accessLevel === "moderator") && (
+        {isAdminOrModerator && (
           <div className="mb-6">
             <ItemQuantityHistory itemId={Number(itemId)} />
           </div>
         )}
 
         {/* 입출고 내역 (Admin/Moderator 전용) */}
-        {(user?.accessLevel === "admin" || user?.accessLevel === "moderator") && (
-        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-              </svg>
+        {isAdminOrModerator && (
+          <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <svg
+                  className="w-6 h-6 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">입출고 내역</h2>
+              {itemRecords.length > 0 && (
+                <span className="ml-auto px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
+                  총 {itemRecords.length}건
+                </span>
+              )}
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">입출고 내역</h2>
-            {itemRecords.length > 0 && (
-              <span className="ml-auto px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
-                총 {itemRecords.length}건
-              </span>
+
+            {itemRecords.length > 0 ? (
+              <div className="overflow-hidden rounded-lg border border-gray-200">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          날짜
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          구분
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          목적
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          수량
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          위치
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                          비고
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-100">
+                      {itemRecords.map((record, index) => (
+                        <tr
+                          key={record.id}
+                          className={`hover:bg-blue-50 transition-colors ${
+                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          }`}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                            {format(
+                              new Date(
+                                record.inboundDate || record.outboundDate || ""
+                              ),
+                              "yyyy-MM-dd HH:mm",
+                              { locale: ko }
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full ${
+                                record.inboundQuantity !== null
+                                  ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200"
+                                  : "bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200"
+                              }`}
+                            >
+                              {record.inboundQuantity !== null ? (
+                                <>
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  입고
+                                </>
+                              ) : (
+                                <>
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  출고
+                                </>
+                              )}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {getRecordPurposeLabel(record.recordPurpose)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                            {record.inboundQuantity !== null && (
+                              <span className="text-green-600">+</span>
+                            )}
+                            {record.outboundQuantity !== null && (
+                              <span className="text-red-600">-</span>
+                            )}
+                            {record.inboundQuantity ??
+                              record.outboundQuantity ??
+                              "-"}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-700">
+                            {record.inboundLocation ||
+                              record.outboundLocation ||
+                              "-"}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                            {record.remarks || "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                <svg
+                  className="w-16 h-16 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  />
+                </svg>
+                <p className="text-lg font-medium">입출고 내역이 없습니다</p>
+                <p className="text-sm mt-1">
+                  품목의 입출고가 발생하면 여기에 표시됩니다
+                </p>
+              </div>
             )}
           </div>
-
-          {itemRecords.length > 0 ? (
-            <div className="overflow-hidden rounded-lg border border-gray-200">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        날짜
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        구분
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        목적
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        수량
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        위치
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        비고
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
-                    {itemRecords.map((record, index) => (
-                      <tr
-                        key={record.id}
-                        className={`hover:bg-blue-50 transition-colors ${
-                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                        }`}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                          {format(
-                            new Date(
-                              record.inboundDate || record.outboundDate || ""
-                            ),
-                            "yyyy-MM-dd HH:mm",
-                            { locale: ko }
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full ${
-                              record.inboundQuantity !== null
-                                ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200"
-                                : "bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200"
-                            }`}
-                          >
-                            {record.inboundQuantity !== null ? (
-                              <>
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                                </svg>
-                                입고
-                              </>
-                            ) : (
-                              <>
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
-                                </svg>
-                                출고
-                              </>
-                            )}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                          {getRecordPurposeLabel(record.recordPurpose)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                          {record.inboundQuantity !== null && (
-                            <span className="text-green-600">+</span>
-                          )}
-                          {record.outboundQuantity !== null && (
-                            <span className="text-red-600">-</span>
-                          )}
-                          {record.inboundQuantity ??
-                            record.outboundQuantity ??
-                            "-"}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-700">
-                          {record.inboundLocation ||
-                            record.outboundLocation ||
-                            "-"}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
-                          {record.remarks || "-"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-              <svg className="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
-              <p className="text-lg font-medium">입출고 내역이 없습니다</p>
-              <p className="text-sm mt-1">품목의 입출고가 발생하면 여기에 표시됩니다</p>
-            </div>
-          )}
-        </div>
         )}
 
-      {/* 이미지 라이트박스 */}
-      {lightboxUrl && (
-        <div
-          className="fixed inset-0 z-[80] bg-black/75 flex items-center justify-center"
-          onClick={() => setLightboxUrl(null)}
-        >
-          <button
-            className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/70 transition-colors"
+        {/* 이미지 라이트박스 */}
+        {lightboxUrl && (
+          <div
+            className="fixed inset-0 z-[80] bg-black/75 flex items-center justify-center"
             onClick={() => setLightboxUrl(null)}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <img
-            src={lightboxUrl}
-            alt="확대 이미지"
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+            <button
+              className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/70 transition-colors"
+              onClick={() => setLightboxUrl(null)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+            <img
+              src={lightboxUrl}
+              alt="확대 이미지"
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

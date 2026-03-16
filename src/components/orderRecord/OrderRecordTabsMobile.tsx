@@ -11,6 +11,7 @@ import {
   type UpdateOrderCommentDto,
 } from "@/hooks/useOrderComments";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePermission } from "@/hooks/usePermission";
 import { getDisplayFileName } from "@/utils/fileUtils";
 import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 import {
@@ -55,6 +56,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
   record,
   currentUser,
 }) => {
+  const { isAdmin: permissionIsAdmin } = usePermission();
   const [newComment, setNewComment] = React.useState("");
   const [editingCommentId, setEditingCommentId] = React.useState<number | null>(
     null
@@ -93,9 +95,7 @@ const OrderCommentSection: React.FC<OrderCommentSectionProps> = ({
   const canDeleteComment = (comment: OrderComment) => {
     if (!currentUser) return false;
     // 삭제는 본인 댓글 + Admin은 모든 댓글 가능
-    return (
-      comment.userId === currentUser.id || currentUser.accessLevel === "admin"
-    );
+    return comment.userId === currentUser.id || permissionIsAdmin;
   };
 
   // 댓글 작성 시간 포맷팅

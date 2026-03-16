@@ -607,23 +607,6 @@ const DemonstrationRecordTabs = () => {
     }
   };
 
-  // 권한 확인 함수들 - 제거됨 (확장 기능과 함께 사용됨)
-  // const canManageShipment = () => {
-  //   return currentUser?.accessLevel === "admin";
-  // };
-
-  // const canApproveDemo = () => {
-  //   return (
-  //     currentUser?.accessLevel === "admin" ||
-  //     currentUser?.accessLevel === "moderator"
-  //   );
-  // };
-
-  // 현재 상태에서 가능한 다음 상태들 반환 - 제거됨 (확장 기능과 함께 사용됨)
-  // const getAvailableStatuses = (currentStatus: string): DemoStatus[] => {
-  //   // 상태 반환 로직
-  // };
-
   // 수정 모달 닫기
   const handleEditModalClose = () => {
     setIsEditModalOpen(false);

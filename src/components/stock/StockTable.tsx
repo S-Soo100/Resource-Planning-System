@@ -29,7 +29,7 @@ export default function StockTable() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading: isUserLoading } = useCurrentUser();
-  const { isAdmin, restrictedWhs } = usePermission();
+  const { isAdmin, accessLevel, restrictedWhs } = usePermission();
   const {
     items,
     warehouses,
@@ -88,7 +88,7 @@ export default function StockTable() {
       .join(", ");
 
     console.log(
-      `[재고관리] ${user.name}(${user.accessLevel}): 허용된 창고: [${accessibleWarehouseNames}] | 제한된 창고: [${restrictedWarehouseNames}]`
+      `[재고관리] ${user.name}(${accessLevel}): 허용된 창고: [${accessibleWarehouseNames}] | 제한된 창고: [${restrictedWarehouseNames}]`
     );
   }
 

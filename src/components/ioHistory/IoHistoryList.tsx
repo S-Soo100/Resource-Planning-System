@@ -49,7 +49,7 @@ type TypeFilter = "all" | "inbound" | "outbound";
 
 export default function IoHistoryList() {
   const { user, isLoading: isUserLoading } = useCurrentUser();
-  const { isAdmin, restrictedWhs } = usePermission();
+  const { isAdmin, isUser: isUserRole, restrictedWhs } = usePermission();
   const { warehouses = [], items, invalidateInventory } = useWarehouseItems();
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
     null
@@ -814,7 +814,7 @@ export default function IoHistoryList() {
       </div>
 
       {/* 입고/출고 버튼 섹션 */}
-      {selectedWarehouseId && user?.accessLevel !== "user" && (
+      {selectedWarehouseId && !isUserRole && (
         <div className="flex justify-end mb-6 space-x-2">
           <Button
             variant="default"

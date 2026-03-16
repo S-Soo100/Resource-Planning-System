@@ -224,11 +224,6 @@ export default function TeamMembers({
                             >
                               {accessLevelLabel(teamLevel)}
                             </span>
-                            {member.isAdmin && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-Error-Container text-Error-Main">
-                                팀 관리자
-                              </span>
-                            )}
                             {member.restrictedWhs && (
                               <span className="text-xs text-Text-Low-70">
                                 창고 제한: {member.restrictedWhs}

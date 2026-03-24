@@ -28,7 +28,7 @@ const DateInfoSection: React.FC<DateInfoSectionProps> = ({
           htmlFor="requestDate"
           className="block mb-2 text-sm font-medium text-gray-700"
         >
-          발주 요청일 <span className="text-red-500">*</span>
+          판매 요청일 <span className="text-red-500">*</span>
         </label>
         <input
           type="date"

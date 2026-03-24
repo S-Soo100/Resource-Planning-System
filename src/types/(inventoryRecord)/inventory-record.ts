@@ -1,6 +1,8 @@
 import { Item } from "../(item)/item";
 import { ApiResponse } from "../common";
 
+export type InboundStatus = "requested" | "completed";
+
 export interface InventoryRecord {
   id: number;
   inboundDate: string | null;
@@ -25,6 +27,10 @@ export interface InventoryRecord {
   user: any | null;
   order: any | null;
   files: any[];
+  // 매입 관련 필드 (v4.0)
+  unitCost?: number | null; // 매입단가
+  totalCost?: number | null; // 매입총액 (unitCost × inboundQuantity)
+  inboundStatus?: InboundStatus | null; // 입고 상태 (null: 레거시)
 }
 
 // // API 응답 구조에 맞는 인터페이스 정의
@@ -79,6 +85,9 @@ export interface CreateInventoryRecordDto {
   warehouseId?: number;
   orderId?: number;
   packageId?: number;
+  // 매입 관련 필드 (v4.0)
+  unitCost?: number; // 매입단가
+  inboundStatus?: InboundStatus; // 입고 상태
 }
 
 export interface UpdateInventoryRecordRequest {

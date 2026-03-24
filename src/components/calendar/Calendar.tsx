@@ -1,27 +1,35 @@
 "use client";
-import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useWeekNavigation } from '@/hooks/calendar/useWeekNavigation';
-import { useMonthNavigation } from '@/hooks/calendar/useMonthNavigation';
-import { useCalendarData } from '@/hooks/calendar/useCalendarData';
-import { useMonthData } from '@/hooks/calendar/useMonthData';
-import { useCurrentTeam } from '@/hooks/useCurrentTeam';
-import { CalendarEvent, OrderEventDetails, DemoEventDetails, ViewMode } from '@/types/calendar/calendar';
-import { formatDateTimeToKorean, formatEventSchedule } from '@/utils/calendar/calendarUtils';
-import { DemoStatus } from '@/types/demo/demo';
-import { OrderStatus } from '@/types/(order)/order';
-import ViewModeToggle from './ViewModeToggle';
-import CalendarNavigation from './CalendarNavigation';
-import MonthNavigation from './MonthNavigation';
-import WeekView from './WeekView';
-import MobileWeekView from './MobileWeekView';
-import MonthView from './MonthView';
-import MobileMonthView from './MobileMonthView';
-import WeeklyMemo from './WeeklyMemo';
-import EventItem from './EventItem';
-import EventFilter from './EventFilter';
-import { FaExclamationCircle } from 'react-icons/fa';
-import { LoadingCentered } from '@/components/ui/Loading';
+import React, { useState, useEffect, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useWeekNavigation } from "@/hooks/calendar/useWeekNavigation";
+import { useMonthNavigation } from "@/hooks/calendar/useMonthNavigation";
+import { useCalendarData } from "@/hooks/calendar/useCalendarData";
+import { useMonthData } from "@/hooks/calendar/useMonthData";
+import { useCurrentTeam } from "@/hooks/useCurrentTeam";
+import {
+  CalendarEvent,
+  OrderEventDetails,
+  DemoEventDetails,
+  ViewMode,
+} from "@/types/calendar/calendar";
+import {
+  formatDateTimeToKorean,
+  formatEventSchedule,
+} from "@/utils/calendar/calendarUtils";
+import { DemoStatus } from "@/types/demo/demo";
+import { OrderStatus } from "@/types/(order)/order";
+import ViewModeToggle from "./ViewModeToggle";
+import CalendarNavigation from "./CalendarNavigation";
+import MonthNavigation from "./MonthNavigation";
+import WeekView from "./WeekView";
+import MobileWeekView from "./MobileWeekView";
+import MonthView from "./MonthView";
+import MobileMonthView from "./MobileMonthView";
+import WeeklyMemo from "./WeeklyMemo";
+import EventItem from "./EventItem";
+import EventFilter from "./EventFilter";
+import { FaExclamationCircle } from "react-icons/fa";
+import { LoadingCentered } from "@/components/ui/Loading";
 
 interface CalendarProps {
   className?: string;
@@ -37,9 +45,10 @@ const EventDetailModal: React.FC<{
 
   const handleEventItemClick = () => {
     // demo면 demoRecord/[id]?teamId=[teamId], order면 orderRecord/[id]?teamId=[teamId]로 이동
-    const path = event.type === 'demo'
-      ? `/demoRecord/${event.id}?teamId=${teamId}`
-      : `/orderRecord/${event.id}?teamId=${teamId}`;
+    const path =
+      event.type === "demo"
+        ? `/demoRecord/${event.id}?teamId=${teamId}`
+        : `/salesRecord/${event.id}?teamId=${teamId}`;
     window.location.href = path;
   };
 
@@ -49,7 +58,7 @@ const EventDetailModal: React.FC<{
         {/* 모달 헤더 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800">
-            {event.type === 'order' ? '발주' : '시연'} 상세정보
+            {event.type === "order" ? "판매" : "시연"} 상세정보
           </h2>
           <button
             onClick={onClose}
@@ -72,34 +81,103 @@ const EventDetailModal: React.FC<{
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="font-medium text-gray-700 mb-3">상세 정보</h3>
 
-            {event.type === 'order' ? (
+            {event.type === "order" ? (
               <div className="space-y-2 text-sm">
-                <div><strong>발주 ID:</strong> #{event.id}</div>
-                <div><strong>신청자:</strong> {(event.details as OrderEventDetails).requester}</div>
-                <div><strong>수신자:</strong> {(event.details as OrderEventDetails).receiver}</div>
-                <div><strong>연락처:</strong> {(event.details as OrderEventDetails).receiverPhone}</div>
-                <div><strong>배송지:</strong> {(event.details as OrderEventDetails).receiverAddress}</div>
-                <div><strong>설치일:</strong> {(event.details as OrderEventDetails).installationDate}</div>
-                <div><strong>업체:</strong> {(event.details as OrderEventDetails).supplierName}</div>
-                <div><strong>패키지:</strong> {(event.details as OrderEventDetails).packageName}</div>
-                <div><strong>창고:</strong> {(event.details as OrderEventDetails).warehouseName}</div>
+                <div>
+                  <strong>발주 ID:</strong> #{event.id}
+                </div>
+                <div>
+                  <strong>신청자:</strong>{" "}
+                  {(event.details as OrderEventDetails).requester}
+                </div>
+                <div>
+                  <strong>수신자:</strong>{" "}
+                  {(event.details as OrderEventDetails).receiver}
+                </div>
+                <div>
+                  <strong>연락처:</strong>{" "}
+                  {(event.details as OrderEventDetails).receiverPhone}
+                </div>
+                <div>
+                  <strong>배송지:</strong>{" "}
+                  {(event.details as OrderEventDetails).receiverAddress}
+                </div>
+                <div>
+                  <strong>설치일:</strong>{" "}
+                  {(event.details as OrderEventDetails).installationDate}
+                </div>
+                <div>
+                  <strong>업체:</strong>{" "}
+                  {(event.details as OrderEventDetails).supplierName}
+                </div>
+                <div>
+                  <strong>패키지:</strong>{" "}
+                  {(event.details as OrderEventDetails).packageName}
+                </div>
+                <div>
+                  <strong>창고:</strong>{" "}
+                  {(event.details as OrderEventDetails).warehouseName}
+                </div>
               </div>
             ) : (
               <div className="space-y-2 text-sm">
-                <div><strong>시연 ID:</strong> #{event.id}</div>
-                <div><strong>신청자:</strong> {(event.details as DemoEventDetails).requester}</div>
-                <div><strong>현지 담당자:</strong> {(event.details as DemoEventDetails).demoManager}</div>
-                <div><strong>담당자 연락처:</strong> {(event.details as DemoEventDetails).demoManagerPhone}</div>
-                <div><strong>시연 물품 배송장소:</strong> {(event.details as DemoEventDetails).demoAddress}</div>
-                <div><strong>물품 상차 일시:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoStartDate, (event.details as DemoEventDetails).demoStartTime, (event.details as DemoEventDetails).demoStartDeliveryMethod)}</div>
-                <div><strong>물품 하차 일시:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).demoEndDate, (event.details as DemoEventDetails).demoEndTime, (event.details as DemoEventDetails).demoEndDeliveryMethod)}</div>
-                <div><strong>창고:</strong> {(event.details as DemoEventDetails).warehouseName}</div>
+                <div>
+                  <strong>시연 ID:</strong> #{event.id}
+                </div>
+                <div>
+                  <strong>신청자:</strong>{" "}
+                  {(event.details as DemoEventDetails).requester}
+                </div>
+                <div>
+                  <strong>현지 담당자:</strong>{" "}
+                  {(event.details as DemoEventDetails).demoManager}
+                </div>
+                <div>
+                  <strong>담당자 연락처:</strong>{" "}
+                  {(event.details as DemoEventDetails).demoManagerPhone}
+                </div>
+                <div>
+                  <strong>시연 물품 배송장소:</strong>{" "}
+                  {(event.details as DemoEventDetails).demoAddress}
+                </div>
+                <div>
+                  <strong>물품 상차 일시:</strong>{" "}
+                  {formatDateTimeToKorean(
+                    (event.details as DemoEventDetails).demoStartDate,
+                    (event.details as DemoEventDetails).demoStartTime,
+                    (event.details as DemoEventDetails).demoStartDeliveryMethod
+                  )}
+                </div>
+                <div>
+                  <strong>물품 하차 일시:</strong>{" "}
+                  {formatDateTimeToKorean(
+                    (event.details as DemoEventDetails).demoEndDate,
+                    (event.details as DemoEventDetails).demoEndTime,
+                    (event.details as DemoEventDetails).demoEndDeliveryMethod
+                  )}
+                </div>
+                <div>
+                  <strong>창고:</strong>{" "}
+                  {(event.details as DemoEventDetails).warehouseName}
+                </div>
                 {(event.details as DemoEventDetails).eventStartDate && (
                   <>
                     <div className="h-px bg-gray-300 my-2" />
-                    <div><strong>행사 시작:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).eventStartDate, (event.details as DemoEventDetails).eventStartTime)}</div>
+                    <div>
+                      <strong>행사 시작:</strong>{" "}
+                      {formatDateTimeToKorean(
+                        (event.details as DemoEventDetails).eventStartDate,
+                        (event.details as DemoEventDetails).eventStartTime
+                      )}
+                    </div>
                     {(event.details as DemoEventDetails).eventEndDate && (
-                      <div><strong>행사 종료:</strong> {formatDateTimeToKorean((event.details as DemoEventDetails).eventEndDate, (event.details as DemoEventDetails).eventEndTime)}</div>
+                      <div>
+                        <strong>행사 종료:</strong>{" "}
+                        {formatDateTimeToKorean(
+                          (event.details as DemoEventDetails).eventEndDate,
+                          (event.details as DemoEventDetails).eventEndTime
+                        )}
+                      </div>
                     )}
                   </>
                 )}
@@ -122,13 +200,19 @@ const EventDetailModal: React.FC<{
   );
 };
 
-const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
+const Calendar: React.FC<CalendarProps> = ({ className = "" }) => {
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    null
+  );
+  const [viewMode, setViewMode] = useState<ViewMode>("month");
 
   // 필터 상태 (초기값: 빈 배열 - 아무것도 선택 안 됨)
-  const [selectedDemoStatuses, setSelectedDemoStatuses] = useState<string[]>([]);
-  const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<string[]>([]);
+  const [selectedDemoStatuses, setSelectedDemoStatuses] = useState<string[]>(
+    []
+  );
+  const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<string[]>(
+    []
+  );
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -160,7 +244,7 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   const monthData = useMonthData(currentMonth);
 
   // 현재 뷰 모드에 따른 데이터 선택
-  const { data, isLoading, error } = viewMode === 'week' ? weekData : monthData;
+  const { data, isLoading, error } = viewMode === "week" ? weekData : monthData;
 
   // 이벤트 필터링
   const filteredEvents = useMemo(() => {
@@ -170,10 +254,10 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
     const noDemoFilter = selectedDemoStatuses.length === 0;
     const noOrderFilter = selectedOrderStatuses.length === 0;
 
-    return data.events.filter(event => {
-      if (event.type === 'demo') {
+    return data.events.filter((event) => {
+      if (event.type === "demo") {
         return noDemoFilter || selectedDemoStatuses.includes(event.status);
-      } else if (event.type === 'order') {
+      } else if (event.type === "order") {
         return noOrderFilter || selectedOrderStatuses.includes(event.status);
       }
       return true;
@@ -182,8 +266,8 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
 
   // URL 쿼리 파라미터에서 모달 정보 읽기
   useEffect(() => {
-    const eventType = searchParams.get('eventType');
-    const eventId = searchParams.get('eventId');
+    const eventType = searchParams.get("eventType");
+    const eventId = searchParams.get("eventId");
 
     if (eventType && eventId) {
       // 쿼리 파라미터가 있을 때
@@ -192,7 +276,12 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
           (e) => e.type === eventType && e.id === Number(eventId)
         );
         // 현재 선택된 이벤트와 다를 때만 업데이트
-        if (event && (!selectedEvent || selectedEvent.id !== event.id || selectedEvent.type !== event.type)) {
+        if (
+          event &&
+          (!selectedEvent ||
+            selectedEvent.id !== event.id ||
+            selectedEvent.type !== event.type)
+        ) {
           setSelectedEvent(event);
         }
       }
@@ -207,16 +296,16 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   // 이벤트 클릭 핸들러 - URL에 쿼리 추가
   const handleEventClick = (event: CalendarEvent) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set('eventType', event.type);
-    params.set('eventId', event.id.toString());
+    params.set("eventType", event.type);
+    params.set("eventId", event.id.toString());
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
   // 모달 닫기 핸들러 - URL 쿼리 제거
   const handleCloseModal = () => {
     const params = new URLSearchParams(searchParams.toString());
-    params.delete('eventType');
-    params.delete('eventId');
+    params.delete("eventType");
+    params.delete("eventId");
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
@@ -227,7 +316,7 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
 
   // 오늘로 가기 핸들러 (현재 뷰 모드에 따라)
   const handleGoToToday = () => {
-    if (viewMode === 'week') {
+    if (viewMode === "week") {
       goToTodayWeek();
     } else {
       goToTodayMonth();
@@ -237,7 +326,9 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   // 로딩 상태
   if (isLoading) {
     return (
-      <div className={`flex items-center justify-center min-h-[400px] ${className}`}>
+      <div
+        className={`flex items-center justify-center min-h-[400px] ${className}`}
+      >
         <div className="text-center">
           <LoadingCentered size="lg" />
           <p className="mt-4 text-gray-600">캘린더 데이터를 불러오는 중...</p>
@@ -249,10 +340,14 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
   // 에러 상태
   if (error) {
     return (
-      <div className={`flex items-center justify-center min-h-[400px] ${className}`}>
+      <div
+        className={`flex items-center justify-center min-h-[400px] ${className}`}
+      >
         <div className="text-center">
           <FaExclamationCircle className="text-4xl text-red-400 mx-auto mb-4" />
-          <p className="text-red-600 mb-2">캘린더 데이터를 불러오는데 실패했습니다</p>
+          <p className="text-red-600 mb-2">
+            캘린더 데이터를 불러오는데 실패했습니다
+          </p>
           <p className="text-gray-500 text-sm">잠시 후 다시 시도해주세요</p>
         </div>
       </div>
@@ -278,7 +373,7 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
       />
 
       {/* 네비게이션 */}
-      {viewMode === 'week' ? (
+      {viewMode === "week" ? (
         <CalendarNavigation
           weekInfo={currentWeek}
           onPreviousWeek={goToPreviousWeek}
@@ -300,16 +395,20 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
       <div className="flex justify-center gap-4 md:gap-8 mb-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-500 rounded"></div>
-          <span className="text-xs md:text-sm font-medium text-gray-700">발주 일정</span>
+          <span className="text-xs md:text-sm font-medium text-gray-700">
+            판매 일정
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 md:w-4 md:h-4 bg-purple-500 rounded"></div>
-          <span className="text-xs md:text-sm font-medium text-gray-700">시연 일정</span>
+          <span className="text-xs md:text-sm font-medium text-gray-700">
+            시연 일정
+          </span>
         </div>
       </div>
 
       {/* 캘린더 뷰 - 뷰 모드에 따라 조건부 렌더링 */}
-      {viewMode === 'week' ? (
+      {viewMode === "week" ? (
         <>
           {/* 주간 뷰 - 반응형 */}
           {/* 데스크톱 뷰 (md 이상) */}
@@ -331,9 +430,7 @@ const Calendar: React.FC<CalendarProps> = ({ className = '' }) => {
           </div>
 
           {/* 주별 메모 */}
-          <WeeklyMemo
-            weekInfo={currentWeek}
-          />
+          <WeeklyMemo weekInfo={currentWeek} />
         </>
       ) : (
         <>

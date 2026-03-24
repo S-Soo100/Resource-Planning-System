@@ -79,7 +79,7 @@ export function SupplierSalesTab({
                 No
               </th>
               <th className="px-5 py-3.5 text-left text-sm font-medium text-Text-High-90 whitespace-nowrap">
-                발주일자
+                판매일자
               </th>
               <th className="px-5 py-3.5 text-left text-sm font-medium text-Text-High-90 whitespace-nowrap">
                 제목
@@ -117,7 +117,7 @@ export function SupplierSalesTab({
                 </td>
                 <td className="px-5 py-4 text-sm font-medium max-w-[200px]">
                   <Link
-                    href={`/orderRecord/${record.id}`}
+                    href={`/salesRecord/${record.id}`}
                     className="text-blue-600 hover:text-blue-800 hover:underline truncate block transition-colors"
                   >
                     {record.title}
@@ -179,7 +179,7 @@ export function SupplierSalesTab({
       {filteredRecords.map((record, index) => (
         <Link
           key={record.id}
-          href={`/orderRecord/${record.id}`}
+          href={`/salesRecord/${record.id}`}
           className="block bg-white border border-Outline-Variant rounded-xl p-4 hover:shadow-md hover:border-blue-300 transition-all active:scale-[0.99]"
         >
           {/* 헤더 */}

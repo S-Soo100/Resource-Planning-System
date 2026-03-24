@@ -1,6 +1,10 @@
 import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { inventoryRecordApi, updateInventoryRecord } from "../api/inventory-record-api";
+import {
+  inventoryRecordApi,
+  updateInventoryRecord,
+  updateInboundStatus,
+} from "../api/inventory-record-api";
 import {
   CreateInventoryRecordDto,
   InventoryRecord,
@@ -128,5 +132,57 @@ export function useUpdateInventoryRecord() {
     updateInventoryRecordAsync: mutation.mutateAsync,
     isUpdating: mutation.isPending,
     ...mutation,
+  };
+}
+
+// 입고 상태 변경 mutation 훅 (v4.0)
+export function useUpdateInboundStatus() {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation<
+    ApiResponse<InventoryRecord>,
+    Error,
+    { id: number }
+  >({
+    mutationFn: ({ id }) => updateInboundStatus(id, "completed"),
+    onSuccess: (response) => {
+      if (response.success) {
+        toast.success("입고가 완료 처리되었습니다.");
+
+        // 입출고 기록 캐시 무효화
+        queryClient.invalidateQueries({
+          queryKey: ["inventoryRecordsByTeam"],
+        });
+        // 품목 평균원가 갱신 반영
+        queryClient.invalidateQueries({
+          queryKey: ["teamItems"],
+        });
+        // 마진 분석 갱신 반영
+        queryClient.invalidateQueries({
+          queryKey: ["margin-analysis"],
+        });
+        // 재고 현황 캐시 무효화 (창고별 아이템 목록)
+        queryClient.invalidateQueries({
+          queryKey: ["team"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["allWarehouses"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["items", "warehouse"],
+        });
+      } else {
+        toast.error(response.error || "입고 상태 변경 중 오류가 발생했습니다.");
+      }
+    },
+    onError: () => {
+      toast.error("입고 상태 변경 중 오류가 발생했습니다.");
+    },
+  });
+
+  return {
+    updateInboundStatus: mutation.mutate,
+    updateInboundStatusAsync: mutation.mutateAsync,
+    isUpdatingInboundStatus: mutation.isPending,
   };
 }

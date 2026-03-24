@@ -35,7 +35,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
         * 파일 크기는 최대 50MB까지 업로드 가능합니다.
       </div>
       <div className="mb-3 text-xs text-red-600">
-        * 발주서, 견적서 등 필요증빙 필수 첨부
+        * 견적서 등 필요증빙 필수 첨부
       </div>
       <div
         onClick={() => selectedFiles.current?.click()}
@@ -83,12 +83,12 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
                 className="flex justify-between items-center p-2 bg-white rounded border"
               >
                 <div className="flex-1 min-w-0">
-                                  <div
-                  className="text-sm truncate"
-                  title={getDisplayFileName(file.name)}
-                >
-                  {getDisplayFileName(file.name)}
-                </div>
+                  <div
+                    className="text-sm truncate"
+                    title={getDisplayFileName(file.name)}
+                  >
+                    {getDisplayFileName(file.name)}
+                  </div>
                   <div className="text-xs text-gray-500">
                     {formatFileSize(file.size)}
                   </div>

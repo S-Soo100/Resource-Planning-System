@@ -31,7 +31,7 @@ export const SalesSummary = ({ summary }: SalesSummaryProps) => {
             summary.demoCount !== undefined &&
             summary.demoCount > 0 && (
               <div className="text-xs text-gray-500 mt-1">
-                발주 {summary.orderCount}건 / 시연 {summary.demoCount}건
+                판매 {summary.orderCount}건 / 시연 {summary.demoCount}건
               </div>
             )}
         </div>

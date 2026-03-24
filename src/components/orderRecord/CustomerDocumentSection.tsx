@@ -72,7 +72,7 @@ export default function CustomerDocumentSection({
       <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
         <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
           <FolderOpen className="w-5 h-5 text-gray-500" />
-          고객 서류
+          판매대상 서류
         </h2>
         <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <Info className="w-5 h-5 text-blue-500 flex-shrink-0" />
@@ -139,7 +139,7 @@ export default function CustomerDocumentSection({
     <div className="p-6 mb-6 bg-white rounded-lg border border-gray-200 shadow-sm">
       <h2 className="flex gap-2 items-center mb-4 text-lg font-semibold text-gray-900">
         <FolderOpen className="w-5 h-5 text-gray-500" />
-        고객 서류 ({documents.length})
+        판매대상 서류 ({documents.length})
       </h2>
 
       {/* 업로드 영역 */}

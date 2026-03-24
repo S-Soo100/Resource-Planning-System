@@ -5,6 +5,7 @@ import { formatDateForDisplayUTC } from "@/utils/dateUtils";
 import { InventoryRecord } from "@/types/(inventoryRecord)/inventory";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { getRecordPurposeLabel } from "@/constants/recordPurpose";
+import { usePermission } from "@/hooks/usePermission";
 
 interface FileInfo {
   fileName: string;
@@ -36,6 +37,7 @@ export default function InventoryRecordDetail({
   record,
 }: InventoryRecordDetailProps) {
   const { warehouses } = useWarehouseItems();
+  const { canViewCostPrice } = usePermission();
   const warehouse = warehouses.find((w) => w.id === record.item?.warehouseId);
 
   return (
@@ -107,6 +109,54 @@ export default function InventoryRecordDetail({
                   {record.inboundQuantity ?? record.outboundQuantity ?? "-"}
                 </span>
               </div>
+              {/* 매입 정보 (입고 레코드 + 권한 있을 때만) */}
+              {record.inboundQuantity != null && canViewCostPrice && (
+                <>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 min-w-0 flex-shrink-0">
+                      매입단가
+                    </span>
+                    <span className="font-medium ml-4">
+                      {record.unitCost != null
+                        ? `${record.unitCost.toLocaleString()}원`
+                        : "-"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <span className="text-gray-600 min-w-0 flex-shrink-0">
+                      매입총액
+                    </span>
+                    <span className="font-medium ml-4">
+                      {record.totalCost != null
+                        ? `${record.totalCost.toLocaleString()}원`
+                        : "-"}
+                    </span>
+                  </div>
+                </>
+              )}
+              {/* 입고 상태 (입고 레코드일 때만) */}
+              {record.inboundQuantity != null && (
+                <div className="flex justify-between items-start">
+                  <span className="text-gray-600 min-w-0 flex-shrink-0">
+                    입고 상태
+                  </span>
+                  <span className="font-medium ml-4">
+                    {record.inboundStatus === "requested" ? (
+                      <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                        입고요청
+                      </span>
+                    ) : record.inboundStatus === "completed" ? (
+                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        입고완료
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                        완료(레거시)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <div className="p-3">
@@ -125,11 +175,15 @@ export default function InventoryRecordDetail({
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="text-gray-600">입고일</div>
               <div className="font-medium">
-                {record.inboundDate ? formatDateForDisplayUTC(record.inboundDate) : "-"}
+                {record.inboundDate
+                  ? formatDateForDisplayUTC(record.inboundDate)
+                  : "-"}
               </div>
               <div className="text-gray-600">출고일</div>
               <div className="font-medium">
-                {record.outboundDate ? formatDateForDisplayUTC(record.outboundDate) : "-"}
+                {record.outboundDate
+                  ? formatDateForDisplayUTC(record.outboundDate)
+                  : "-"}
               </div>
             </div>
           </div>
@@ -183,9 +237,9 @@ export default function InventoryRecordDetail({
                   </svg>
                   <span
                     className="text-sm text-gray-800 truncate max-w-xs"
-                                                title={getDisplayFileName(file.fileName)}
-                          >
-                            {getDisplayFileName(file.fileName)}
+                    title={getDisplayFileName(file.fileName)}
+                  >
+                    {getDisplayFileName(file.fileName)}
                   </span>
                   {file.size && (
                     <span className="text-xs text-gray-500 ml-2">

@@ -49,7 +49,9 @@ export function SupplierDetailHeader({ supplier }: SupplierDetailHeaderProps) {
                 );
               })()}
             </div>
-            <p className="text-sm text-Text-Low-70 mt-0.5">고객 상세 정보</p>
+            <p className="text-sm text-Text-Low-70 mt-0.5">
+              판매대상 상세 정보
+            </p>
           </div>
         </div>
 

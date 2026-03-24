@@ -7,6 +7,7 @@ import {
   getCustomerTypeBadge,
   getRecipientBadge,
 } from "@/utils/customerFieldUtils";
+import { SupplierContext, getSupplierLabel } from "@/constants/labelContext";
 
 interface SelectSupplierModalProps {
   isOpen: boolean;
@@ -15,7 +16,8 @@ interface SelectSupplierModalProps {
   onSelect: (supplier: Supplier) => void;
   selectedSupplierId?: number | null;
   focusRingColor?: string;
-  onAddSupplier?: () => void; // 고객 추가 버튼 핸들러
+  onAddSupplier?: () => void; // 판매대상 추가 버튼 핸들러
+  context?: SupplierContext; // 화면 맥락에 따른 라벨 변경
 }
 
 const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
@@ -26,7 +28,9 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
   selectedSupplierId,
   focusRingColor = "blue",
   onAddSupplier,
+  context,
 }) => {
+  const label = getSupplierLabel(context);
   const [searchTerm, setSearchTerm] = useState("");
 
   const focusRingClass =
@@ -78,7 +82,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
   if (!isOpen) return null;
 
   const handleSelect = (supplier: Supplier) => {
-    // 고객 클릭 시 바로 선택하고 모달 닫기
+    // 클릭 시 바로 선택하고 모달 닫기
     onSelect(supplier);
     onClose();
   };
@@ -89,9 +93,9 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
         {/* 헤더 */}
         <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-gray-50 to-gray-100">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-800">고객 선택</h2>
+            <h2 className="text-2xl font-bold text-gray-800">{label} 선택</h2>
             <p className="mt-1 text-sm text-gray-600">
-              발주할 고객을 선택해주세요
+              {label}을(를) 선택해주세요
             </p>
           </div>
           <button
@@ -112,7 +116,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
             />
             <input
               type="text"
-              placeholder="고객명, 전화번호, 주소로 검색..."
+              placeholder={`${label}명, 전화번호, 주소로 검색...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 ${focusRingClass} focus:border-transparent`}
@@ -121,7 +125,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
           </div>
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <p className="text-xs text-gray-500">
-              {filteredSuppliers.length}개의 고객
+              {filteredSuppliers.length}개의 {label}
             </p>
             <div className="flex gap-1 ml-auto">
               {(["all", "b2c", "b2b", "recipient", "none"] as const).map(
@@ -153,9 +157,9 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
           </div>
         </div>
 
-        {/* 고객 목록 */}
+        {/* {label} 목록 */}
         <div className="overflow-y-auto max-h-[calc(90vh-240px)] p-6">
-          {/* 새 고객 등록 버튼 */}
+          {/* 새 {label} 등록 버튼 */}
           {onAddSupplier && (
             <button
               onClick={onAddSupplier}
@@ -181,11 +185,11 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
                       : "text-blue-700"
                   }`}
                 >
-                  새 고객 등록
+                  새 {label} 등록
                 </span>
               </div>
               <p className="mt-2 text-sm text-gray-600">
-                등록된 고객 목록에 없다면 새로 추가하세요
+                등록된 {label} 목록에 없다면 새로 추가하세요
               </p>
             </button>
           )}
@@ -194,12 +198,14 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
             <div className="py-16 text-center">
               <Building2 className="mx-auto mb-4 text-gray-300" size={64} />
               <p className="text-lg font-medium text-gray-600">
-                {searchTerm ? "검색 결과가 없습니다" : "등록된 고객이 없습니다"}
+                {searchTerm
+                  ? "검색 결과가 없습니다"
+                  : `등록된 ${label}이(가) 없습니다`}
               </p>
               <p className="mt-2 text-sm text-gray-500">
                 {searchTerm
                   ? "다른 검색어로 시도해보세요"
-                  : "새 고객을 등록해주세요"}
+                  : `새 ${label}을(를) 등록해주세요`}
               </p>
             </div>
           ) : (
@@ -297,7 +303,7 @@ const SelectSupplierModal: React.FC<SelectSupplierModalProps> = ({
         {/* 푸터 */}
         <div className="flex justify-between items-center p-6 border-t bg-gray-50">
           <p className="text-sm text-gray-600">
-            💡 고객을 클릭하면 바로 선택됩니다
+            {`💡 ${label}을(를) 클릭하면 바로 선택됩니다`}
           </p>
           <button
             onClick={onClose}

@@ -16,6 +16,7 @@ interface UsePermissionReturn {
   isAdminOrModerator: boolean;
   canEditPrice: boolean;
   canApproveOrder: boolean;
+  canApproveInbound: boolean;
   canDeleteRecord: boolean;
   canViewMargin: boolean;
   canViewCostPrice: boolean;
@@ -65,6 +66,7 @@ export function usePermission(): UsePermissionReturn {
     isAdminOrModerator,
     canEditPrice: isAdminOrModerator,
     canApproveOrder: isAdminOrModerator,
+    canApproveInbound: isAdminOrModerator, // 입고완료 전환: moderator+ (v4.0)
     canDeleteRecord: isAdmin,
     canViewMargin: isAdminOrModerator,
     canViewCostPrice: isAdminOrModerator,

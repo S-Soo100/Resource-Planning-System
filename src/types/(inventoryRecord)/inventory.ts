@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Item } from "../(item)/item";
 
 export interface InventoryRecord {
@@ -25,4 +24,8 @@ export interface InventoryRecord {
   user: any | null;
   order: any | null;
   files: any[];
+  // 매입 관련 필드 (v4.0)
+  unitCost?: number | null;
+  totalCost?: number | null;
+  inboundStatus?: "requested" | "completed" | null;
 }

@@ -220,6 +220,16 @@ const DemoEditModal: React.FC<DemoEditModalProps> = ({
                 itemName: typeof t.itemName === "string" ? t.itemName : "",
                 memo: typeof t.memo === "string" ? t.memo : "",
                 teamId: typeof t.teamId === "number" ? t.teamId : 0,
+                isNotifiedPrice:
+                  typeof t.isNotifiedPrice === "boolean"
+                    ? t.isNotifiedPrice
+                    : false,
+                isHealthInsuranceRegistered:
+                  typeof t.isHealthInsuranceRegistered === "boolean"
+                    ? t.isHealthInsuranceRegistered
+                    : false,
+                isService:
+                  typeof t.isService === "boolean" ? t.isService : false,
                 category:
                   t.category &&
                   typeof t.category === "object" &&

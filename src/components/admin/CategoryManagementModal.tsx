@@ -8,13 +8,8 @@ import {
   CreateCategoryDto,
   UpdateCategoryDto,
   UpdateCategoryPriorityDto,
+  Category,
 } from "@/types/(item)/category";
-
-interface Category {
-  id: number;
-  name: string;
-  priority: number;
-}
 
 interface CategoryManagementModalProps {
   isOpen: boolean;
@@ -27,10 +22,12 @@ interface CategoryManagementModalProps {
 interface CategoryFormData {
   name: string;
   priority: number;
+  parentId: number | null;
 }
 
 export interface CategoryManagementModalRef {
   openEditMode: (category: Category) => void;
+  openAddChildMode: (parentId: number) => void;
 }
 
 const CategoryManagementModal = React.forwardRef<
@@ -44,6 +41,7 @@ const CategoryManagementModal = React.forwardRef<
   const [formData, setFormData] = useState<CategoryFormData>({
     name: "",
     priority: 0,
+    parentId: null,
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -64,6 +62,7 @@ const CategoryManagementModal = React.forwardRef<
       setFormData({
         name: "",
         priority: nextPriority,
+        parentId: null,
       });
       setSubmitError(null);
     }
@@ -74,6 +73,14 @@ const CategoryManagementModal = React.forwardRef<
     setFormData((prev) => ({
       ...prev,
       [name]: name === "priority" ? parseInt(value, 10) || 0 : value,
+    }));
+  };
+
+  const handleParentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = parseInt(e.target.value, 10);
+    setFormData((prev) => ({
+      ...prev,
+      parentId: value === 0 ? null : value,
     }));
   };
 
@@ -134,8 +141,10 @@ const CategoryManagementModal = React.forwardRef<
       } else {
         // 추가 모드
         const categoryDto: CreateCategoryDto = {
-          ...formData,
+          name: formData.name,
+          priority: formData.priority,
           teamId: teamId,
+          ...(formData.parentId ? { parentId: formData.parentId } : {}),
         };
 
         const result = await createCategory(categoryDto);
@@ -156,19 +165,24 @@ const CategoryManagementModal = React.forwardRef<
         }
       }
     } catch (error) {
-      console.error(
-        isEditMode ? "카테고리 수정 오류:" : "카테고리 생성 오류:",
-        error
-      );
       const errorMessage = isEditMode
         ? "카테고리 수정 중 오류가 발생했습니다."
         : "카테고리 생성 중 오류가 발생했습니다.";
 
-      setSubmitError(errorMessage);
-      toast.error(
-        isEditMode ? "카테고리 수정 실패" : "카테고리 생성 실패",
-        errorMessage
-      );
+      // 자식 존재 시 백엔드 400 에러 처리
+      if (error instanceof Error && error.message) {
+        setSubmitError(error.message);
+        toast.error(
+          isEditMode ? "카테고리 수정 실패" : "카테고리 생성 실패",
+          error.message
+        );
+      } else {
+        setSubmitError(errorMessage);
+        toast.error(
+          isEditMode ? "카테고리 수정 실패" : "카테고리 생성 실패",
+          errorMessage
+        );
+      }
     } finally {
       setSubmitLoading(false);
     }
@@ -188,19 +202,58 @@ const CategoryManagementModal = React.forwardRef<
     setFormData({
       name: category.name,
       priority: category.priority,
+      parentId: category.parentId ?? null,
+    });
+    setSubmitError(null);
+  };
+
+  // 외부에서 자식 카테고리 추가 모드로 열기
+  const openAddChildMode = (parentId: number) => {
+    setIsEditMode(false);
+    setCurrentEditCategoryId(null);
+
+    const nextPriority =
+      categories.length > 0
+        ? Math.max(...categories.map((c) => c.priority)) + 1
+        : 1;
+
+    setFormData({
+      name: "",
+      priority: nextPriority,
+      parentId: parentId,
     });
     setSubmitError(null);
   };
 
   React.useImperativeHandle(ref, () => ({
     openEditMode,
+    openAddChildMode,
   }));
+
+  // 부모 카테고리 후보 목록 (최상위 카테고리만 + 편집 중인 카테고리 자신 제외)
+  const parentCandidates = categories.filter((c) => {
+    // 자식이 아닌 최상위 카테고리만
+    if (c.parentId) return false;
+    // 편집 모드에서 자기 자신 제외
+    if (isEditMode && c.id === currentEditCategoryId) return false;
+    return true;
+  });
+
+  const parentCategoryName = formData.parentId
+    ? categories.find((c) => c.id === formData.parentId)?.name
+    : null;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={isEditMode ? "카테고리 수정" : "새 카테고리 추가"}
+      title={
+        isEditMode
+          ? "카테고리 수정"
+          : formData.parentId
+            ? `자식 카테고리 추가 (${parentCategoryName ?? ""})`
+            : "새 카테고리 추가"
+      }
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -231,6 +284,30 @@ const CategoryManagementModal = React.forwardRef<
             helperText="낮은 숫자일수록 높은 우선순위입니다"
           />
         </div>
+
+        {/* 부모 카테고리 선택 (추가 모드에서만, 수정 모드에서는 부모 변경 지원 안 함) */}
+        {!isEditMode && (
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              부모 카테고리
+            </label>
+            <select
+              value={formData.parentId || 0}
+              onChange={handleParentChange}
+              className="w-full px-3 py-2 transition-colors border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value={0}>없음 (최상위 카테고리)</option>
+              {parentCandidates.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              선택하면 해당 카테고리의 하위 카테고리로 생성됩니다.
+            </p>
+          </div>
+        )}
 
         {submitError && !submitError?.includes("카테고리 이름") && (
           <div className="flex items-start p-3 text-red-700 border border-red-200 rounded-md bg-red-50">

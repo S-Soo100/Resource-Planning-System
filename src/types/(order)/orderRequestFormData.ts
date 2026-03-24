@@ -35,6 +35,11 @@ export type OrderItemWithDetails = {
   // 자동 계산되는 필드 (백엔드 전송용)
   sellingPrice?: string; // 주문 품목 판매가 (공급가액, 자동 계산)
   vat?: string; // 주문 품목 세금 (부가세, 자동 계산)
+
+  // v4.0: 시리얼코드
+  serialCode1?: string;
+  serialCode2?: string;
+  serialCode3?: string;
 };
 
 export interface OrderRequestFormProps {

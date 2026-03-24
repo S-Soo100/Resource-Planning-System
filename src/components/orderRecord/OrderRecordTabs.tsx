@@ -36,6 +36,7 @@ import {
   formatDateForDisplayUTC,
 } from "@/utils/dateUtils";
 import OrderRecordTable from "./OrderRecordTable";
+import SerialCodeSearchModal from "./SerialCodeSearchModal";
 import { LoadingCentered, LoadingInline } from "@/components/ui/Loading";
 
 // 사용자 접근 레벨 타입 추가
@@ -153,6 +154,7 @@ const OrderRecordTabs = () => {
   const [userAccessLevel, setUserAccessLevel] =
     useState<UserAccessLevel>("user");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSerialSearchOpen, setIsSerialSearchOpen] = useState(false);
   const [selectedOrderForEdit, setSelectedOrderForEdit] =
     useState<IOrderRecord | null>(null);
   const [errorModal, setErrorModal] = useState<{
@@ -228,7 +230,7 @@ const OrderRecordTabs = () => {
     }
   }, [permissionIsAdmin, isAdminOrModerator, permissionIsSupplier]);
 
-  // URL 파라미터에서 orderId를 읽어서 해당 발주를 자동으로 확장
+  // URL 파라미터에서 orderId를 읽어서 해당 판매를 자동으로 확장
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const orderIdParam = urlParams.get("orderId");
@@ -316,7 +318,7 @@ const OrderRecordTabs = () => {
   // 현재 탭에 맞게 필터링된 주문 기록
   const orderRecords = useMemo(() => {
     if (activeTab === "user" && userId) {
-      // '내 발주 기록' 탭인 경우 전체 데이터에서 현재 사용자의 주문만 필터링
+      // '내 판매 기록' 탭인 경우 전체 데이터에서 현재 사용자의 주문만 필터링
       const userIdNum = parseInt(userId);
       // console.log(
       //   `현재 사용자 ID(숫자): ${userIdNum}, 타입: ${typeof userIdNum}`
@@ -402,7 +404,7 @@ const OrderRecordTabs = () => {
           order.warehouseId
         );
         if (!warehouseAccessible) {
-          return false; // 접근 불가능한 창고의 발주는 필터링
+          return false; // 접근 불가능한 창고의 판매는 필터링
         }
       }
 
@@ -583,7 +585,7 @@ const OrderRecordTabs = () => {
   // 행 클릭 핸들러 - 상세 페이지로 이동
   const handleRowClick = (recordId: number) => {
     const teamId = currentTeamId;
-    const url = `/orderRecord/${recordId}?teamId=${teamId}`;
+    const url = `/salesRecord/${recordId}?teamId=${teamId}`;
     window.location.href = url;
   };
 
@@ -629,7 +631,7 @@ const OrderRecordTabs = () => {
     orderId: number,
     newStatus: OrderStatus
   ) => {
-    // moderator 권한 사용자가 본인이 생성한 발주를 승인/반려하려고 할 때 제한
+    // moderator 권한 사용자가 본인이 생성한 판매를 승인/반려하려고 할 때 제한
     if (userAccessLevel === "moderator") {
       const currentOrder = currentRecords.find(
         (record) => record.id === orderId
@@ -826,7 +828,7 @@ const OrderRecordTabs = () => {
     // admin인 경우 상태에 상관없이 수정 가능
     if (permissionIsAdmin) return true;
 
-    // 일반 사용자는 자신이 작성한 requested 상태의 발주만 수정 가능
+    // 일반 사용자는 자신이 작성한 requested 상태의 판매만 수정 가능
     const isAuthor = record.userId === auth.id;
     const isRequestedStatus = record.status === OrderStatus.requested;
     return isAuthor && isRequestedStatus;
@@ -844,11 +846,11 @@ const OrderRecordTabs = () => {
     setSelectedOrderForEdit(null);
   };
 
-  // 발주 삭제 핸들러 - 확장 기능 제거로 인해 주석 처리
+  // 판매 삭제 핸들러 - 확장 기능 제거로 인해 주석 처리
   // const handleDeleteOrder = async (record: IOrderRecord) => {
   //   if (
   //     !confirm(
-  //       `발주 건을 삭제하시겠습니까?\n\n발주자: ${record.requester}\n수령자: ${
+  //       `판매 건을 삭제하시겠습니까?\n\n발주자: ${record.requester}\n수령자: ${
   //         record.receiver
   //       }\n상태: ${getStatusText(record.status)}`
   //     )
@@ -858,10 +860,10 @@ const OrderRecordTabs = () => {
 
   //   try {
   //     await deleteOrderMutation.mutateAsync(record.id.toString());
-  //     toast.success("발주가 삭제되었습니다.");
+  //     toast.success("판매가 삭제되었습니다.");
   //   } catch (error) {
-  //     toast.error("발주 삭제에 실패했습니다.");
-  //     console.error("발주 삭제 오류:", error);
+  //     toast.error("판매 삭제에 실패했습니다.");
+  //     console.error("판매 삭제 오류:", error);
   //   }
   // };
 
@@ -952,20 +954,20 @@ const OrderRecordTabs = () => {
   //         >
   //           {/* 권한에 따라 다른 선택지 표시 */}
   //           {userAccessLevel === "moderator" ? (
-  //             // Moderator: 요청, 승인, 반려만 가능 (단, 본인 발주는 승인/반려 불가)
+  //             // Moderator: 요청, 승인, 반려만 가능 (단, 본인 판매는 승인/반려 불가)
   //             <>
   //               <option value={OrderStatus.requested}>요청</option>
   //               <option
   //                 value={OrderStatus.approved}
   //                 disabled={record.userId === auth?.id}
   //               >
-  //                 승인{record.userId === auth?.id ? " (본인 발주)" : ""}
+  //                 승인{record.userId === auth?.id ? " (본인 판매)" : ""}
   //               </option>
   //               <option
   //                 value={OrderStatus.rejected}
   //                 disabled={record.userId === auth?.id}
   //               >
-  //                 반려{record.userId === auth?.id ? " (본인 발주)" : ""}
+  //                 반려{record.userId === auth?.id ? " (본인 판매)" : ""}
   //               </option>
   //             </>
   //           ) : userAccessLevel === "admin" ? (
@@ -1008,13 +1010,13 @@ const OrderRecordTabs = () => {
 
   // 탭 버튼 렌더링
   const renderTabs = () => {
-    // supplier인 경우 '내 발주 기록' 탭만 표시
+    // supplier인 경우 '내 판매 기록' 탭만 표시
     if (userAccessLevel === "supplier") {
       return (
         <div className="flex p-1.5 mb-4 sm:mb-6 bg-Back-Mid-20 rounded-2xl shadow-inner">
           <div className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium bg-white text-Primary-Main shadow-md">
             <User size={16} />
-            <span className="whitespace-nowrap">내 발주 기록</span>
+            <span className="whitespace-nowrap">내 판매 기록</span>
           </div>
         </div>
       );
@@ -1025,7 +1027,7 @@ const OrderRecordTabs = () => {
       <div className="flex p-1.5 mb-4 sm:mb-6 bg-Back-Mid-20 rounded-2xl shadow-inner">
         {[
           { id: "all" as TabType, label: "전체", icon: <Package size={15} /> },
-          { id: "user" as TabType, label: "내 발주", icon: <User size={15} /> },
+          { id: "user" as TabType, label: "내 판매", icon: <User size={15} /> },
           {
             id: "supplier" as TabType,
             label: "납품처별",
@@ -1129,21 +1131,31 @@ const OrderRecordTabs = () => {
             </button> */}
             <h1 className="flex items-center text-base font-bold text-gray-800 sm:text-2xl">
               <Package className="mr-1 w-4 h-4 text-blue-600 sm:mr-2 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">발주 기록 관리</span>
-              <span className="sm:hidden">발주 기록</span>
+              <span className="hidden sm:inline">판매 기록 관리</span>
+              <span className="sm:hidden">판매 기록</span>
             </h1>
           </div>
-          <button
-            onClick={handleRefresh}
-            className="mt-2 md:mt-0 px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center text-xs sm:text-sm transition-colors"
-          >
-            <RefreshCw
-              size={14}
-              className={`mr-1 ${isRefreshing ? "animate-spin" : ""}`}
-            />
-            <span className="hidden sm:inline">새로고침</span>
-            <span className="sm:hidden">새로고침</span>
-          </button>
+          <div className="flex gap-2 mt-2 md:mt-0">
+            <button
+              onClick={() => setIsSerialSearchOpen(true)}
+              className="px-2 sm:px-4 py-1.5 sm:py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full flex items-center text-xs sm:text-sm transition-colors border border-blue-200"
+            >
+              <Search size={14} className="mr-1" />
+              <span className="hidden sm:inline">시리얼 검색</span>
+              <span className="sm:hidden">S/N</span>
+            </button>
+            <button
+              onClick={handleRefresh}
+              className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center text-xs sm:text-sm transition-colors"
+            >
+              <RefreshCw
+                size={14}
+                className={`mr-1 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+              <span className="hidden sm:inline">새로고침</span>
+              <span className="sm:hidden">새로고침</span>
+            </button>
+          </div>
         </div>
 
         {/* 기존 탭 버튼 (최상위 탭) */}
@@ -1200,7 +1212,7 @@ const OrderRecordTabs = () => {
           {activeTab === "user" && (
             <div className="flex items-center px-3 py-2 text-sm font-medium text-blue-800 bg-blue-100 rounded-lg">
               <User size={16} className="mr-2" />
-              {authStore.getState().user?.name || "사용자"}님의 발주
+              {authStore.getState().user?.name || "사용자"}님의 판매
             </div>
           )}
 
@@ -1250,7 +1262,7 @@ const OrderRecordTabs = () => {
             onEditClick={handleEditClick}
             onDetailClick={(record) => {
               const teamId = currentTeamId;
-              const url = `/orderRecord/${record.id}?teamId=${teamId}`;
+              const url = `/salesRecord/${record.id}?teamId=${teamId}`;
               window.location.href = url;
             }}
             // 상태 변경 관련 props 추가
@@ -1313,6 +1325,12 @@ const OrderRecordTabs = () => {
           </div>
         )}
       </div>
+
+      {/* 시리얼코드 검색 모달 (v4.0) */}
+      <SerialCodeSearchModal
+        isOpen={isSerialSearchOpen}
+        onClose={() => setIsSerialSearchOpen(false)}
+      />
 
       {/* 주문 수정 모달 */}
       <OrderEditModal

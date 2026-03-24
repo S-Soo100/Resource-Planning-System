@@ -549,7 +549,7 @@ export default function PacakgePage() {
               패키지 관리
             </h1>
             <p className="text-sm text-Text-Low-70 mt-0.5">
-              자주 사용하는 품목 묶음을 패키지로 저장하고 발주 시 빠르게
+              자주 사용하는 품목 묶음을 패키지로 저장하고 판매 시 빠르게
               활용하세요
             </p>
           </div>
@@ -574,10 +574,10 @@ export default function PacakgePage() {
               <p className="text-sm text-Text-Low-70 leading-relaxed">
                 패키지는{" "}
                 <span className="font-medium text-Text-High-90">
-                  자주 함께 발주되는 품목들을 하나의 묶음으로 저장한 템플릿
+                  자주 함께 판매되는 품목들을 하나의 묶음으로 저장한 템플릿
                 </span>
                 입니다. 예를 들어 &quot;휠체어 기본 세트&quot;처럼 반복적으로
-                주문하는 구성을 패키지로 등록해두면, 발주 시 패키지를 선택하는
+                주문하는 구성을 패키지로 등록해두면, 판매 시 패키지를 선택하는
                 것만으로 품목들을 한 번에 추가할 수 있어 업무 효율을 높일 수
                 있습니다.
               </p>

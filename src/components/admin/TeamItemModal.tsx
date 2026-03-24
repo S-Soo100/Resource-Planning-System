@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AlertCircle, Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button, Input, Modal } from "@/components/ui";
+import { CategoryTreeSelect } from "@/components/ui/CategoryTreeSelect";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { useToast } from "@/hooks/useToast";
 import { CreateTeamItemDto } from "@/types/(item)/team-item";
@@ -20,6 +21,13 @@ interface TeamItem {
   imageUrl?: string | null;
   costPrice?: number | null;
   category?: Category;
+  // 확장 필드 (v4.0)
+  isNotifiedPrice?: boolean;
+  notifiedPrice?: number | null;
+  consumerPrice?: number | null;
+  brand?: string | null;
+  isHealthInsuranceRegistered?: boolean;
+  isService?: boolean;
 }
 
 interface TeamItemModalProps {
@@ -35,8 +43,30 @@ interface TeamItemFormData {
   itemName: string;
   memo: string;
   categoryId: number | null;
-  costPrice: string; // 원가 (입력은 문자열로, 전송 시 number로 변환)
+  costPrice: string;
+  // 가격 정보 확장 (v4.0)
+  isNotifiedPrice: boolean;
+  notifiedPrice: string;
+  consumerPrice: string;
+  // 추가 정보 (v4.0)
+  brand: string;
+  isHealthInsuranceRegistered: boolean;
+  isService: boolean;
 }
+
+const INITIAL_FORM_DATA: TeamItemFormData = {
+  itemCode: "",
+  itemName: "",
+  memo: "",
+  categoryId: null,
+  costPrice: "",
+  isNotifiedPrice: false,
+  notifiedPrice: "",
+  consumerPrice: "",
+  brand: "",
+  isHealthInsuranceRegistered: false,
+  isService: false,
+};
 
 export default function TeamItemModal({
   isOpen,
@@ -45,13 +75,7 @@ export default function TeamItemModal({
   categories,
   editItem,
 }: TeamItemModalProps) {
-  const [formData, setFormData] = useState<TeamItemFormData>({
-    itemCode: "",
-    itemName: "",
-    memo: "",
-    categoryId: null,
-    costPrice: "",
-  });
+  const [formData, setFormData] = useState<TeamItemFormData>(INITIAL_FORM_DATA);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // 이미지 관련 상태
@@ -59,7 +83,12 @@ export default function TeamItemModal({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { useCreateTeamItem, useUpdateTeamItem, useUploadImage, useDeleteImage } = useTeamItems();
+  const {
+    useCreateTeamItem,
+    useUpdateTeamItem,
+    useUploadImage,
+    useDeleteImage,
+  } = useTeamItems();
   const { createTeamItemAsync, isPending: createLoading } = useCreateTeamItem();
   const { updateTeamItem, isPending: updateLoading } = useUpdateTeamItem();
   const { uploadImageAsync, isPending: uploadLoading } = useUploadImage();
@@ -67,7 +96,8 @@ export default function TeamItemModal({
   const toast = useToast();
 
   const isEditMode = !!editItem;
-  const submitLoading = createLoading || updateLoading || uploadLoading || deleteLoading;
+  const submitLoading =
+    createLoading || updateLoading || uploadLoading || deleteLoading;
 
   // 초기 데이터 설정
   useEffect(() => {
@@ -80,6 +110,13 @@ export default function TeamItemModal({
           memo: editItem.memo || "",
           categoryId: editItem.category?.id || null,
           costPrice: editItem.costPrice?.toString() || "",
+          isNotifiedPrice: editItem.isNotifiedPrice ?? false,
+          notifiedPrice: editItem.notifiedPrice?.toString() || "",
+          consumerPrice: editItem.consumerPrice?.toString() || "",
+          brand: editItem.brand || "",
+          isHealthInsuranceRegistered:
+            editItem.isHealthInsuranceRegistered ?? false,
+          isService: editItem.isService ?? false,
         });
         // 기존 이미지 미리보기
         setImagePreview(editItem.imageUrl || null);
@@ -89,11 +126,8 @@ export default function TeamItemModal({
         const defaultCategoryId =
           categories.length > 0 ? categories[0].id : null;
         setFormData({
-          itemCode: "",
-          itemName: "",
-          memo: "",
+          ...INITIAL_FORM_DATA,
           categoryId: defaultCategoryId,
-          costPrice: "",
         });
         setImagePreview(null);
         setSelectedImage(null);
@@ -124,10 +158,34 @@ export default function TeamItemModal({
     }
   };
 
+  const handleCheckboxChange = (name: keyof TeamItemFormData) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+      // isNotifiedPrice 해제 시 notifiedPrice 초기화
+      ...(name === "isNotifiedPrice" && prev.isNotifiedPrice
+        ? { notifiedPrice: "" }
+        : {}),
+    }));
+  };
+
+  const handleCategoryChange = (value: number | undefined) => {
+    setFormData((prev) => ({
+      ...prev,
+      categoryId: value ?? null,
+    }));
+  };
+
   // 이미지 파일 검증
   const validateImageFile = (file: File): string | null => {
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-    const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+    const ALLOWED_TYPES = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+    ];
 
     if (file.size > MAX_SIZE) {
       return "파일 크기는 5MB 이하여야 합니다.";
@@ -180,8 +238,8 @@ export default function TeamItemModal({
       await deleteImageAsync(editItem.id);
       setImagePreview(null);
       setSelectedImage(null);
-    } catch (error) {
-      console.error("이미지 삭제 오류:", error);
+    } catch {
+      // useDeleteImage 훅 내부에서 에러 처리됨
     }
   };
 
@@ -202,9 +260,26 @@ export default function TeamItemModal({
 
     try {
       const teamItemDto: CreateTeamItemDto = {
-        ...formData,
+        itemCode: formData.itemCode,
+        itemName: formData.itemName,
+        memo: formData.memo || undefined,
         teamId: teamId,
-        costPrice: formData.costPrice ? parseInt(formData.costPrice, 10) : undefined,
+        categoryId: formData.categoryId,
+        costPrice: formData.costPrice
+          ? parseInt(formData.costPrice, 10)
+          : undefined,
+        // 가격 정보 확장
+        isNotifiedPrice: formData.isNotifiedPrice,
+        notifiedPrice: formData.notifiedPrice
+          ? parseInt(formData.notifiedPrice, 10)
+          : undefined,
+        consumerPrice: formData.consumerPrice
+          ? parseInt(formData.consumerPrice, 10)
+          : undefined,
+        // 추가 정보
+        brand: formData.brand || undefined,
+        isHealthInsuranceRegistered: formData.isHealthInsuranceRegistered,
+        isService: formData.isService,
       };
 
       let itemId: number;
@@ -240,11 +315,7 @@ export default function TeamItemModal({
       }
 
       handleClose();
-    } catch (error) {
-      console.error(
-        isEditMode ? "아이템 수정 오류:" : "아이템 생성 오류:",
-        error
-      );
+    } catch {
       const errorMessage = isEditMode
         ? "아이템 수정 중 오류가 발생했습니다."
         : "아이템 생성 중 오류가 발생했습니다.";
@@ -269,126 +340,260 @@ export default function TeamItemModal({
       title={isEditMode ? "팀 아이템 수정" : "새 팀 아이템 추가"}
       size="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* ── 기본 정보 섹션 ── */}
         <div>
-          <Input
-            label="품목 코드"
-            name="itemCode"
-            type="text"
-            value={formData.itemCode}
-            onChange={handleInputChange}
-            placeholder="예: ITEM001"
-            required
-          />
-        </div>
+          <h3 className="mb-3 text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">
+            기본 정보
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <Input
+                label="품목 코드"
+                name="itemCode"
+                type="text"
+                value={formData.itemCode}
+                onChange={handleInputChange}
+                placeholder="예: ITEM001"
+                required
+              />
+            </div>
 
-        <div>
-          <Input
-            label="품목명"
-            name="itemName"
-            type="text"
-            value={formData.itemName}
-            onChange={handleInputChange}
-            placeholder="예: 노트북"
-            required
-          />
-        </div>
+            <div>
+              <Input
+                label="품목명"
+                name="itemName"
+                type="text"
+                value={formData.itemName}
+                onChange={handleInputChange}
+                placeholder="예: 노트북"
+                required
+              />
+            </div>
 
-        <div>
-          <label className="block mb-2 text-sm font-medium text-gray-700">
-            카테고리 <span className="text-red-500">*</span>
-          </label>
-          <select
-            name="categoryId"
-            value={formData.categoryId || 0}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 transition-colors border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            required
-          >
-            <option value={0}>없음</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block mb-2 text-sm font-medium text-gray-700">
-            메모
-          </label>
-          <textarea
-            name="memo"
-            value={formData.memo || ""}
-            onChange={handleInputChange}
-            placeholder="예: 신형 모델"
-            className="w-full h-24 px-3 py-2 transition-colors border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-
-        <div>
-          <Input
-            label="원가 (원)"
-            name="costPrice"
-            type="number"
-            value={formData.costPrice}
-            onChange={handleInputChange}
-            placeholder="예: 50000"
-            min="0"
-            step="1"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            선택 사항입니다. 입력하지 않으면 저장되지 않습니다.
-          </p>
-        </div>
-
-        {/* 이미지 업로드 섹션 */}
-        <div>
-          <label className="block mb-2 text-sm font-medium text-gray-700">
-            품목 이미지
-          </label>
-          <div className="space-y-3">
-            {/* 이미지 미리보기 */}
-            {imagePreview && (
-              <div className="relative inline-block">
-                <img
-                  src={imagePreview}
-                  alt="미리보기"
-                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                카테고리 <span className="text-red-500">*</span>
+              </label>
+              {teamId ? (
+                <CategoryTreeSelect
+                  mode="assign"
+                  value={formData.categoryId ?? undefined}
+                  onChange={handleCategoryChange}
+                  teamId={teamId}
+                  placeholder="카테고리 선택"
                 />
-                <button
-                  type="button"
-                  onClick={selectedImage ? handleRemoveSelectedImage : handleDeleteExistingImage}
-                  className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                  title={selectedImage ? "선택 취소" : "이미지 삭제"}
-                  disabled={deleteLoading}
+              ) : (
+                <select
+                  name="categoryId"
+                  value={formData.categoryId || 0}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 transition-colors border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
                 >
-                  <X size={16} />
-                </button>
+                  <option value={0}>없음</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                메모
+              </label>
+              <textarea
+                name="memo"
+                value={formData.memo || ""}
+                onChange={handleInputChange}
+                placeholder="예: 신형 모델"
+                className="w-full h-24 px-3 py-2 transition-colors border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* 이미지 업로드 섹션 */}
+            <div>
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                품목 이미지
+              </label>
+              <div className="space-y-3">
+                {/* 이미지 미리보기 */}
+                {imagePreview && (
+                  <div className="relative inline-block">
+                    <img
+                      src={imagePreview}
+                      alt="미리보기"
+                      className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={
+                        selectedImage
+                          ? handleRemoveSelectedImage
+                          : handleDeleteExistingImage
+                      }
+                      className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                      title={selectedImage ? "선택 취소" : "이미지 삭제"}
+                      disabled={deleteLoading}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {/* 파일 선택 버튼 */}
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                    id="team-item-image"
+                  />
+                  <label
+                    htmlFor="team-item-image"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+                  >
+                    {imagePreview ? (
+                      <ImageIcon size={18} />
+                    ) : (
+                      <Upload size={18} />
+                    )}
+                    {imagePreview ? "이미지 변경" : "이미지 선택"}
+                  </label>
+                  <p className="mt-2 text-xs text-gray-500">
+                    JPG, PNG, GIF, WebP (최대 5MB)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 가격 정보 섹션 ── */}
+        <div>
+          <h3 className="mb-3 text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">
+            가격 정보
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <Input
+                label="원가 (원)"
+                name="costPrice"
+                type="number"
+                value={formData.costPrice}
+                onChange={handleInputChange}
+                placeholder="예: 50000"
+                min="0"
+                step="1"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                선택 사항입니다. 입력하지 않으면 저장되지 않습니다.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.isNotifiedPrice}
+                  onChange={() => handleCheckboxChange("isNotifiedPrice")}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+              </label>
+              <span className="text-sm font-medium text-gray-700">
+                고시가격 여부
+              </span>
+            </div>
+
+            {formData.isNotifiedPrice && (
+              <div>
+                <Input
+                  label="고시가격 (원)"
+                  name="notifiedPrice"
+                  type="number"
+                  value={formData.notifiedPrice}
+                  onChange={handleInputChange}
+                  placeholder="건강보험 공시 금액"
+                  min="0"
+                  step="1"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  건보 공시 금액을 그대로 입력해주세요.
+                </p>
               </div>
             )}
 
-            {/* 파일 선택 버튼 */}
             <div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                onChange={handleImageSelect}
-                className="hidden"
-                id="team-item-image"
+              <Input
+                label="소비자가격 (원)"
+                name="consumerPrice"
+                type="number"
+                value={formData.consumerPrice}
+                onChange={handleInputChange}
+                placeholder="VAT 포함 소비자가격"
+                min="0"
+                step="1"
               />
-              <label
-                htmlFor="team-item-image"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
-              >
-                {imagePreview ? <ImageIcon size={18} /> : <Upload size={18} />}
-                {imagePreview ? "이미지 변경" : "이미지 선택"}
-              </label>
-              <p className="mt-2 text-xs text-gray-500">
-                JPG, PNG, GIF, WebP (최대 5MB)
+              <p className="mt-1 text-xs text-gray-500">
+                VAT 포함 금액을 그대로 입력해주세요.
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 추가 정보 섹션 ── */}
+        <div>
+          <h3 className="mb-3 text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">
+            추가 정보
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <Input
+                label="브랜드"
+                name="brand"
+                type="text"
+                value={formData.brand}
+                onChange={handleInputChange}
+                placeholder="예: 오토복"
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.isHealthInsuranceRegistered}
+                  onChange={() =>
+                    handleCheckboxChange("isHealthInsuranceRegistered")
+                  }
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+              </label>
+              <span className="text-sm font-medium text-gray-700">
+                건강보험 등록 품목
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.isService}
+                  onChange={() => handleCheckboxChange("isService")}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+              </label>
+              <span className="text-sm font-medium text-gray-700">
+                서비스 품목
+              </span>
             </div>
           </div>
         </div>

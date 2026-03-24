@@ -125,15 +125,7 @@ export default function ItemSelectionModal({
       return;
     }
 
-    // 이미 추가된 아이템인지 확인 (itemCode가 중복되는 경우를 대비하여 warehouseItemId로 체크)
-    const isItemExists = orderItems.some(
-      (orderItem) => orderItem.warehouseItemId === item.id
-    );
-
-    if (isItemExists) {
-      return; // 이미 추가된 아이템은 처리하지 않음
-    }
-
+    // 중복 품목 추가 허용 (v4.0: quantity:1 분리 방식)
     onAddItem(item);
   };
 
@@ -190,8 +182,8 @@ export default function ItemSelectionModal({
               {selectedCategory
                 ? `${selectedCategory} 품목 (${displayItems.length}개)`
                 : displayCategories.length > 0
-                ? "카테고리를 선택해주세요"
-                : `전체 품목 (${filteredWarehouseItems.length}개)`}
+                  ? "카테고리를 선택해주세요"
+                  : `전체 품목 (${filteredWarehouseItems.length}개)`}
             </h3>
 
             {displayItems.length === 0 ? (
@@ -203,51 +195,39 @@ export default function ItemSelectionModal({
             ) : (
               <div className="grid gap-2">
                 {displayItems.map((item) => {
-                  // itemCode가 중복되는 경우를 대비하여 warehouseItemId로 중복 체크
-                  const isAlreadyAdded = orderItems.some(
-                    (orderItem) => orderItem.warehouseItemId === item.id
-                  );
+                  const isService = item.teamItem?.isService === true;
 
                   return (
                     <div
                       key={item.id}
-                      className={`flex items-center justify-between p-3 rounded-lg border ${
-                        isAlreadyAdded
-                          ? "bg-gray-50 border-gray-200"
-                          : "bg-white border-gray-200 hover:bg-gray-50"
-                      }`}
+                      className="flex items-center justify-between p-3 rounded-lg border bg-white border-gray-200 hover:bg-gray-50"
                     >
                       <div className="flex-1">
                         <div className="flex gap-2 items-center">
                           <span className="font-medium text-gray-800">
                             {item.teamItem.itemName}
                           </span>
-                          {item.itemQuantity < 1 && (
-                            <span className="px-2 py-1 text-xs text-red-500 bg-red-100 rounded">
-                              재고 없음
+                          {isService && (
+                            <span className="px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">
+                              서비스
                             </span>
                           )}
-                          {isAlreadyAdded && (
-                            <span className="px-2 py-1 text-xs text-blue-500 bg-blue-100 rounded">
-                              추가됨
+                          {!isService && item.itemQuantity < 1 && (
+                            <span className="px-2 py-1 text-xs text-red-500 bg-red-100 rounded">
+                              재고 없음
                             </span>
                           )}
                         </div>
                         <div className="mt-1 text-xs text-gray-500">
                           코드: {item.teamItem.itemCode} | 재고:{" "}
-                          {item.itemQuantity}개
+                          {isService ? "-" : `${item.itemQuantity}개`}
                         </div>
                       </div>
                       <button
                         onClick={() => handleAddItemFromModal(item)}
-                        disabled={isAlreadyAdded}
-                        className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                          isAlreadyAdded
-                            ? "text-gray-400 bg-gray-200 cursor-not-allowed"
-                            : "text-white bg-blue-500 hover:bg-blue-600"
-                        }`}
+                        className="px-3 py-1 text-sm rounded-md transition-colors text-white bg-blue-500 hover:bg-blue-600"
                       >
-                        {isAlreadyAdded ? "추가됨" : "추가"}
+                        추가
                       </button>
                     </div>
                   );

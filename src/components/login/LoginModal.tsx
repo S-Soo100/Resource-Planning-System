@@ -50,7 +50,7 @@ export default function LoginModal({
             notice={
               <div className="mb-6 text-center">
                 <span className="text-base font-medium text-gray-700">
-                  발주 상세 정보를 확인하려면{" "}
+                  판매 상세 정보를 확인하려면{" "}
                   <span className="font-bold text-blue-600">로그인</span>이
                   필요합니다.
                 </span>

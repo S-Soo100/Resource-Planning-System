@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Minus, X, AlertCircle } from "lucide-react";
 import { useOrder } from "@/hooks/useOrder";
@@ -11,7 +11,7 @@ import {
   OrderItemWithDetails,
   OrderRequestFormData,
 } from "@/types/(order)/orderRequestFormData";
-// 패키지 관련 기능은 휠체어 발주에서 사용하지 않으므로 제거
+// 패키지 관련 기능은 휠체어 판매에서 사용하지 않으므로 제거
 import { authStore } from "@/store/authStore";
 import { useWarehouseItems } from "@/hooks/useWarehouseItems";
 import { Warehouse } from "@/types/warehouse";
@@ -23,6 +23,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePermission } from "@/hooks/usePermission";
 import { getTodayString } from "@/utils/dateUtils";
 import ItemSelectionModal from "../ui/ItemSelectionModal";
+import { SerialCodeInputGroup } from "../ui/SerialCodeInputGroup";
 import {
   FileUploadSection,
   ContactInfoSection,
@@ -232,11 +233,9 @@ export default function WheelchairOrderForm() {
     }));
   }, []);
 
-  // 아이템 제거 핸들러
-  const handleRemoveItem = (itemId: number) => {
-    setOrderItems((prev) =>
-      prev.filter((item) => item.warehouseItemId !== itemId)
-    );
+  // 아이템 제거 핸들러 (v4.0: index 기반 — 동일 품목 여러 행 지원)
+  const handleRemoveItem = (index: number) => {
+    setOrderItems((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   // 아이템 수량 변경 핸들러
@@ -361,7 +360,7 @@ export default function WheelchairOrderForm() {
     });
   };
 
-  // 모달에서 고객 선택 핸들러 (고객 정보 자동 채우기)
+  // 모달에서 판매대상 선택 핸들러 (판매대상 정보 자동 채우기)
   const handleSupplierSelect = (supplier: Supplier) => {
     setFormData({
       ...formData,
@@ -378,9 +377,9 @@ export default function WheelchairOrderForm() {
       toast.error("제목을 입력해주세요");
       return false;
     }
-    // 모든 계정에 대해 고객 선택 필수
+    // 모든 계정에 대해 판매대상 선택 필수
     if (!formData.supplierId) {
-      toast.error("고객을 선택해주세요");
+      toast.error("판매대상을 선택해주세요");
       return false;
     }
     if (orderItems.length === 0) {
@@ -408,7 +407,7 @@ export default function WheelchairOrderForm() {
       return false;
     }
     if (!formData.warehouseId) {
-      toast.error("발주할 창고를 선택해주세요");
+      toast.error("판매 창고를 선택해주세요");
       return false;
     }
     return true;
@@ -422,7 +421,7 @@ export default function WheelchairOrderForm() {
     }
 
     const isConfirmed = window.confirm(
-      "발주서, 견적서 등 필요한 증빙을 모두 업로드 하셨나요?"
+      "증빙서류(견적서 등 필요한 증빙을 모두 업로드 하셨나요?"
     );
 
     if (!isConfirmed) {
@@ -467,6 +466,9 @@ export default function WheelchairOrderForm() {
               ? parseInt(item.sellingPrice, 10)
               : undefined,
             vat: item.vat ? parseInt(item.vat, 10) : undefined,
+            serialCode1: item.serialCode1 || undefined,
+            serialCode2: item.serialCode2 || undefined,
+            serialCode3: item.serialCode3 || undefined,
           })),
       };
 
@@ -479,7 +481,7 @@ export default function WheelchairOrderForm() {
 
                 if (!orderId) {
                   toast.error(
-                    "발주 요청은 성공했으나 주문 ID를 찾을 수 없어 파일 업로드를 진행할 수 없습니다"
+                    "판매 요청은 성공했으나 주문 ID를 찾을 수 없어 파일 업로드를 진행할 수 없습니다"
                   );
                 } else {
                   const orderIdAsNumber =
@@ -489,7 +491,7 @@ export default function WheelchairOrderForm() {
 
                   if (isNaN(orderIdAsNumber)) {
                     toast.error(
-                      "발주 요청은 성공했으나 유효하지 않은 주문 ID로 인해 파일 업로드를 진행할 수 없습니다"
+                      "판매 요청은 성공했으나 유효하지 않은 주문 ID로 인해 파일 업로드를 진행할 수 없습니다"
                     );
                     return;
                   }
@@ -519,11 +521,11 @@ export default function WheelchairOrderForm() {
                         ?.map((file) => file.fileName)
                         .join(", ");
                       toast.success(
-                        `휠체어 발주 요청 및 파일 '${uploadedFileNames}' 업로드가 완료되었습니다`
+                        `휠체어 판매 요청 및 파일 '${uploadedFileNames}' 업로드가 완료되었습니다`
                       );
                     } else {
                       toast.error(
-                        `발주 요청은 성공했으나 파일 업로드에 실패했습니다: ${
+                        `판매 요청은 성공했으나 파일 업로드에 실패했습니다: ${
                           uploadResponse.error || "알 수 없는 오류"
                         }`
                       );
@@ -536,11 +538,11 @@ export default function WheelchairOrderForm() {
               } catch (error) {
                 console.error("파일 업로드 전체 과정 오류:", error);
                 toast.error(
-                  "발주 요청은 성공했으나 파일 업로드 중 오류가 발생했습니다"
+                  "판매 요청은 성공했으나 파일 업로드 중 오류가 발생했습니다"
                 );
               }
             } else {
-              toast.success("휠체어 발주 요청이 완료되었습니다");
+              toast.success("휠체어 판매 요청이 완료되었습니다");
             }
 
             setIsProcessing(true);
@@ -558,7 +560,7 @@ export default function WheelchairOrderForm() {
                   queryKey: ["orders", "team", currentTeamId],
                 });
 
-                router.replace("/orderRecord");
+                router.replace("/salesRecord");
               } catch (error) {
                 console.error("처리 중 오류 발생:", error);
                 toast.error("처리 중 오류가 발생했습니다");
@@ -569,19 +571,19 @@ export default function WheelchairOrderForm() {
             }, 2000);
           } else {
             setIsSubmitting(false);
-            toast.error(response.message || "휠체어 발주 요청에 실패했습니다");
+            toast.error(response.message || "휠체어 판매 요청에 실패했습니다");
           }
         },
         onError: (error) => {
           setIsSubmitting(false);
-          console.error("발주 요청 실패:", error);
-          toast.error("휠체어 발주 요청에 실패했습니다");
+          console.error("판매 요청 실패:", error);
+          toast.error("휠체어 판매 요청에 실패했습니다");
         },
       });
     } catch (error) {
       setIsSubmitting(false);
-      console.error("발주 요청 실패:", error);
-      toast.error("휠체어 발주 요청에 실패했습니다");
+      console.error("판매 요청 실패:", error);
+      toast.error("휠체어 판매 요청에 실패했습니다");
     }
   };
 
@@ -595,17 +597,7 @@ export default function WheelchairOrderForm() {
   };
 
   const handleAddItemFromModal = (item: Item) => {
-    // 이미 추가된 아이템인지 확인 (itemCode가 중복되는 경우를 대비하여 warehouseItemId로 체크)
-    const isItemExists = orderItems.some(
-      (orderItem) => orderItem.warehouseItemId === item.id
-    );
-
-    if (isItemExists) {
-      toast.error("이미 추가된 아이템입니다");
-      return;
-    }
-
-    // 아이템 추가
+    // v4.0: 중복 품목 추가 허용 (quantity:1 분리 방식)
     setOrderItems((prev) => [
       ...prev,
       {
@@ -617,16 +609,51 @@ export default function WheelchairOrderForm() {
       },
     ]);
 
-    toast.success(`${item.teamItem.itemName}이 추가되었습니다`);
+    toast.success(`${item.teamItem.itemName}이(가) 추가되었습니다`);
+  };
+
+  // v4.0: 동일 품목 행 복제
+  const handleDuplicateItem = (index: number) => {
+    setOrderItems((prev) => {
+      const item = prev[index];
+      if (!item) return prev;
+      const newItem = {
+        ...item,
+        quantity: 1,
+        serialCode1: undefined,
+        serialCode2: undefined,
+        serialCode3: undefined,
+        memo: undefined,
+      };
+      const updated = [...prev];
+      updated.splice(index + 1, 0, newItem);
+      return updated;
+    });
+  };
+
+  // v4.0: 시리얼코드 변경 핸들러
+  const handleSerialCodeChange = (
+    index: number,
+    field: "serialCode1" | "serialCode2" | "serialCode3",
+    value: string
+  ) => {
+    setOrderItems((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: value,
+      };
+      return updated;
+    });
   };
 
   return (
     <div className="p-4 mx-auto max-w-4xl">
       <div className="p-2 mb-6 text-white bg-gradient-to-r bg-Primary-Main rounded-lg shadow-lg">
         <h1 className="mb-2 text-2xl font-bold text-center">
-          휠체어 발주 요청
+          휠체어 판매 요청
         </h1>
-        {/* <p className="text-center text-purple-100">전문 휠체어 발주 시스템</p> */}
+        {/* <p className="text-center text-purple-100">전문 휠체어 판매 시스템</p> */}
       </div>
 
       {/* 창고 정보 표시 */}
@@ -636,7 +663,7 @@ export default function WheelchairOrderForm() {
             <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
             <div>
               <span className="text-sm font-medium text-purple-800">
-                발주 창고:
+                판매 창고:
               </span>
               <span className="ml-2 text-sm font-semibold text-purple-700">
                 {wheelchairWarehouse.warehouseName}
@@ -658,7 +685,7 @@ export default function WheelchairOrderForm() {
             value={formData.title}
             onChange={handleChange}
             className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="휠체어 발주 제목을 입력하세요"
+            placeholder="휠체어 판매 제목을 입력하세요"
             required
           />
         </div>
@@ -729,93 +756,110 @@ export default function WheelchairOrderForm() {
                       item.sellingPrice && item.quantity > 0
                         ? parseInt(item.sellingPrice) * item.quantity
                         : 0;
+                    const isService = item.teamItem?.isService === true;
                     return (
-                      <tr
-                        key={item.warehouseItemId}
-                        className="border-b last:border-0 hover:bg-purple-50"
-                      >
-                        <td className="px-4 py-2">
-                          <div className="flex flex-col">
-                            <span className="font-medium text-sm">
-                              {item.teamItem.itemName}
-                            </span>
-                            {item.stockAvailable === false && (
-                              <div className="flex items-center text-xs text-red-500 mt-1">
-                                <AlertCircle size={12} className="mr-1" />
-                                재고 부족
+                      <React.Fragment key={`wheelchair-item-${index}`}>
+                        <tr className="border-b hover:bg-purple-50">
+                          <td className="px-4 py-2">
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-medium text-sm">
+                                  {item.teamItem.itemName}
+                                </span>
+                                {isService && (
+                                  <span className="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">
+                                    서비스
+                                  </span>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-600">
-                          {item.teamItem.itemCode}
-                        </td>
-                        <td className="px-4 py-2 text-center text-sm text-gray-600">
-                          {item.stockQuantity !== undefined
-                            ? `${item.stockQuantity}개`
-                            : "-"}
-                        </td>
-                        <td className="px-4 py-2">
-                          <div className="flex gap-1 items-center justify-center">
+                              {!isService && item.stockAvailable === false && (
+                                <div className="flex items-center text-xs text-red-500 mt-1">
+                                  <AlertCircle size={12} className="mr-1" />
+                                  재고 부족
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-600">
+                            {item.teamItem.itemCode}
+                          </td>
+                          <td className="px-4 py-2 text-center text-sm text-gray-600">
+                            {isService
+                              ? "-"
+                              : item.stockQuantity !== undefined
+                                ? `${item.stockQuantity}개`
+                                : "-"}
+                          </td>
+                          <td className="px-4 py-2">
+                            <div className="flex gap-1 items-center justify-center">
+                              <span className="w-10 text-center text-sm font-medium">
+                                1
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleDuplicateItem(index)}
+                                className="p-1 bg-purple-100 text-purple-600 rounded hover:bg-purple-200"
+                                title="동일 품목 추가"
+                              >
+                                <Plus size={14} />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              placeholder="0"
+                              value={item.sellingPrice || ""}
+                              onChange={(e) =>
+                                handleSellingPriceChange(index, e.target.value)
+                              }
+                              className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                            />
+                          </td>
+                          <td className="px-4 py-2 text-right text-sm font-medium">
+                            {subtotal > 0 ? subtotal.toLocaleString() : "-"}
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="text"
+                              placeholder="메모 입력"
+                              value={item.memo || ""}
+                              onChange={(e) =>
+                                handleMemoChange(index, e.target.value)
+                              }
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                            />
+                          </td>
+                          <td className="px-4 py-2 text-center">
                             <button
                               type="button"
-                              onClick={() => handleQuantityChange(index, false)}
-                              className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                              onClick={() => handleRemoveItem(index)}
+                              className="p-1 text-red-600 bg-red-50 rounded hover:bg-red-100"
+                              title="품목 제거"
                             >
-                              <Minus size={14} />
+                              <X size={16} />
                             </button>
-                            <span className="w-10 text-center text-sm font-medium">
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleQuantityChange(index, true)}
-                              className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                            >
-                              <Plus size={14} />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-4 py-2">
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            placeholder="0"
-                            value={item.sellingPrice || ""}
-                            onChange={(e) =>
-                              handleSellingPriceChange(index, e.target.value)
-                            }
-                            className="w-full px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
-                          />
-                        </td>
-                        <td className="px-4 py-2 text-right text-sm font-medium">
-                          {subtotal > 0 ? subtotal.toLocaleString() : "-"}
-                        </td>
-                        <td className="px-4 py-2">
-                          <input
-                            type="text"
-                            placeholder="메모 입력"
-                            value={item.memo || ""}
-                            onChange={(e) =>
-                              handleMemoChange(index, e.target.value)
-                            }
-                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
-                          />
-                        </td>
-                        <td className="px-4 py-2 text-center">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleRemoveItem(item.warehouseItemId)
-                            }
-                            className="p-1 text-red-600 bg-red-50 rounded hover:bg-red-100"
-                            title="품목 제거"
-                          >
-                            <X size={16} />
-                          </button>
-                        </td>
-                      </tr>
+                          </td>
+                        </tr>
+
+                        {/* v4.0: 시리얼코드 입력 행 (서비스 품목 제외) */}
+                        {!isService && (
+                          <tr className="border-b last:border-0 bg-purple-50/30">
+                            <td colSpan={8} className="px-6 py-2">
+                              <SerialCodeInputGroup
+                                serialCode1={item.serialCode1 || ""}
+                                serialCode2={item.serialCode2 || ""}
+                                serialCode3={item.serialCode3 || ""}
+                                onChange={(field, value) =>
+                                  handleSerialCodeChange(index, field, value)
+                                }
+                              />
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
@@ -878,7 +922,7 @@ export default function WheelchairOrderForm() {
           focusRingColor="purple"
         />
 
-        {/* 고객 선택 */}
+        {/* 판매대상 선택 */}
         <SupplierSection
           suppliers={suppliers}
           selectedSupplierId={formData.supplierId}
@@ -888,7 +932,7 @@ export default function WheelchairOrderForm() {
           onOpenSelectModal={() => setIsSelectSupplierModalOpen(true)}
         />
 
-        {/* 고객사 선택 후 표시되는 섹션 */}
+        {/* 판매대상 선택 후 표시되는 섹션 */}
         {formData.supplierId ? (
           <>
             {/* 수령인 정보 */}
@@ -919,10 +963,10 @@ export default function WheelchairOrderForm() {
           <div className="p-8 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border-2 border-dashed border-purple-300">
             <div className="text-center">
               <p className="text-lg font-medium text-purple-700 mb-2">
-                👆 먼저 고객을 선택해주세요
+                👆 먼저 판매대상을 선택해주세요
               </p>
               <p className="text-sm text-purple-600">
-                고객을 선택하면 수령인 정보 입력 폼이 표시됩니다
+                판매대상을 선택하면 수령인 정보 입력 폼이 표시됩니다
               </p>
             </div>
           </div>
@@ -944,8 +988,8 @@ export default function WheelchairOrderForm() {
         <SubmitButton
           isSubmitting={isSubmitting}
           isProcessing={isProcessing}
-          buttonText="휠체어 발주 요청하기"
-          processingText="휠체어 발주 처리 중..."
+          buttonText="휠체어 판매 요청하기"
+          processingText="휠체어 판매 처리 중..."
           completingText="완료 처리 중..."
           color="purple"
         />
@@ -961,17 +1005,17 @@ export default function WheelchairOrderForm() {
         title="휠체어 품목 추가"
       />
 
-      {/* 고객 추가 모달 */}
+      {/* 판매대상 추가 모달 */}
       <AddSupplierModal
         isOpen={isAddSupplierModalOpen}
         onClose={() => setIsAddSupplierModalOpen(false)}
         onSuccess={async () => {
-          // 고객 목록 새로고침
+          // 판매대상 목록 새로고침
           await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
         }}
       />
 
-      {/* 고객 선택 모달 */}
+      {/* 판매대상 선택 모달 */}
       <SelectSupplierModal
         isOpen={isSelectSupplierModalOpen}
         onClose={() => setIsSelectSupplierModalOpen(false)}
@@ -980,6 +1024,7 @@ export default function WheelchairOrderForm() {
         selectedSupplierId={formData.supplierId}
         focusRingColor="purple"
         onAddSupplier={() => setIsAddSupplierModalOpen(true)}
+        context="order"
       />
 
       {/* 하단 여백 */}

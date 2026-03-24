@@ -13,6 +13,9 @@ export interface Item {
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;
+  // 매입 집계 필드 (v4.0)
+  averageCost?: number | null; // 평균 매입원가
+  totalInboundQuantity?: number | null; // 총 입고 수량
   // warehouse: {
   //   id: number;
   //   warehouseName: string;

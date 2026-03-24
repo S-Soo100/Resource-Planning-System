@@ -110,7 +110,7 @@ export default function SupplierDetailPage() {
             로그인이 필요합니다
           </h2>
           <p className="text-sm text-Text-Low-70 mb-6">
-            고객 상세 페이지는 로그인 후 이용 가능합니다.
+            판매대상 상세 페이지는 로그인 후 이용 가능합니다.
           </p>
           <Button
             variant="default"
@@ -131,10 +131,10 @@ export default function SupplierDetailPage() {
         <div className="text-center max-w-md p-8 bg-white rounded-3xl shadow-sm">
           <div className="text-5xl mb-4">⚠️</div>
           <h2 className="text-xl font-medium text-Text-Highest-100 mb-3">
-            고객 정보를 찾을 수 없습니다
+            판매대상 정보를 찾을 수 없습니다
           </h2>
           <p className="text-sm text-Text-Low-70 mb-6">
-            존재하지 않거나 삭제된 고객입니다.
+            존재하지 않거나 삭제된 판매대상입니다.
           </p>
           <Button
             variant="default"
@@ -142,7 +142,7 @@ export default function SupplierDetailPage() {
             icon={<ArrowLeft className="w-4 h-4" />}
             iconPosition="left"
           >
-            고객 목록으로 돌아가기
+            판매대상 목록으로 돌아가기
           </Button>
         </div>
       </div>
@@ -168,12 +168,12 @@ export default function SupplierDetailPage() {
   const tabs: { key: TabType; label: string; icon: React.ReactNode }[] = [
     {
       key: "info",
-      label: "고객 정보",
+      label: "판매대상 정보",
       icon: <UserCircle className="w-4 h-4" />,
     },
     {
       key: "documents",
-      label: "고객 서류",
+      label: "판매대상 서류",
       icon: <FolderOpen className="w-4 h-4" />,
     },
     {
@@ -188,7 +188,7 @@ export default function SupplierDetailPage() {
     },
     {
       key: "orders",
-      label: "발주 이력",
+      label: "판매 이력",
       icon: <ClipboardList className="w-4 h-4" />,
     },
   ];
@@ -248,7 +248,7 @@ export default function SupplierDetailPage() {
         </button>
       </div>
 
-      {/* 고객 기본 정보 */}
+      {/* 판매대상 기본 정보 */}
       <div className="mb-6">
         <SupplierDetailHeader supplier={supplier} />
       </div>
@@ -352,7 +352,7 @@ export default function SupplierDetailPage() {
         </div>
       </div>
 
-      {/* 고객 정보는 CustomerInfoCard 내 인라인 편집으로 처리 */}
+      {/* 판매대상 정보는 CustomerInfoCard 내 인라인 편집으로 처리 */}
     </div>
   );
 }

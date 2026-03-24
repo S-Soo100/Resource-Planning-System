@@ -76,7 +76,7 @@ export default function CustomerInfoCard({
     }
   };
 
-  // 고객 유형 변경 시 관련 필드 초기화
+  // 판매대상 유형 변경 시 관련 필드 초기화
   const handleCustomerTypeChange = (newType: CustomerType | null) => {
     const data: UpdateSupplierRequest = { customerType: newType };
     if (newType === "b2b") {
@@ -102,7 +102,7 @@ export default function CustomerInfoCard({
     <div className="bg-white rounded-2xl shadow-sm border border-Outline-Variant p-6">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-lg font-semibold text-Text-Highest-100">
-          고객 기본 정보
+          판매대상 기본 정보
         </h2>
         {saving && (
           <div className="flex items-center gap-1.5 text-xs text-Primary-Main">
@@ -113,14 +113,14 @@ export default function CustomerInfoCard({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 고객명 */}
+        {/* 판매대상명 */}
         <InlineTextItem
           icon={<User className="w-4 h-4" />}
-          label="고객명"
+          label="판매대상명"
           value={supplier.supplierName || "-"}
           rawValue={supplier.supplierName || ""}
           canEdit={canEdit}
-          placeholder="고객명"
+          placeholder="판매대상명"
           isSaving={saving === "supplierName"}
           onSave={(val) => updateField({ supplierName: val }, "supplierName")}
         />
@@ -152,13 +152,13 @@ export default function CustomerInfoCard({
           }
         />
 
-        {/* 고객 유형 (드롭다운) */}
+        {/* 판매대상 유형 (드롭다운) */}
         <div className="flex items-start gap-3 p-3 bg-Back-Low-10 rounded-xl">
           <div className="mt-0.5 text-Text-Low-70">
             <Tag className="w-4 h-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-Text-Low-70 mb-1">고객 유형</p>
+            <p className="text-xs text-Text-Low-70 mb-1">판매대상 유형</p>
             {canEdit ? (
               <select
                 value={supplier.customerType || ""}

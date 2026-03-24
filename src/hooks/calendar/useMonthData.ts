@@ -1,14 +1,14 @@
-import { useAllOrders } from '../(useOrder)/useOrderQueries';
-import { useDemosByTeam } from '../(useDemo)/useDemoQueries';
-import { useCurrentTeam } from '../useCurrentTeam';
-import { CalendarEvent, MonthInfo } from '@/types/calendar/calendar';
-import { formatDateToString } from '@/utils/calendar/calendarUtils';
+import { useAllOrders } from "../(useOrder)/useOrderQueries";
+import { useDemosByTeam } from "../(useDemo)/useDemoQueries";
+import { useCurrentTeam } from "../useCurrentTeam";
+import { CalendarEvent, MonthInfo } from "@/types/calendar/calendar";
+import { formatDateToString } from "@/utils/calendar/calendarUtils";
 import {
   calculateDemoSpanInfo,
   calculateEventSpanInfo,
   getDemoSpanDates,
-  isDemoMultipleDays
-} from '@/utils/calendar/demoUtils';
+  isDemoMultipleDays,
+} from "@/utils/calendar/demoUtils";
 
 /**
  * 월간 캘린더에 표시할 데이터를 조회하는 훅
@@ -37,22 +37,22 @@ export function useMonthData(monthInfo: MonthInfo) {
         .filter((order) => order.installationDate) // 날짜가 있는 것만 필터링
         .map((order) => ({
           id: order.id,
-          title: order.title || `발주 #${order.id}`,
+          title: order.title || `판매 #${order.id}`,
           date: order.installationDate, // 배송/설치 날짜 기준
-          type: 'order' as const,
-          status: order.status || 'unknown',
+          type: "order" as const,
+          status: order.status || "unknown",
           details: {
             id: order.id,
-            title: order.title || `발주 #${order.id}`,
-            requester: order.requester || '신청자 정보 없음',
-            receiver: order.receiver || '수신자 정보 없음',
-            receiverPhone: order.receiverPhone || '연락처 정보 없음',
-            receiverAddress: order.receiverAddress || '배송지 정보 없음',
-            installationDate: order.installationDate || '설치일 정보 없음',
-            status: order.status || 'unknown',
-            supplierName: order.supplier?.supplierName || '업체 정보 없음',
-            packageName: order.package?.packageName || '패키지 정보 없음',
-            warehouseName: order.warehouse?.warehouseName || '창고 정보 없음',
+            title: order.title || `판매 #${order.id}`,
+            requester: order.requester || "신청자 정보 없음",
+            receiver: order.receiver || "수신자 정보 없음",
+            receiverPhone: order.receiverPhone || "연락처 정보 없음",
+            receiverAddress: order.receiverAddress || "배송지 정보 없음",
+            installationDate: order.installationDate || "설치일 정보 없음",
+            status: order.status || "unknown",
+            supplierName: order.supplier?.supplierName || "업체 정보 없음",
+            packageName: order.package?.packageName || "패키지 정보 없음",
+            warehouseName: order.warehouse?.warehouseName || "창고 정보 없음",
           },
         }))
     : [];
@@ -64,11 +64,17 @@ export function useMonthData(monthInfo: MonthInfo) {
     demosResponse.data
       .filter((demo) => demo.demoStartDate && !demo.isLongTerm) // 날짜가 있는 것만, 장기시연 제외
       .forEach((demo) => {
-        const isMultipleDays = isDemoMultipleDays(demo.demoStartDate, demo.demoEndDate);
+        const isMultipleDays = isDemoMultipleDays(
+          demo.demoStartDate,
+          demo.demoEndDate
+        );
 
         if (isMultipleDays) {
           // 여러 날짜에 걸치는 시연인 경우, 각 날짜에 대해 이벤트 생성
-          const spanDates = getDemoSpanDates(demo.demoStartDate, demo.demoEndDate);
+          const spanDates = getDemoSpanDates(
+            demo.demoStartDate,
+            demo.demoEndDate
+          );
 
           spanDates.forEach((dateStr) => {
             const spanInfo = calculateDemoSpanInfo(
@@ -91,28 +97,31 @@ export function useMonthData(monthInfo: MonthInfo) {
                 id: demo.id,
                 title: demo.demoTitle || `시연 #${demo.id}`,
                 date: dateStr,
-                type: 'demo' as const,
-                status: demo.demoStatus || 'unknown',
+                type: "demo" as const,
+                status: demo.demoStatus || "unknown",
                 details: {
                   id: demo.id,
                   demoTitle: demo.demoTitle || `시연 #${demo.id}`,
-                  requester: demo.requester || '신청자 정보 없음',
-                  demoManager: demo.demoManager || '담당자 정보 없음',
-                  demoManagerPhone: demo.demoManagerPhone || '연락처 정보 없음',
-                  demoAddress: demo.demoAddress || '시연 물품 배송장소 정보 없음',
-                  demoStartDate: demo.demoStartDate || '시작일 정보 없음',
-                  demoStartTime: demo.demoStartTime || '물품 상차 시간 정보 없음',
-                  demoEndDate: demo.demoEndDate || '종료일 정보 없음',
-                  demoEndTime: demo.demoEndTime || '물품 하차 시간 정보 없음',
-                  demoStartDeliveryMethod: demo.demoStartDeliveryMethod || '',
-                  demoEndDeliveryMethod: demo.demoEndDeliveryMethod || '',
+                  requester: demo.requester || "신청자 정보 없음",
+                  demoManager: demo.demoManager || "담당자 정보 없음",
+                  demoManagerPhone: demo.demoManagerPhone || "연락처 정보 없음",
+                  demoAddress:
+                    demo.demoAddress || "시연 물품 배송장소 정보 없음",
+                  demoStartDate: demo.demoStartDate || "시작일 정보 없음",
+                  demoStartTime:
+                    demo.demoStartTime || "물품 상차 시간 정보 없음",
+                  demoEndDate: demo.demoEndDate || "종료일 정보 없음",
+                  demoEndTime: demo.demoEndTime || "물품 하차 시간 정보 없음",
+                  demoStartDeliveryMethod: demo.demoStartDeliveryMethod || "",
+                  demoEndDeliveryMethod: demo.demoEndDeliveryMethod || "",
                   // eventStartDate/eventEndDate 필드 올바르게 매핑
                   eventStartDate: demo.eventStartDate ?? null,
                   eventStartTime: demo.eventStartTime ?? null,
                   eventEndDate: demo.eventEndDate ?? null,
                   eventEndTime: demo.eventEndTime ?? null,
-                  demoStatus: demo.demoStatus || 'unknown',
-                  warehouseName: demo.warehouse?.warehouseName || '창고 정보 없음',
+                  demoStatus: demo.demoStatus || "unknown",
+                  warehouseName:
+                    demo.warehouse?.warehouseName || "창고 정보 없음",
                   spanInfo, // 시연 기간 정보 추가
                   eventSpanInfo: eventSpanInfo || undefined, // 행사 기간 정보 추가 (null을 undefined로 변환)
                 },
@@ -125,28 +134,28 @@ export function useMonthData(monthInfo: MonthInfo) {
             id: demo.id,
             title: demo.demoTitle || `시연 #${demo.id}`,
             date: demo.demoStartDate, // 시연 시작일 기준
-            type: 'demo' as const,
-            status: demo.demoStatus || 'unknown',
+            type: "demo" as const,
+            status: demo.demoStatus || "unknown",
             details: {
               id: demo.id,
               demoTitle: demo.demoTitle || `시연 #${demo.id}`,
-              requester: demo.requester || '신청자 정보 없음',
-              demoManager: demo.demoManager || '담당자 정보 없음',
-              demoManagerPhone: demo.demoManagerPhone || '연락처 정보 없음',
-              demoAddress: demo.demoAddress || '시연 물품 배송장소 정보 없음',
-              demoStartDate: demo.demoStartDate || '시작일 정보 없음',
-              demoStartTime: demo.demoStartTime || '물품 상차 시간 정보 없음',
-              demoEndDate: demo.demoEndDate || '종료일 정보 없음',
-              demoEndTime: demo.demoEndTime || '물품 하차 시간 정보 없음',
-              demoStartDeliveryMethod: demo.demoStartDeliveryMethod || '',
-              demoEndDeliveryMethod: demo.demoEndDeliveryMethod || '',
+              requester: demo.requester || "신청자 정보 없음",
+              demoManager: demo.demoManager || "담당자 정보 없음",
+              demoManagerPhone: demo.demoManagerPhone || "연락처 정보 없음",
+              demoAddress: demo.demoAddress || "시연 물품 배송장소 정보 없음",
+              demoStartDate: demo.demoStartDate || "시작일 정보 없음",
+              demoStartTime: demo.demoStartTime || "물품 상차 시간 정보 없음",
+              demoEndDate: demo.demoEndDate || "종료일 정보 없음",
+              demoEndTime: demo.demoEndTime || "물품 하차 시간 정보 없음",
+              demoStartDeliveryMethod: demo.demoStartDeliveryMethod || "",
+              demoEndDeliveryMethod: demo.demoEndDeliveryMethod || "",
               // eventStartDate/eventEndDate 필드 올바르게 매핑
               eventStartDate: demo.eventStartDate ?? null,
               eventStartTime: demo.eventStartTime ?? null,
               eventEndDate: demo.eventEndDate ?? null,
               eventEndTime: demo.eventEndTime ?? null,
-              demoStatus: demo.demoStatus || 'unknown',
-              warehouseName: demo.warehouse?.warehouseName || '창고 정보 없음',
+              demoStatus: demo.demoStatus || "unknown",
+              warehouseName: demo.warehouse?.warehouseName || "창고 정보 없음",
             },
           });
         }
@@ -162,7 +171,7 @@ export function useMonthData(monthInfo: MonthInfo) {
 
   const monthEvents = allEvents.filter((event) => {
     // 날짜 정규화 (ISO 형식인 경우 날짜 부분만 추출)
-    const eventDateStr = event.date.split('T')[0];
+    const eventDateStr = event.date.split("T")[0];
     return eventDateStr >= monthStartStr && eventDateStr <= monthEndStr;
   });
 
@@ -192,11 +201,12 @@ export function useDayEventsForMonth(date: Date, monthInfo: MonthInfo) {
   const { data } = useMonthData(monthInfo);
   const dateStr = formatDateToString(date);
 
-  const dayEvents = data?.events.filter((event) => {
-    // 날짜 정규화 (ISO 형식인 경우 날짜 부분만 추출)
-    const eventDateStr = event.date.split('T')[0];
-    return eventDateStr === dateStr;
-  }) || [];
+  const dayEvents =
+    data?.events.filter((event) => {
+      // 날짜 정규화 (ISO 형식인 경우 날짜 부분만 추출)
+      const eventDateStr = event.date.split("T")[0];
+      return eventDateStr === dateStr;
+    }) || [];
 
   return {
     events: dayEvents,

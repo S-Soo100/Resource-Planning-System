@@ -113,10 +113,10 @@ export default function OrderRecordTable({
       <div className="py-16 text-center bg-white rounded-2xl shadow-sm">
         <Package className="mx-auto w-12 h-12 text-gray-300" />
         <h3 className="mt-2 text-lg font-semibold text-gray-900">
-          발주 기록이 없습니다
+          판매 기록이 없습니다
         </h3>
         <p className="mt-1 text-base text-gray-500">
-          아직 발주 요청이 없습니다.
+          아직 판매 요청이 없습니다.
         </p>
       </div>
     );

@@ -109,7 +109,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
     e.preventDefault();
 
     if (!formData.supplierName.trim()) {
-      toast.error("고객 이름을 입력해주세요.");
+      toast.error("판매대상 이름을 입력해주세요.");
       return;
     }
 
@@ -142,15 +142,15 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
       const response = await supplierApi.createSupplier(requestData);
 
       if (response.success) {
-        toast.success("고객이 추가되었습니다.");
+        toast.success("판매대상이 추가되었습니다.");
         onSuccess();
         handleClose();
       } else {
-        throw new Error(response.error || "고객 추가에 실패했습니다.");
+        throw new Error(response.error || "판매대상 추가에 실패했습니다.");
       }
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "고객 추가에 실패했습니다."
+        error instanceof Error ? error.message : "판매대상 추가에 실패했습니다."
       );
     } finally {
       setIsSubmitting(false);
@@ -183,7 +183,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
         {/* 헤더 */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-Outline-Variant">
           <h2 className="text-xl font-medium text-Text-Highest-100">
-            고객 추가
+            판매대상 추가
           </h2>
           <button
             onClick={handleClose}
@@ -199,20 +199,20 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
           {/* ── 1. 고객 유형 선택 (버튼형 — 아래 필드 구성을 결정) ── */}
           <div>
             <p className="text-sm font-medium text-Text-High-90 mb-2">
-              고객 유형을 선택하세요
+              판매대상 유형을 선택하세요
             </p>
             <div className="grid grid-cols-2 gap-2">
               {[
                 {
                   type: "b2c" as const,
                   label: "B2C",
-                  sub: "개인 고객",
+                  sub: "개인 판매대상",
                   active: "border-indigo-500 bg-indigo-50 text-indigo-700",
                 },
                 {
                   type: "b2b" as const,
                   label: "B2B",
-                  sub: "기업 고객",
+                  sub: "기업 판매대상",
                   active: "border-emerald-500 bg-emerald-50 text-emerald-700",
                 },
               ].map(({ type, label, sub, active }) => {
@@ -282,7 +282,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
           {/* ── 2. 기본 정보 (유형 선택 후 표시) ── */}
           <div>
             <label className={labelCls}>
-              고객 이름 <span className="text-Error-Main">*</span>
+              판매대상 이름 <span className="text-Error-Main">*</span>
             </label>
             <input
               type="text"
@@ -290,7 +290,7 @@ const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
               value={formData.supplierName}
               onChange={handleChange}
               className={inputCls}
-              placeholder="고객 이름을 입력하세요"
+              placeholder="판매대상 이름을 입력하세요"
               required
               disabled={isSubmitting}
             />

@@ -1,8 +1,8 @@
 "use client";
-import React from 'react';
-import { FaFilter, FaTimes } from 'react-icons/fa';
-import { DemoStatus } from '@/types/demo/demo';
-import { OrderStatus } from '@/types/(order)/order';
+import React from "react";
+import { FaFilter, FaTimes } from "react-icons/fa";
+import { DemoStatus } from "@/types/demo/demo";
+import { OrderStatus } from "@/types/(order)/order";
 
 interface EventFilterProps {
   selectedDemoStatuses: string[];
@@ -19,29 +19,29 @@ const EventFilter: React.FC<EventFilterProps> = ({
 }) => {
   // 시연 상태 레이블 매핑
   const demoStatusLabels: Record<DemoStatus, string> = {
-    [DemoStatus.requested]: '요청',
-    [DemoStatus.approved]: '승인',
-    [DemoStatus.rejected]: '반려',
-    [DemoStatus.confirmedByShipper]: '출고자 확인',
-    [DemoStatus.shipmentCompleted]: '출고 완료',
-    [DemoStatus.rejectedByShipper]: '출고자 반려',
-    [DemoStatus.demoCompleted]: '시연 종료',
+    [DemoStatus.requested]: "요청",
+    [DemoStatus.approved]: "승인",
+    [DemoStatus.rejected]: "반려",
+    [DemoStatus.confirmedByShipper]: "출고자 확인",
+    [DemoStatus.shipmentCompleted]: "출고 완료",
+    [DemoStatus.rejectedByShipper]: "출고자 반려",
+    [DemoStatus.demoCompleted]: "시연 종료",
   };
 
   // 발주 상태 레이블 매핑
   const orderStatusLabels: Record<OrderStatus, string> = {
-    [OrderStatus.requested]: '요청',
-    [OrderStatus.approved]: '승인',
-    [OrderStatus.rejected]: '반려',
-    [OrderStatus.confirmedByShipper]: '출고자 확인',
-    [OrderStatus.shipmentCompleted]: '출고 완료',
-    [OrderStatus.rejectedByShipper]: '출고자 반려',
+    [OrderStatus.requested]: "요청",
+    [OrderStatus.approved]: "승인",
+    [OrderStatus.rejected]: "반려",
+    [OrderStatus.confirmedByShipper]: "출고자 확인",
+    [OrderStatus.shipmentCompleted]: "출고 완료",
+    [OrderStatus.rejectedByShipper]: "출고자 반려",
   };
 
   // 시연 상태 토글
   const toggleDemoStatus = (status: string) => {
     if (selectedDemoStatuses.includes(status)) {
-      onDemoStatusChange(selectedDemoStatuses.filter(s => s !== status));
+      onDemoStatusChange(selectedDemoStatuses.filter((s) => s !== status));
     } else {
       onDemoStatusChange([...selectedDemoStatuses, status]);
     }
@@ -50,7 +50,7 @@ const EventFilter: React.FC<EventFilterProps> = ({
   // 발주 상태 토글
   const toggleOrderStatus = (status: string) => {
     if (selectedOrderStatuses.includes(status)) {
-      onOrderStatusChange(selectedOrderStatuses.filter(s => s !== status));
+      onOrderStatusChange(selectedOrderStatuses.filter((s) => s !== status));
     } else {
       onOrderStatusChange([...selectedOrderStatuses, status]);
     }
@@ -58,19 +58,21 @@ const EventFilter: React.FC<EventFilterProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-4">
-      {/* 시연 & 발주 필터를 한 줄에 */}
+      {/* 시연 시연 & 발주 판매 필터를 한 줄에 */}
       <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
         {/* 시연 이벤트 필터 */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-medium text-purple-700 whitespace-nowrap">시연:</span>
+          <span className="text-xs font-medium text-purple-700 whitespace-nowrap">
+            시연:
+          </span>
           {Object.entries(demoStatusLabels).map(([status, label]) => (
             <button
               key={status}
               onClick={() => toggleDemoStatus(status)}
               className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                 selectedDemoStatuses.includes(status)
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               {label}
@@ -83,15 +85,17 @@ const EventFilter: React.FC<EventFilterProps> = ({
 
         {/* 발주 이벤트 필터 */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-medium text-blue-700 whitespace-nowrap">발주:</span>
+          <span className="text-xs font-medium text-blue-700 whitespace-nowrap">
+            판매:
+          </span>
           {Object.entries(orderStatusLabels).map(([status, label]) => (
             <button
               key={status}
               onClick={() => toggleOrderStatus(status)}
               className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                 selectedOrderStatuses.includes(status)
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               {label}

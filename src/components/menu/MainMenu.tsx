@@ -44,7 +44,7 @@ const MainMenu = () => {
   // 새로운 useCategory 훅 사용
   const { isLoading: categoriesLoading } = useCategory(selectedTeam?.id);
 
-  // 재구매 예정 고객 수
+  // 재구매 예정 판매대상 수
   const { data: repurchaseDueSuppliers = [] } = useRepurchaseDueSuppliers(
     selectedTeam?.id
   );
@@ -116,7 +116,7 @@ const MainMenu = () => {
     return true;
   };
 
-  // 재고 관리 메뉴
+  // 재고&매입 관리 메뉴
   const stockMenuItems = [
     {
       title: "재고 조회",
@@ -127,7 +127,7 @@ const MainMenu = () => {
       accessLevel: ["user", "admin", "moderator", "supplier"],
     },
     {
-      title: "입출고 내역",
+      title: "입출고 관리",
       subtitle: "품목별 입출고 기록을 조회합니다",
       icon: <FaClipboardList className="text-3xl" />,
       onClick: () => checkAccess(`/ioHistory`, ["admin", "user", "moderator"]),
@@ -135,33 +135,33 @@ const MainMenu = () => {
     },
   ];
 
-  // 고객 관리 메뉴 (E-006: 통합)
+  // 판매대상 관리 메뉴 (E-006: 통합)
   const customerMenuItems = [
     {
-      title: "고객 관리",
-      subtitle: "고객 정보를 등록하고 관리합니다",
+      title: "판매대상 관리",
+      subtitle: "판매대상 정보를 등록하고 관리합니다",
       icon: <FaUsers className="text-3xl" />,
       onClick: () =>
         checkAccess(`/supplier`, ["admin", "user", "moderator", "supplier"]),
       accessLevel: ["user", "admin", "moderator", "supplier"],
     },
     {
-      title: "재구매 예정 고객",
-      subtitle: "재구매 예정일이 지난 고객을 확인합니다",
+      title: "재구매 예정 판매대상",
+      subtitle: "재구매 예정일이 지난 판매대상을 확인합니다",
       icon: <MdPeopleOutline className="text-3xl" />,
       onClick: () => checkAccess(`/repurchase`, ["admin", "user", "moderator"]),
       accessLevel: ["user", "admin", "moderator"],
     },
   ];
 
-  // 발주 메뉴
+  // 판매 메뉴
   const orderMenuItems = [
     {
-      title: "발주 시작하기",
+      title: "판매 시작하기",
       subtitle: "",
       icon: <FaTruck className="text-3xl" />,
       onClick: () =>
-        checkAccess(`/order-guide`, ["admin", "user", "supplier", "moderator"]),
+        checkAccess(`/sales-guide`, ["admin", "user", "supplier", "moderator"]),
       accessLevel: ["supplier", "user", "admin", "moderator"],
     },
     // {
@@ -204,11 +204,11 @@ const MainMenu = () => {
     //   accessLevel: ["supplier", "user", "admin", "moderator"],
     // },
     {
-      title: "발주 기록",
-      subtitle: "발주건의 기록과 상태를 확인합니다",
+      title: "판매 기록",
+      subtitle: "판매건의 기록과 상태를 확인합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () =>
-        checkAccess(`/orderRecord`, ["admin", "user", "supplier", "moderator"]),
+        checkAccess(`/salesRecord`, ["admin", "user", "supplier", "moderator"]),
       accessLevel: ["supplier", "user", "admin", "moderator"],
     },
     {
@@ -240,7 +240,7 @@ const MainMenu = () => {
     },
     {
       title: "판매 & 마진 분석",
-      subtitle: "발주 기반 판매 현황 및 마진율을 분석합니다",
+      subtitle: "판매 현황 및 마진율을 분석합니다",
       icon: <MdPointOfSale className="text-3xl" />,
       onClick: () => checkAccess(`/sales`, ["admin", "moderator", "user"]),
       accessLevel: ["admin", "moderator", "user"],
@@ -265,7 +265,7 @@ const MainMenu = () => {
     },
     {
       title: "3. 패키지 등록 및 관리",
-      subtitle: "발주용 패키지를 구성하고 관리합니다",
+      subtitle: "판매용 패키지를 구성하고 관리합니다",
       icon: <PiNewspaperClippingFill className="text-3xl" />,
       onClick: () => checkAccess(`/package`, ["admin", "user", "moderator"]),
       accessLevel: ["user", "admin", "moderator"],
@@ -303,21 +303,21 @@ const MainMenu = () => {
   // 탭 설정
   let tabs = [];
 
-  // 모든 사용자에게 재고 관리, 고객관리, 발주 & 시연 탭 표시
+  // 모든 사용자에게 재고&매입 관리, 판매대상 관리, 판매 & 시연 탭 표시
   tabs = [
     {
       id: "stock",
-      title: "재고 관리",
+      title: "재고&매입 관리",
       items: stockMenuItems,
     },
     {
       id: "customer",
-      title: "고객관리",
+      title: "판매대상 관리",
       items: customerMenuItems,
     },
     {
       id: "order",
-      title: "발주 & 시연",
+      title: "판매 & 시연",
       items: orderMenuItems,
     },
   ];
@@ -437,7 +437,7 @@ const MainMenu = () => {
         </motion.p>
       </motion.div>
 
-      {/* 재구매 예정 고객 알림 배너 */}
+      {/* 재구매 예정 판매대상 알림 배너 */}
       {repurchaseDueCount > 0 && !isSupplier && (
         <motion.button
           initial={{ opacity: 0, y: -10 }}
@@ -452,11 +452,11 @@ const MainMenu = () => {
             </div>
             <div>
               <p className="text-sm font-semibold text-orange-900">
-                재구매 예정 고객{" "}
+                재구매 예정 판매대상{" "}
                 <span className="text-orange-600">{repurchaseDueCount}명</span>
               </p>
               <p className="text-xs text-orange-600">
-                재구매 예정일이 지난 고객이 있습니다
+                재구매 예정일이 지난 판매대상이 있습니다
               </p>
             </div>
           </div>

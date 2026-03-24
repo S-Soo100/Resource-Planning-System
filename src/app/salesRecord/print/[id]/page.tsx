@@ -6,7 +6,10 @@ import { getOrder } from "@/api/order-api";
 import { IOrderRecord } from "@/types/(order)/orderRecord";
 import { OrderStatus } from "@/types/(order)/order";
 import { getDisplayFileName } from "@/utils/fileUtils";
-import { formatDateForDisplayFull, formatDateForDisplayFullUTC } from "@/utils/dateUtils";
+import {
+  formatDateForDisplayFull,
+  formatDateForDisplayFullUTC,
+} from "@/utils/dateUtils";
 import { LoadingCentered } from "@/components/ui/Loading";
 
 // 통합 날짜 유틸리티 사용 - 중복 함수 제거됨
@@ -56,13 +59,13 @@ const OrderRecordPrint = () => {
         if (res.success && res.data) {
           setOrder(res.data as IOrderRecord);
         } else {
-          alert("해당 발주를 찾을 수 없습니다.");
-          router.push("/orderRecord");
+          alert("해당 판매를 찾을 수 없습니다.");
+          router.push("/salesRecord");
         }
       } catch (error) {
-        console.error("발주 조회 중 오류:", error);
-        alert("발주 조회에 실패했습니다.");
-        router.push("/orderRecord");
+        console.error("판매 조회 중 오류:", error);
+        alert("판매 조회에 실패했습니다.");
+        router.push("/salesRecord");
       }
       setIsLoading(false);
     };
@@ -94,7 +97,7 @@ const OrderRecordPrint = () => {
   if (!order) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">발주를 찾을 수 없습니다.</div>
+        <div className="text-lg">판매를 찾을 수 없습니다.</div>
       </div>
     );
   }
@@ -288,7 +291,7 @@ const OrderRecordPrint = () => {
               textAlign: "center",
             }}
           >
-            발주 요청서
+            판매 요청서
           </h1>
           <div className="print-info-row">
             <span className="print-info-label">문서 번호:</span>
@@ -326,7 +329,7 @@ const OrderRecordPrint = () => {
             </span>
           </div>
           <div className="print-info-row">
-            <span className="print-info-label">발주자:</span>
+            <span className="print-info-label">판매자:</span>
             <span className="print-info-value">{order.requester}</span>
           </div>
           <div className="print-info-row">
@@ -340,7 +343,7 @@ const OrderRecordPrint = () => {
             </span>
           </div>
           <div className="print-info-row">
-            <span className="print-info-label">발주 유형:</span>
+            <span className="print-info-label">판매 유형:</span>
             <span className="print-info-value">
               {order.packageId && order.packageId > 0 ? "패키지" : "개별"}
             </span>
@@ -378,7 +381,9 @@ const OrderRecordPrint = () => {
           <div className="print-info-row">
             <span className="print-info-label">출고예정일:</span>
             <span className="print-info-value">
-              {order.outboundDate ? formatDateForDisplayFullUTC(order.outboundDate) : "-"}
+              {order.outboundDate
+                ? formatDateForDisplayFullUTC(order.outboundDate)
+                : "-"}
             </span>
           </div>
           <div className="print-info-row">
@@ -391,9 +396,9 @@ const OrderRecordPrint = () => {
           </div>
         </div>
 
-        {/* 발주 품목 */}
+        {/* 판매 품목 */}
         <div className="print-section">
-          <div className="print-section-title">발주 품목</div>
+          <div className="print-section-title">판매 품목</div>
           {order.orderItems && order.orderItems.length > 0 ? (
             <>
               <table className="print-items-table">
@@ -463,7 +468,7 @@ const OrderRecordPrint = () => {
               </table>
             </>
           ) : (
-            <p>발주 품목이 없습니다.</p>
+            <p>판매 품목이 없습니다.</p>
           )}
         </div>
 

@@ -199,6 +199,26 @@ export const inventoryRecordApi = {
   },
 };
 
+// 입고 상태 변경 (v4.0)
+export const updateInboundStatus = async (
+  id: number,
+  status: "completed"
+): Promise<ApiResponse<InventoryRecord>> => {
+  try {
+    const response = await api.patch<ApiResponse<InventoryRecord>>(
+      `/inventory-record/${id}/inbound-status`,
+      { status }
+    );
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      error: extractErrorMessage(error, "입고 상태 변경에 실패했습니다."),
+      data: undefined,
+    };
+  }
+};
+
 export const getAllInventoryRecords = async (): Promise<
   ApiResponse<InventoryRecord[]>
 > => {

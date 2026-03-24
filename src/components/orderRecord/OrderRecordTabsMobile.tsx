@@ -462,20 +462,20 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
           >
             {/* 권한에 따라 다른 선택지 표시 */}
             {userAccessLevel === "moderator" ? (
-              // Moderator: 요청, 승인, 반려만 가능 (단, 본인 발주는 승인/반려 불가)
+              // Moderator: 요청, 승인, 반려만 가능 (단, 본인 판매는 승인/반려 불가)
               <>
                 <option value={OrderStatus.requested}>요청</option>
                 <option
                   value={OrderStatus.approved}
                   disabled={record.userId === auth?.id}
                 >
-                  승인{record.userId === auth?.id ? " (본인 발주)" : ""}
+                  승인{record.userId === auth?.id ? " (본인 판매)" : ""}
                 </option>
                 <option
                   value={OrderStatus.rejected}
                   disabled={record.userId === auth?.id}
                 >
-                  반려{record.userId === auth?.id ? " (본인 발주)" : ""}
+                  반려{record.userId === auth?.id ? " (본인 판매)" : ""}
                 </option>
               </>
             ) : userAccessLevel === "admin" ? (
@@ -631,7 +631,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-gray-700">
-                      발주 기간:
+                      판매 기간:
                     </span>
                     <span className="text-gray-600 text-xs">
                       {formatDateForDisplayUTC(record.createdAt)} ~{" "}
@@ -640,7 +640,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-gray-700">
-                      발주 창고:
+                      판매 창고:
                     </span>
                     <span className="text-gray-600 text-xs">
                       {record.warehouse?.warehouseName || "창고 정보 없음"}
@@ -665,7 +665,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                   </div>
                   <div className="border-t pt-2">
                     <span className="font-medium text-gray-700">
-                      발주 품목:
+                      판매 품목:
                     </span>
                     <div className="mt-1 space-y-1">
                       {record.orderItems && record.orderItems.length > 0 ? (
@@ -720,7 +720,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                 </div>
               )}
 
-              {/* 발주 상세 정보 */}
+              {/* 판매 상세 정보 */}
               <div className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
                 <div className="flex items-center pb-1 mb-2 text-sm font-bold text-gray-700 border-b">
                   <svg
@@ -735,7 +735,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                       clipRule="evenodd"
                     />
                   </svg>
-                  발주 상세 정보
+                  판매 상세 정보
                 </div>
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between items-center py-1 border-b border-gray-100">
@@ -773,7 +773,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-gray-100">
-                    <span className="font-medium text-gray-600">발주자:</span>
+                    <span className="font-medium text-gray-600">판매자:</span>
                     <span className="px-2 py-1 text-gray-800 bg-gray-50 rounded-md">
                       {record.requester}
                     </span>
@@ -949,7 +949,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                       onDetailClick(record);
                     }}
                     className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-md transition-colors hover:bg-green-600"
-                    aria-label="발주 상세 정보 보기"
+                    aria-label="판매 상세 정보 보기"
                   >
                     상세
                   </button>
@@ -960,7 +960,7 @@ const OrderRecordTabsMobile: React.FC<Props> = ({
                         onEditClick(record);
                       }}
                       className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md transition-colors hover:bg-blue-600"
-                      aria-label="발주 정보 수정"
+                      aria-label="판매 정보 수정"
                     >
                       수정
                     </button>

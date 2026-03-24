@@ -80,6 +80,10 @@ const DemoItemSection: React.FC<DemoItemSectionProps> = ({
               category: selectedItem.teamItem.category,
               teamId: selectedItem.teamItem.teamId,
               memo: selectedItem.teamItem.memo || "",
+              isNotifiedPrice: selectedItem.teamItem.isNotifiedPrice ?? false,
+              isHealthInsuranceRegistered:
+                selectedItem.teamItem.isHealthInsuranceRegistered ?? false,
+              isService: selectedItem.teamItem.isService ?? false,
             },
             quantity: 1,
             stockAvailable: selectedItem.itemQuantity >= 1,

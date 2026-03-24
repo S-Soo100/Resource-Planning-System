@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Minus, X, AlertCircle } from "lucide-react";
 import { useOrder } from "@/hooks/useOrder";
@@ -49,10 +49,11 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import AddSupplierModal from "../supplier/AddSupplierModal";
 import SelectSupplierModal from "../supplier/SelectSupplierModal";
+import { SerialCodeInputGroup } from "../ui/SerialCodeInputGroup";
 
 const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   isPackageOrder = false,
-  title = "발주 요청",
+  title = "판매 요청",
   warehousesList: propWarehousesList,
   warehouseItems: propWarehouseItems,
   onWarehouseChange,
@@ -475,14 +476,31 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     toast.success(`${newItems.length}개의 품목이 추가되었습니다`);
   };
 
-  // 아이템 제거 핸들러
-  const handleRemoveItem = (itemId: number) => {
-    setOrderItems((prev) =>
-      prev.filter((item) => item.warehouseItemId !== itemId)
-    );
+  // 아이템 제거 핸들러 (v4.0: index 기반 — 동일 품목 여러 행 지원)
+  const handleRemoveItem = (index: number) => {
+    setOrderItems((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  // 아이템 수량 변경 핸들러
+  // v4.0: 동일 품목 행 복제 (quantity는 항상 1 고정)
+  const handleDuplicateItem = (index: number) => {
+    setOrderItems((prev) => {
+      const item = prev[index];
+      if (!item) return prev;
+      const newItem = {
+        ...item,
+        quantity: 1,
+        serialCode1: undefined,
+        serialCode2: undefined,
+        serialCode3: undefined,
+        memo: undefined,
+      };
+      const updated = [...prev];
+      updated.splice(index + 1, 0, newItem);
+      return updated;
+    });
+  };
+
+  // 아이템 수량 변경 핸들러 (패키지 수량 전용 — 개별 품목은 quantity:1 고정)
   const handleQuantityChange = (index: number, increment: boolean) => {
     setOrderItems((prev) => {
       const updated = prev.map((item, idx) => {
@@ -653,7 +671,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     });
   };
 
-  // 모달에서 고객 선택 핸들러 (고객 정보 자동 채우기)
+  // 모달에서 판매대상 선택 핸들러 (판매대상 정보 자동 채우기)
   const handleSupplierSelect = (supplier: Supplier) => {
     setFormData({
       ...formData,
@@ -717,7 +735,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     if (currentTeam?.id !== 1) return; // 팀 ID가 1이 아니면 실행하지 않음
 
     console.log(
-      "[테스트 모드] 개별품목발주 테스트 데이터로 폼을 자동으로 채웁니다..."
+      "[테스트 모드] 개별품목판매 테스트 데이터로 폼을 자동으로 채웁니다..."
     );
 
     // 오늘 날짜 기준으로 계산
@@ -734,7 +752,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
     setFormData((prev) => ({
       ...prev,
-      title: "🧪 [테스트] 자동화 개별품목 발주",
+      title: "🧪 [테스트] 자동화 개별품목 판매",
       manager: "김개발",
       receiver: "박수령",
       receiverPhone: "010-9876-5432",
@@ -743,7 +761,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       requestDate: formatDate(tomorrow),
       setupDate: formatDate(nextWeek),
       notes:
-        "🧪 이것은 테스트 팀의 테스트 발주 데이터입니다.\n\n- 자동화된 테스트 개별품목 발주\n- 모든 필드가 테스트용 더미 데이터로 채워짐\n- 실제 발주가 아닌 개발/테스트 목적\n\n※ 주의: 실제 운영 환경에서는 이 기능이 비활성화됩니다.",
+        "🧪 이것은 테스트 팀의 테스트 판매 데이터입니다.\n\n- 자동화된 테스트 개별품목 판매\n- 모든 필드가 테스트용 더미 데이터로 채워짐\n- 실제 판매가 아닌 개발/테스트 목적\n\n※ 주의: 실제 운영 환경에서는 이 기능이 비활성화됩니다.",
       supplierId: suppliers.length > 0 ? suppliers[0].id : null,
       warehouseId: warehouses.length > 0 ? warehouses[0].id : null,
     }));
@@ -759,7 +777,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     });
 
     console.log(
-      "[테스트 모드] 개별품목발주 폼 데이터 자동 입력 완료 (아이템 제외)"
+      "[테스트 모드] 개별품목판매 폼 데이터 자동 입력 완료 (아이템 제외)"
     );
   }, [currentTeam?.id, suppliers, warehouses]);
 
@@ -767,7 +785,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   useEffect(() => {
     if (currentTeam?.id === 1) {
       console.log(
-        "[테스트 모드] 2초 후 개별품목발주 테스트 데이터를 자동으로 채웁니다..."
+        "[테스트 모드] 2초 후 개별품목판매 테스트 데이터를 자동으로 채웁니다..."
       );
       const timer = setTimeout(() => {
         fillTestData();
@@ -782,9 +800,9 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       toast.error("제목을 입력해주세요");
       return false;
     }
-    // 모든 계정에 대해 고객 선택 필수
+    // 모든 계정에 대해 판매대상 선택 필수
     if (!formData.supplierId) {
-      toast.error("고객을 선택해주세요");
+      toast.error("판매대상을 선택해주세요");
       return false;
     }
     if (orderItems.length === 0) {
@@ -812,7 +830,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       return false;
     }
     if (!formData.warehouseId) {
-      toast.error("발주할 창고를 선택해주세요");
+      toast.error("판매 창고를 선택해주세요");
       return false;
     }
     return true;
@@ -827,7 +845,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
 
     // 확인 메시지 표시
     const isConfirmed = window.confirm(
-      "발주서, 견적서 등 필요한 증빙을 모두 업로드 하셨나요?"
+      "증빙서류(견적서 등 필요한 증빙을 모두 업로드 하셨나요?"
     );
 
     if (!isConfirmed) {
@@ -837,7 +855,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
     setIsSubmitting(true);
     setLoadingState({
       isVisible: true,
-      title: "발주 요청서 검증 중...",
+      title: "판매 요청서 검증 중...",
       message: "입력하신 정보를 확인하고 있습니다.",
       progress: 10,
     });
@@ -885,13 +903,16 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               ? parseInt(item.sellingPrice, 10)
               : undefined,
             vat: item.vat ? parseInt(item.vat, 10) : undefined,
+            serialCode1: item.serialCode1 || undefined,
+            serialCode2: item.serialCode2 || undefined,
+            serialCode3: item.serialCode3 || undefined,
           })),
       };
 
       // 서버로 전송 중
       setLoadingState({
         isVisible: true,
-        title: "발주 요청서 전송 중...",
+        title: "판매 요청서 전송 중...",
         message: "서버에 데이터를 전송하고 있습니다. 잠시만 기다려주세요.",
         progress: 30,
       });
@@ -900,11 +921,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       createOrder(orderData, {
         onSuccess: async (response) => {
           if (response.success && response.data) {
-            // 발주 생성 성공
+            // 판매 생성 성공
             setLoadingState({
               isVisible: true,
-              title: "발주 요청이 완료되었습니다!",
-              message: "발주 정보가 성공적으로 저장되었습니다.",
+              title: "판매 요청이 완료되었습니다!",
+              message: "판매 정보가 성공적으로 저장되었습니다.",
               progress: 60,
             });
 
@@ -922,7 +943,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                 if (!orderId) {
                   console.error("주문 ID가 없습니다:", response.data);
                   toast.error(
-                    "발주 요청은 성공했으나 주문 ID를 찾을 수 없어 파일 업로드를 진행할 수 없습니다"
+                    "판매 요청은 성공했으나 주문 ID를 찾을 수 없어 파일 업로드를 진행할 수 없습니다"
                   );
                 } else {
                   // orderId가 string 타입일 가능성이 있으므로 명시적으로 숫자 변환
@@ -934,7 +955,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   if (isNaN(orderIdAsNumber)) {
                     console.error("주문 ID가 유효한 숫자가 아닙니다:", orderId);
                     toast.error(
-                      "발주 요청은 성공했으나 유효하지 않은 주문 ID로 인해 파일 업로드를 진행할 수 없습니다"
+                      "판매 요청은 성공했으나 유효하지 않은 주문 ID로 인해 파일 업로드를 진행할 수 없습니다"
                     );
                     return;
                   }
@@ -971,12 +992,12 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                         ?.map((file) => file.fileName)
                         .join(", ");
                       toast.success(
-                        `발주 요청 및 파일 '${uploadedFileNames}' 업로드가 완료되었습니다`
+                        `판매 요청 및 파일 '${uploadedFileNames}' 업로드가 완료되었습니다`
                       );
                     } else {
                       console.error("파일 업로드 실패:", uploadResponse.error);
                       toast.error(
-                        `발주 요청은 성공했으나 파일 업로드에 실패했습니다: ${
+                        `판매 요청은 성공했으나 파일 업로드에 실패했습니다: ${
                           uploadResponse.error || "알 수 없는 오류"
                         }`
                       );
@@ -992,11 +1013,11 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               } catch (uploadError) {
                 console.error("파일 업로드 전체 과정 중 오류:", uploadError);
                 toast.error(
-                  "발주 요청은 성공했으나 파일 업로드 중 오류가 발생했습니다"
+                  "판매 요청은 성공했으나 파일 업로드 중 오류가 발생했습니다"
                 );
               }
             } else {
-              toast.success("발주 요청이 완료되었습니다");
+              toast.success("판매 요청이 완료되었습니다");
             }
 
             // 처리 중 상태로 변경
@@ -1013,7 +1034,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   queryKey: ["orders", "team", currentTeamId],
                 });
 
-                // 발주 목록 데이터 다시 가져오기
+                // 판매 목록 데이터 다시 가져오기
                 await queryClient.refetchQueries({
                   queryKey: ["orders", "team", currentTeamId],
                 });
@@ -1022,7 +1043,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                 setLoadingState({
                   isVisible: true,
                   title: "완료!",
-                  message: "발주 요청이 성공적으로 처리되었습니다.",
+                  message: "판매 요청이 성공적으로 처리되었습니다.",
                   progress: 100,
                 });
 
@@ -1037,7 +1058,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   // 로컬스토리지 데이터 삭제
                   clearFormDataFromLocalStorage();
                   // 페이지 이동
-                  router.replace("/orderRecord");
+                  router.replace("/salesRecord");
                 }, 1500);
               } catch (error) {
                 console.error("처리 중 오류 발생:", error);
@@ -1055,7 +1076,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               message: "",
               progress: 0,
             });
-            toast.error(response.message || "발주 요청에 실패했습니다");
+            toast.error(response.message || "판매 요청에 실패했습니다");
           }
         },
         onError: (error) => {
@@ -1066,8 +1087,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             message: "",
             progress: 0,
           });
-          console.error("발주 요청 실패:", error);
-          toast.error("발주 요청에 실패했습니다");
+          console.error("판매 요청 실패:", error);
+          toast.error("판매 요청에 실패했습니다");
         },
       });
     } catch (error) {
@@ -1078,8 +1099,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
         message: "",
         progress: 0,
       });
-      console.error("발주 요청 실패:", error);
-      toast.error("발주 요청에 실패했습니다");
+      console.error("판매 요청 실패:", error);
+      toast.error("판매 요청에 실패했습니다");
     }
   };
 
@@ -1093,20 +1114,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
   };
 
   const handleAddItemFromModal = (item: Item) => {
-    // 이미 추가된 아이템인지 확인
-    const isItemExists = orderItems.some(
-      (orderItem) =>
-        orderItem.teamItem?.itemCode &&
-        item.teamItem?.itemCode &&
-        orderItem.teamItem.itemCode === item.teamItem.itemCode
-    );
-
-    if (isItemExists) {
-      toast.error("이미 추가된 아이템입니다");
-      return;
-    }
-
-    // 아이템 추가
+    // v4.0: 중복 품목 추가 허용 (quantity:1 분리 방식)
     setOrderItems((prev) => [
       ...prev,
       {
@@ -1118,7 +1126,23 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
       },
     ]);
 
-    toast.success(`${item.teamItem.itemName}이 추가되었습니다`);
+    toast.success(`${item.teamItem.itemName}이(가) 추가되었습니다`);
+  };
+
+  // v4.0: 시리얼코드 변경 핸들러
+  const handleSerialCodeChange = (
+    index: number,
+    field: "serialCode1" | "serialCode2" | "serialCode3",
+    value: string
+  ) => {
+    setOrderItems((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: value,
+      };
+      return updated;
+    });
   };
 
   return (
@@ -1169,7 +1193,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               value={formData.title}
               onChange={handleChange}
               className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-Primary-Main"
-              placeholder="발주 제목을 입력하세요"
+              placeholder="판매 제목을 입력하세요"
               required
             />
           </div>
@@ -1177,7 +1201,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           {/* 창고 선택 */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">
-              발주 창고 선택 <span className="text-red-500">*</span>
+              판매 창고 선택 <span className="text-red-500">*</span>
             </label>
             <select
               name="warehouseId"
@@ -1227,7 +1251,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
               )}
           </div>
 
-          {/* 패키지 선택 (패키지 발주 요청인 경우에만 표시) */}
+          {/* 패키지 선택 (패키지 판매 요청인 경우에만 표시) */}
           {isPackageOrder && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -1276,7 +1300,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             </div>
           )}
 
-          {/* 개별품목 선택 (개별품목 발주 요청인 경우에만 표시) */}
+          {/* 개별품목 선택 (개별품목 판매 요청인 경우에만 표시) */}
           {!isPackageOrder && (
             <div className="space-y-2">
               <div className="flex justify-between items-center">
@@ -1396,161 +1420,175 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                   </thead>
                   <tbody>
                     {orderItems.map((item, index) => {
-                      // 🆕 영세율 여부 판단 (전체 또는 개별)
+                      // 영세율 여부 판단 (전체 또는 개별)
                       const isZeroRated =
                         isAllZeroRated || (item.isZeroRated ?? false);
 
-                      // 🆕 자동 계산
+                      // 자동 계산
                       const { sellingPrice, vat } = calculatePriceBreakdown(
                         item.totalPrice || "",
                         isZeroRated
                       );
 
                       const subtotal = (sellingPrice + vat) * item.quantity;
+                      const isService = item.teamItem?.isService === true;
+
                       return (
-                        <tr
-                          key={item.warehouseItemId}
-                          className="border-b last:border-0 hover:bg-gray-50"
-                        >
-                          {/* 품목명 + 재고 정보 통합 */}
-                          <td className="px-2 py-2">
-                            <div className="flex flex-col">
-                              <span className="font-medium text-sm">
-                                {item.teamItem.itemName}
-                              </span>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs text-gray-500">
-                                  {item.teamItem.itemCode}
-                                </span>
-                                {formData.warehouseId &&
-                                  item.stockQuantity !== undefined && (
-                                    <span
-                                      className={`text-xs ${item.stockAvailable ? "text-green-600" : "text-red-500"}`}
-                                    >
-                                      (재고: {item.stockQuantity}개)
+                        <React.Fragment key={`order-item-${index}`}>
+                          <tr className="border-b hover:bg-gray-50">
+                            {/* 품목명 + 재고 정보 + 서비스 배지 */}
+                            <td className="px-2 py-2">
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-medium text-sm">
+                                    {item.teamItem.itemName}
+                                  </span>
+                                  {isService && (
+                                    <span className="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">
+                                      서비스
                                     </span>
                                   )}
+                                </div>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-xs text-gray-500">
+                                    {item.teamItem.itemCode}
+                                  </span>
+                                  {formData.warehouseId &&
+                                    !isService &&
+                                    item.stockQuantity !== undefined && (
+                                      <span
+                                        className={`text-xs ${item.stockAvailable ? "text-green-600" : "text-red-500"}`}
+                                      >
+                                        (재고: {item.stockQuantity}개)
+                                      </span>
+                                    )}
+                                </div>
+                                {formData.warehouseId &&
+                                  !isService &&
+                                  item.stockAvailable === false && (
+                                    <div className="flex items-center text-xs text-red-500 mt-1">
+                                      <AlertCircle size={12} className="mr-1" />
+                                      재고 부족
+                                    </div>
+                                  )}
                               </div>
-                              {formData.warehouseId &&
-                                item.stockAvailable === false && (
-                                  <div className="flex items-center text-xs text-red-500 mt-1">
-                                    <AlertCircle size={12} className="mr-1" />
-                                    재고 부족
-                                  </div>
-                                )}
-                            </div>
-                          </td>
+                            </td>
 
-                          {/* 수량 - 버튼 크기 축소 */}
-                          <td className="px-2 py-2">
-                            <div className="flex gap-0.5 items-center justify-center">
+                            {/* 수량 - 항상 1 고정 + 복제 버튼 */}
+                            <td className="px-2 py-2">
+                              <div className="flex gap-1 items-center justify-center">
+                                <span className="w-8 text-center text-sm font-medium">
+                                  1
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDuplicateItem(index)}
+                                  className="p-0.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                                  title="동일 품목 추가"
+                                >
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+                            </td>
+
+                            {/* 영세율 체크박스 */}
+                            <td className="hidden md:table-cell px-2 py-2 text-center">
+                              <input
+                                type="checkbox"
+                                checked={item.isZeroRated ?? false}
+                                onChange={(e) =>
+                                  handleZeroRatedChange(index, e.target.checked)
+                                }
+                                disabled={isAllZeroRated}
+                                className="w-3.5 h-3.5 accent-blue-600"
+                                title={
+                                  isAllZeroRated
+                                    ? "전체 영세율 적용 중"
+                                    : "개별 영세율"
+                                }
+                              />
+                            </td>
+
+                            {/* 총 금액 입력 */}
+                            <td className="px-2 py-2">
+                              <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                placeholder="총액"
+                                value={item.totalPrice || ""}
+                                onChange={(e) =>
+                                  handleTotalPriceChange(index, e.target.value)
+                                }
+                                className="w-full px-2 py-1.5 text-sm text-right border-2 border-blue-300 rounded-lg
+                                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                           bg-white font-medium"
+                              />
+                            </td>
+
+                            {/* 공급가액 (자동 계산) */}
+                            <td className="hidden lg:table-cell px-2 py-2 text-right">
+                              <span className="text-sm text-gray-600">
+                                {sellingPrice > 0
+                                  ? sellingPrice.toLocaleString()
+                                  : "-"}
+                              </span>
+                            </td>
+
+                            {/* 부가세 (자동 계산) */}
+                            <td className="hidden lg:table-cell px-2 py-2 text-right">
+                              <span className="text-sm text-gray-600">
+                                {vat > 0 ? vat.toLocaleString() : "0"}
+                              </span>
+                              {isZeroRated && (
+                                <span className="ml-1 text-xs text-amber-600">
+                                  (0%)
+                                </span>
+                              )}
+                            </td>
+
+                            {/* 메모 */}
+                            <td className="hidden sm:table-cell px-2 py-2">
+                              <input
+                                type="text"
+                                placeholder="메모"
+                                value={item.memo || ""}
+                                onChange={(e) =>
+                                  handleMemoChange(index, e.target.value)
+                                }
+                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main focus:border-Primary-Main"
+                              />
+                            </td>
+
+                            {/* 삭제 버튼 */}
+                            <td className="px-2 py-2 text-center">
                               <button
                                 type="button"
-                                onClick={() =>
-                                  handleQuantityChange(index, false)
-                                }
-                                className="p-0.5 bg-gray-200 rounded hover:bg-gray-300"
+                                onClick={() => handleRemoveItem(index)}
+                                className="p-1 text-red-600 bg-red-50 rounded hover:bg-Error-Container"
+                                title="품목 제거"
                               >
-                                <Minus size={12} />
+                                <X size={14} />
                               </button>
-                              <span className="w-8 text-center text-sm font-medium">
-                                {item.quantity}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleQuantityChange(index, true)
-                                }
-                                className="p-0.5 bg-gray-200 rounded hover:bg-gray-300"
-                              >
-                                <Plus size={12} />
-                              </button>
-                            </div>
-                          </td>
+                            </td>
+                          </tr>
 
-                          {/* 영세율 체크박스 - 크기 축소, 모바일 숨김 */}
-                          <td className="hidden md:table-cell px-2 py-2 text-center">
-                            <input
-                              type="checkbox"
-                              checked={item.isZeroRated ?? false}
-                              onChange={(e) =>
-                                handleZeroRatedChange(index, e.target.checked)
-                              }
-                              disabled={isAllZeroRated}
-                              className="w-3.5 h-3.5 accent-blue-600"
-                              title={
-                                isAllZeroRated
-                                  ? "전체 영세율 적용 중"
-                                  : "개별 영세율"
-                              }
-                            />
-                          </td>
-
-                          {/* 총 금액 입력 - 패딩 축소 */}
-                          <td className="px-2 py-2">
-                            <input
-                              type="number"
-                              min="0"
-                              step="1"
-                              placeholder="총액"
-                              value={item.totalPrice || ""}
-                              onChange={(e) =>
-                                handleTotalPriceChange(index, e.target.value)
-                              }
-                              className="w-full px-2 py-1.5 text-sm text-right border-2 border-blue-300 rounded-lg
-                                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                                         bg-white font-medium"
-                            />
-                          </td>
-
-                          {/* 공급가액 (자동 계산) - 모바일/태블릿 숨김 */}
-                          <td className="hidden lg:table-cell px-2 py-2 text-right">
-                            <span className="text-sm text-gray-600">
-                              {sellingPrice > 0
-                                ? sellingPrice.toLocaleString()
-                                : "-"}
-                            </span>
-                          </td>
-
-                          {/* 부가세 (자동 계산) - 모바일/태블릿 숨김 */}
-                          <td className="hidden lg:table-cell px-2 py-2 text-right">
-                            <span className="text-sm text-gray-600">
-                              {vat > 0 ? vat.toLocaleString() : "0"}
-                            </span>
-                            {isZeroRated && (
-                              <span className="ml-1 text-xs text-amber-600">
-                                (0%)
-                              </span>
-                            )}
-                          </td>
-
-                          {/* 메모 - 크기 축소, 작은 모바일 숨김 */}
-                          <td className="hidden sm:table-cell px-2 py-2">
-                            <input
-                              type="text"
-                              placeholder="메모"
-                              value={item.memo || ""}
-                              onChange={(e) =>
-                                handleMemoChange(index, e.target.value)
-                              }
-                              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main focus:border-Primary-Main"
-                            />
-                          </td>
-
-                          {/* 삭제 버튼 - 크기 축소 */}
-                          <td className="px-2 py-2 text-center">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleRemoveItem(item.warehouseItemId)
-                              }
-                              className="p-1 text-red-600 bg-red-50 rounded hover:bg-Error-Container"
-                              title="품목 제거"
-                            >
-                              <X size={14} />
-                            </button>
-                          </td>
-                        </tr>
+                          {/* v4.0: 시리얼코드 입력 행 (서비스 품목 제외) */}
+                          {!isService && (
+                            <tr className="border-b last:border-0 bg-gray-50/50">
+                              <td colSpan={8} className="px-4 py-2">
+                                <SerialCodeInputGroup
+                                  serialCode1={item.serialCode1 || ""}
+                                  serialCode2={item.serialCode2 || ""}
+                                  serialCode3={item.serialCode3 || ""}
+                                  onChange={(field, value) =>
+                                    handleSerialCodeChange(index, field, value)
+                                  }
+                                />
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
                       );
                     })}
                   </tbody>
@@ -1614,7 +1652,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             focusRingColor="blue"
           />
 
-          {/* 고객 선택 */}
+          {/* 판매대상 선택 */}
           <SupplierSection
             suppliers={suppliers}
             selectedSupplierId={formData.supplierId}
@@ -1624,7 +1662,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             onOpenSelectModal={() => setIsSelectSupplierModalOpen(true)}
           />
 
-          {/* 고객사 선택 후 표시되는 섹션 */}
+          {/* 판매대상 선택 후 표시되는 섹션 */}
           {formData.supplierId ? (
             <>
               {/* 수령인 정보 */}
@@ -1655,10 +1693,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
             <div className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300">
               <div className="text-center">
                 <p className="text-lg font-medium text-gray-600 mb-2">
-                  👆 먼저 고객을 선택해주세요
+                  👆 먼저 판매대상을 선택해주세요
                 </p>
                 <p className="text-sm text-gray-500">
-                  고객을 선택하면 수령인 정보 입력 폼이 표시됩니다
+                  판매대상을 선택하면 수령인 정보 입력 폼이 표시됩니다
                 </p>
               </div>
             </div>
@@ -1680,8 +1718,8 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           <SubmitButton
             isSubmitting={isSubmitting}
             isProcessing={isProcessing}
-            buttonText="발주 요청하기"
-            processingText="발주 처리 중..."
+            buttonText="판매 요청하기"
+            processingText="판매 처리 중..."
             completingText="완료 처리 중..."
             color="blue"
           />
@@ -1700,14 +1738,14 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           title="품목 추가"
         />
 
-        {/* 고객 추가 모달 */}
+        {/* 판매대상 추가 모달 */}
         <AddSupplierModal
           isOpen={isAddSupplierModalOpen}
           onClose={() => setIsAddSupplierModalOpen(false)}
           onSuccess={handleAddSupplierSuccess}
         />
 
-        {/* 고객 선택 모달 */}
+        {/* 판매대상 선택 모달 */}
         <SelectSupplierModal
           isOpen={isSelectSupplierModalOpen}
           onClose={() => setIsSelectSupplierModalOpen(false)}
@@ -1716,6 +1754,7 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
           selectedSupplierId={formData.supplierId}
           focusRingColor="blue"
           onAddSupplier={() => setIsAddSupplierModalOpen(true)}
+          context="order"
         />
       </div>
     </>

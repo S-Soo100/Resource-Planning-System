@@ -9,6 +9,22 @@ import { api } from "./api";
 import axios from "axios";
 
 export const categoryApi = {
+  // 계층형 카테고리 트리 조회 (v4.0)
+  getCategoryTree: async (teamId: number): Promise<ApiResponse<Category[]>> => {
+    try {
+      const response = await api.get<ApiResponse<Category[]>>(
+        `/category/tree`,
+        { params: { teamId } }
+      );
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return { success: true, data: [] };
+      }
+      throw error;
+    }
+  },
+
   getCategories: async (teamId: number): Promise<ApiResponse<Category[]>> => {
     try {
       const response = await api.get<ApiResponse<Category[]>>(
@@ -60,7 +76,10 @@ export const categoryApi = {
     return response.data;
   },
 
-  deleteCategory: async (id: number, teamId?: number): Promise<ApiResponse<boolean>> => {
+  deleteCategory: async (
+    id: number,
+    teamId?: number
+  ): Promise<ApiResponse<boolean>> => {
     const url = teamId
       ? `/category/${id.toString()}?teamId=${teamId.toString()}`
       : `/category/${id.toString()}`;

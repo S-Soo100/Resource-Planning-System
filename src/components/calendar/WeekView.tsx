@@ -1,12 +1,24 @@
 "use client";
-import React, { useState, useMemo } from 'react';
-import { WeekInfo, CalendarEvent, DemoEventDetails } from '@/types/calendar/calendar';
-import { useCalendarEvents } from '@/hooks/calendar/useCalendarEvents';
-import { getDayName, isToday, isWeekend, formatDateToString } from '@/utils/calendar/calendarUtils';
-import EventItem, { EventDot } from './EventItem';
-import DemoDayBarInline from './DemoDayBarInline';
-import DemoTitleOverlay from './DemoTitleOverlay';
-import { calculateDemoLayers, shouldShowTitle } from '@/utils/calendar/demoBarUtils';
+import React, { useState, useMemo } from "react";
+import {
+  WeekInfo,
+  CalendarEvent,
+  DemoEventDetails,
+} from "@/types/calendar/calendar";
+import { useCalendarEvents } from "@/hooks/calendar/useCalendarEvents";
+import {
+  getDayName,
+  isToday,
+  isWeekend,
+  formatDateToString,
+} from "@/utils/calendar/calendarUtils";
+import EventItem, { EventDot } from "./EventItem";
+import DemoDayBarInline from "./DemoDayBarInline";
+import DemoTitleOverlay from "./DemoTitleOverlay";
+import {
+  calculateDemoLayers,
+  shouldShowTitle,
+} from "@/utils/calendar/demoBarUtils";
 
 interface WeekViewProps {
   weekInfo: WeekInfo;
@@ -19,7 +31,7 @@ const WeekView: React.FC<WeekViewProps> = ({
   weekInfo,
   events,
   onEventClick,
-  className = '',
+  className = "",
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const { getEventsForDate, hasEventsOnDate } = useCalendarEvents(events);
@@ -35,7 +47,10 @@ const WeekView: React.FC<WeekViewProps> = ({
 
   // 시연 이벤트들 추출
   const demoEvents = useMemo(
-    () => events.filter(event => event.type === 'demo') as (CalendarEvent & { type: 'demo' })[],
+    () =>
+      events.filter((event) => event.type === "demo") as (CalendarEvent & {
+        type: "demo";
+      })[],
     [events]
   );
 
@@ -46,7 +61,8 @@ const WeekView: React.FC<WeekViewProps> = ({
   );
 
   // 최대 레이어 개수
-  const maxLayers = demoLayerMap.size > 0 ? Math.max(...demoLayerMap.values()) + 1 : 0;
+  const maxLayers =
+    demoLayerMap.size > 0 ? Math.max(...demoLayerMap.values()) + 1 : 0;
   const layerHeight = 52; // h-12 막대 + 여백
   const demoBarsTotalHeight = maxLayers * layerHeight;
   const baseHeight = 200;
@@ -63,7 +79,9 @@ const WeekView: React.FC<WeekViewProps> = ({
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`}>
+    <div
+      className={`bg-white rounded-lg shadow-md overflow-hidden ${className}`}
+    >
       {/* 요일 헤더 */}
       <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
         {weekInfo.days.map((date, index) => {
@@ -76,15 +94,17 @@ const WeekView: React.FC<WeekViewProps> = ({
               key={index}
               className={`
                 p-3 text-center font-medium border-r border-gray-200 last:border-r-0
-                ${isWeekendDay ? 'text-red-600' : 'text-gray-700'}
-                ${isTodayDate ? 'bg-blue-50 text-blue-700' : ''}
+                ${isWeekendDay ? "text-red-600" : "text-gray-700"}
+                ${isTodayDate ? "bg-blue-50 text-blue-700" : ""}
               `}
             >
               <div className="text-xs mb-1">{dayName}요일</div>
-              <div className={`
+              <div
+                className={`
                 text-lg
-                ${isTodayDate ? 'font-bold' : ''}
-              `}>
+                ${isTodayDate ? "font-bold" : ""}
+              `}
+              >
                 {date.getDate()}
               </div>
             </div>
@@ -104,9 +124,11 @@ const WeekView: React.FC<WeekViewProps> = ({
           const isTodayDate = isToday(date);
           const isSelected = selectedDate?.getTime() === date.getTime();
 
-          // 해당 날짜의 시연 이벤트와 발주 이벤트 분리
-          const dayDemoEvents = dayEvents.filter(e => e.type === 'demo') as (CalendarEvent & { type: 'demo' })[];
-          const dayOrderEvents = dayEvents.filter(e => e.type === 'order');
+          // 해당 날짜의 시연 이벤트와 판매 이벤트 분리
+          const dayDemoEvents = dayEvents.filter(
+            (e) => e.type === "demo"
+          ) as (CalendarEvent & { type: "demo" })[];
+          const dayOrderEvents = dayEvents.filter((e) => e.type === "order");
 
           return (
             <div
@@ -114,14 +136,14 @@ const WeekView: React.FC<WeekViewProps> = ({
               className={`
                 relative border-r border-gray-200 last:border-r-0 border-b border-gray-200
                 p-2 cursor-pointer hover:bg-gray-50 transition-colors overflow-visible
-                ${isWeekendDay ? 'bg-gray-25' : ''}
-                ${isTodayDate ? 'bg-yellow-50' : ''}
-                ${isSelected ? 'bg-yellow-100 ring-2 ring-yellow-400' : ''}
+                ${isWeekendDay ? "bg-gray-25" : ""}
+                ${isTodayDate ? "bg-yellow-50" : ""}
+                ${isSelected ? "bg-yellow-100 ring-2 ring-yellow-400" : ""}
               `}
               onClick={() => handleDateClick(date)}
             >
               {/* 시연 막대들 */}
-              {dayDemoEvents.map(demo => {
+              {dayDemoEvents.map((demo) => {
                 const demoId = (demo.details as DemoEventDetails).id;
                 const layerIndex = demoLayerMap.get(demoId) || 0;
                 const spanInfo = (demo.details as DemoEventDetails).spanInfo;
@@ -138,7 +160,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                 );
               })}
 
-              {/* 발주 이벤트 표시 */}
+              {/* 판매 이벤트 표시 */}
               <div
                 className="space-y-1"
                 style={{ marginTop: `${demoBarsTotalHeight + 40}px` }}
@@ -151,10 +173,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                       handleEventClick(event);
                     }}
                   >
-                    <EventItem
-                      event={event}
-                      isCompact
-                    />
+                    <EventItem event={event} isCompact />
                   </div>
                 ))}
 
@@ -177,11 +196,7 @@ const WeekView: React.FC<WeekViewProps> = ({
               {hasEvents && (
                 <div className="flex justify-center gap-1 mt-2">
                   {dayEvents.slice(0, 5).map((event) => (
-                    <EventDot
-                      key={event.id}
-                      event={event}
-                      size="sm"
-                    />
+                    <EventDot key={event.id} event={event} size="sm" />
                   ))}
                   {dayEvents.length > 5 && (
                     <div className="text-xs text-gray-500">
@@ -195,12 +210,14 @@ const WeekView: React.FC<WeekViewProps> = ({
         })}
 
         {/* 시연 제목 오버레이 레이어 */}
-        {demoEvents.map(demo => {
+        {demoEvents.map((demo) => {
           const demoId = (demo.details as DemoEventDetails).id;
           const layerIndex = demoLayerMap.get(demoId) || 0;
           const spanInfo = (demo.details as DemoEventDetails).spanInfo;
-          const dateStr = demo.date.split('T')[0];
-          const columnIndex = weekInfo.days.findIndex(d => formatDateToString(d) === dateStr);
+          const dateStr = demo.date.split("T")[0];
+          const columnIndex = weekInfo.days.findIndex(
+            (d) => formatDateToString(d) === dateStr
+          );
 
           // 시작일 또는 월요일에만 제목 표시
           if (shouldShowTitle(spanInfo, columnIndex) && columnIndex !== -1) {

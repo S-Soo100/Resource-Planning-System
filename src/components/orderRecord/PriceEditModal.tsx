@@ -19,11 +19,11 @@ interface EditedItem {
   itemCode: string;
   quantity: number;
   // 🆕 v2.6.0: 총액 입력 방식
-  totalPrice: string;        // 사용자 입력 (총 금액)
-  isZeroRated: boolean;      // 개별 영세율 체크
+  totalPrice: string; // 사용자 입력 (총 금액)
+  isZeroRated: boolean; // 개별 영세율 체크
   // 자동 계산 필드
-  sellingPrice: string;      // 공급가액 (자동 계산)
-  vat: string;               // 부가세 (자동 계산)
+  sellingPrice: string; // 공급가액 (자동 계산)
+  vat: string; // 부가세 (자동 계산)
 }
 
 const PriceEditModal: React.FC<PriceEditModalProps> = ({
@@ -247,7 +247,7 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">발주 가격 수정</h2>
+            <h2 className="text-xl font-bold text-gray-900">판매 가격 수정</h2>
             <p className="text-sm text-gray-600">
               품목별 총 금액만 입력하세요. 공급가액과 부가세는 자동 계산됩니다.
             </p>
@@ -275,20 +275,31 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
         {/* 🆕 안내 메시지 (v2.6.0) */}
         <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex items-start gap-2">
-            <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            <svg
+              className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clipRule="evenodd"
+              />
             </svg>
             <div className="text-sm text-blue-800">
               <p className="font-semibold mb-1">💡 가격 입력 방법</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>
-                  <strong>총 금액만 입력</strong>하세요. 공급가액과 부가세는 자동으로 계산됩니다.
+                  <strong>총 금액만 입력</strong>하세요. 공급가액과 부가세는
+                  자동으로 계산됩니다.
                 </li>
                 <li>
-                  <strong>일반 품목</strong>: 총 금액의 10%가 부가세로 자동 계산됩니다.
+                  <strong>일반 품목</strong>: 총 금액의 10%가 부가세로 자동
+                  계산됩니다.
                 </li>
                 <li>
-                  <strong>영세율 품목</strong>: 체크박스를 선택하면 부가세가 0원으로 처리됩니다.
+                  <strong>영세율 품목</strong>: 체크박스를 선택하면 부가세가
+                  0원으로 처리됩니다.
                 </li>
               </ul>
             </div>
@@ -367,10 +378,16 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
                         <input
                           type="checkbox"
                           checked={item.isZeroRated}
-                          onChange={(e) => handleZeroRatedChange(index, e.target.checked)}
+                          onChange={(e) =>
+                            handleZeroRatedChange(index, e.target.checked)
+                          }
                           disabled={isAllZeroRated || isPending}
                           className="w-4 h-4 accent-blue-600"
-                          title={isAllZeroRated ? "전체 영세율 적용 중" : "개별 영세율"}
+                          title={
+                            isAllZeroRated
+                              ? "전체 영세율 적용 중"
+                              : "개별 영세율"
+                          }
                         />
                       </td>
 
@@ -381,7 +398,9 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
                           inputMode="numeric"
                           pattern="[0-9]*"
                           value={item.totalPrice}
-                          onChange={(e) => handleTotalPriceChange(index, e.target.value)}
+                          onChange={(e) =>
+                            handleTotalPriceChange(index, e.target.value)
+                          }
                           onPaste={(e) => {
                             e.preventDefault();
                             const pastedText = e.clipboardData.getData("text");
@@ -397,7 +416,9 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
                       {/* 🆕 공급가액 (자동 계산, 읽기 전용) */}
                       <td className="hidden md:table-cell px-4 py-3 text-right">
                         <span className="text-sm text-gray-600">
-                          {sellingPrice > 0 ? sellingPrice.toLocaleString() : "-"}
+                          {sellingPrice > 0
+                            ? sellingPrice.toLocaleString()
+                            : "-"}
                         </span>
                       </td>
 
@@ -407,7 +428,9 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
                           {vat > 0 ? vat.toLocaleString() : "0"}
                         </span>
                         {isZeroRated && (
-                          <span className="ml-1 text-xs text-amber-600">(0%)</span>
+                          <span className="ml-1 text-xs text-amber-600">
+                            (0%)
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -445,7 +468,7 @@ const PriceEditModal: React.FC<PriceEditModalProps> = ({
             <div className="text-sm text-amber-800">
               <p className="font-semibold mb-1">안내사항</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>발주 상태와 무관하게 가격을 수정할 수 있습니다</li>
+                <li>판매 상태와 무관하게 가격을 수정할 수 있습니다</li>
                 <li>VAT는 자동 계산되지 않으므로 직접 입력해주세요</li>
                 <li>숫자만 입력 가능하며, 최대값은 2,147,483,647원입니다</li>
               </ul>

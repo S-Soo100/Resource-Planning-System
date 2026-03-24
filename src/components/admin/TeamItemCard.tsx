@@ -13,6 +13,9 @@ interface TeamItem {
     name: string;
     priority: number;
   };
+  brand?: string | null;
+  isHealthInsuranceRegistered?: boolean;
+  isService?: boolean;
 }
 
 interface TeamItemCardProps {
@@ -37,9 +40,21 @@ const TeamItemCard: React.FC<TeamItemCardProps> = ({
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-            <h3 className="text-lg font-medium text-gray-900 truncate">
-              {item.itemName}
-            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-lg font-medium text-gray-900 truncate">
+                {item.itemName}
+              </h3>
+              {item.isService && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                  서비스
+                </span>
+              )}
+              {item.isHealthInsuranceRegistered && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                  건보
+                </span>
+              )}
+            </div>
             <span className="mt-1 sm:mt-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
               {item.itemCode || "-"}
             </span>
@@ -54,6 +69,15 @@ const TeamItemCard: React.FC<TeamItemCardProps> = ({
                 {item.category?.name || "없음"}
               </span>
             </div>
+
+            {item.brand && (
+              <div className="flex items-center">
+                <span className="text-sm font-medium text-gray-500 w-16">
+                  브랜드
+                </span>
+                <span className="text-sm text-gray-900">{item.brand}</span>
+              </div>
+            )}
 
             {item.memo && (
               <div className="flex items-start">

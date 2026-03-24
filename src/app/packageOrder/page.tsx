@@ -1,6 +1,6 @@
 "use client";
-import { useRouter } from 'next/navigation';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useRouter } from "next/navigation";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import OrderRequestForm from "@/components/orderRequest/OrderRequestForm";
 import { useWarehouseWithItems } from "@/hooks/useWarehouseWithItems";
 import { LoadingCentered } from "@/components/ui/Loading";
@@ -35,10 +35,10 @@ export default function PackageOrderPage() {
               로그인이 필요합니다
             </h2>
             <p className="text-gray-600 mb-6">
-              패키지 발주 요청 페이지는 로그인 후 이용할 수 있습니다.
+              패키지 판매 요청 페이지는 로그인 후 이용할 수 있습니다.
             </p>
             <button
-              onClick={() => router.push('/menu')}
+              onClick={() => router.push("/menu")}
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               메인으로 돌아가기
@@ -52,7 +52,7 @@ export default function PackageOrderPage() {
   return (
     <OrderRequestForm
       isPackageOrder={true}
-      title="패키지 발주 요청"
+      title="패키지 판매 요청"
       warehousesList={warehousesList}
       warehouseItems={warehouseItems}
       onWarehouseChange={handleWarehouseChange}

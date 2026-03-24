@@ -27,7 +27,7 @@ const SearchAddressModal = dynamic(
   { ssr: false }
 );
 
-// 고객 추가/수정 모달 컴포넌트
+// 판매대상 추가/수정 모달 컴포넌트
 interface SupplierFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -161,7 +161,7 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
         {/* 모달 헤더 */}
         <div className="px-6 py-5 border-b border-Outline-Variant flex items-center justify-between">
           <h2 className="text-xl font-medium text-Text-Highest-100">
-            {editingSupplier ? "고객 정보 수정" : "신규 고객 추가"}
+            {editingSupplier ? "판매대상 정보 수정" : "신규 판매대상 추가"}
           </h2>
           <button
             type="button"
@@ -175,14 +175,14 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
         <form onSubmit={handleSubmit} className="p-6">
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
-              <label className={labelCls}>고객명</label>
+              <label className={labelCls}>판매대상명</label>
               <input
                 type="text"
                 name="supplierName"
                 value={formData.supplierName}
                 onChange={handleInputChange}
                 className={inputCls}
-                placeholder="고객명을 입력하세요"
+                placeholder="판매대상명을 입력하세요"
                 required
               />
             </div>
@@ -278,23 +278,23 @@ const SupplierFormModal: React.FC<SupplierFormModalProps> = ({
               />
             </div>
 
-            {/* 고객 유형 (버튼형 선택) */}
+            {/* 판매대상 유형 (버튼형 선택) */}
             <div className="md:col-span-2 pt-3 border-t border-Outline-Variant">
               <p className="text-sm font-medium text-Text-High-90 mb-2">
-                고객 유형
+                판매대상 유형
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   {
                     type: "b2c" as const,
                     label: "B2C",
-                    sub: "개인 고객",
+                    sub: "개인 판매대상",
                     active: "border-indigo-500 bg-indigo-50 text-indigo-700",
                   },
                   {
                     type: "b2b" as const,
                     label: "B2B",
-                    sub: "기업 고객",
+                    sub: "기업 판매대상",
                     active: "border-emerald-500 bg-emerald-50 text-emerald-700",
                   },
                 ].map(({ type, label, sub, active }) => {
@@ -540,7 +540,7 @@ export default function SupplierManagePage() {
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm("정말로 이 고객을 삭제하시겠습니까?")) {
+    if (window.confirm("정말로 이 판매대상을 삭제하시겠습니까?")) {
       deleteSupplier(String(id));
     }
   };
@@ -567,7 +567,8 @@ export default function SupplierManagePage() {
             접근 권한이 필요합니다
           </h2>
           <p className="text-sm text-Text-Low-70 mb-6">
-            고객 관리 페이지는 관리자 또는 1차 승인권자만 접근할 수 있습니다.
+            판매대상 관리 페이지는 관리자 또는 1차 승인권자만 접근할 수
+            있습니다.
           </p>
           <Button
             variant="default"
@@ -587,10 +588,10 @@ export default function SupplierManagePage() {
       {/* 페이지 헤더 */}
       <div className="mb-8">
         <h1 className="text-3xl font-normal leading-10 text-Text-Highest-100">
-          고객 관리
+          판매대상 관리
         </h1>
         <p className="mt-1 text-sm text-Text-Low-70">
-          고객 정보를 등록하고 관리합니다
+          판매대상 정보를 등록하고 관리합니다
         </p>
       </div>
 
@@ -614,7 +615,7 @@ export default function SupplierManagePage() {
             </svg>
             <input
               type="text"
-              placeholder="고객 이름으로 검색"
+              placeholder="판매대상 이름으로 검색"
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && refetch()}
@@ -632,7 +633,7 @@ export default function SupplierManagePage() {
               onClick={handleAddNewClick}
               className="h-10 px-5 bg-Primary-Main text-white rounded-full text-sm font-medium hover:brightness-90 active:brightness-85 transition-all"
             >
-              + 고객 추가
+              + 판매대상 추가
             </button>
           </div>
         </div>
@@ -695,7 +696,7 @@ export default function SupplierManagePage() {
               <thead>
                 <tr className="bg-Back-Low-10 border-b border-Outline-Variant">
                   {[
-                    "고객명",
+                    "판매대상명",
                     "이메일",
                     "주소",
                     "전화번호",
@@ -809,16 +810,16 @@ export default function SupplierManagePage() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="text-4xl mb-3">👥</div>
             <p className="text-base font-medium text-Text-High-90">
-              등록된 고객이 없습니다
+              등록된 판매대상이 없습니다
             </p>
             <p className="mt-1 text-sm text-Text-Low-70">
-              오른쪽 상단의 버튼으로 고객을 추가해보세요
+              오른쪽 상단의 버튼으로 판매대상을 추가해보세요
             </p>
           </div>
         )}
       </div>
 
-      {/* 고객 추가/수정 모달 */}
+      {/* 판매대상 추가/수정 모달 */}
       <SupplierFormModal
         isOpen={isFormModalOpen}
         onClose={handleCloseModal}

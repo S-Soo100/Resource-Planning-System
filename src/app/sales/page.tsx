@@ -295,13 +295,13 @@ export default function SalesPage() {
     return demoData.summary;
   }, [demoData?.summary]);
 
-  // 합산 요약 (발주 + 시연)
+  // 합산 요약 (판매 + 시연)
   const combinedSummary = useMemo((): SalesSummaryType => {
     const orderCount = actualSummary.totalOrders;
     const demoCount = sortedDemoRecords.length;
     const demoSalesAmount = demoSummary.totalSales;
 
-    // 모든 레코드(발주+시연) 합산해서 마진율 계산
+    // 모든 레코드(판매+시연) 합산해서 마진율 계산
     const allRecords = [...sortedRecords, ...sortedDemoRecords];
     const recordsWithMargin = allRecords.filter(
       (r) => r.marginRate !== null && r.marginRate !== undefined
@@ -480,9 +480,9 @@ export default function SalesPage() {
     setIsStatementModalOpen(true);
   };
 
-  // 제목 클릭 시 발주 상세 페이지로 이동
+  // 제목 클릭 시 판매 상세 페이지로 이동
   const handleTitleClick = (orderId: number) => {
-    router.push(`/orderRecord/${orderId}`);
+    router.push(`/salesRecord/${orderId}`);
   };
 
   if (error || demoError) {
@@ -526,7 +526,7 @@ export default function SalesPage() {
           💰 판매 내역 {showMarginColumns && "& 마진 분석"}
         </h1>
         <p className="text-gray-500 mt-2">
-          승인된 발주와 유료 시연을 기반으로 판매 현황
+          승인된 판매와 유료 시연을 기반으로 판매 현황
           {showMarginColumns && " 및 마진율"}을 분석합니다
         </p>
       </div>
@@ -553,9 +553,9 @@ export default function SalesPage() {
           <div className="px-4 pb-4 text-sm text-blue-800">
             <div className="space-y-1 ml-7">
               <div>
-                <span className="font-medium">포함되는 발주:</span>{" "}
+                <span className="font-medium">포함되는 판매:</span>{" "}
                 <span className="text-blue-700">
-                  승인된 발주, 출고 확인된 발주, 출고 완료된 발주
+                  승인된 판매, 출고 확인된 판매, 출고 완료된 판매
                 </span>
               </div>
               <div>
@@ -567,7 +567,7 @@ export default function SalesPage() {
               <div>
                 <span className="font-medium">제외:</span>{" "}
                 <span className="text-blue-600">
-                  승인 대기 중, 반려된 발주 / 무료 시연
+                  승인 대기 중, 반려된 판매 / 무료 시연
                 </span>
               </div>
             </div>
@@ -650,7 +650,7 @@ export default function SalesPage() {
         </div>
       </div>
 
-      {/* 요약 카드 (발주+시연 합산) */}
+      {/* 요약 카드 (판매+시연 합산) */}
       {combinedSummary && <SalesSummary summary={combinedSummary} />}
 
       {/* 판매가 미입력 경고 */}
@@ -677,7 +677,7 @@ export default function SalesPage() {
               : "text-gray-500 hover:text-gray-700 bg-gray-50"
           }`}
         >
-          발주 판매 ({actualSummary.totalOrders}건)
+          판매 ({actualSummary.totalOrders}건)
           {activeTab === "order" && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
           )}
@@ -1233,10 +1233,10 @@ export default function SalesPage() {
             <AlertCircle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-red-800">
               <strong className="block mb-1">
-                ⚠️ 역마진 발주: {combinedSummary.negativeMarginCount}건
+                ⚠️ 역마진 판매: {combinedSummary.negativeMarginCount}건
               </strong>
               <p>
-                판매가가 원가보다 낮은 발주가 발견되었습니다. 가격 정책을
+                판매가가 원가보다 낮은 판매가 발견되었습니다. 가격 정책을
                 검토해주세요.
               </p>
             </div>

@@ -24,7 +24,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useSuppliers } from "@/hooks/useSupplier";
-// useWarehouseItems 훅 제거 - 발주 상세 페이지에서는 불필요
+// useWarehouseItems 훅 제거 - 판매 상세 페이지에서는 불필요
 import OrderEditModal from "@/components/orderRecord/OrderEditModal";
 import PriceEditModal from "@/components/orderRecord/PriceEditModal";
 import LoginModal from "@/components/login/LoginModal";
@@ -469,24 +469,24 @@ const OrderRecordDetail = () => {
 
       try {
         const res = await getOrder(orderId);
-        console.log("📋 발주 조회 결과:", res);
+        console.log("📋 판매 조회 결과:", res);
         if (res.success && res.data) {
           const orderData = res.data as IOrderRecord;
           setOrder(orderData);
           // 초기 상태 설정
           setSelectedStatus(orderData.status as OrderStatus);
         } else {
-          alert("해당 발주를 찾을 수 없습니다.");
-          router.push("/orderRecord");
+          alert("해당 판매를 찾을 수 없습니다.");
+          router.push("/salesRecord");
         }
       } catch (error) {
-        console.error("발주 조회 중 오류:", error);
+        console.error("판매 조회 중 오류:", error);
         // API 호출 실패 시에도 로그인 모달 표시
         if (!currentAuth.isAuthenticated || !currentAuth.user) {
           setIsLoginModalOpen(true);
         } else {
-          alert("발주 조회에 실패했습니다.");
-          router.push("/orderRecord");
+          alert("판매 조회에 실패했습니다.");
+          router.push("/salesRecord");
         }
       }
       setIsLoading(false);
@@ -597,7 +597,7 @@ const OrderRecordDetail = () => {
   const handleStatusChange = async () => {
     if (!order || !selectedStatus) return;
 
-    // moderator 권한 사용자가 본인이 생성한 발주를 승인/반려하려고 할 때 제한
+    // moderator 권한 사용자가 본인이 생성한 판매를 승인/반려하려고 할 때 제한
     if (isModerator) {
       if (order.userId === auth?.id) {
         if (
@@ -797,11 +797,11 @@ const OrderRecordDetail = () => {
     return canDeleteRecord;
   };
 
-  // 발주 삭제 핸들러
+  // 판매 삭제 핸들러
   const handleDeleteOrder = async () => {
     if (!order) return;
 
-    const confirmMessage = `발주를 삭제하시겠습니까?\n\n발주자: ${order.requester}\n수령자: ${order.receiver}\n상태: ${getStatusText(order.status)}\n\n이 작업은 되돌릴 수 없습니다.`;
+    const confirmMessage = `판매를 삭제하시겠습니까?\n\n판매자: ${order.requester}\n수령자: ${order.receiver}\n상태: ${getStatusText(order.status)}\n\n이 작업은 되돌릴 수 없습니다.`;
 
     if (!window.confirm(confirmMessage)) {
       return;
@@ -809,18 +809,18 @@ const OrderRecordDetail = () => {
 
     try {
       await deleteOrderMutation.mutateAsync(orderId);
-      toast.success("발주가 삭제되었습니다.", {
+      toast.success("판매가 삭제되었습니다.", {
         duration: 3000,
         position: "top-center",
       });
 
-      // 삭제 후 발주 목록으로 이동
+      // 삭제 후 판매 목록으로 이동
       setTimeout(() => {
-        router.push("/orderRecord");
+        router.push("/salesRecord");
       }, 1000);
     } catch (error) {
-      console.error("발주 삭제 오류:", error);
-      toast.error("발주 삭제에 실패했습니다.", {
+      console.error("판매 삭제 오류:", error);
+      toast.error("판매 삭제에 실패했습니다.", {
         duration: 3000,
         position: "top-center",
       });
@@ -942,17 +942,17 @@ const OrderRecordDetail = () => {
       {/* 비로그인 상태면 아래 UI를 렌더링하지 않음 */}
       {!isLoginModalOpen && !authStore.getState().isAuthenticated ? null : (
         <>
-          {/* order가 null이고 로그인 상태일 때만 '발주를 찾을 수 없습니다' */}
+          {/* order가 null이고 로그인 상태일 때만 '판매를 찾을 수 없습니다' */}
           {!order && authStore.getState().isAuthenticated && (
             <div className="flex flex-col justify-center items-center h-96">
               <p className="mb-4 text-lg text-gray-600">
-                발주를 찾을 수 없습니다
+                판매를 찾을 수 없습니다
               </p>
               <button
                 className="px-4 py-2 text-white bg-blue-500 rounded"
-                onClick={() => router.push("/orderRecord")}
+                onClick={() => router.push("/salesRecord")}
               >
-                발주 목록으로 돌아가기
+                판매 목록으로 돌아가기
               </button>
             </div>
           )}
@@ -964,7 +964,7 @@ const OrderRecordDetail = () => {
                 <div className="flex justify-between items-center mb-4">
                   <div className="flex gap-4 items-center">
                     <button
-                      onClick={() => router.push("/orderRecord")}
+                      onClick={() => router.push("/salesRecord")}
                       className="flex gap-2 items-center px-3 py-2 text-gray-600 transition-colors hover:text-gray-800"
                     >
                       <ArrowLeft size={20} />
@@ -974,7 +974,7 @@ const OrderRecordDetail = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={() =>
-                        window.open(`/orderRecord/print/${orderId}`, "_blank")
+                        window.open(`/salesRecord/print/${orderId}`, "_blank")
                       }
                       className="flex gap-2 items-center px-4 py-2 text-gray-600 bg-gray-100 rounded-lg transition-colors hover:bg-gray-200"
                     >
@@ -993,7 +993,7 @@ const OrderRecordDetail = () => {
                       <button
                         onClick={handleDeleteOrder}
                         className="flex gap-2 items-center px-4 py-2 text-white bg-red-500 rounded-full transition-colors hover:bg-red-600"
-                        title="발주 삭제 (관리자 전용)"
+                        title="판매 삭제 (관리자 전용)"
                       >
                         <Trash2 size={16} />
                         <span>삭제</span>
@@ -1080,7 +1080,7 @@ const OrderRecordDetail = () => {
                         onClick={() => setIsEditModalOpen(true)}
                         className="px-4 py-2 text-white bg-blue-500 rounded-lg transition-colors hover:bg-blue-600"
                       >
-                        발주 수정
+                        판매 수정
                       </button>
                     )}
                   </div>
@@ -1178,7 +1178,7 @@ const OrderRecordDetail = () => {
                             {option.disabled &&
                             isModerator &&
                             order?.userId === auth?.id
-                              ? " (본인 발주)"
+                              ? " (본인 판매)"
                               : ""}
                           </option>
                         ))}
@@ -1218,7 +1218,7 @@ const OrderRecordDetail = () => {
                   </div>
                 )}
 
-                {/* 발주 정보 카드 */}
+                {/* 판매 정보 카드 */}
                 <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
                   {/* 기본 정보 */}
                   <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
@@ -1234,7 +1234,7 @@ const OrderRecordDetail = () => {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">발주자:</span>
+                        <span className="text-gray-600">판매자:</span>
                         <span className="font-medium">{order.requester}</span>
                       </div>
                       <div className="flex justify-between">
@@ -1316,7 +1316,7 @@ const OrderRecordDetail = () => {
                     className="flex justify-between items-center w-full mb-4 text-left group hover:bg-gray-50 -mx-2 px-2 py-1 rounded-lg transition-colors"
                   >
                     <h2 className="text-lg font-semibold text-gray-900">
-                      발주 품목
+                      판매 품목
                     </h2>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-500 group-hover:text-gray-700">
@@ -1441,7 +1441,43 @@ const OrderRecordDetail = () => {
                                           ({item.item.teamItem.itemCode})
                                         </span>
                                       )}
+                                      {item.item?.teamItem?.isService && (
+                                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold text-orange-700 bg-orange-100 rounded border border-orange-200">
+                                          서비스
+                                        </span>
+                                      )}
                                     </div>
+                                    {/* 시리얼코드 표시 (v4.0) */}
+                                    {(item.serialCode1 ||
+                                      item.serialCode2 ||
+                                      item.serialCode3) && (
+                                      <div className="mt-1 flex flex-wrap gap-1">
+                                        {item.serialCode1 && (
+                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 bg-gray-100 rounded border border-gray-200">
+                                            <span className="text-gray-400">
+                                              S/N
+                                            </span>{" "}
+                                            {item.serialCode1}
+                                          </span>
+                                        )}
+                                        {item.serialCode2 && (
+                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-green-600 bg-green-50 rounded border border-green-200">
+                                            <span className="text-green-400">
+                                              건보
+                                            </span>{" "}
+                                            {item.serialCode2}
+                                          </span>
+                                        )}
+                                        {item.serialCode3 && (
+                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-purple-600 bg-purple-50 rounded border border-purple-200">
+                                            <span className="text-purple-400">
+                                              예비
+                                            </span>{" "}
+                                            {item.serialCode3}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
                                     {!order.packageId && item.memo && (
                                       <div className="mt-1 text-xs text-blue-600 flex items-center gap-1">
                                         <svg
@@ -1511,7 +1547,7 @@ const OrderRecordDetail = () => {
                                           setIsPriceEditModalOpen(true)
                                         }
                                         className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-700 bg-white border-2 border-blue-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-all shadow-sm whitespace-nowrap"
-                                        title="발주 상태와 무관하게 가격만 수정할 수 있습니다"
+                                        title="판매 상태와 무관하게 가격만 수정할 수 있습니다"
                                       >
                                         <svg
                                           className="w-4 h-4"
@@ -1548,7 +1584,7 @@ const OrderRecordDetail = () => {
                       </div>
                     </>
                   ) : isOrderItemsExpanded ? (
-                    <p className="text-gray-500">발주 품목이 없습니다.</p>
+                    <p className="text-gray-500">판매 품목이 없습니다.</p>
                   ) : null}
                 </div>
 

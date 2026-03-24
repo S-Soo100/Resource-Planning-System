@@ -13,8 +13,8 @@ interface SubmitButtonProps {
 const SubmitButton: React.FC<SubmitButtonProps> = ({
   isSubmitting,
   isProcessing,
-  buttonText = "발주 요청하기",
-  processingText = "발주 처리 중...",
+  buttonText = "판매 요청하기",
+  processingText = "판매 처리 중...",
   completingText = "완료 처리 중...",
   color = "blue",
 }) => {

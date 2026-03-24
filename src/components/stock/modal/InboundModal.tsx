@@ -4,10 +4,12 @@ import React, { useRef, useState, useEffect } from "react";
 import { AttachedFile } from "@/types/common";
 import SearchAddressModal from "./SearchAddressModal";
 import SelectSupplierModal from "../../supplier/SelectSupplierModal";
+import { CategoryTreeSelect } from "@/components/ui/CategoryTreeSelect";
 import { Category } from "@/types/(item)/category";
 import { getDisplayFileName } from "@/utils/fileUtils";
 import { MANUAL_RECORD_PURPOSES } from "@/constants/recordPurpose";
 import { Supplier } from "@/types/supplier";
+import { authStore } from "@/store/authStore";
 import toast from "react-hot-toast";
 
 interface InboundModalProps {
@@ -27,6 +29,8 @@ interface InboundModalProps {
     warehouseId: number;
     attachedFiles: AttachedFile[];
     supplierId?: number;
+    unitCost?: string;
+    inboundStatus?: "requested" | "completed" | "";
   };
   onFormChange: (field: string, value: any) => void;
   onSubmitInbound: () => void;
@@ -62,6 +66,7 @@ export default function InboundModal({
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isSelectSupplierModalOpen, setIsSelectSupplierModalOpen] =
     useState(false);
+  const currentTeamId = authStore((state) => state.selectedTeam?.id);
 
   useEffect(() => {
     // console.log 제거
@@ -158,7 +163,7 @@ export default function InboundModal({
     return baseAddress;
   };
 
-  // 고객 선택 핸들러
+  // 거래처 선택 핸들러
   const handleSupplierSelect = (supplier: Supplier) => {
     if (onSupplierSelect) {
       onSupplierSelect(supplier);
@@ -166,14 +171,14 @@ export default function InboundModal({
     setIsSelectSupplierModalOpen(false);
   };
 
-  // 고객 선택이 필요한 목적인지 판단
+  // 거래처 선택이 필요한 목적인지 판단
   const requiresSupplier = inboundValues.recordPurpose === "purchase";
 
-  // 폼 제출 시 주소 합치기 처리 및 고객 필수 검증
+  // 폼 제출 시 주소 합치기 처리 및 거래처 필수 검증
   const handleSubmit = () => {
-    // 구매 입고인 경우에만 고객 필수 검증
+    // 구매 입고인 경우에만 거래처 필수 검증
     if (requiresSupplier && !inboundValues.supplierId) {
-      toast.error("고객을 선택해주세요");
+      toast.error("거래처를 선택해주세요");
       return;
     }
 
@@ -207,22 +212,32 @@ export default function InboundModal({
                     <label className="block text-sm font-medium mb-2 text-gray-700">
                       카테고리
                     </label>
-                    <select
-                      value={selectedCategoryId || ""}
-                      onChange={(e) =>
-                        onCategoryChange(
-                          e.target.value ? Number(e.target.value) : null
-                        )
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-                    >
-                      <option value="">카테고리를 선택하세요</option>
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
+                    {currentTeamId ? (
+                      <CategoryTreeSelect
+                        mode="assign"
+                        value={selectedCategoryId ?? undefined}
+                        onChange={(value) => onCategoryChange(value ?? null)}
+                        teamId={currentTeamId}
+                        placeholder="카테고리를 선택하세요"
+                      />
+                    ) : (
+                      <select
+                        value={selectedCategoryId || ""}
+                        onChange={(e) =>
+                          onCategoryChange(
+                            e.target.value ? Number(e.target.value) : null
+                          )
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                      >
+                        <option value="">카테고리를 선택하세요</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
                   <div className="mb-4">
@@ -304,6 +319,74 @@ export default function InboundModal({
                     />
                   </div>
 
+                  {/* 매입단가 입력 */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      매입단가 (선택)
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={inboundValues.unitCost || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "" || /^\d+$/.test(value)) {
+                          onFormChange("unitCost", value);
+                        }
+                      }}
+                      placeholder="매입단가를 입력하세요"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                    />
+                    {inboundValues.unitCost && inboundValues.quantity > 0 && (
+                      <p className="mt-1 text-sm text-gray-500">
+                        매입총액:{" "}
+                        {(
+                          Number(inboundValues.unitCost) *
+                          inboundValues.quantity
+                        ).toLocaleString()}
+                        원
+                      </p>
+                    )}
+                  </div>
+
+                  {/* 입고 방식 선택 */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      입고 방식
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onFormChange("inboundStatus", "")}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          !inboundValues.inboundStatus
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        즉시 입고완료
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onFormChange("inboundStatus", "requested")
+                        }
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          inboundValues.inboundStatus === "requested"
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        입고 요청만
+                      </button>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {inboundValues.inboundStatus === "requested"
+                        ? "입고 요청 상태로 등록됩니다. 승인권자가 입고완료 처리합니다."
+                        : "즉시 입고완료 처리되어 재고에 반영됩니다."}
+                    </p>
+                  </div>
+
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-2 text-gray-700">
                       목적 구분
@@ -362,11 +445,11 @@ export default function InboundModal({
                     </div>
                   </div>
 
-                  {/* 구매 입고일 때만 고객 선택 표시 */}
+                  {/* 구매 입고일 때만 거래처 선택 표시 */}
                   {requiresSupplier && (
                     <div className="mb-4">
                       <label className="block text-sm font-medium mb-2 text-gray-700">
-                        고객 선택 <span className="text-red-500">*</span>
+                        거래처 선택 <span className="text-red-500">*</span>
                       </label>
                       <button
                         type="button"
@@ -377,18 +460,18 @@ export default function InboundModal({
                           <span className="text-gray-900">
                             {supplierList.find(
                               (s) => s.id === inboundValues.supplierId
-                            )?.supplierName || "고객 선택"}
+                            )?.supplierName || "거래처 선택"}
                           </span>
                         ) : (
                           <span className="text-gray-400">
-                            고객을 선택하세요
+                            거래처를 선택하세요
                           </span>
                         )}
                       </button>
                     </div>
                   )}
 
-                  {/* 입고처/주소 폼: 고객 불필요 시 바로 표시, 구매 입고 시 고객 선택 후 표시 */}
+                  {/* 입고처/주소 폼: 거래처 불필요 시 바로 표시, 구매 입고 시 거래처 선택 후 표시 */}
                   {!requiresSupplier || inboundValues.supplierId ? (
                     <>
                       <div className="mb-4">
@@ -463,10 +546,10 @@ export default function InboundModal({
                     <div className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300 mb-4">
                       <div className="text-center">
                         <p className="text-lg font-medium text-gray-600 mb-2">
-                          먼저 고객을 선택해주세요
+                          먼저 거래처를 선택해주세요
                         </p>
                         <p className="text-sm text-gray-500">
-                          고객을 선택하면 입고처 정보 입력 폼이 표시됩니다
+                          거래처를 선택하면 입고처 정보 입력 폼이 표시됩니다
                         </p>
                       </div>
                     </div>
@@ -584,7 +667,9 @@ export default function InboundModal({
                 }
                 className="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-500 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
               >
-                입고 완료
+                {inboundValues.inboundStatus === "requested"
+                  ? "입고 요청"
+                  : "입고 완료"}
               </button>
               <button
                 type="button"
@@ -607,6 +692,7 @@ export default function InboundModal({
         onClose={() => setIsSelectSupplierModalOpen(false)}
         onSelect={handleSupplierSelect}
         suppliers={supplierList}
+        context="inbound"
       />
     </>
   );

@@ -11,18 +11,20 @@ import {
   Plus,
   Package,
   ChevronDown,
-  ChevronUp,
+  ChevronRight,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { authStore } from "@/store/authStore";
 import { useCategory } from "@/hooks/useCategory";
+import { useCategoryTree } from "@/hooks/useCategoryTree";
 import { Button } from "@/components/ui";
 import CategoryManagementModal, {
   CategoryManagementModalRef,
 } from "@/components/admin/CategoryManagementModal";
 import TeamItemModal from "@/components/admin/TeamItemModal";
 import { navigateByAuthStatus } from "@/utils/navigation";
+import { Category } from "@/types/(item)/category";
 
 interface TeamItem {
   id: number;
@@ -30,12 +32,32 @@ interface TeamItem {
   itemName: string;
   memo?: string;
   costPrice?: number | null;
+  imageUrl?: string | null;
   category?: {
     id: number;
     name: string;
     priority: number;
   };
+  // 확장 필드 (v4.0)
+  isNotifiedPrice?: boolean;
+  notifiedPrice?: number | null;
+  consumerPrice?: number | null;
+  brand?: string | null;
+  isHealthInsuranceRegistered?: boolean;
+  isService?: boolean;
 }
+
+/** 카테고리의 모든 자식 ID를 재귀적으로 수집 */
+const collectAllChildIds = (category: Category): number[] => {
+  const ids: number[] = [];
+  if (category.children && category.children.length > 0) {
+    for (const child of category.children) {
+      ids.push(child.id);
+      ids.push(...collectAllChildIds(child));
+    }
+  }
+  return ids;
+};
 
 function TeamItemsContent() {
   const { team } = useCurrentTeam();
@@ -71,16 +93,14 @@ function TeamItemsContent() {
   // 검색 상태
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 카테고리 접기/펼치기 상태
-  const [isCategoryExpanded, setIsCategoryExpanded] = useState(false);
+  // 트리 노드 펼치기/접기 상태
+  const [expandedCategoryIds, setExpandedCategoryIds] = useState<Set<number>>(
+    new Set()
+  );
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-
-  // 뷰 모드 상태 (데스크톱: table, 모바일: card)
-
-  const [viewMode, setViewMode] = useState<"table" | "card">("table");
 
   const selectedTeam = authStore((state) => state.selectedTeam);
   const categoryModalRef = useRef<CategoryManagementModalRef>(null);
@@ -94,31 +114,19 @@ function TeamItemsContent() {
     deleteCategory,
   } = useCategory(selectedTeam?.id);
 
+  // 카테고리 트리 데이터
+  const { data: categoryTree = [] } = useCategoryTree(
+    selectedTeam?.id ? Number(selectedTeam.id) : undefined
+  );
+
   // 원가 열람 권한 체크 (팀 권한 기반)
   const canViewCost = canViewCostPrice;
-
-  // 반응형 뷰 모드 감지
-  useEffect(() => {
-    const checkViewMode = () => {
-      setViewMode(window.innerWidth < 768 ? "card" : "table");
-    };
-
-    checkViewMode();
-    window.addEventListener("resize", checkViewMode);
-    return () => window.removeEventListener("resize", checkViewMode);
-  }, []);
 
   useEffect(() => {
     if (selectedTeam?.id && !isCategoryLoading) {
       getCategoriesSorted();
     }
   }, [selectedTeam?.id, isCategoryLoading, getCategoriesSorted]);
-
-  useEffect(() => {
-    if (team) {
-      console.log("team.warehouses:", JSON.stringify(team.warehouses, null, 2));
-    }
-  }, [team]);
 
   // URL 파라미터에서 editId를 확인하고 자동으로 모달 열기
   useEffect(() => {
@@ -141,19 +149,30 @@ function TeamItemsContent() {
   };
 
   // 카테고리 수정 모달 열기
-  const handleEditCategoryModal = (category: {
-    id: number;
-    name: string;
-    priority: number;
-  }) => {
+  const handleEditCategoryModal = (category: Category) => {
     setIsCategoryModalOpen(true);
     categoryModalRef.current?.openEditMode(category);
+  };
+
+  // 자식 카테고리 추가 모달 열기
+  const handleAddChildCategory = (parentId: number) => {
+    setIsCategoryModalOpen(true);
+    categoryModalRef.current?.openAddChildMode(parentId);
   };
 
   // 카테고리 삭제
   const handleDeleteCategory = async (categoryId: number) => {
     const category = categories.find((c) => c.id === categoryId);
     const categoryName = category?.name || "카테고리";
+
+    // 자식 카테고리 존재 여부 체크 (트리에서)
+    const treeCategory = findCategoryInTree(categoryTree, categoryId);
+    if (treeCategory?.children && treeCategory.children.length > 0) {
+      alert(
+        `'${categoryName}' 카테고리에 하위 카테고리가 존재합니다.\n하위 카테고리를 먼저 삭제해주세요.`
+      );
+      return;
+    }
 
     if (
       window.confirm(
@@ -167,10 +186,9 @@ function TeamItemsContent() {
           setSelectedCategoryId(null);
         }
         alert(`'${categoryName}' 카테고리가 성공적으로 삭제되었습니다.`);
-      } catch (error) {
-        console.error("카테고리 삭제 오류:", error);
+      } catch {
         alert(
-          "카테고리 삭제에 실패했습니다. 연결된 아이템이 있는지 확인해주세요."
+          "카테고리 삭제에 실패했습니다. 연결된 아이템이나 하위 카테고리가 있는지 확인해주세요."
         );
       }
     }
@@ -208,8 +226,8 @@ function TeamItemsContent() {
 
       try {
         await deleteTeamItem(itemId);
-      } catch (error) {
-        console.error("아이템 삭제 오류:", error);
+      } catch {
+        // useDeleteTeamItem 훅 내부에서 에러 처리됨
       } finally {
         setDeletingItemId(null);
       }
@@ -223,7 +241,17 @@ function TeamItemsContent() {
       if (!selectedCategoryId) return true;
       if (selectedCategoryId === "none")
         return !item.category || item.category === null;
-      return item.category?.id === parseInt(selectedCategoryId.toString(), 10);
+
+      const selectedId = parseInt(selectedCategoryId.toString(), 10);
+      // 부모 카테고리 선택 시 자식 카테고리 품목도 포함 (결정사항 #10)
+      const treeCategory = findCategoryInTree(categoryTree, selectedId);
+      if (treeCategory) {
+        const allIds = [selectedId, ...collectAllChildIds(treeCategory)];
+        return (
+          item.category?.id !== undefined && allIds.includes(item.category.id)
+        );
+      }
+      return item.category?.id === selectedId;
     })
     .filter((item) => {
       // 검색 필터
@@ -232,7 +260,8 @@ function TeamItemsContent() {
       return (
         item.itemName.toLowerCase().includes(query) ||
         item.itemCode.toLowerCase().includes(query) ||
-        item.memo?.toLowerCase().includes(query)
+        item.memo?.toLowerCase().includes(query) ||
+        item.brand?.toLowerCase().includes(query)
       );
     });
 
@@ -242,8 +271,16 @@ function TeamItemsContent() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedItems = filteredTeamItems.slice(startIndex, endIndex);
 
-  // 카테고리별 아이템 개수 계산
+  // 카테고리별 아이템 개수 계산 (자식 포함)
   const getCategoryItemCount = (categoryId: number) => {
+    const treeCategory = findCategoryInTree(categoryTree, categoryId);
+    if (treeCategory) {
+      const allIds = [categoryId, ...collectAllChildIds(treeCategory)];
+      return teamItems.filter(
+        (item) =>
+          item.category?.id !== undefined && allIds.includes(item.category.id)
+      ).length;
+    }
     return teamItems.filter((item) => item.category?.id === categoryId).length;
   };
 
@@ -263,6 +300,19 @@ function TeamItemsContent() {
       setSelectedCategoryId(categoryId);
     }
     setCurrentPage(1);
+  };
+
+  // 트리 노드 펼치기/접기 토글
+  const toggleCategoryExpand = (categoryId: number) => {
+    setExpandedCategoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
   };
 
   // 검색 입력 핸들러
@@ -376,6 +426,113 @@ function TeamItemsContent() {
     );
   }
 
+  // 카테고리 트리 행 렌더 함수
+  const renderCategoryTreeRow = (category: Category, depth: number = 0) => {
+    const hasChildren = category.children && category.children.length > 0;
+    const isExpanded = expandedCategoryIds.has(category.id);
+    const isSelected = selectedCategoryId === category.id;
+    const itemCount = getCategoryItemCount(category.id);
+
+    return (
+      <React.Fragment key={category.id}>
+        <div
+          onClick={() => handleCategoryCardClick(category.id)}
+          className={`relative flex items-center gap-2 px-4 py-3 cursor-pointer transition-all duration-200 hover:bg-Primary-Container/40 ${
+            isSelected
+              ? "bg-Primary-Container ring-1 ring-Primary-Main/30"
+              : "bg-white"
+          }`}
+          style={{ paddingLeft: `${16 + depth * 24}px` }}
+        >
+          {/* 펼치기/접기 아이콘 */}
+          {hasChildren ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleCategoryExpand(category.id);
+              }}
+              className="p-0.5 rounded hover:bg-Back-Mid-20 transition-colors flex-shrink-0"
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4 text-Text-Low-70" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-Text-Low-70" />
+              )}
+            </button>
+          ) : (
+            <span className="w-5 flex-shrink-0" />
+          )}
+
+          {/* 카테고리 이름 */}
+          <span
+            className={`flex-1 text-sm ${
+              isSelected ? "font-semibold text-Primary-Main" : "text-gray-800"
+            } ${hasChildren ? "font-medium" : ""}`}
+          >
+            {category.name}
+          </span>
+
+          {/* 아이템 개수 배지 */}
+          <span
+            className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
+              isSelected
+                ? "bg-Primary-Main text-white"
+                : "bg-Primary-Container text-Primary-Main"
+            }`}
+          >
+            {itemCount}
+          </span>
+
+          {/* 관리 버튼 */}
+          {!isReadOnly && (
+            <div className="flex gap-1 flex-shrink-0">
+              {/* 최상위 카테고리에만 자식 추가 버튼 표시 */}
+              {!category.parentId && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddChildCategory(category.id);
+                  }}
+                  className="p-1 text-Text-Low-70 transition-colors rounded-full hover:text-Primary-Main hover:bg-Primary-Container"
+                  title="자식 카테고리 추가"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditCategoryModal(category);
+                }}
+                className="p-1 text-Text-Low-70 transition-colors rounded-full hover:text-Primary-Main hover:bg-Primary-Container"
+                title="카테고리 수정"
+              >
+                <Edit className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteCategory(category.id);
+                }}
+                className="p-1 text-Text-Low-70 transition-colors rounded-full hover:text-Error-Main hover:bg-Error-Container"
+                title="카테고리 삭제"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 자식 카테고리 */}
+        {hasChildren &&
+          isExpanded &&
+          category
+            .children!.sort((a, b) => a.priority - b.priority)
+            .map((child) => renderCategoryTreeRow(child, depth + 1))}
+      </React.Fragment>
+    );
+  };
+
   return (
     <div className="p-4 min-h-screen bg-Back-Low-10">
       <div className="mx-auto max-w-7xl">
@@ -390,7 +547,7 @@ function TeamItemsContent() {
           )}
         </div>
 
-        {/* 팀 카테고리 카드 그리드 */}
+        {/* 팀 카테고리 트리 */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-700">팀 카테고리</h2>
@@ -419,94 +576,13 @@ function TeamItemsContent() {
               )}
             </div>
           </div>
-          {categories.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2 lg:grid-cols-4">
-                {[...categories]
-                  .sort((a, b) => a.priority - b.priority)
-                  .slice(0, isCategoryExpanded ? categories.length : 8)
-                  .map((category) => {
-                    const itemCount = getCategoryItemCount(category.id);
-                    const isSelected = selectedCategoryId === category.id;
-                    return (
-                      <div
-                        key={category.id}
-                        onClick={() => handleCategoryCardClick(category.id)}
-                        className={`relative p-4 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${
-                          isSelected
-                            ? "bg-Primary-Container shadow-md ring-2 ring-Primary-Main/40"
-                            : "bg-white shadow-sm hover:shadow-md"
-                        }`}
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-lg font-semibold text-gray-800">
-                            {category.name}
-                          </h3>
-                          {!isReadOnly && (
-                            <div className="flex gap-1">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditCategoryModal(category);
-                                }}
-                                className="p-1 text-Text-Low-70 transition-colors rounded-full hover:text-Primary-Main hover:bg-Primary-Container"
-                                title="카테고리 수정"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteCategory(category.id);
-                                }}
-                                className="p-1 text-Text-Low-70 transition-colors rounded-full hover:text-Error-Main hover:bg-Error-Container"
-                                title="카테고리 삭제"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-500">
-                            순서: {category.priority}
-                          </span>
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              isSelected
-                                ? "bg-Primary-Main text-white"
-                                : "bg-Primary-Container text-Primary-Main"
-                            }`}
-                          >
-                            {itemCount}개 품목
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-              {categories.length > 8 && (
-                <div className="flex justify-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsCategoryExpanded(!isCategoryExpanded)}
-                    icon={
-                      isCategoryExpanded ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )
-                    }
-                    iconPosition="right"
-                  >
-                    {isCategoryExpanded
-                      ? "카테고리 접기"
-                      : `${categories.length - 8}개 더 보기`}
-                  </Button>
-                </div>
-              )}
-            </>
+
+          {categoryTree.length > 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden divide-y divide-gray-100">
+              {[...categoryTree]
+                .sort((a, b) => a.priority - b.priority)
+                .map((category) => renderCategoryTreeRow(category, 0))}
+            </div>
           ) : (
             <div className="p-8 text-center bg-Primary-Container/40 rounded-xl shadow-sm">
               <Package className="mx-auto mb-4 w-12 h-12 text-Primary-Main" />
@@ -531,8 +607,7 @@ function TeamItemsContent() {
             )}
           </div>
           <p className="text-sm text-gray-500">
-            위 카테고리 카드를 클릭하면 해당 카테고리의 아이템만 조회할 수
-            있습니다.
+            위 카테고리를 클릭하면 해당 카테고리의 아이템만 조회할 수 있습니다.
           </p>
         </div>
 
@@ -546,7 +621,7 @@ function TeamItemsContent() {
                   type="text"
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  placeholder="품목 코드, 품목명, 메모로 검색..."
+                  placeholder="품목 코드, 품목명, 메모, 브랜드로 검색..."
                   className="w-full px-4 py-2 text-sm border border-Outline-Variant rounded-full focus:outline-none focus:ring-2 focus:ring-Primary-Main/20 focus:border-Primary-Main"
                 />
               </div>
@@ -610,8 +685,14 @@ function TeamItemsContent() {
                       <th className="px-4 py-3 w-28 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         카테고리
                       </th>
+                      <th className="px-4 py-3 w-24 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        브랜드
+                      </th>
                       <th className="px-4 py-3 w-24 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">
                         원가
+                      </th>
+                      <th className="px-4 py-3 w-20 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
+                        구분
                       </th>
                       <th className="px-4 py-3 w-52 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                         메모
@@ -659,6 +740,11 @@ function TeamItemsContent() {
                         <td className="px-4 py-3 text-sm whitespace-nowrap">
                           {item.category?.name || "없음"}
                         </td>
+                        <td className="px-4 py-3 text-sm whitespace-nowrap">
+                          <span className="text-gray-700">
+                            {item.brand || "-"}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-sm text-right whitespace-nowrap">
                           {canViewCost ? (
                             item.costPrice !== null &&
@@ -674,6 +760,24 @@ function TeamItemsContent() {
                           ) : (
                             <span className="text-gray-400 text-xs">-</span>
                           )}
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
+                          <div className="flex flex-wrap justify-center gap-1">
+                            {item.isService && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-100 text-orange-700">
+                                서비스
+                              </span>
+                            )}
+                            {item.isHealthInsuranceRegistered && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">
+                                건보
+                              </span>
+                            )}
+                            {!item.isService &&
+                              !item.isHealthInsuranceRegistered && (
+                                <span className="text-gray-400 text-xs">-</span>
+                              )}
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <div
@@ -892,6 +996,21 @@ function TeamItemsContent() {
       </div>
     </div>
   );
+}
+
+/** 트리에서 카테고리 ID로 검색 */
+function findCategoryInTree(
+  tree: Category[],
+  id: number
+): Category | undefined {
+  for (const cat of tree) {
+    if (cat.id === id) return cat;
+    if (cat.children) {
+      const found = findCategoryInTree(cat.children, id);
+      if (found) return found;
+    }
+  }
+  return undefined;
 }
 
 export default function TeamItemsPage() {

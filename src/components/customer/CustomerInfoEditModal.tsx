@@ -63,7 +63,7 @@ export default function CustomerInfoEditModal({
       );
 
       if (response.success) {
-        toast.success("고객 정보가 수정되었습니다");
+        toast.success("판매대상 정보가 수정되었습니다");
         queryClient.invalidateQueries({
           queryKey: ["supplier", supplier.id.toString()],
         });
@@ -74,7 +74,7 @@ export default function CustomerInfoEditModal({
         toast.error(response.error || "수정에 실패했습니다");
       }
     } catch {
-      toast.error("고객 정보 수정 중 오류가 발생했습니다");
+      toast.error("판매대상 정보 수정 중 오류가 발생했습니다");
     } finally {
       setIsSaving(false);
     }
@@ -93,7 +93,7 @@ export default function CustomerInfoEditModal({
         {/* 헤더 */}
         <div className="flex items-center justify-between p-6 border-b border-Outline-Variant">
           <h2 className="text-lg font-semibold text-Text-Highest-100">
-            고객 정보 수정
+            판매대상 정보 수정
           </h2>
           <button
             onClick={onClose}
@@ -105,10 +105,10 @@ export default function CustomerInfoEditModal({
 
         {/* 본문 */}
         <div className="p-6 space-y-5">
-          {/* 고객명 (읽기 전용) */}
+          {/* 판매대상명 (읽기 전용) */}
           <div>
             <label className="block mb-1.5 text-sm font-medium text-Text-High-90">
-              고객명
+              판매대상명
             </label>
             <input
               type="text"
@@ -118,11 +118,11 @@ export default function CustomerInfoEditModal({
             />
           </div>
 
-          {/* 고객 분류 + 수급자 */}
+          {/* 판매대상 분류 + 수급자 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block mb-1.5 text-sm font-medium text-Text-High-90">
-                고객 분류
+                판매대상 분류
               </label>
               <select
                 value={formData.customerType || ""}

@@ -21,6 +21,7 @@ import {
   useCreateInventoryRecord,
   useUploadInventoryRecordFile,
   useUpdateInventoryRecord,
+  useUpdateInboundStatus,
 } from "@/hooks/useInventoryRecord";
 import { useCategory } from "@/hooks/useCategory";
 import { useQueryClient } from "@tanstack/react-query";
@@ -49,7 +50,13 @@ type TypeFilter = "all" | "inbound" | "outbound";
 
 export default function IoHistoryList() {
   const { user, isLoading: isUserLoading } = useCurrentUser();
-  const { isAdmin, isUser: isUserRole, restrictedWhs } = usePermission();
+  const {
+    isAdmin,
+    isUser: isUserRole,
+    restrictedWhs,
+    canViewCostPrice,
+    canApproveInbound,
+  } = usePermission();
   const { warehouses = [], items, invalidateInventory } = useWarehouseItems();
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
     null
@@ -85,6 +92,8 @@ export default function IoHistoryList() {
   const { createInventoryRecordAsync } = useCreateInventoryRecord();
   const { uploadFileAsync } = useUploadInventoryRecordFile();
   const { updateInventoryRecordAsync } = useUpdateInventoryRecord();
+  const { updateInboundStatusAsync, isUpdatingInboundStatus } =
+    useUpdateInboundStatus();
   const { categories } = useCategory();
   const queryClient = useQueryClient();
   const [isInboundModalOpen, setIsInboundModalOpen] = useState(false);
@@ -113,6 +122,8 @@ export default function IoHistoryList() {
     warehouseId: number;
     attachedFiles: AttachedFile[];
     supplierId?: number;
+    unitCost?: string;
+    inboundStatus?: "requested" | "completed" | "";
   }>({
     itemId: null,
     itemCode: "",
@@ -126,6 +137,8 @@ export default function IoHistoryList() {
     recordPurpose: "purchase", // 기본값: 구매 입고
     warehouseId: 0,
     attachedFiles: [],
+    unitCost: "",
+    inboundStatus: "",
   });
 
   const [outboundValues, setOutboundValues] = useState<{
@@ -296,6 +309,8 @@ export default function IoHistoryList() {
       inboundPlace: "",
       inboundAddress: "",
       inboundAddressDetail: "",
+      unitCost: "",
+      inboundStatus: "",
     });
     setSelectedInboundItem(null);
     setIsInboundModalOpen(true);
@@ -529,6 +544,10 @@ export default function IoHistoryList() {
     if (!inboundValues.itemId) return;
 
     try {
+      const unitCostNumber = inboundValues.unitCost
+        ? Number(inboundValues.unitCost)
+        : undefined;
+
       const recordData: CreateInventoryRecordDto = {
         itemId: inboundValues.itemId!,
         inboundQuantity: inboundValues.quantity,
@@ -545,6 +564,9 @@ export default function IoHistoryList() {
         supplierId: inboundValues.supplierId,
         warehouseId: inboundValues.warehouseId,
         userId: user?.id,
+        unitCost: unitCostNumber,
+        inboundStatus:
+          inboundValues.inboundStatus === "requested" ? "requested" : undefined,
       };
 
       try {
@@ -592,6 +614,8 @@ export default function IoHistoryList() {
           warehouseId: inboundValues.warehouseId,
           attachedFiles: [],
           supplierId: undefined,
+          unitCost: "",
+          inboundStatus: "",
         });
 
         handleCloseInboundModal();
@@ -708,6 +732,16 @@ export default function IoHistoryList() {
       currentQuantity: 0,
     });
     setSelectedOutboundItem(null);
+  };
+
+  // 입고완료 처리 핸들러
+  const handleApproveInbound = async (recordId: number) => {
+    if (!canApproveInbound) return;
+    try {
+      await updateInboundStatusAsync({ id: recordId });
+    } catch {
+      // 에러는 useUpdateInboundStatus 훅 내부에서 toast 처리
+    }
   };
 
   const handleRecordPurposeChange = async (
@@ -938,22 +972,30 @@ export default function IoHistoryList() {
           <table className="overflow-hidden min-w-full bg-white rounded-lg shadow-md">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[13%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   일자
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[8%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   구분
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   목적
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[30%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   품목
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[8%]">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   수량
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[31%]">
+                {canViewCostPrice && (
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    매입단가
+                  </th>
+                )}
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  상태
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   비고
                 </th>
               </tr>
@@ -1033,13 +1075,63 @@ export default function IoHistoryList() {
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                       {record.inboundQuantity || record.outboundQuantity}
                     </td>
+                    {canViewCostPrice && (
+                      <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                        {record.inboundQuantity && record.unitCost != null
+                          ? `${record.unitCost.toLocaleString()}원`
+                          : "-"}
+                      </td>
+                    )}
+                    <td
+                      className="px-4 py-3 whitespace-nowrap"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {record.inboundQuantity ? (
+                        <div className="flex items-center gap-2">
+                          {record.inboundStatus === "requested" ? (
+                            <>
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                입고요청
+                              </span>
+                              {canApproveInbound && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleApproveInbound(record.id)
+                                  }
+                                  disabled={isUpdatingInboundStatus}
+                                  className="px-2 py-1 text-xs font-medium text-white bg-green-500 rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  {isUpdatingInboundStatus
+                                    ? "처리중..."
+                                    : "입고완료"}
+                                </button>
+                              )}
+                            </>
+                          ) : record.inboundStatus === "completed" ? (
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                              입고완료
+                            </span>
+                          ) : (
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-600">
+                              완료(레거시)
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
                       {removeOrderIdPrefix(record.remarks)}
                     </td>
                   </tr>
                   {expandedRecordId === record.id && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-3 bg-gray-50">
+                      <td
+                        colSpan={canViewCostPrice ? 8 : 7}
+                        className="px-4 py-3 bg-gray-50"
+                      >
                         <div className="mb-4">
                           <h3 className="text-lg font-semibold text-gray-800">
                             {record.item?.teamItem ? (

@@ -37,19 +37,19 @@ const HowToUsePage = () => {
       details: [
         "모든 메뉴 및 기능 접근",
         "팀 멤버 관리 및 권한 설정",
-        "발주/시연 모든 상태 변경",
+        "판매/시연 모든 상태 변경",
         "재무 데이터 접근 (판매/구매/마진)",
         "원가 정보 열람 및 수정",
       ],
     },
     moderator: {
       title: "1차승인권자",
-      description: "발주/시연 승인 권한, 재무 데이터 조회, 팀 멤버 관리 가능",
+      description: "판매/시연 승인 권한, 재무 데이터 조회, 팀 멤버 관리 가능",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       icon: <FaUser className="text-2xl" />,
       details: [
-        "발주/시연 초기 승인 (요청→승인/반려)",
+        "판매/시연 초기 승인 (요청→승인/반려)",
         "재무 데이터 조회 (판매/구매/마진)",
         "팀 멤버 추가 및 권한 수정",
         "원가 정보 열람 가능",
@@ -64,21 +64,21 @@ const HowToUsePage = () => {
       icon: <FaUser className="text-2xl" />,
       details: [
         "재고 조회 및 입출고 내역 확인",
-        "발주 요청 및 시연 신청",
-        "자신이 작성한 발주/시연 수정",
+        "판매 요청 및 시연 신청",
+        "자신이 작성한 판매/시연 수정",
         "재무 데이터 접근 불가",
         "원가 정보 열람 불가",
       ],
     },
     supplier: {
       title: "외부업체",
-      description: "발주 관련 기능에만 제한된 접근 권한",
+      description: "판매 관련 기능에만 제한된 접근 권한",
       color: "text-orange-600",
       bgColor: "bg-orange-50",
       icon: <FaTruck className="text-2xl" />,
       details: [
-        "발주 요청 및 조회만 가능",
-        "자신의 발주 건만 확인",
+        "판매 요청 및 조회만 가능",
+        "자신의 판매 건만 확인",
         "입출고 내역 접근 불가",
         "재무 데이터 접근 불가",
         "시연 기능 접근 불가",
@@ -88,7 +88,7 @@ const HowToUsePage = () => {
 
   const features = [
     {
-      category: "재고 관리",
+      category: "재고&매입 관리",
       icon: <FaBox className="text-2xl" />,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
@@ -113,7 +113,7 @@ const HowToUsePage = () => {
           icon: <FaCog className="text-lg" />,
         },
         {
-          title: "입출고 내역",
+          title: "입출고 관리",
           description:
             "품목별 입출고 기록을 조회합니다 (목적 구분: 구매/판매/창고이동/재고조정)",
           accessLevels: ["admin", "moderator", "user", "supplier"],
@@ -128,46 +128,46 @@ const HowToUsePage = () => {
       ],
     },
     {
-      category: "발주 & 시연",
+      category: "판매 & 시연",
       icon: <FaTruck className="text-2xl" />,
       color: "text-green-600",
       bgColor: "bg-green-50",
       items: [
         {
-          title: "발주 시작하기",
-          description: "발주가 처음이신가요? 가이드를 확인하세요",
+          title: "판매 시작하기",
+          description: "판매가 처음이신가요? 가이드를 확인하세요",
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <FaTruck className="text-lg" />,
         },
         {
-          title: "휠리엑스 패키지 발주",
-          description: "미리 구성된 패키지 단위로 발주를 요청합니다",
+          title: "휠리엑스 패키지 판매",
+          description: "미리 구성된 패키지 단위로 판매를 요청합니다",
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <FaTruck className="text-lg" />,
         },
         {
-          title: "휠체어 발주",
-          description: "휠체어 전용 품목을 선택하여 발주합니다",
+          title: "휠체어 판매",
+          description: "휠체어 전용 품목을 선택하여 판매합니다",
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <Accessibility className="text-lg" />,
         },
         {
-          title: "개별 품목 발주",
+          title: "개별 품목 판매",
           description:
-            "원하는 품목을 개별적으로 선택하여 발주합니다 (판매가/VAT 직접 입력)",
+            "원하는 품목을 개별적으로 선택하여 판매합니다 (판매가/VAT 직접 입력)",
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <FaBox className="text-lg" />,
         },
         {
-          title: "발주 기록",
-          description: "발주건의 기록과 상태를 확인합니다 (거래처 필수 선택)",
+          title: "판매 기록",
+          description: "판매건의 기록과 상태를 확인합니다 (판매대상 필수 선택)",
           accessLevels: ["admin", "moderator", "user", "supplier"],
           icon: <PiNewspaperClippingFill className="text-lg" />,
         },
         {
           title: "시연 요청",
           description:
-            "제품 시연을 위한 전용 발주를 요청합니다 (일반/장기시연 구분)",
+            "제품 시연을 위한 전용 요청을 합니다 (일반/장기시연 구분)",
           accessLevels: ["admin", "moderator", "user"],
           icon: <PiHandCoinsFill className="text-lg" />,
         },
@@ -187,8 +187,7 @@ const HowToUsePage = () => {
       items: [
         {
           title: "판매 관리",
-          description:
-            "발주 기반 판매 내역 조회, 거래명세서 출력 (2장 1세트 PDF)",
+          description: "판매 내역 조회, 거래명세서 출력 (2장 1세트 PDF)",
           accessLevels: ["admin", "moderator"],
           icon: <PiChartLineUpFill className="text-lg" />,
         },
@@ -221,7 +220,7 @@ const HowToUsePage = () => {
       items: [
         {
           title: "패키지 등록 및 관리",
-          description: "발주용 패키지를 구성하고 관리합니다",
+          description: "판매용 패키지를 구성하고 관리합니다",
           accessLevels: ["admin", "moderator"],
           icon: <PiNewspaperClippingFill className="text-lg" />,
         },
@@ -288,7 +287,7 @@ const HowToUsePage = () => {
         <p className="text-lg text-gray-600">
           KARS(Kangsters Auto Resource-management System)는 다양한 품목을
           효율적으로 분류하고 자동으로 재고 관리 하기 위한 통합 재고 관리
-          시스템입니다. v1.5.0부터 시연 시스템과 휠체어 전용 발주 기능이
+          시스템입니다. v1.5.0부터 시연 시스템과 휠체어 전용 판매 기능이
           추가되었습니다.
         </p>
       </div>
@@ -408,9 +407,9 @@ const HowToUsePage = () => {
           </div>
           <div className="p-4 text-center bg-white rounded-lg shadow-sm">
             <div className="mb-2 text-3xl">🔄</div>
-            <h3 className="mb-2 font-semibold text-gray-800">자동화된 발주</h3>
+            <h3 className="mb-2 font-semibold text-gray-800">자동화된 판매</h3>
             <p className="text-sm text-gray-600">
-              발주 물품은 자동으로 재고에 반영되며, 이메일로 상세히
+              판매 물품은 자동으로 재고에 반영되며, 이메일로 상세히
               안내해줍니다.
             </p>
           </div>
@@ -659,16 +658,16 @@ const HowToUsePage = () => {
                 6. 패키지 생성 및 구성
               </h4>
               <p className="text-sm text-gray-600">
-                자주 사용되는 품목들을 패키지로 구성하여 발주 효율성 증대
+                자주 사용되는 품목들을 패키지로 구성하여 판매 효율성 증대
               </p>
             </div>
             <div className="p-4 text-center bg-white rounded-lg border border-green-200">
               <div className="mb-2 text-2xl">🛒</div>
               <h4 className="mb-2 font-semibold text-green-800">
-                7. 발주 및 시연
+                7. 판매 및 시연
               </h4>
               <p className="text-sm text-gray-600">
-                패키지/개별/휠체어 발주 또는 시연을 통해 물품 출고를 정확히
+                패키지/개별/휠체어 판매 또는 시연을 통해 물품 출고를 정확히
                 기록하고 재고에 반영
               </p>
             </div>
@@ -676,30 +675,30 @@ const HowToUsePage = () => {
         </div>
       </div>
 
-      {/* 발주 시스템 */}
+      {/* 판매 시스템 */}
       <div className="mb-8">
         <h2 className="mb-4 text-2xl font-bold text-gray-800">
-          📋 발주 시스템
+          📋 판매 시스템
         </h2>
         <div className="p-6 bg-white rounded-lg shadow-md">
           <h3 className="mb-3 text-xl font-semibold text-gray-700">
-            발주 시스템 개요
+            판매 시스템 개요
           </h3>
           <p className="mb-4 text-gray-600">
-            KARS의 발주 시스템은 다양한 유형의 발주를 지원하는 통합 관리
-            시스템입니다. 개별 품목 발주, 패키지 발주, 휠체어 전용 발주, 그리고
-            제품 시연을 위한 시연 시스템까지 모든 발주 프로세스를 효율적으로
+            KARS의 판매 시스템은 다양한 유형의 판매를 지원하는 통합 관리
+            시스템입니다. 개별 품목 판매, 패키지 판매, 휠체어 전용 판매, 그리고
+            제품 시연을 위한 시연 시스템까지 모든 판매 프로세스를 효율적으로
             관리할 수 있습니다.
           </p>
 
           <div className="grid gap-6 md:grid-cols-2">
-            {/* 일반 발주 */}
+            {/* 일반 판매 */}
             <div className="p-4 bg-blue-50 rounded-lg">
               <h4 className="mb-2 text-lg font-semibold text-blue-800">
-                🛒 일반 발주
+                🛒 일반 판매
               </h4>
               <ul className="space-y-1 text-sm text-blue-700">
-                <li>• 개별 품목 및 패키지 발주</li>
+                <li>• 개별 품목 및 패키지 판매</li>
                 <li>• 실시간 재고 확인</li>
                 <li>• 판매가/VAT 직접 입력 (v2.0)</li>
                 <li>• 거래처 필수 선택 (v2.3)</li>
@@ -709,16 +708,16 @@ const HowToUsePage = () => {
               </ul>
             </div>
 
-            {/* 휠체어 발주 */}
+            {/* 휠체어 판매 */}
             <div className="p-4 bg-purple-50 rounded-lg">
               <h4 className="mb-2 text-lg font-semibold text-purple-800">
-                🦽 휠체어 발주
+                🦽 휠체어 판매
               </h4>
               <ul className="space-y-1 text-sm text-purple-700">
                 <li>• 휠체어 전용 창고로 제한</li>
                 <li>• 휠체어 관련 카테고리만 선택</li>
                 <li>• 보라색 테마로 구분</li>
-                <li>• 일반 발주와 동일한 워크플로우</li>
+                <li>• 일반 판매와 동일한 워크플로우</li>
                 <li>• 댓글 시스템 지원</li>
               </ul>
             </div>
@@ -765,7 +764,7 @@ const HowToUsePage = () => {
             재무 관리 시스템 개요
           </h3>
           <p className="mb-4 text-gray-600">
-            발주 및 입고 데이터를 기반으로 판매/구매 내역을 분석하고, 품목별
+            판매 및 입고 데이터를 기반으로 판매/구매 내역을 분석하고, 품목별
             마진율을 추적하여 수익성을 관리합니다. Admin 및 Moderator 권한만
             접근 가능합니다.
           </p>
@@ -777,7 +776,7 @@ const HowToUsePage = () => {
                 📊 판매 관리
               </h4>
               <ul className="space-y-1 text-sm text-blue-700">
-                <li>• 발주 데이터 기반 판매 내역</li>
+                <li>• 판매 데이터 기반 판매 내역</li>
                 <li>• 거래명세서 출력 (2장 1세트 PDF)</li>
                 <li>• 공급가액/부가세 자동 계산</li>
                 <li>• 판매처별 필터링 및 집계</li>
@@ -820,7 +819,7 @@ const HowToUsePage = () => {
             </h4>
             <ul className="space-y-1 text-sm text-yellow-700">
               <li>
-                • <strong>판매가</strong>: 발주 시 sellingPrice 필드에 정확히
+                • <strong>판매가</strong>: 판매 시 sellingPrice 필드에 정확히
                 입력
               </li>
               <li>
@@ -896,12 +895,12 @@ const HowToUsePage = () => {
         ))}
       </div>
 
-      {/* 발주 워크플로우 요약 */}
+      {/* 판매 워크플로우 요약 */}
       <div className="mt-8 space-y-6">
-        {/* 일반 발주 워크플로우 */}
+        {/* 일반 판매 워크플로우 */}
         <div className="p-6 bg-blue-50 rounded-xl border-2 border-blue-200">
           <h2 className="mb-4 text-xl font-bold text-gray-800">
-            📦 일반 발주 워크플로우
+            📦 일반 판매 워크플로우
           </h2>
           <div className="flex flex-wrap gap-2 items-center text-sm">
             <span className="px-3 py-1 text-blue-800 bg-blue-100 rounded-full">
@@ -953,7 +952,7 @@ const HowToUsePage = () => {
             </span>
           </div>
           <p className="mt-3 text-sm text-gray-600">
-            시연은 일반 발주와 별도로 관리되며, 출고 후 반드시 복귀 처리가
+            시연은 일반 판매와 별도로 관리되며, 출고 후 반드시 복귀 처리가
             필요합니다. 재고는 시연 출고 시 차감되고 복귀 시 다시 복구됩니다.
           </p>
         </div>

@@ -43,6 +43,9 @@ export const orderService = {
         itemId: item.teamItem.id,
         quantity: item.quantity,
         memo: formData.notes,
+        serialCode1: item.serialCode1 || undefined,
+        serialCode2: item.serialCode2 || undefined,
+        serialCode3: item.serialCode3 || undefined,
       })),
     };
 

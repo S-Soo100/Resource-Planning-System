@@ -43,10 +43,10 @@ const exportToExcel = (
 ) => {
   const data = suppliers.map((supplier, index) => ({
     No: index + 1,
-    고객명: supplier.supplierName,
+    판매대상명: supplier.supplierName,
     이메일: supplier.email || "-",
     연락처: supplier.supplierPhoneNumber || "-",
-    고객유형:
+    판매대상유형:
       supplier.customerType === "b2c"
         ? "B2C"
         : supplier.customerType === "b2b"
@@ -65,10 +65,10 @@ const exportToExcel = (
 
   ws["!cols"] = [
     { wch: 5 }, // No
-    { wch: 15 }, // 고객명
+    { wch: 15 }, // 판매대상명
     { wch: 25 }, // 이메일
     { wch: 15 }, // 연락처
-    { wch: 10 }, // 고객유형
+    { wch: 10 }, // 판매대상유형
     { wch: 8 }, // 수급자
     { wch: 12 }, // 입금자명
     { wch: 15 }, // 재구매 주기
@@ -77,10 +77,10 @@ const exportToExcel = (
   ];
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "재구매 예정 고객");
+  XLSX.utils.book_append_sheet(wb, ws, "재구매 예정 판매대상");
 
   const today = new Date().toISOString().slice(0, 10);
-  XLSX.writeFile(wb, `재구매예정고객_${filterLabel}_${today}.xlsx`);
+  XLSX.writeFile(wb, `재구매예정판매대상_${filterLabel}_${today}.xlsx`);
 };
 
 export default function RepurchasePage() {
@@ -133,7 +133,7 @@ export default function RepurchasePage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              재구매 예정 고객
+              재구매 예정 판매대상
             </h1>
             <p className="text-sm text-gray-500 mt-1">
               재구매 예정일이 지난 고객 목록입니다
@@ -242,7 +242,7 @@ export default function RepurchasePage() {
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-lg border border-gray-200">
           <AlertCircle className="w-12 h-12 text-gray-300 mb-4" />
           <p className="text-lg font-medium text-gray-500">
-            재구매 예정 고객이 없습니다
+            재구매 예정 판매대상이 없습니다
           </p>
           <p className="text-sm text-gray-400 mt-1">
             모든 고객의 재구매 예정일이 아직 도래하지 않았습니다
@@ -250,7 +250,7 @@ export default function RepurchasePage() {
         </div>
       ) : filteredSuppliers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg border border-gray-200">
-          <p className="text-gray-500">해당 분류의 고객이 없습니다</p>
+          <p className="text-gray-500">해당 분류의 판매대상이 없습니다</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -260,10 +260,10 @@ export default function RepurchasePage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    고객명
+                    판매대상명
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                    고객 유형
+                    판매대상 유형
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                     수급자

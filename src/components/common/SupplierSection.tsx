@@ -42,7 +42,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <label className="block text-base font-semibold text-gray-800">
-            고객 선택
+            판매대상 선택
           </label>
           <span className="px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded">
             필수
@@ -54,17 +54,17 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
             onClick={onAddSupplier}
             className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-white rounded-full hover:bg-blue-50 transition-colors border border-blue-200"
           >
-            <Plus className="w-3 h-3" />새 고객 등록
+            <Plus className="w-3 h-3" />새 판매대상 등록
           </button>
         )}
       </div>
 
       <p className="mb-3 text-sm text-gray-700 font-medium">
-        ⚠️ 발주를 진행하려면 먼저 고객을 선택해야 합니다
+        ⚠️ 판매를 진행하려면 먼저 판매대상을 선택해야 합니다
       </p>
 
       {selectedSupplier ? (
-        // 고객이 선택된 경우 - 선택된 고객 정보 표시
+        // 판매대상이 선택된 경우 - 선택된 판매대상 정보 표시
         <div className="space-y-3">
           <div className="p-4 bg-white rounded-lg border-2 border-green-500 shadow-sm">
             <div className="flex items-start justify-between">
@@ -72,7 +72,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
                 <div className="flex items-center gap-2 mb-2">
                   <Building2 className="text-green-600" size={20} />
                   <p className="text-xs text-green-600 font-semibold">
-                    ✅ 선택된 고객
+                    ✅ 선택된 판매대상
                   </p>
                 </div>
                 <p className="text-lg font-bold text-gray-900 mb-1">
@@ -113,7 +113,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
           </p>
         </div>
       ) : (
-        // 고객이 선택되지 않은 경우 - 선택 버튼
+        // 판매대상이 선택되지 않은 경우 - 선택 버튼
         <div className="space-y-3">
           {onOpenSelectModal ? (
             // 모달 방식
@@ -124,7 +124,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
             >
               <div className="flex items-center justify-center gap-2">
                 <Building2 size={20} />
-                <span>고객 선택하기</span>
+                <span>판매대상 선택하기</span>
               </div>
             </button>
           ) : (
@@ -137,7 +137,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
               className={`px-3 py-3 w-full text-base rounded-md border-2 border-orange-400 animate-pulse shadow-sm focus:outline-none focus:ring-2 focus:ring-${focusRingColor}-500 focus:border-transparent transition-all`}
             >
               <option value="" disabled>
-                👉 고객을 선택하세요
+                👉 판매대상을 선택하세요
               </option>
               {supplierList.length > 0 ? (
                 supplierList.map((supplier: Supplier) => (
@@ -147,26 +147,28 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
                 ))
               ) : (
                 <option value="" disabled>
-                  등록된 고객이 없습니다
+                  등록된 판매대상이 없습니다
                 </option>
               )}
             </select>
           )}
 
           <p className="text-sm text-orange-600 font-medium px-2">
-            ⚠️ 고객을 선택해주세요
+            ⚠️ 판매대상을 선택해주세요
           </p>
 
           {supplierList.length === 0 && (
             <div className="p-3 bg-yellow-50 rounded-md border border-yellow-200">
-              <p className="text-sm text-yellow-800">등록된 고객이 없습니다.</p>
+              <p className="text-sm text-yellow-800">
+                등록된 판매대상이 없습니다.
+              </p>
               {onAddSupplier && (
                 <button
                   type="button"
                   onClick={onAddSupplier}
                   className="mt-2 text-sm font-medium text-blue-600 hover:text-blue-700"
                 >
-                  + 고객 등록하기
+                  + 판매대상 등록하기
                 </button>
               )}
             </div>

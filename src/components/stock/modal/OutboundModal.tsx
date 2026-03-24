@@ -151,7 +151,7 @@ export default function OutboundModal({
     return baseAddress;
   };
 
-  // 고객 선택 핸들러
+  // 거래처 선택 핸들러
   const handleSupplierSelect = (supplier: Supplier) => {
     if (onSupplierSelect) {
       onSupplierSelect(supplier);
@@ -159,14 +159,14 @@ export default function OutboundModal({
     setIsSelectSupplierModalOpen(false);
   };
 
-  // 고객 선택이 필요한 목적인지 판단
+  // 거래처 선택이 필요한 목적인지 판단
   const requiresSupplier = outboundValues.recordPurpose === "sale";
 
-  // 폼 제출 시 주소 합치기 처리 및 고객 필수 검증
+  // 폼 제출 시 주소 합치기 처리 및 거래처 필수 검증
   const handleSubmit = () => {
-    // 판매 출고인 경우에만 고객 필수 검증
+    // 판매 출고인 경우에만 거래처 필수 검증
     if (requiresSupplier && !outboundValues.supplierId) {
-      toast.error("고객을 선택해주세요");
+      toast.error("거래처를 선택해주세요");
       return;
     }
 
@@ -358,11 +358,11 @@ export default function OutboundModal({
                       </div>
                     </div>
 
-                    {/* 판매 출고일 때만 고객 선택 표시 */}
+                    {/* 판매 출고일 때만 거래처 선택 표시 */}
                     {requiresSupplier && (
                       <div className="mb-4">
                         <label className="block text-sm font-medium mb-2 text-gray-700">
-                          고객 선택 <span className="text-red-500">*</span>
+                          거래처 선택 <span className="text-red-500">*</span>
                         </label>
                         <button
                           type="button"
@@ -373,18 +373,18 @@ export default function OutboundModal({
                             <span className="text-gray-900">
                               {supplierList.find(
                                 (s) => s.id === outboundValues.supplierId
-                              )?.supplierName || "고객 선택"}
+                              )?.supplierName || "거래처 선택"}
                             </span>
                           ) : (
                             <span className="text-gray-400">
-                              고객을 선택하세요
+                              거래처를 선택하세요
                             </span>
                           )}
                         </button>
                       </div>
                     )}
 
-                    {/* 출고처/주소 폼: 고객 불필요 시 바로 표시, 판매 출고 시 고객 선택 후 표시 */}
+                    {/* 출고처/주소 폼: 거래처 불필요 시 바로 표시, 판매 출고 시 거래처 선택 후 표시 */}
                     {!requiresSupplier || outboundValues.supplierId ? (
                       <>
                         <div className="mb-4">
@@ -462,10 +462,10 @@ export default function OutboundModal({
                       <div className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300 mb-4">
                         <div className="text-center">
                           <p className="text-lg font-medium text-gray-600 mb-2">
-                            먼저 고객을 선택해주세요
+                            먼저 거래처를 선택해주세요
                           </p>
                           <p className="text-sm text-gray-500">
-                            고객을 선택하면 출고처 정보 입력 폼이 표시됩니다
+                            거래처를 선택하면 출고처 정보 입력 폼이 표시됩니다
                           </p>
                         </div>
                       </div>
@@ -614,6 +614,7 @@ export default function OutboundModal({
         onClose={() => setIsSelectSupplierModalOpen(false)}
         onSelect={handleSupplierSelect}
         suppliers={supplierList}
+        context="outbound"
       />
     </>
   );

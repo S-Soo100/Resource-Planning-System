@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import SearchAddressModal from "../SearchAddressModal";
 import { Address } from "react-daum-postcode";
 import { Paperclip, Plus, Minus, X, AlertCircle } from "lucide-react";
@@ -47,6 +53,9 @@ interface OrderItemWithDetails {
   memo?: string;
   sellingPrice?: string; // 주문 품목 판매가 (입력은 문자열로)
   vat?: string; // 주문 품목 세금 (입력은 문자열로)
+  serialCode1?: string; // 제품 시리얼코드
+  serialCode2?: string; // 건보 시리얼코드
+  serialCode3?: string; // 예비 시리얼코드
 }
 
 const OrderEditModal: React.FC<OrderEditModalProps> = ({
@@ -232,24 +241,66 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           warehouseItems[orderRecord.warehouseId.toString()] || [];
 
         if (orderRecord.orderItems && orderRecord.orderItems.length > 0) {
-          const convertedItems = orderRecord.orderItems.map((item) => {
+          // v4.0: quantity:N → quantity:1 × N행 자동 분리 (결정사항 #5)
+          const convertedItems = orderRecord.orderItems.flatMap((item) => {
             const warehouseItem = currentItems.find(
               (wi: Item) =>
                 wi.teamItem.itemCode === item.item?.teamItem?.itemCode
             );
 
-            return {
+            // quantity가 1이면 그대로, N이면 N행 분리
+            const qty = item.quantity > 1 ? item.quantity : 1;
+
+            // sellingPrice/vat를 quantity로 균등 배분 (나머지는 첫 번째 행에 추가)
+            const originalSellingPrice = item.sellingPrice ?? 0;
+            const originalVat = item.vat ?? 0;
+            const perSellingPrice =
+              qty > 1
+                ? Math.floor(originalSellingPrice / qty)
+                : originalSellingPrice;
+            const perVat =
+              qty > 1 ? Math.floor(originalVat / qty) : originalVat;
+            const sellingPriceRemainder =
+              qty > 1 ? originalSellingPrice - perSellingPrice * qty : 0;
+            const vatRemainder = qty > 1 ? originalVat - perVat * qty : 0;
+
+            const baseItem = {
               teamItem: item.item?.teamItem as TeamItem,
-              quantity: item.quantity,
+              quantity: 1,
               stockAvailable: warehouseItem
-                ? warehouseItem.itemQuantity >= item.quantity
+                ? warehouseItem.itemQuantity >= 1
                 : false,
               stockQuantity: warehouseItem?.itemQuantity || 0,
               warehouseItemId: warehouseItem?.id || item.itemId || 0,
               memo: item.memo || "",
-              sellingPrice: item.sellingPrice?.toString() || "",
-              vat: item.vat?.toString() || "",
+              sellingPrice: perSellingPrice ? perSellingPrice.toString() : "",
+              vat: perVat ? perVat.toString() : "",
+              serialCode1: item.serialCode1 || "",
+              serialCode2: item.serialCode2 || "",
+              serialCode3: item.serialCode3 || "",
             };
+
+            if (qty === 1) return [baseItem];
+
+            // N행 분리: 첫 번째 행에 나머지 금액 추가, 시리얼코드는 첫 행만 유지
+            return Array.from({ length: qty }, (_, i) => ({
+              ...baseItem,
+              sellingPrice:
+                i === 0
+                  ? (perSellingPrice + sellingPriceRemainder).toString()
+                  : perSellingPrice
+                    ? perSellingPrice.toString()
+                    : "",
+              vat:
+                i === 0
+                  ? (perVat + vatRemainder).toString()
+                  : perVat
+                    ? perVat.toString()
+                    : "",
+              serialCode1: i === 0 ? baseItem.serialCode1 : "",
+              serialCode2: i === 0 ? baseItem.serialCode2 : "",
+              serialCode3: i === 0 ? baseItem.serialCode3 : "",
+            }));
           });
 
           // 패키지가 있는 경우 패키지 아이템으로 분리
@@ -302,7 +353,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     }
   }, [suppliersResponse]);
 
-  // 모달에서 고객 선택 핸들러 (고객 정보 자동 채우기)
+  // 모달에서 판매대상 선택 핸들러 (판매대상 정보 자동 채우기)
   const handleSupplierSelect = useCallback((supplier: Supplier) => {
     setFormData((prev) => ({
       ...prev,
@@ -315,14 +366,14 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     setIsSelectSupplierModalOpen(false);
   }, []);
 
-  // 고객 추가 성공 핸들러
+  // 판매대상 추가 성공 핸들러
   const handleAddSupplierSuccess = async () => {
-    // 고객 목록 새로고침 (React Query가 자동으로 UI 업데이트)
+    // 판매대상 목록 새로고침 (React Query가 자동으로 UI 업데이트)
     await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-    toast.success("고객이 추가되었습니다");
+    toast.success("판매대상이 추가되었습니다");
   };
 
-  // 레거시 데이터 감지 (고객 미입력 && 수령인 정보 있음)
+  // 레거시 데이터 감지 (판매대상 미입력 && 수령인 정보 있음)
   const hasLegacyData = useMemo(() => {
     return (
       !formData.supplierId &&
@@ -335,9 +386,9 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     formData.address,
   ]);
 
-  // 빠른 고객 등록 핸들러 (기존 수령인 정보 활용)
+  // 빠른 판매대상 등록 핸들러 (기존 수령인 정보 활용)
   const handleQuickAddSupplier = () => {
-    // 기존 정보를 기반으로 고객 추가 모달 열기 (initialData 전달)
+    // 기존 정보를 기반으로 판매대상 추가 모달 열기 (initialData 전달)
     setIsAddSupplierModalOpen(true);
   };
 
@@ -404,32 +455,19 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     []
   );
 
-  // 아이템 선택 핸들러 - ItemSelectionModal 사용
-  const handleItemSelect = useCallback(
-    (selectedItem: Item) => {
-      // 패키지 아이템과 개별 아이템 모두에서 중복 체크
-      const isItemExists = allOrderItems.some(
-        (item) => item.warehouseItemId === selectedItem.id
-      );
-
-      if (isItemExists) {
-        toast.error("이미 추가된 아이템입니다");
-        return;
-      }
-
-      setIndividualItems((prev) => [
-        ...prev,
-        {
-          teamItem: selectedItem.teamItem,
-          quantity: 1,
-          stockAvailable: selectedItem.itemQuantity >= 1,
-          stockQuantity: selectedItem.itemQuantity,
-          warehouseItemId: selectedItem.id,
-        },
-      ]);
-    },
-    [allOrderItems]
-  );
+  // 아이템 선택 핸들러 - v4.0: 중복 품목 추가 허용
+  const handleItemSelect = useCallback((selectedItem: Item) => {
+    setIndividualItems((prev) => [
+      ...prev,
+      {
+        teamItem: selectedItem.teamItem,
+        quantity: 1,
+        stockAvailable: selectedItem.itemQuantity >= 1,
+        stockQuantity: selectedItem.itemQuantity,
+        warehouseItemId: selectedItem.id,
+      },
+    ]);
+  }, []);
 
   // 아이템 제거 핸들러 - 패키지 아이템도 제거 가능
   const handleRemoveItem = useCallback(
@@ -445,6 +483,50 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           prev.filter((item) => item.warehouseItemId !== itemId)
         );
       }
+    },
+    []
+  );
+
+  // v4.0: 동일 품목 행 복제
+  const handleDuplicateItem = useCallback(
+    (index: number, isPackageItem: boolean = false) => {
+      const setter = isPackageItem ? setPackageItems : setIndividualItems;
+      setter((prev) => {
+        const item = prev[index];
+        if (!item) return prev;
+        const newItem = {
+          ...item,
+          quantity: 1,
+          serialCode1: undefined,
+          serialCode2: undefined,
+          serialCode3: undefined,
+          memo: undefined,
+        };
+        const updated = [...prev];
+        updated.splice(index + 1, 0, newItem);
+        return updated;
+      });
+    },
+    []
+  );
+
+  // v4.0: 시리얼코드 변경 핸들러
+  const handleSerialCodeChange = useCallback(
+    (
+      index: number,
+      field: "serialCode1" | "serialCode2" | "serialCode3",
+      value: string,
+      isPackageItem: boolean = false
+    ) => {
+      const setter = isPackageItem ? setPackageItems : setIndividualItems;
+      setter((prev) => {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          [field]: value,
+        };
+        return updated;
+      });
     },
     []
   );
@@ -731,16 +813,16 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
     // 설치 기한이 요청일보다 이전인지 검증
     if (setupDate < requestDate) {
-      return "설치 기한은 발주 요청일과 같거나 이후로 설정해주세요.";
+      return "설치 기한은 판매 요청일과 같거나 이후로 설정해주세요.";
     }
 
     return null;
   }, [formData.requestDate, formData.setupDate]);
 
   const validateForm = useCallback((): boolean => {
-    // 고객 선택 검증 (모든 계정 필수)
+    // 판매대상 선택 검증 (모든 계정 필수)
     if (!formData.supplierId) {
-      toast.error("고객을 선택해주세요.");
+      toast.error("판매대상을 선택해주세요.");
       return false;
     }
 
@@ -754,7 +836,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     const requiredFields = [
       {
         field: formData.title,
-        message: "발주 제목을 입력해주세요.",
+        message: "판매 제목을 입력해주세요.",
       },
       {
         field: formData.requester,
@@ -766,7 +848,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
         message: "수령인 연락처를 입력해주세요.",
       },
       { field: formData.address, message: "배송지 주소를 입력해주세요." },
-      { field: formData.requestDate, message: "발주 요청일을 선택해주세요." },
+      { field: formData.requestDate, message: "판매 요청일을 선택해주세요." },
       { field: formData.setupDate, message: "설치 기한을 선택해주세요." },
     ];
 
@@ -779,7 +861,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
 
     // 창고 선택 검증
     if (!formData.warehouseId) {
-      toast.error("발주할 창고를 선택해주세요.");
+      toast.error("판매 창고를 선택해주세요.");
       return false;
     }
 
@@ -849,7 +931,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     }
 
     confirmMessage +=
-      "\n\n※ 필요한 증빙서류(발주서, 견적서 등)가 모두 첨부되었는지 확인해주세요.";
+      "\n\n※ 필요한 증빙서류(견적서 등)가 모두 첨부되었는지 확인해주세요.";
 
     const isConfirmed = window.confirm(confirmMessage);
 
@@ -889,7 +971,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
       );
       if (itemsWithPrice.length > 0 && calculatedTotalPrice === 0) {
         const confirmZeroPrice = window.confirm(
-          "총 거래금액이 0원입니다.\n\n무상 제공 또는 샘플 발주인 경우 '확인'을 눌러주세요."
+          "총 거래금액이 0원입니다.\n\n무상 제공 또는 샘플 판매인 경우 '확인'을 눌러주세요."
         );
         if (!confirmZeroPrice) {
           setIsSubmitting(false);
@@ -931,6 +1013,9 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 item.vat !== undefined && item.vat !== ""
                   ? parseInt(item.vat, 10)
                   : undefined,
+              serialCode1: item.serialCode1 || undefined,
+              serialCode2: item.serialCode2 || undefined,
+              serialCode3: item.serialCode3 || undefined,
             })),
         },
       };
@@ -1050,7 +1135,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
     // admin인 경우 상태에 상관없이 수정 가능
     if (permissionIsAdmin) return true;
 
-    // 일반 사용자는 자신이 작성한 requested 상태의 발주만 수정 가능
+    // 일반 사용자는 자신이 작성한 requested 상태의 판매만 수정 가능
     const isAuthor = orderRecord.userId === auth.id;
     const isRequestedStatus = orderRecord.status === OrderStatus.requested;
     return isAuthor && isRequestedStatus;
@@ -1101,7 +1186,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                   value={formData.title}
                   onChange={handleChange}
                   className="px-3 py-2 w-full rounded-md border focus:outline-none focus:ring-2 focus:ring-Primary-Main"
-                  placeholder="발주 제목을 입력하세요"
+                  placeholder="판매 제목을 입력하세요"
                   required
                 />
               </div>
@@ -1109,7 +1194,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               {/* 창고 선택 - 비즈니스 규칙: 창고 변경 금지 */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  발주 창고 <span className="text-red-500">*</span>
+                  판매 창고 <span className="text-red-500">*</span>
                   <span className="ml-2 text-xs text-gray-500">
                     (변경 불가)
                   </span>
@@ -1145,12 +1230,12 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                   })}
                 </select>
                 <p className="text-xs text-gray-500">
-                  발주 건의 창고는 변경할 수 없습니다. 해당 창고 내의 물품으로만
+                  판매 건의 창고는 변경할 수 없습니다. 해당 창고 내의 물품으로만
                   수정 가능합니다.
                 </p>
               </div>
 
-              {/* 패키지 선택 (패키지 발주인 경우에만 표시) */}
+              {/* 패키지 선택 (패키지 판매인 경우에만 표시) */}
               {formData.packageId && packages && packages.length > 0 && (
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
@@ -1257,173 +1342,239 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                             : 0;
                           const vat = item.vat ? parseInt(item.vat, 10) : 0;
                           const subtotal = (sellingPrice + vat) * item.quantity;
+                          const isService = item.teamItem?.isService === true;
                           return (
-                            <tr
-                              key={`package-${item.warehouseItemId}`}
-                              className="hover:bg-gray-50"
-                            >
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-gray-900">
-                                    {item.teamItem.itemName}
-                                  </span>
-                                  <span className="text-xs text-blue-600 font-semibold">
-                                    (패키지)
-                                  </span>
-                                  {formData.warehouseId &&
-                                    item.stockAvailable === false && (
-                                      <div className="flex items-center text-xs text-red-500">
-                                        <AlertCircle
-                                          size={12}
-                                          className="mr-1"
-                                        />
-                                        재고 부족
-                                      </div>
+                            <React.Fragment key={`package-${index}`}>
+                              <tr className="hover:bg-gray-50">
+                                <td className="px-3 py-2 whitespace-nowrap">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {item.teamItem.itemName}
+                                    </span>
+                                    <span className="text-xs text-blue-600 font-semibold">
+                                      (패키지)
+                                    </span>
+                                    {isService && (
+                                      <span className="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">
+                                        서비스
+                                      </span>
                                     )}
-                                </div>
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <div className="text-sm text-gray-700">
-                                  {item.teamItem.itemCode}
-                                  {formData.warehouseId &&
-                                    item.stockQuantity !== undefined && (
-                                      <div className="text-xs text-gray-500">
-                                        (재고: {item.stockQuantity}개)
-                                      </div>
-                                    )}
-                                </div>
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <div className="flex gap-1 items-center justify-center">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleQuantityChange(index, false, true)
-                                    }
-                                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                                  >
-                                    <Minus size={14} />
-                                  </button>
-                                  <span className="w-8 text-center text-sm font-medium">
-                                    {item.quantity}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleQuantityChange(index, true, true)
-                                    }
-                                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                                  >
-                                    <Plus size={14} />
-                                  </button>
-                                </div>
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  pattern="[0-9]*"
-                                  value={item.sellingPrice || ""}
-                                  onChange={(e) => {
-                                    const sanitized = e.target.value.replace(
-                                      /[^0-9]/g,
-                                      ""
-                                    );
-                                    handleSellingPriceChange(
-                                      index,
-                                      sanitized,
-                                      true
-                                    );
-                                  }}
-                                  onPaste={(e) => {
-                                    e.preventDefault();
-                                    const pastedText =
-                                      e.clipboardData.getData("text");
-                                    const sanitized = pastedText.replace(
-                                      /[^0-9]/g,
-                                      ""
-                                    );
-                                    handleSellingPriceChange(
-                                      index,
-                                      sanitized,
-                                      true
-                                    );
-                                  }}
-                                  placeholder="0"
-                                  className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                                />
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  pattern="[0-9]*"
-                                  value={item.vat || ""}
-                                  onChange={(e) => {
-                                    const sanitized = e.target.value.replace(
-                                      /[^0-9]/g,
-                                      ""
-                                    );
-                                    handleVatChange(index, sanitized, true);
-                                  }}
-                                  onPaste={(e) => {
-                                    e.preventDefault();
-                                    const pastedText =
-                                      e.clipboardData.getData("text");
-                                    const sanitized = pastedText.replace(
-                                      /[^0-9]/g,
-                                      ""
-                                    );
-                                    handleVatChange(index, sanitized, true);
-                                  }}
-                                  placeholder="0"
-                                  className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                                />
-                              </td>
-                              <td className="px-3 py-2">
-                                <input
-                                  type="text"
-                                  value={item.memo || ""}
-                                  onChange={(e) =>
-                                    handleMemoChange(
-                                      index,
-                                      e.target.value,
-                                      true
-                                    )
-                                  }
-                                  placeholder="메모 입력"
-                                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                                />
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap text-right">
-                                <span className="text-sm font-semibold text-blue-600">
-                                  {subtotal > 0
-                                    ? subtotal.toLocaleString()
-                                    : "-"}
-                                </span>
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (
-                                      window.confirm(
-                                        "패키지 품목을 삭제하시겠습니까?\n\n패키지에서 제외된 개별 품목으로 처리되며, 패키지 구성이 변경됩니다."
-                                      )
-                                    ) {
-                                      handleRemoveItem(
-                                        item.warehouseItemId,
+                                    {formData.warehouseId &&
+                                      !isService &&
+                                      item.stockAvailable === false && (
+                                        <div className="flex items-center text-xs text-red-500">
+                                          <AlertCircle
+                                            size={12}
+                                            className="mr-1"
+                                          />
+                                          재고 부족
+                                        </div>
+                                      )}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap">
+                                  <div className="text-sm text-gray-700">
+                                    {item.teamItem.itemCode}
+                                    {formData.warehouseId &&
+                                      !isService &&
+                                      item.stockQuantity !== undefined && (
+                                        <div className="text-xs text-gray-500">
+                                          (재고: {item.stockQuantity}개)
+                                        </div>
+                                      )}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap">
+                                  <div className="flex gap-1 items-center justify-center">
+                                    <span className="w-8 text-center text-sm font-medium">
+                                      1
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleDuplicateItem(index, true)
+                                      }
+                                      className="p-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                                      title="동일 품목 추가"
+                                    >
+                                      <Plus size={14} />
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap">
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={item.sellingPrice || ""}
+                                    onChange={(e) => {
+                                      const sanitized = e.target.value.replace(
+                                        /[^0-9]/g,
+                                        ""
+                                      );
+                                      handleSellingPriceChange(
+                                        index,
+                                        sanitized,
                                         true
                                       );
+                                    }}
+                                    onPaste={(e) => {
+                                      e.preventDefault();
+                                      const pastedText =
+                                        e.clipboardData.getData("text");
+                                      const sanitized = pastedText.replace(
+                                        /[^0-9]/g,
+                                        ""
+                                      );
+                                      handleSellingPriceChange(
+                                        index,
+                                        sanitized,
+                                        true
+                                      );
+                                    }}
+                                    placeholder="0"
+                                    className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                  />
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap">
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={item.vat || ""}
+                                    onChange={(e) => {
+                                      const sanitized = e.target.value.replace(
+                                        /[^0-9]/g,
+                                        ""
+                                      );
+                                      handleVatChange(index, sanitized, true);
+                                    }}
+                                    onPaste={(e) => {
+                                      e.preventDefault();
+                                      const pastedText =
+                                        e.clipboardData.getData("text");
+                                      const sanitized = pastedText.replace(
+                                        /[^0-9]/g,
+                                        ""
+                                      );
+                                      handleVatChange(index, sanitized, true);
+                                    }}
+                                    placeholder="0"
+                                    className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="text"
+                                    value={item.memo || ""}
+                                    onChange={(e) =>
+                                      handleMemoChange(
+                                        index,
+                                        e.target.value,
+                                        true
+                                      )
                                     }
-                                  }}
-                                  className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
-                                  title="품목 제거"
-                                >
-                                  <X size={14} />
-                                </button>
-                              </td>
-                            </tr>
+                                    placeholder="메모 입력"
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                  />
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap text-right">
+                                  <span className="text-sm font-semibold text-blue-600">
+                                    {subtotal > 0
+                                      ? subtotal.toLocaleString()
+                                      : "-"}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap text-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (
+                                        window.confirm(
+                                          "패키지 품목을 삭제하시겠습니까?\n\n패키지에서 제외된 개별 품목으로 처리되며, 패키지 구성이 변경됩니다."
+                                        )
+                                      ) {
+                                        handleRemoveItem(
+                                          item.warehouseItemId,
+                                          true
+                                        );
+                                      }
+                                    }}
+                                    className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
+                                    title="품목 제거"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </td>
+                              </tr>
+
+                              {/* v4.0: 시리얼코드 입력 행 (서비스 품목 제외) */}
+                              {!isService && (
+                                <tr className="bg-gray-50/50">
+                                  <td colSpan={8} className="px-5 py-2">
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <div>
+                                        <span className="text-xs text-gray-500">
+                                          제품 시리얼
+                                        </span>
+                                        <input
+                                          type="text"
+                                          value={item.serialCode1 || ""}
+                                          onChange={(e) =>
+                                            handleSerialCodeChange(
+                                              index,
+                                              "serialCode1",
+                                              e.target.value,
+                                              true
+                                            )
+                                          }
+                                          placeholder="제품 시리얼코드"
+                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                        />
+                                      </div>
+                                      <div>
+                                        <span className="text-xs text-gray-500">
+                                          건보 시리얼
+                                        </span>
+                                        <input
+                                          type="text"
+                                          value={item.serialCode2 || ""}
+                                          onChange={(e) =>
+                                            handleSerialCodeChange(
+                                              index,
+                                              "serialCode2",
+                                              e.target.value,
+                                              true
+                                            )
+                                          }
+                                          placeholder="건보 시리얼코드"
+                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                        />
+                                      </div>
+                                      <div>
+                                        <span className="text-xs text-gray-500">
+                                          예비
+                                        </span>
+                                        <input
+                                          type="text"
+                                          value={item.serialCode3 || ""}
+                                          onChange={(e) =>
+                                            handleSerialCodeChange(
+                                              index,
+                                              "serialCode3",
+                                              e.target.value,
+                                              true
+                                            )
+                                          }
+                                          placeholder="예비 시리얼코드"
+                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                        />
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
                           );
                         })}
 
@@ -1434,163 +1585,229 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                             : 0;
                           const vat = item.vat ? parseInt(item.vat, 10) : 0;
                           const subtotal = (sellingPrice + vat) * item.quantity;
+                          const isService = item.teamItem?.isService === true;
                           return (
-                            <tr
-                              key={`individual-${item.warehouseItemId}`}
-                              className="hover:bg-gray-50"
-                            >
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-gray-900">
-                                    {item.teamItem.itemName}
+                            <React.Fragment key={`individual-${index}`}>
+                              <tr className="hover:bg-gray-50">
+                                <td className="px-3 py-2 whitespace-nowrap">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {item.teamItem.itemName}
+                                    </span>
+                                    {isService && (
+                                      <span className="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded">
+                                        서비스
+                                      </span>
+                                    )}
+                                    {formData.warehouseId &&
+                                      !isService &&
+                                      item.stockAvailable === false && (
+                                        <div className="flex items-center text-xs text-red-500">
+                                          <AlertCircle
+                                            size={12}
+                                            className="mr-1"
+                                          />
+                                          재고 부족
+                                        </div>
+                                      )}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap">
+                                  <div className="text-sm text-gray-700">
+                                    {item.teamItem.itemCode}
+                                    {formData.warehouseId &&
+                                      !isService &&
+                                      item.stockQuantity !== undefined && (
+                                        <div className="text-xs text-gray-500">
+                                          (재고: {item.stockQuantity}개)
+                                        </div>
+                                      )}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap">
+                                  <div className="flex gap-1 items-center justify-center">
+                                    <span className="w-8 text-center text-sm font-medium">
+                                      1
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleDuplicateItem(index, false)
+                                      }
+                                      className="p-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                                      title="동일 품목 추가"
+                                    >
+                                      <Plus size={14} />
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap">
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={item.sellingPrice || ""}
+                                    onChange={(e) => {
+                                      const sanitized = e.target.value.replace(
+                                        /[^0-9]/g,
+                                        ""
+                                      );
+                                      handleSellingPriceChange(
+                                        index,
+                                        sanitized,
+                                        false
+                                      );
+                                    }}
+                                    onPaste={(e) => {
+                                      e.preventDefault();
+                                      const pastedText =
+                                        e.clipboardData.getData("text");
+                                      const sanitized = pastedText.replace(
+                                        /[^0-9]/g,
+                                        ""
+                                      );
+                                      handleSellingPriceChange(
+                                        index,
+                                        sanitized,
+                                        false
+                                      );
+                                    }}
+                                    placeholder="0"
+                                    className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                  />
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap">
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={item.vat || ""}
+                                    onChange={(e) => {
+                                      const sanitized = e.target.value.replace(
+                                        /[^0-9]/g,
+                                        ""
+                                      );
+                                      handleVatChange(index, sanitized, false);
+                                    }}
+                                    onPaste={(e) => {
+                                      e.preventDefault();
+                                      const pastedText =
+                                        e.clipboardData.getData("text");
+                                      const sanitized = pastedText.replace(
+                                        /[^0-9]/g,
+                                        ""
+                                      );
+                                      handleVatChange(index, sanitized, false);
+                                    }}
+                                    placeholder="0"
+                                    className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                  />
+                                </td>
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="text"
+                                    value={item.memo || ""}
+                                    onChange={(e) =>
+                                      handleMemoChange(
+                                        index,
+                                        e.target.value,
+                                        false
+                                      )
+                                    }
+                                    placeholder="메모 입력"
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                  />
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap text-right">
+                                  <span className="text-sm font-semibold text-blue-600">
+                                    {subtotal > 0
+                                      ? subtotal.toLocaleString()
+                                      : "-"}
                                   </span>
-                                  {formData.warehouseId &&
-                                    item.stockAvailable === false && (
-                                      <div className="flex items-center text-xs text-red-500">
-                                        <AlertCircle
-                                          size={12}
-                                          className="mr-1"
+                                </td>
+                                <td className="px-3 py-2 whitespace-nowrap text-center">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleRemoveItem(
+                                        item.warehouseItemId,
+                                        false
+                                      )
+                                    }
+                                    className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </td>
+                              </tr>
+
+                              {/* v4.0: 시리얼코드 입력 행 (서비스 품목 제외) */}
+                              {!isService && (
+                                <tr className="bg-gray-50/50">
+                                  <td colSpan={8} className="px-5 py-2">
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <div>
+                                        <span className="text-xs text-gray-500">
+                                          제품 시리얼
+                                        </span>
+                                        <input
+                                          type="text"
+                                          value={item.serialCode1 || ""}
+                                          onChange={(e) =>
+                                            handleSerialCodeChange(
+                                              index,
+                                              "serialCode1",
+                                              e.target.value,
+                                              false
+                                            )
+                                          }
+                                          placeholder="제품 시리얼코드"
+                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                                         />
-                                        재고 부족
                                       </div>
-                                    )}
-                                </div>
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <div className="text-sm text-gray-700">
-                                  {item.teamItem.itemCode}
-                                  {formData.warehouseId &&
-                                    item.stockQuantity !== undefined && (
-                                      <div className="text-xs text-gray-500">
-                                        (재고: {item.stockQuantity}개)
+                                      <div>
+                                        <span className="text-xs text-gray-500">
+                                          건보 시리얼
+                                        </span>
+                                        <input
+                                          type="text"
+                                          value={item.serialCode2 || ""}
+                                          onChange={(e) =>
+                                            handleSerialCodeChange(
+                                              index,
+                                              "serialCode2",
+                                              e.target.value,
+                                              false
+                                            )
+                                          }
+                                          placeholder="건보 시리얼코드"
+                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                        />
                                       </div>
-                                    )}
-                                </div>
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <div className="flex gap-1 items-center justify-center">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleQuantityChange(index, false, false)
-                                    }
-                                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                                  >
-                                    <Minus size={14} />
-                                  </button>
-                                  <span className="w-8 text-center text-sm font-medium">
-                                    {item.quantity}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleQuantityChange(index, true, false)
-                                    }
-                                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                                  >
-                                    <Plus size={14} />
-                                  </button>
-                                </div>
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  pattern="[0-9]*"
-                                  value={item.sellingPrice || ""}
-                                  onChange={(e) => {
-                                    const sanitized = e.target.value.replace(
-                                      /[^0-9]/g,
-                                      ""
-                                    );
-                                    handleSellingPriceChange(
-                                      index,
-                                      sanitized,
-                                      false
-                                    );
-                                  }}
-                                  onPaste={(e) => {
-                                    e.preventDefault();
-                                    const pastedText =
-                                      e.clipboardData.getData("text");
-                                    const sanitized = pastedText.replace(
-                                      /[^0-9]/g,
-                                      ""
-                                    );
-                                    handleSellingPriceChange(
-                                      index,
-                                      sanitized,
-                                      false
-                                    );
-                                  }}
-                                  placeholder="0"
-                                  className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                                />
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap">
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  pattern="[0-9]*"
-                                  value={item.vat || ""}
-                                  onChange={(e) => {
-                                    const sanitized = e.target.value.replace(
-                                      /[^0-9]/g,
-                                      ""
-                                    );
-                                    handleVatChange(index, sanitized, false);
-                                  }}
-                                  onPaste={(e) => {
-                                    e.preventDefault();
-                                    const pastedText =
-                                      e.clipboardData.getData("text");
-                                    const sanitized = pastedText.replace(
-                                      /[^0-9]/g,
-                                      ""
-                                    );
-                                    handleVatChange(index, sanitized, false);
-                                  }}
-                                  placeholder="0"
-                                  className="w-24 px-2 py-1 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                                />
-                              </td>
-                              <td className="px-3 py-2">
-                                <input
-                                  type="text"
-                                  value={item.memo || ""}
-                                  onChange={(e) =>
-                                    handleMemoChange(
-                                      index,
-                                      e.target.value,
-                                      false
-                                    )
-                                  }
-                                  placeholder="메모 입력"
-                                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                                />
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap text-right">
-                                <span className="text-sm font-semibold text-blue-600">
-                                  {subtotal > 0
-                                    ? subtotal.toLocaleString()
-                                    : "-"}
-                                </span>
-                              </td>
-                              <td className="px-3 py-2 whitespace-nowrap text-center">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRemoveItem(
-                                      item.warehouseItemId,
-                                      false
-                                    )
-                                  }
-                                  className="p-1 text-red-600 bg-red-100 rounded hover:bg-red-200"
-                                >
-                                  <X size={14} />
-                                </button>
-                              </td>
-                            </tr>
+                                      <div>
+                                        <span className="text-xs text-gray-500">
+                                          예비
+                                        </span>
+                                        <input
+                                          type="text"
+                                          value={item.serialCode3 || ""}
+                                          onChange={(e) =>
+                                            handleSerialCodeChange(
+                                              index,
+                                              "serialCode3",
+                                              e.target.value,
+                                              false
+                                            )
+                                          }
+                                          placeholder="예비 시리얼코드"
+                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                        />
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
                           );
                         })}
                       </tbody>
@@ -1671,7 +1888,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               {permissionIsAdmin && (
                 <div>
                   <label htmlFor="status" className="block text-sm font-medium">
-                    발주 상태{" "}
+                    판매 상태{" "}
                     <span className="text-xs text-gray-500">(Admin 전용)</span>
                   </label>
                   <select
@@ -1694,7 +1911,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 </div>
               )}
 
-              {/* 발주자 */}
+              {/* 판매자 */}
               <div>
                 <label
                   htmlFor="requester"
@@ -1716,7 +1933,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
               {/* 담당자 */}
               <div>
                 <label htmlFor="manager" className="block text-sm font-medium">
-                  업체 발주 담당자
+                  업체 판매 담당자
                 </label>
                 <input
                   type="text"
@@ -1729,13 +1946,13 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 />
               </div>
 
-              {/* 발주 요청일 */}
+              {/* 판매 요청일 */}
               <div>
                 <label
                   htmlFor="requestDate"
                   className="block text-sm font-medium"
                 >
-                  발주 요청일
+                  판매 요청일
                 </label>
                 <input
                   type="date"
@@ -1767,7 +1984,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 />
               </div>
 
-              {/* 레거시 데이터 안내 배너 (고객 미입력 + 수령인 정보 있음) */}
+              {/* 레거시 데이터 안내 배너 (판매대상 미입력 + 수령인 정보 있음) */}
               {hasLegacyData && (
                 <div className="mb-4 p-5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border-2 border-amber-300 shadow-sm">
                   <div className="flex items-start gap-3">
@@ -1791,10 +2008,10 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                     </div>
                     <div className="flex-1">
                       <h4 className="text-base font-bold text-amber-900 mb-2">
-                        ⚠️ 고객 정보가 등록되지 않았습니다
+                        ⚠️ 판매대상 정보가 등록되지 않았습니다
                       </h4>
                       <p className="text-sm text-amber-800 mb-3">
-                        현재 입력된 수령인 정보를 기반으로 고객을
+                        현재 입력된 수령인 정보를 기반으로 판매대상을
                         등록하시겠습니까?
                       </p>
                       <div className="p-3 mb-3 bg-white/60 rounded-lg border border-amber-200">
@@ -1837,13 +2054,13 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                           onClick={handleQuickAddSupplier}
                           className="px-4 py-2 font-medium text-white bg-amber-600 rounded-lg shadow-sm transition-all hover:bg-amber-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
                         >
-                          📝 이 정보로 고객 등록하기
+                          📝 이 정보로 판매대상 등록하기
                         </button>
                         <button
                           type="button"
                           onClick={() =>
                             toast(
-                              "고객 정보 섹션에서 직접 선택하거나 추가할 수 있습니다",
+                              "판매대상 정보 섹션에서 직접 선택하거나 추가할 수 있습니다",
                               {
                                 icon: "ℹ️",
                               }
@@ -1859,7 +2076,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                 </div>
               )}
 
-              {/* 고객 정보 섹션 (Material Design) */}
+              {/* 판매대상 정보 섹션 (Material Design) */}
               <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="flex items-center justify-center w-8 h-8 bg-blue-500 rounded-full">
@@ -1878,13 +2095,15 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-800">고객 정보</h3>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    판매대상 정보
+                  </h3>
                 </div>
 
-                {/* 고객 선택 */}
+                {/* 판매대상 선택 */}
                 <div className="mb-4 space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
-                    고객 <span className="text-red-500">*</span>
+                    판매대상 <span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-2">
                     <button
@@ -1896,11 +2115,11 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                         <span className="font-medium text-gray-900">
                           {suppliers?.find(
                             (s: Supplier) => s.id === formData.supplierId
-                          )?.supplierName || "고객 선택"}
+                          )?.supplierName || "판매대상 선택"}
                         </span>
                       ) : (
                         <span className="text-gray-500">
-                          클릭하여 고객 선택
+                          클릭하여 판매대상 선택
                         </span>
                       )}
                     </button>
@@ -1908,7 +2127,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                       type="button"
                       onClick={() => setIsAddSupplierModalOpen(true)}
                       className="px-4 py-3 font-medium text-white bg-blue-600 rounded-lg shadow-sm transition-all hover:bg-blue-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                      title="새 고객 추가"
+                      title="새 판매대상 추가"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1927,7 +2146,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                     </button>
                   </div>
                   <p className="text-xs text-blue-700 bg-blue-100 px-3 py-1.5 rounded-md">
-                    💡 고객을 선택하면 수령인, 연락처, 주소가 자동으로
+                    💡 판매대상을 선택하면 수령인, 연락처, 주소가 자동으로
                     채워집니다
                   </p>
                 </div>
@@ -2035,7 +2254,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                   * 파일 크기는 최대 50MB까지 업로드 가능합니다.
                 </div>
                 <div className="mb-2 text-xs text-red-600">
-                  * 발주서, 견적서 등 필요증빙 필수 첨부
+                  * 증빙서류(견적서 등) 필수 필수 첨부
                 </div>
                 <div
                   onClick={() => selectedFiles.current?.click()}
@@ -2295,7 +2514,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           title="품목 추가"
         />
 
-        {/* 고객 선택 모달 */}
+        {/* 판매대상 선택 모달 */}
         <SelectSupplierModal
           isOpen={isSelectSupplierModalOpen}
           onClose={() => setIsSelectSupplierModalOpen(false)}
@@ -2304,9 +2523,10 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
           selectedSupplierId={formData.supplierId}
           focusRingColor="blue"
           onAddSupplier={() => setIsAddSupplierModalOpen(true)}
+          context="order"
         />
 
-        {/* 고객 추가 모달 */}
+        {/* 판매대상 추가 모달 */}
         <AddSupplierModal
           isOpen={isAddSupplierModalOpen}
           onClose={() => setIsAddSupplierModalOpen(false)}

@@ -14,11 +14,11 @@ export const exportSalesToExcel = (
   filename?: string,
   showMarginColumns = false
 ) => {
-  // Sheet 1: 발주 요약 (권한별 컬럼 차별화)
+  // Sheet 1: 판매 요약 (권한별 컬럼 차별화)
   const summaryData = records.map((record, index) => {
     const baseData: any = {
       No: index + 1,
-      발주일자: record.purchaseDate,
+      판매일자: record.purchaseDate,
       제목: record.title,
       판매처: record.supplierName,
       수령인: record.receiver,
@@ -65,7 +65,7 @@ export const exportSalesToExcel = (
 
   const totalRow: any = {
     No: "",
-    발주일자: "",
+    판매일자: "",
     제목: "",
     판매처: "",
     수령인: "합계",
@@ -124,7 +124,7 @@ export const exportSalesToExcel = (
           : null;
 
       detailData.push({
-        발주일자: record.purchaseDate,
+        판매일자: record.purchaseDate,
         제목: record.title,
         판매처: record.supplierName,
         품목코드: item.item?.teamItem?.itemCode || "",
@@ -141,11 +141,11 @@ export const exportSalesToExcel = (
 
   const worksheet2 = XLSX.utils.json_to_sheet(detailData);
 
-  // Sheet 3: 판매가 미입력 발주
+  // Sheet 3: 판매가 미입력 판매
   const missingPriceRecords = records.filter((r) => r.totalPrice === null);
   const missingPriceData = missingPriceRecords.map((record, index) => ({
     No: index + 1,
-    발주일자: record.purchaseDate,
+    판매일자: record.purchaseDate,
     제목: record.title,
     판매처: record.supplierName,
     수령인: record.receiver,

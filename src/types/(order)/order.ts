@@ -85,6 +85,9 @@ export interface OrderItem {
   memo: string;
   sellingPrice?: number | null; // 주문 품목 판매가
   vat?: number | null; // 주문 품목 세금 (부가세)
+  serialCode1?: string | null; // 제품 시리얼코드
+  serialCode2?: string | null; // 건보 시리얼코드
+  serialCode3?: string | null; // 예비 시리얼코드
   item: {
     id: number;
     itemQuantity: number;
@@ -94,10 +97,13 @@ export interface OrderItem {
       itemName: string;
       memo: string;
       costPrice?: number | null; // 품목 원가
+      isService?: boolean; // 서비스 품목 여부 (v4.0)
     };
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
+    averageCost?: number | null; // 평균 매입원가 (v4.0)
+    totalInboundQuantity?: number | null; // 총 입고 수량 (v4.0)
   };
 }
 
@@ -146,6 +152,9 @@ export interface CreateOrderItemRequest {
   memo: string;
   sellingPrice?: number; // 주문 품목 판매가 (선택)
   vat?: number; // 주문 품목 세금 (선택)
+  serialCode1?: string; // 제품 시리얼코드
+  serialCode2?: string; // 건보 시리얼코드
+  serialCode3?: string; // 예비 시리얼코드
 }
 
 export interface UpdateOrderDto {

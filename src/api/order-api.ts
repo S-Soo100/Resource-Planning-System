@@ -481,6 +481,21 @@ export const updateOrderDetails = async (
   }
 };
 
+// 시리얼코드 검색 (v4.0)
+export const searchBySerialCode = async (
+  code: string,
+  teamId: number
+): Promise<ApiResponse> => {
+  try {
+    const response = await api.get<ApiResponse>("/order/search-serial", {
+      params: { code, teamId },
+    });
+    return response.data;
+  } catch {
+    return { success: false, message: "시리얼코드 검색에 실패했습니다." };
+  }
+};
+
 // === 세금계산서 관리 API (v2.5) ===
 
 // 세금계산서 업로드

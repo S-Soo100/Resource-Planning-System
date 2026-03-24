@@ -7,6 +7,57 @@
 
 ## [Unreleased]
 
+## v2.8.0 (2026-03-24)
+
+### 추가됨 (Added)
+
+- **시리얼코드 관리**: 주문 품목별 시리얼코드 3종(제품/건보/예비) 기록 및 검색
+  - OrderItem에 serialCode1/2/3 필드 추가
+  - 동일 품목 N개 → quantity:1 × N건 자동 분리하여 개별 시리얼 입력
+  - 시리얼코드 검색 모달 (부분 일치, 클라이언트 페이지네이션)
+  - SerialCodeInputGroup 공용 컴포넌트
+
+- **매입단가 / 평균원가 관리**: 입고 시 건별 매입단가 입력 및 평균원가 자동 계산
+  - InventoryRecord에 unitCost, totalCost, inboundStatus 필드 추가
+  - 입고 2단계 워크플로우: "즉시 입고완료" / "입고 요청만(requested)" 선택
+  - 입고완료 전환 인라인 버튼 (moderator+ 권한)
+  - 입고 상태 배지: 입고요청(파란), 입고완료(초록), 완료-레거시(회색)
+  - 마진 분석 원가 기준을 averageCost로 전환 (null 시 costPrice 폴백)
+
+- **팀품목 확장 정보**: 품목에 가격/브랜드/건보 정보 추가
+  - 고시가격(notifiedPrice), 소비자가격(consumerPrice), 브랜드(brand)
+  - 건보 등록 여부(isHealthInsuranceRegistered)
+  - 팀품목 모달 3개 섹션 분리 (기본/가격/추가정보)
+
+- **서비스(무형물) 판매**: 배송비, 설치서비스 등 재고 미관리 품목 지원
+  - TeamItem에 isService 필드 추가
+  - 서비스 품목은 재고 차감/시리얼코드 입력 없이 판매에 포함
+  - 품목 목록에 "서비스" 배지 표시
+
+- **계층형 카테고리**: 부모-자식 2단계 카테고리 구조
+  - CategoryTreeSelect 공용 컴포넌트 (filter 다중선택 / assign 단일선택 모드)
+  - 부모 카테고리 선택 시 자식 품목 자동 포함 필터링
+  - 카테고리 트리 조회 API 연동
+  - 키보드 접근성 지원 (ArrowUp/Down, Enter, Escape)
+
+### 변경됨 (Changed)
+
+- **워딩 전면 변경**: 비즈니스 용어 통일
+  - "발주" → "판매", "고객" → "판매대상"/"거래처"
+  - "재고관리" → "재고&매입 관리", "입출고내역" → "입출고 관리"
+  - SelectSupplierModal에 context props 방식 라벨 분기 (판매대상/거래처)
+
+- **라우트 경로 변경**
+  - `/orderRecord` → `/salesRecord`
+  - `/orderRequest` → `/salesRequest`
+  - `/orderWheelchair` → `/salesWheelchair`
+  - `/order-guide` → `/sales-guide`
+
+### 개선됨 (Improved)
+
+- **입고완료 캐시 무효화**: 재고 현황, 창고 목록, 마진 분석 등 6개 쿼리키 무효화
+- **quantity 분리 시 가격 균등 배분**: 기존 데이터 수정 시 sellingPrice를 N등분하여 총합 보존
+
 ## v2.7.1 (2026-03-06)
 
 ### 개선됨 (Improved)

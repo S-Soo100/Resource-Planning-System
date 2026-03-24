@@ -558,8 +558,17 @@ const DemoRecordDetail = () => {
         toast.success("파일이 삭제되었습니다.");
         window.location.reload();
       } else {
-        throw new Error(response.error || "파일 삭제에 실패했습니다.");
+        toast.error(response.error || "파일 삭제에 실패했습니다.", {
+          duration: 3000,
+          position: "top-center",
+        });
       }
+    } catch (error) {
+      console.error("파일 삭제 오류:", error);
+      toast.error(
+        error instanceof Error ? error.message : "파일 삭제에 실패했습니다.",
+        { duration: 3000, position: "top-center" }
+      );
     } finally {
       setIsDeletingFile(null);
     }

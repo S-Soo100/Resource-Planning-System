@@ -310,6 +310,30 @@
 
 ---
 
+### E-017: 판매 상세 페이지 window.location.reload() 제거
+- **우선순위**: Medium
+- **상태**: [ ]
+- **설명**: `salesRecord/[id]/page.tsx`에서 상태 업데이트, 파일 업로드/삭제, 수정 모달 닫기 후 `window.location.reload()` 6회 사용 중. `queryClient.invalidateQueries()`로 전환 필요.
+- **관련 파일**: `src/app/salesRecord/[id]/page.tsx`
+
+### E-018: 입고 레코드 삭제 기능 + completed/레거시 삭제 차단
+- **우선순위**: Medium
+- **상태**: [ ]
+- **설명**: 현재 프론트에 입고 레코드 삭제 UI가 없음. 삭제 기능 추가 시 `inboundStatus === "completed"` 또는 `null`(레거시)인 레코드는 삭제 차단해야 함 (결정사항 #3). 백엔드 차단 로직도 필요.
+- **관련 파일**: `IoHistoryList.tsx`, `InventoryRecordDetail.tsx`
+
+### E-019: TeamItemModal 가격 필드 권한 체크 추가
+- **우선순위**: Medium
+- **상태**: [ ]
+- **설명**: TeamItemModal에서 `usePermission()`을 호출하지 않아 모든 사용자에게 costPrice/notifiedPrice/consumerPrice 노출. `canViewCostPrice` 기반 조건부 표시 필요.
+- **관련 파일**: `src/components/admin/TeamItemModal.tsx`
+
+### E-020: inboundStatus null vs completed 구분 보강
+- **우선순위**: Low
+- **상태**: [ ]
+- **설명**: "즉시 입고완료" 시 서버에 `undefined` 전송 → 기존 레거시(null)와 구분 불가. 서버에서 `completed`로 명시 저장하도록 백엔드 협의 필요.
+- **관련 파일**: `InboundModal.tsx`, `IoHistoryList.tsx`
+
 ### E-006: 고객관리 데이터 모델 리팩토링 (User → Supplier 통합)
 - **우선순위**: High
 - **상태**: [~]

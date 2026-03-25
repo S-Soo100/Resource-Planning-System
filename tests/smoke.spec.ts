@@ -22,9 +22,9 @@ test.describe("Smoke Tests - 핵심 페이지 접근", () => {
     await page.waitForLoadState("networkidle");
   });
 
-  test("발주 페이지가 정상 로드된다", async ({ page }) => {
-    await page.goto("/orderRecord");
-    await expect(page).toHaveURL(/orderRecord/);
+  test("판매 기록 페이지가 정상 로드된다", async ({ page }) => {
+    await page.goto("/salesRecord");
+    await expect(page).toHaveURL(/salesRecord/);
     await page.waitForLoadState("networkidle");
   });
 

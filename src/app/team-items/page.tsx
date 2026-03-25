@@ -12,6 +12,7 @@ import {
   Package,
   ChevronDown,
   ChevronRight,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTeamItems } from "@/hooks/useTeamItems";
@@ -66,6 +67,7 @@ function TeamItemsContent() {
   const {
     canViewCostPrice,
     isReadOnly: permissionReadOnly,
+    isAdminOrModerator,
     isLoading: isPermissionLoading,
   } = usePermission();
   const { useGetTeamItems, useDeleteTeamItem } = useTeamItems();
@@ -595,16 +597,28 @@ function TeamItemsContent() {
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-xl font-bold text-gray-700">팀 아이템 목록</h2>
-            {!isReadOnly && (
-              <Button
-                variant="primary"
-                onClick={() => handleOpenTeamItemModal()}
-                icon={<Plus className="w-4 h-4" />}
-                iconPosition="left"
-              >
-                아이템 추가
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {isAdminOrModerator && (
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/team-items/bulk-upload")}
+                  icon={<FileSpreadsheet className="w-4 h-4" />}
+                  iconPosition="left"
+                >
+                  엑셀 업로드
+                </Button>
+              )}
+              {!isReadOnly && (
+                <Button
+                  variant="primary"
+                  onClick={() => handleOpenTeamItemModal()}
+                  icon={<Plus className="w-4 h-4" />}
+                  iconPosition="left"
+                >
+                  아이템 추가
+                </Button>
+              )}
+            </div>
           </div>
           <p className="text-sm text-gray-500">
             위 카테고리를 클릭하면 해당 카테고리의 아이템만 조회할 수 있습니다.

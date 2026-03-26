@@ -1508,11 +1508,13 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                 </td>
                               </tr>
 
-                              {/* v4.0: 시리얼코드 입력 행 (서비스 품목 제외) */}
+                              {/* v4.0→v4.1: 시리얼코드 입력 행 (서비스 품목 제외) */}
                               {!isService && (
                                 <tr className="bg-gray-50/50">
                                   <td colSpan={8} className="px-5 py-2">
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div
+                                      className={`grid ${item.teamItem?.isHealthInsuranceRegistered ? "grid-cols-2" : "grid-cols-1"} gap-2`}
+                                    >
                                       <div>
                                         <span className="text-xs text-gray-500">
                                           제품 시리얼
@@ -1532,26 +1534,32 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                           className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                                         />
                                       </div>
-                                      <div>
-                                        <span className="text-xs text-gray-500">
-                                          건보 시리얼
-                                        </span>
-                                        <input
-                                          type="text"
-                                          value={item.serialCode2 || ""}
-                                          onChange={(e) =>
-                                            handleSerialCodeChange(
-                                              index,
-                                              "serialCode2",
-                                              e.target.value,
-                                              true
-                                            )
-                                          }
-                                          placeholder="건보 시리얼코드"
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                                        />
-                                      </div>
-                                      <div>
+                                      {/* I7: 건보 시리얼 — 건강보험 등록 품목에만 표시 */}
+                                      {item.teamItem
+                                        ?.isHealthInsuranceRegistered ===
+                                        true && (
+                                        <div>
+                                          <span className="text-xs text-gray-500">
+                                            건보 시리얼
+                                          </span>
+                                          <input
+                                            type="text"
+                                            value={item.serialCode2 || ""}
+                                            onChange={(e) =>
+                                              handleSerialCodeChange(
+                                                index,
+                                                "serialCode2",
+                                                e.target.value,
+                                                true
+                                              )
+                                            }
+                                            placeholder="건보 시리얼코드"
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                          />
+                                        </div>
+                                      )}
+                                      {/* I8: 예비 시리얼 숨김 (코드 유지) */}
+                                      {/* <div>
                                         <span className="text-xs text-gray-500">
                                           예비
                                         </span>
@@ -1569,7 +1577,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                           placeholder="예비 시리얼코드"
                                           className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                                         />
-                                      </div>
+                                      </div> */}
                                     </div>
                                   </td>
                                 </tr>
@@ -1741,11 +1749,13 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                 </td>
                               </tr>
 
-                              {/* v4.0: 시리얼코드 입력 행 (서비스 품목 제외) */}
+                              {/* v4.0→v4.1: 시리얼코드 입력 행 (서비스 품목 제외) */}
                               {!isService && (
                                 <tr className="bg-gray-50/50">
                                   <td colSpan={8} className="px-5 py-2">
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div
+                                      className={`grid ${item.teamItem?.isHealthInsuranceRegistered ? "grid-cols-2" : "grid-cols-1"} gap-2`}
+                                    >
                                       <div>
                                         <span className="text-xs text-gray-500">
                                           제품 시리얼
@@ -1765,26 +1775,32 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                           className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                                         />
                                       </div>
-                                      <div>
-                                        <span className="text-xs text-gray-500">
-                                          건보 시리얼
-                                        </span>
-                                        <input
-                                          type="text"
-                                          value={item.serialCode2 || ""}
-                                          onChange={(e) =>
-                                            handleSerialCodeChange(
-                                              index,
-                                              "serialCode2",
-                                              e.target.value,
-                                              false
-                                            )
-                                          }
-                                          placeholder="건보 시리얼코드"
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
-                                        />
-                                      </div>
-                                      <div>
+                                      {/* I7: 건보 시리얼 — 건강보험 등록 품목에만 표시 */}
+                                      {item.teamItem
+                                        ?.isHealthInsuranceRegistered ===
+                                        true && (
+                                        <div>
+                                          <span className="text-xs text-gray-500">
+                                            건보 시리얼
+                                          </span>
+                                          <input
+                                            type="text"
+                                            value={item.serialCode2 || ""}
+                                            onChange={(e) =>
+                                              handleSerialCodeChange(
+                                                index,
+                                                "serialCode2",
+                                                e.target.value,
+                                                false
+                                              )
+                                            }
+                                            placeholder="건보 시리얼코드"
+                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
+                                          />
+                                        </div>
+                                      )}
+                                      {/* I8: 예비 시리얼 숨김 (코드 유지) */}
+                                      {/* <div>
                                         <span className="text-xs text-gray-500">
                                           예비
                                         </span>
@@ -1802,7 +1818,7 @@ const OrderEditModal: React.FC<OrderEditModalProps> = ({
                                           placeholder="예비 시리얼코드"
                                           className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-Primary-Main"
                                         />
-                                      </div>
+                                      </div> */}
                                     </div>
                                   </td>
                                 </tr>

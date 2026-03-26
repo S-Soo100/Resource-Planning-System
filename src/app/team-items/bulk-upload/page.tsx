@@ -63,6 +63,11 @@ export default function BulkUploadPage() {
     []
   );
 
+  // Step 2: 행 삭제 핸들러
+  const handleRowDelete = useCallback((index: number) => {
+    setRows((prev) => prev.filter((row) => row.index !== index));
+  }, []);
+
   // Step 2 → Step 1 되돌아가기
   const handleBackToUpload = useCallback(() => {
     setRows([]);
@@ -330,6 +335,7 @@ export default function BulkUploadPage() {
                 rows={rows}
                 teamId={teamId}
                 onRowUpdate={handleRowUpdate}
+                onRowDelete={handleRowDelete}
                 onBack={handleBackToUpload}
                 onStartRegistration={handleStartRegistration}
               />

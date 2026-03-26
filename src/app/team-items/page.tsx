@@ -1,5 +1,12 @@
 "use client";
-import React, { useState, useEffect, useRef, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  Suspense,
+} from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentTeam } from "@/hooks/useCurrentTeam";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePermission } from "@/hooks/usePermission";
@@ -16,6 +23,7 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTeamItems } from "@/hooks/useTeamItems";
+import { useToast } from "@/hooks/useToast";
 import { authStore } from "@/store/authStore";
 import { useCategory } from "@/hooks/useCategory";
 import { useCategoryTree } from "@/hooks/useCategoryTree";
@@ -61,6 +69,7 @@ const collectAllChildIds = (category: Category): number[] => {
 };
 
 function TeamItemsContent() {
+  const queryClient = useQueryClient();
   const { team } = useCurrentTeam();
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useCurrentUser();
@@ -73,6 +82,7 @@ function TeamItemsContent() {
   const { useGetTeamItems, useDeleteTeamItem } = useTeamItems();
   const { data: teamItems = [], isLoading, error } = useGetTeamItems();
   const { deleteTeamItem, isPending: deleteLoading } = useDeleteTeamItem();
+  const toast = useToast();
 
   // 라이트박스 상태
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -124,6 +134,37 @@ function TeamItemsContent() {
   // 원가 열람 권한 체크 (팀 권한 기반)
   const canViewCost = canViewCostPrice;
 
+  // 카테고리 트리 최초 로드 또는 팀 전환 시 모든 노드를 기본 펼침 상태로 설정
+  const prevTeamIdRef = useRef<number | string | undefined>(selectedTeam?.id);
+  useEffect(() => {
+    // 팀이 바뀌면 펼침 상태 초기화
+    const teamChanged = prevTeamIdRef.current !== selectedTeam?.id;
+    if (teamChanged) {
+      prevTeamIdRef.current = selectedTeam?.id;
+      setExpandedCategoryIds(new Set());
+    }
+
+    // 트리가 있고 펼침 상태가 비어있을 때만 자동 펼침
+    if (
+      categoryTree.length > 0 &&
+      (teamChanged || expandedCategoryIds.size === 0)
+    ) {
+      const allIds = new Set<number>();
+      const collectIds = (cats: Category[]) => {
+        for (const cat of cats) {
+          if (cat.children && cat.children.length > 0) {
+            allIds.add(cat.id);
+            collectIds(cat.children);
+          }
+        }
+      };
+      collectIds(categoryTree);
+      if (allIds.size > 0) {
+        setExpandedCategoryIds(allIds);
+      }
+    }
+  }, [categoryTree, selectedTeam?.id, expandedCategoryIds.size]);
+
   useEffect(() => {
     if (selectedTeam?.id && !isCategoryLoading) {
       getCategoriesSorted();
@@ -170,8 +211,9 @@ function TeamItemsContent() {
     // 자식 카테고리 존재 여부 체크 (트리에서)
     const treeCategory = findCategoryInTree(categoryTree, categoryId);
     if (treeCategory?.children && treeCategory.children.length > 0) {
-      alert(
-        `'${categoryName}' 카테고리에 하위 카테고리가 존재합니다.\n하위 카테고리를 먼저 삭제해주세요.`
+      toast.error(
+        "삭제 불가",
+        `'${categoryName}' 카테고리에 하위 카테고리가 존재합니다. 하위 카테고리를 먼저 삭제해주세요.`
       );
       return;
     }
@@ -187,10 +229,16 @@ function TeamItemsContent() {
         if (selectedCategoryId === categoryId) {
           setSelectedCategoryId(null);
         }
-        alert(`'${categoryName}' 카테고리가 성공적으로 삭제되었습니다.`);
+        // 캐시 무효화로 자동 갱신
+        handleCategoryUpdated();
+        toast.success(
+          "카테고리 삭제 완료",
+          `'${categoryName}' 카테고리가 삭제되었습니다.`
+        );
       } catch {
-        alert(
-          "카테고리 삭제에 실패했습니다. 연결된 아이템이나 하위 카테고리가 있는지 확인해주세요."
+        toast.error(
+          "카테고리 삭제 실패",
+          "연결된 아이템이나 하위 카테고리가 있는지 확인해주세요."
         );
       }
     }
@@ -201,9 +249,10 @@ function TeamItemsContent() {
     setIsCategoryModalOpen(false);
   };
 
-  // 카테고리 업데이트 후 콜백
+  // 카테고리 업데이트 후 콜백 — 캐시 무효화로 자동 갱신
   const handleCategoryUpdated = () => {
-    getCategoriesSorted();
+    queryClient.invalidateQueries({ queryKey: ["categories"] });
+    queryClient.invalidateQueries({ queryKey: ["categoryTree"] });
   };
 
   // 팀 아이템 모달 열기
@@ -596,7 +645,7 @@ function TeamItemsContent() {
         {/* 팀 아이템 섹션 */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <h2 className="text-xl font-bold text-gray-700">팀 아이템 목록</h2>
+            <h2 className="text-xl font-bold text-gray-700">팀 품목 관리</h2>
             <div className="flex gap-2">
               {isAdminOrModerator && (
                 <Button
@@ -615,7 +664,7 @@ function TeamItemsContent() {
                   icon={<Plus className="w-4 h-4" />}
                   iconPosition="left"
                 >
-                  아이템 추가
+                  품목 추가
                 </Button>
               )}
             </div>
@@ -778,7 +827,7 @@ function TeamItemsContent() {
                         <td className="px-4 py-3 text-center whitespace-nowrap">
                           <div className="flex flex-wrap justify-center gap-1">
                             {item.isService && (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-100 text-orange-700">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">
                                 서비스
                               </span>
                             )}
@@ -945,7 +994,7 @@ function TeamItemsContent() {
                 icon={<Plus className="w-4 h-4" />}
                 iconPosition="left"
               >
-                첫 아이템 추가하기
+                첫 품목 추가하기
               </Button>
             )}
           </div>

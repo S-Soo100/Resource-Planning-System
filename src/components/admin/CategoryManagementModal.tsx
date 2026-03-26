@@ -272,18 +272,21 @@ const CategoryManagementModal = React.forwardRef<
           />
         </div>
 
-        <div>
-          <Input
-            label="우선순위"
-            name="priority"
-            type="number"
-            value={formData.priority.toString()}
-            onChange={handleInputChange}
-            min="1"
-            required
-            helperText="낮은 숫자일수록 높은 우선순위입니다"
-          />
-        </div>
+        {/* 수정 모드에서만 우선순위 표시 (추가 시 자동 계산) */}
+        {isEditMode && (
+          <div>
+            <Input
+              label="우선순위"
+              name="priority"
+              type="number"
+              value={formData.priority.toString()}
+              onChange={handleInputChange}
+              min="1"
+              required
+              helperText="낮은 숫자일수록 높은 우선순위입니다"
+            />
+          </div>
+        )}
 
         {/* 부모 카테고리 선택 (추가 모드에서만, 수정 모드에서는 부모 변경 지원 안 함) */}
         {!isEditMode && (

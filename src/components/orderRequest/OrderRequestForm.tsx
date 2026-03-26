@@ -1581,6 +1581,10 @@ const OrderRequestForm: React.FC<OrderRequestFormProps> = ({
                                   serialCode1={item.serialCode1 || ""}
                                   serialCode2={item.serialCode2 || ""}
                                   serialCode3={item.serialCode3 || ""}
+                                  isHealthInsuranceRegistered={
+                                    item.teamItem
+                                      ?.isHealthInsuranceRegistered === true
+                                  }
                                   onChange={(field, value) =>
                                     handleSerialCodeChange(index, field, value)
                                   }

@@ -335,7 +335,7 @@ const MainMenu = () => {
   if (isAdminOrModerator) {
     tabs.push({
       id: "admin",
-      title: "관리",
+      title: "팀 품목 관리",
       items: adminMenuItems,
     });
   }

@@ -194,6 +194,12 @@ export function mapExcelDataToRows(
   const headers = Object.keys(rawData[0]);
   const colMap = detectColumnMapping(headers);
 
+  // I10: 품목명 누락 행은 파싱 단계에서 아예 제외
+  const filteredData = rawData.filter((raw) => {
+    const itemName = (raw[colMap["itemName"]] || "").trim();
+    return itemName.length > 0;
+  });
+
   // 접두사별 순번 카운터 (배치 내 중복 방지)
   const prefixCounters: Record<string, number> = {};
 
@@ -202,7 +208,7 @@ export function mapExcelDataToRows(
     existingItems.map((item) => item.itemName.toLowerCase().trim())
   );
 
-  return rawData.map((raw, index) => {
+  return filteredData.map((raw, index) => {
     const itemName = raw[colMap["itemName"]] || "";
     const brand = raw[colMap["brand"]] || "";
     const categoryValue = raw[colMap["category"]] || "";

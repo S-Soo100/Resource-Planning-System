@@ -337,10 +337,29 @@ export default function TeamItemModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={isEditMode ? "팀 아이템 수정" : "새 팀 아이템 추가"}
+      title={isEditMode ? "팀 품목 수정" : "새 팀 품목 추가"}
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* ── 서비스 품목 체크박스 (맨 위) ── */}
+        <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.isService}
+              onChange={() => handleCheckboxChange("isService")}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-green-500 peer-focus:ring-2 peer-focus:ring-green-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+          </label>
+          <span className="text-sm font-medium text-gray-700">서비스 품목</span>
+          {formData.isService && (
+            <span className="text-xs text-green-600">
+              가격 정보, 고시가격, 건보 등록 필드가 숨겨집니다.
+            </span>
+          )}
+        </div>
+
         {/* ── 기본 정보 섹션 ── */}
         <div>
           <h3 className="mb-3 text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">
@@ -474,78 +493,80 @@ export default function TeamItemModal({
           </div>
         </div>
 
-        {/* ── 가격 정보 섹션 ── */}
-        <div>
-          <h3 className="mb-3 text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">
-            가격 정보
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <Input
-                label="원가 (원)"
-                name="costPrice"
-                type="number"
-                value={formData.costPrice}
-                onChange={handleInputChange}
-                placeholder="예: 50000"
-                min="0"
-                step="1"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                선택 사항입니다. 입력하지 않으면 저장되지 않습니다.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isNotifiedPrice}
-                  onChange={() => handleCheckboxChange("isNotifiedPrice")}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
-              </label>
-              <span className="text-sm font-medium text-gray-700">
-                고시가격 여부
-              </span>
-            </div>
-
-            {formData.isNotifiedPrice && (
+        {/* ── 가격 정보 섹션 (서비스 품목이 아닐 때만 표시) ── */}
+        {!formData.isService && (
+          <div>
+            <h3 className="mb-3 text-sm font-semibold text-gray-800 border-b border-gray-200 pb-2">
+              가격 정보
+            </h3>
+            <div className="space-y-4">
               <div>
                 <Input
-                  label="고시가격 (원)"
-                  name="notifiedPrice"
+                  label="원가 (원)"
+                  name="costPrice"
                   type="number"
-                  value={formData.notifiedPrice}
+                  value={formData.costPrice}
                   onChange={handleInputChange}
-                  placeholder="건강보험 공시 금액"
+                  placeholder="예: 50000"
                   min="0"
                   step="1"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  건보 공시 금액을 그대로 입력해주세요.
+                  선택 사항입니다. 입력하지 않으면 저장되지 않습니다.
                 </p>
               </div>
-            )}
 
-            <div>
-              <Input
-                label="소비자가격 (원)"
-                name="consumerPrice"
-                type="number"
-                value={formData.consumerPrice}
-                onChange={handleInputChange}
-                placeholder="VAT 포함 소비자가격"
-                min="0"
-                step="1"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                VAT 포함 금액을 그대로 입력해주세요.
-              </p>
+              <div className="flex items-center gap-3">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isNotifiedPrice}
+                    onChange={() => handleCheckboxChange("isNotifiedPrice")}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+                <span className="text-sm font-medium text-gray-700">
+                  고시가격 여부
+                </span>
+              </div>
+
+              {formData.isNotifiedPrice && (
+                <div>
+                  <Input
+                    label="고시가격 (원)"
+                    name="notifiedPrice"
+                    type="number"
+                    value={formData.notifiedPrice}
+                    onChange={handleInputChange}
+                    placeholder="건강보험 공시 금액"
+                    min="0"
+                    step="1"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    건보 공시 금액을 그대로 입력해주세요.
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <Input
+                  label="소비자가격 (원)"
+                  name="consumerPrice"
+                  type="number"
+                  value={formData.consumerPrice}
+                  onChange={handleInputChange}
+                  placeholder="VAT 포함 소비자가격"
+                  min="0"
+                  step="1"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  부가세 여부와 상관없이 소비자 가격을 그대로 입력해주세요.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* ── 추가 정보 섹션 ── */}
         <div>
@@ -564,37 +585,25 @@ export default function TeamItemModal({
               />
             </div>
 
-            <div className="flex items-center gap-3">
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isHealthInsuranceRegistered}
-                  onChange={() =>
-                    handleCheckboxChange("isHealthInsuranceRegistered")
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
-              </label>
-              <span className="text-sm font-medium text-gray-700">
-                건강보험 등록 품목
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isService}
-                  onChange={() => handleCheckboxChange("isService")}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
-              </label>
-              <span className="text-sm font-medium text-gray-700">
-                서비스 품목
-              </span>
-            </div>
+            {/* 건강보험 등록 품목 (서비스 품목이 아닐 때만 표시) */}
+            {!formData.isService && (
+              <div className="flex items-center gap-3">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isHealthInsuranceRegistered}
+                    onChange={() =>
+                      handleCheckboxChange("isHealthInsuranceRegistered")
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+                <span className="text-sm font-medium text-gray-700">
+                  건강보험 등록 품목
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

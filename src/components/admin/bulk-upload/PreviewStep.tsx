@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { CheckCircle, AlertTriangle, XCircle, SkipForward } from "lucide-react";
+import {
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  SkipForward,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui";
 import { CategoryTreeSelect } from "@/components/ui/CategoryTreeSelect";
 import { BulkUploadRow, RowStatus } from "@/types/(item)/bulk-upload";
@@ -10,6 +16,7 @@ interface PreviewStepProps {
   rows: BulkUploadRow[];
   teamId: number;
   onRowUpdate: (index: number, updates: Partial<BulkUploadRow>) => void;
+  onRowDelete: (index: number) => void;
   onBack: () => void;
   onStartRegistration: () => void;
 }
@@ -59,6 +66,7 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
   rows,
   teamId,
   onRowUpdate,
+  onRowDelete,
   onBack,
   onStartRegistration,
 }) => {
@@ -218,6 +226,9 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
               <th className="px-3 py-2.5 text-left font-semibold text-gray-600 min-w-[100px]">
                 메모
               </th>
+              <th className="px-3 py-2.5 text-center font-semibold text-gray-600 w-14">
+                삭제
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -332,12 +343,23 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
                     <td className="px-3 py-2 text-gray-600 text-xs truncate max-w-[150px]">
                       {row.mapped.memo || "-"}
                     </td>
+
+                    {/* 삭제 */}
+                    <td className="px-3 py-2 text-center">
+                      <button
+                        onClick={() => onRowDelete(row.index)}
+                        className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                        title="이 행 삭제"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
 
                   {/* 중복 row 액션 - 해당 row 바로 아래 표시 */}
                   {showDuplicateAction && (
                     <tr className="bg-amber-50/50 border-b border-gray-100">
-                      <td colSpan={10} className="px-3 py-2">
+                      <td colSpan={11} className="px-3 py-2">
                         <div className="flex items-center gap-3">
                           <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
                           <span className="text-sm text-amber-700">

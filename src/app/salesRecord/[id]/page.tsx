@@ -1442,7 +1442,7 @@ const OrderRecordDetail = () => {
                                         </span>
                                       )}
                                       {item.item?.teamItem?.isService && (
-                                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold text-orange-700 bg-orange-100 rounded border border-orange-200">
+                                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold text-green-700 bg-green-100 rounded border border-green-200">
                                           서비스
                                         </span>
                                       )}

@@ -72,6 +72,10 @@ export const useCategory = (teamId?: number) => {
           ["categories", effectiveTeamId],
           (old: Category[] = []) => [...old, newCategory]
         );
+        // 카테고리 트리 캐시 무효화
+        queryClient.invalidateQueries({
+          queryKey: ["categoryTree", effectiveTeamId],
+        });
 
         // Zustand store 업데이트
         addCategory(effectiveTeamId, newCategory);
@@ -101,6 +105,10 @@ export const useCategory = (teamId?: number) => {
               cat.id === updatedCategory.id ? updatedCategory : cat
             )
         );
+        // 카테고리 트리 캐시 무효화
+        queryClient.invalidateQueries({
+          queryKey: ["categoryTree", effectiveTeamId],
+        });
 
         // Zustand store 업데이트
         updateCategoryInStore(
@@ -136,6 +144,10 @@ export const useCategory = (teamId?: number) => {
               cat.id === updatedCategory.id ? updatedCategory : cat
             )
         );
+        // 카테고리 트리 캐시 무효화
+        queryClient.invalidateQueries({
+          queryKey: ["categoryTree", effectiveTeamId],
+        });
 
         // Zustand store 업데이트
         updateCategoryInStore(
@@ -153,7 +165,10 @@ export const useCategory = (teamId?: number) => {
   // 카테고리 삭제
   const deleteCategoryMutation = useMutation({
     mutationFn: async (categoryId: number) => {
-      const response = await categoryApi.deleteCategory(categoryId, effectiveTeamId);
+      const response = await categoryApi.deleteCategory(
+        categoryId,
+        effectiveTeamId
+      );
       if (!response.success) {
         throw new Error(response.error || "카테고리 삭제에 실패했습니다");
       }
@@ -167,6 +182,10 @@ export const useCategory = (teamId?: number) => {
           (old: Category[] = []) =>
             old.filter((cat) => cat.id !== deletedCategoryId)
         );
+        // 카테고리 트리 캐시 무효화
+        queryClient.invalidateQueries({
+          queryKey: ["categoryTree", effectiveTeamId],
+        });
 
         // Zustand store 업데이트
         removeCategory(effectiveTeamId, deletedCategoryId);

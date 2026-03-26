@@ -75,15 +75,18 @@ const transformToSalesRecord = (
     let hasAnyCost = false;
 
     for (const item of order.orderItems) {
+      // 원가 결정: averageCost(평균 매입원가) 우선 → costPrice(기본원가) 폴백
+      const itemAverageCost = item.item?.averageCost;
       const teamItem = item.item?.teamItem;
-      if (teamItem && teamItemsMap.has(teamItem.id)) {
-        const teamItemData = teamItemsMap.get(teamItem.id);
-        const costPrice = teamItemData?.costPrice;
+      const teamItemData = teamItem ? teamItemsMap.get(teamItem.id) : undefined;
+      const costPrice =
+        itemAverageCost != null
+          ? itemAverageCost
+          : (teamItemData?.costPrice ?? null);
 
-        if (costPrice !== null && costPrice !== undefined) {
-          totalCost += costPrice * item.quantity;
-          hasAnyCost = true;
-        }
+      if (costPrice !== null && costPrice !== undefined) {
+        totalCost += costPrice * item.quantity;
+        hasAnyCost = true;
       }
     }
 

@@ -271,7 +271,7 @@ export default function CustomItemTable({
                       }}
                       className="px-4 py-1.5 bg-Primary-Main text-white rounded-full text-sm font-medium hover:bg-Primary-Main/90 transition-colors"
                     >
-                      아이템 추가
+                      품목 추가
                     </button>
                   )}
                   <ChevronDown
@@ -368,7 +368,9 @@ export default function CustomItemTable({
                                       src={item.teamItem.imageUrl}
                                       alt={item.teamItem.itemName}
                                       className="w-12 h-12 object-cover rounded-md border border-Outline-Variant mx-auto cursor-pointer hover:opacity-80 transition-opacity"
-                                      onClick={() => setLightboxUrl(item.teamItem.imageUrl)}
+                                      onClick={() =>
+                                        setLightboxUrl(item.teamItem.imageUrl)
+                                      }
                                     />
                                   ) : (
                                     <div className="w-12 h-12 bg-Back-Mid-20 rounded-md flex items-center justify-center mx-auto">
@@ -487,7 +489,7 @@ export default function CustomItemTable({
           >
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-Text-Highest-100">
-                아이템 추가
+                품목 추가
               </h2>
 
               <div>
@@ -569,8 +571,19 @@ export default function CustomItemTable({
             className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/70 transition-colors"
             onClick={() => setLightboxUrl(null)}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
           <img

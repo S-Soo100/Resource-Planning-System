@@ -7,9 +7,13 @@
 
 ## [Unreleased]
 
-## v2.8.0 (2026-03-24)
+## v2.8.0 (2026-03-26)
 
 ### 추가됨 (Added)
+
+- **엑셀 품목 일괄 등록**: 팀품목을 엑셀(.xlsx) 파일로 일괄 등록
+  - 3단계 워크플로우: 업로드 → 미리보기 → 등록
+  - 품목코드 자동 생성, 중복 검증, 에러 행 표시
 
 - **시리얼코드 관리**: 주문 품목별 시리얼코드 3종(제품/건보/예비) 기록 및 검색
   - OrderItem에 serialCode1/2/3 필드 추가
@@ -52,6 +56,10 @@
   - `/orderRequest` → `/salesRequest`
   - `/orderWheelchair` → `/salesWheelchair`
   - `/order-guide` → `/sales-guide`
+
+### 수정됨 (Fixed)
+
+- **시연 파일 삭제 에러 처리**: 시연 파일 삭제 시 에러 안내 메시지 개선
 
 ### 개선됨 (Improved)
 

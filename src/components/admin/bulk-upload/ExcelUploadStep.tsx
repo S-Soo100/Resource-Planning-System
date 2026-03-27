@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useCallback, useRef, useState } from "react";
-import { Upload, FileSpreadsheet } from "lucide-react";
+import { Upload, FileSpreadsheet, Download } from "lucide-react";
 import { Button } from "@/components/ui";
+import { downloadBulkUploadTemplate } from "@/utils/excel-parser";
 
 interface ExcelUploadStepProps {
   onFileSelected: (file: File) => void;
@@ -126,6 +127,17 @@ const ExcelUploadStep: React.FC<ExcelUploadStepProps> = ({
               <p className="mt-4 text-sm text-gray-500">
                 지원 형식: .xlsx, .xls (최대 1,000행, 10MB)
               </p>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadBulkUploadTemplate();
+                }}
+                className="mt-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                <Download className="w-3.5 h-3.5" />
+                양식 다운로드
+              </button>
             </>
           )}
         </div>

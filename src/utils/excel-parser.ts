@@ -10,6 +10,55 @@ import {
 const MAX_ROWS = 1000;
 
 /**
+ * 품목 일괄 등록 양식 헤더 (detectColumnMapping과 1:1 매핑)
+ */
+export const BULK_UPLOAD_TEMPLATE_HEADERS = [
+  "품목명",
+  "브랜드",
+  "카테고리",
+  "건보여부",
+  "고시가격",
+  "소비자가",
+  "매입원가",
+  "메모",
+] as const;
+
+/**
+ * 품목 일괄 등록 양식 .xlsx 다운로드
+ */
+export function downloadBulkUploadTemplate(): void {
+  const sampleRows = [
+    [
+      "전동휠체어 A모델",
+      "OttoBock",
+      "(팀 카테고리명 입력)",
+      "지원",
+      2500000,
+      3000000,
+      2000000,
+      "예시 데이터입니다",
+    ],
+    [
+      "수동휠체어 B모델",
+      "Sunrise",
+      "(팀 카테고리명 입력)",
+      "미지원",
+      "",
+      800000,
+      500000,
+      "",
+    ],
+  ];
+
+  const wsData = [[...BULK_UPLOAD_TEMPLATE_HEADERS], ...sampleRows];
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "품목 일괄 등록");
+  XLSX.writeFile(wb, "품목_일괄등록_양식.xlsx");
+}
+
+/**
  * 엑셀 파일을 파싱하여 raw 데이터 배열을 반환
  */
 export function parseExcelFile(file: File): Promise<Record<string, string>[]> {

@@ -92,9 +92,9 @@
 
 ```bash
 npm run dev          # 개발 서버 실행
-npm run build        # 프로덕션 빌드 (메인 Claude에서만, 서브에이전트 금지)
+npm run build        # 프로덕션 빌드 (Claude 안에서 실행 금지! 별도 터미널에서만)
+tsc --noEmit         # 타입 체크만 (Claude 안에서 빌드 대체, 10~30초)
 npm run type-check   # TypeScript 타입 체크
-tsc --noEmit         # 타입 체크만 (서브에이전트용, 빌드 대체)
 npm run lint         # ESLint 검사
 ```
 

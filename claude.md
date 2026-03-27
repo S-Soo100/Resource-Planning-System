@@ -1,6 +1,6 @@
 # KARS - Claude Code 설정
 
-## 📌 프로젝트 개요
+## 프로젝트 개요
 **KARS** (Kangsters Auto Resource-management System) - 보조기기 업체용 통합 자원 관리 시스템
 
 ### 기술 스택
@@ -10,7 +10,7 @@
 
 ---
 
-## 🎨 코딩 규칙
+## 코딩 규칙
 
 ### 스타일
 - React 함수형 컴포넌트 + TypeScript strict 모드
@@ -29,7 +29,9 @@
 3. 단계적 사고 과정으로 답변
 4. 한국어로 응답
 
-### 작업 규칙
+---
+
+## 작업 규칙
 
 **워크플로우:**
 1. **요청 분석**: 요구사항을 파악하고 유형 판단 (Feature / Bug / Improvement / Epic)
@@ -43,166 +45,30 @@
 
 - 구현은 **기능별 3~5파일 단위**로 분할 → 커밋 → 빌드 확인 → 다음 기능
 - 10개+ 파일을 한 번에 수정하지 않는다
-- 서브에이전트(review, critic 등)에는 **해당 기능 관련 파일만** 전달 (전체 diff 금지)
-- 빌드 체크는 전체 `tsc --noEmit` 전에 변경 파일 중심으로 먼저 확인
+- 서브에이전트에는 **해당 기능 관련 파일만** 전달 (전체 diff 금지)
 - 이미 대규모 변경이 쌓였으면: `git diff --stat` → 기능별 그룹핑 → 그룹별 순차 처리
 
 **티켓 관리:**
 - GitHub Issues 사용 금지 — `/BACKLOG.md`에서 로컬 관리
-- UX 개선/버그/기능 요청 → `BACKLOG.md`에 티켓 추가
 - 완료 시 체크박스 `[x]` 표시
 
 ---
 
-## 📚 기능별 참조 문서
-> **중요**: 기능 수정/확장 시 반드시 해당 문서를 먼저 확인할 것!
-
-### 🏠 메인 & UI
-| 문서                                 | 주요 내용                                 |
-| ------------------------------------ | ----------------------------------------- |
-| `/docs/menu-tab-state-management.md` | 메인 탭 상태 관리 (Zustand + localStorage) |
-
-### 💰 판매 & 구매
-| 문서                           | 주요 내용                                |
-| ------------------------------ | ---------------------------------------- |
-| `/docs/sales-management.md`    | 판매 내역, 거래명세서, 부가세(10%), 엑셀 |
-| `/docs/purchase-management.md` | 구매 내역, 원가 정보, 엑셀               |
-| `/docs/margin-analysis.md`     | 마진 분석, 품목별 마진율, 역마진 식별, 엑셀 |
-
-### 📦 발주 & 시연
-| 문서                               | 주요 내용                              | 주요 기능                            |
-| ---------------------------------- | -------------------------------------- | ------------------------------------ |
-| `/docs/order-management.md`        | 발주 워크플로우, 권한 제어, 휠체어 발주 | 가격 정보(v2.0): VAT 직접 입력, 가격 수정 모달 |
-| `/docs/demonstration-management.md` | 시연 프로세스, 재고 연동               | 유료/무료 시연, 출고/복귀            |
-
-### 📊 재고 관리
-| 문서                                    | 주요 내용                                  | 버전  |
-| --------------------------------------- | ------------------------------------------ | ----- |
-| `/docs/inventory-record-purpose.md`     | recordPurpose 필드, 목적별 집계 필터링     | v2.1  |
-| `/docs/inbound-management.md`           | 입고 프로세스 (작성 필요)                  | -     |
-| `/docs/outbound-management.md`          | 출고 프로세스 (작성 필요)                  | -     |
-| `/docs/inventory-management.md`         | 재고 현황 (작성 필요)                      | -     |
-
-### 🗂️ 기준 정보
-| 문서                            | 상태       |
-| ------------------------------- | ---------- |
-| `/docs/item-management.md`      | 작성 필요  |
-| `/docs/warehouse-management.md` | 작성 필요  |
-| `/docs/supplier-management.md`  | v3.1 완료 (고객 관리 통합) |
-| `/docs/backend-customer-migration.md` | v3.1 백엔드 마이그레이션 요구사항 |
-
-### 👥 관리자 & 팀 관리
-| 문서                               | 주요 내용                                        |
-| ---------------------------------- | ------------------------------------------------ |
-| `/docs/team-members-management.md` | 팀 멤버 관리, 팀별 권한 시스템, 창고 접근 제어    |
-
-### 🛠️ 개발 가이드
-| 문서                               | 주요 내용                                |
-| ---------------------------------- | ---------------------------------------- |
-| `/docs/api-error-handling.md`      | API 에러 처리 표준 가이드, 유틸리티 함수 |
-
----
-
-## 🔧 핵심 개발 규칙
+## 핵심 개발 규칙
 
 ### API & 데이터
 - **React Query**: `['resource', params]` 키 구조
 - **통신**: Axios
 - **인증**: JWT + Zustand 상태 관리
 - **캐시 무효화**: 데이터 변경 후 `queryClient.invalidateQueries`로 자동 UI 업데이트 (페이지 새로고침 금지)
-- **에러 처리**: `/docs/api-error-handling.md` 참고 (표준 유틸리티 함수 사용)
+- **에러 처리**: `/docs/api-error-handling.md` 참고
 
 ### 날짜 처리
 | 규칙              | 설명                                     |
 | ----------------- | ---------------------------------------- |
-| 빈 값             | `undefined` 반환 (빈 문자열 ❌)          |
+| 빈 값             | `undefined` 반환 (빈 문자열 X)           |
 | 서버 전송         | `undefined` 필드 제거                    |
 | 형식              | `YYYY-MM-DDTHH:MM:SS+09:00` (KST)        |
-
-### 가격 입력 (v2.6.0+)
-
-**새로운 입력 방식: 총액 입력 → 자동 계산**
-
-사용자는 **총 금액만 입력**하면, 시스템이 자동으로 공급가액과 부가세를 계산합니다.
-
-| 입력       | 설명                                     |
-| ---------- | ---------------------------------------- |
-| **총 금액** | 사용자가 입력 (견적서 총액 그대로)      |
-| **영세율**  | 체크박스로 선택 (전체 또는 개별)         |
-| 공급가액   | 자동 계산 (읽기 전용)                    |
-| 부가세     | 자동 계산 (읽기 전용)                    |
-
-**계산 로직:**
-- **일반 부가세**: `공급가액 = 총액 ÷ 1.1`, `VAT = 총액 - 공급가액`
-- **영세율(0%)**: `공급가액 = 총액`, `VAT = 0`
-
-**기술 스펙:**
-- 타입: 폼 `string` → 저장 `number`
-- 반올림: `Math.round()` 사용하여 소수점 제거
-- 빈 값: `undefined` 전송 (null ❌, 빈 문자열 ❌)
-- 검증: 숫자만 허용 (`/^\d+$/`)
-
-**예시:**
-```typescript
-// 일반 부가세 (10%)
-총 금액: 110,000원 입력
-  ↓ 자동 계산
-공급가액: 100,000원 (110,000 ÷ 1.1)
-부가세: 10,000원 (110,000 - 100,000)
-
-// 영세율 (0%)
-총 금액: 200,000원 입력 + 영세율 체크
-  ↓ 자동 계산
-공급가액: 200,000원
-부가세: 0원
-```
-
-### 권한 시스템
-
-KARS는 **팀별 권한 중심 아키텍처**를 사용합니다.
-
-#### 권한 레벨
-| 등급       | 권한                        | 한글 표시       |
-| ---------- | --------------------------- | --------------- |
-| Admin      | 모든 기능 + 팀 관리자       | 관리자          |
-| Moderator  | 읽기 + 발주 승인            | 1차 승인권자    |
-| User       | 기본 기능                   | 일반 사용자     |
-| Supplier   | 발주 관련만                 | 납품처          |
-
-#### 권한 아키텍처 원칙
-
-**팀 권한이 유일한 기준 (Team-Permission Only)**
-- `TeamUserMapping.accessLevel`이 **유일한 권한 소스**
-- `User.accessLevel`은 **레거시** — 참조 금지, 신규 코드에서 사용 금지
-- 프론트엔드 권한 체크는 반드시 `usePermission()` 훅을 사용할 것
-- **API가 팀 권한대로 동작하지 않으면 API를 수정해야 함** (프론트에서 우회하지 않는다)
-
-**isAdmin 자동 계산**
-- `isAdmin` 필드는 별도로 입력받지 않음
-- 항상 자동 계산: `isAdmin = (accessLevel === "admin")`
-- 관리자 선택 시 isAdmin 자동 true 설정
-
-**3단계 사용자 생성 플로우**
-```typescript
-// 1. 사용자 생성 (User 테이블)
-const user = await userApi.createUser(userData);
-
-// 2. 팀에 추가 (TeamUserMapping 생성)
-await teamApi.addUserToTeam(teamId, userId);
-
-// 3. 팀 권한 설정 (TeamUserMapping.accessLevel 설정) ⭐ 필수!
-await teamRoleApi.updateTeamRole(teamId, userId, {
-  accessLevel: userData.accessLevel,
-  isAdmin: userData.accessLevel === "admin",
-  restrictedWhs: userData.restrictedWhs,
-});
-```
-
-**마이그레이션 완료 (v3.0)**
-> ✅ 모든 페이지가 `usePermission()` 훅을 통해 팀 권한(`TeamUserMapping.accessLevel`) 기반으로 전환 완료.
-> - `usePermission()`: 중앙 권한 훅 — `isAdmin`, `isModerator`, `canEditPrice`, `canViewMargin` 등 비즈니스 헬퍼 제공
-> - 유일한 예외: `team-select/page.tsx` (팀 선택 전이므로 `serverUser?.isAdmin` 사용)
-> - `User.accessLevel` / `auth.isAdmin` 직접 참조는 **금지** — 반드시 `usePermission()` 사용
 
 ### 테마 색상
 | 용도         | 색상                              |
@@ -214,267 +80,41 @@ await teamRoleApi.updateTeamRole(teamId, userId, {
 ### 모달 & z-index 관리
 | 레이어       | z-index | 용도                              |
 | ------------ | ------- | --------------------------------- |
-| 기본 모달    | `z-50`  | SelectSupplierModal 등 1차 모달   |
-| 중첩 모달    | `z-[60]` | AddSupplierModal 등 2차 모달      |
+| 기본 모달    | `z-50`  | 1차 모달                          |
+| 중첩 모달    | `z-[60]` | 2차 모달                          |
 | 최상위 모달  | `z-[70]` | 알림, 긴급 다이얼로그             |
 
-**규칙:**
-- 모달 위에 다른 모달이 열릴 경우 z-index를 10 단위로 증가
-- 백드롭 클릭 방지가 필요한 경우 `e.stopPropagation()` 사용
-- 모달 닫기 시 하위 모달들도 함께 닫기
-
-### 검증 아키텍처 (3-레이어)
-필수 데이터 검증은 3개 레이어에서 수행:
-
-1. **UI 레이어**: 폼 제출 전 검증
-   ```typescript
-   if (!formData.supplierId) {
-     toast.error("고객을 선택해주세요");
-     return false;
-   }
-   ```
-
-2. **서비스 레이어**: 런타임 검증
-   ```typescript
-   if (!formData.supplierId) {
-     throw new Error("고객을 선택해주세요");
-   }
-   ```
-
-3. **타입 시스템**: 컴파일타임 검증
-   ```typescript
-   interface CreateOrderDto {
-     supplierId: number; // nullable 불가
-   }
-   ```
-
-### 자동 채우기 패턴
-사용자 경험과 데이터 정확성의 균형:
-
-**DO:**
-- 선택 시 관련 정보 자동 입력 (편의성)
-- 자동 입력 후 수동 수정 허용 (유연성)
-- 필수 필드는 명확히 검증 (정확성)
-
-**DON'T:**
-- 자동 입력 후 수정 불가능하게 만들기
-- 빈 값으로 덮어쓰기 (기존 입력값 손실)
-- 자동 채우기 실패 시 에러 발생
-
-**예시:**
-```typescript
-const handleSupplierSelect = (supplier: Supplier) => {
-  setFormData({
-    ...formData, // 기존 데이터 유지
-    supplierId: supplier.id, // 필수 필드
-    receiver: supplier.representativeName || supplier.supplierName || "",
-    receiverPhone: supplier.supplierPhoneNumber || "",
-    address: supplier.supplierAddress || "",
-    detailAddress: "", // 상세주소는 사용자가 직접 입력
-  });
-};
-```
-
-### 창고 접근 권한 패턴
-
-**직관적인 체크박스 로직 (v2.5.0+)**
-
-체크박스는 "접근 가능"을 의미하도록 설계 (직관성 우선):
-
-```typescript
-// ❌ 잘못된 방법 (헷갈림)
-// 체크 = 접근 제한
-
-// ✅ 올바른 방법 (직관적)
-// 체크 = 접근 가능
-```
-
-**프론트엔드 → 백엔드 변환**
-
-```typescript
-// 1. 폼 상태: 접근 가능한 창고 ID 배열
-const [selectedWarehouses, setSelectedWarehouses] = useState<number[]>([]);
-
-// 2. 저장 시: 전체 - 접근 가능 = 제한된 창고
-const allWarehouseIds = warehouses.map((w) => w.id);
-const restrictedIds = allWarehouseIds.filter(
-  (id) => !selectedWarehouses.includes(id)
-);
-
-// 3. 백엔드 전송: 쉼표로 구분된 문자열
-const restrictedWhs = restrictedIds.length > 0 ? restrictedIds.join(",") : "";
-```
-
-**백엔드 → 프론트엔드 변환**
-
-```typescript
-// 1. 백엔드 수신: "1,3,5" (제한된 창고)
-const restrictedWhs = user.restrictedWhs || "";
-
-// 2. 파싱
-const restrictedIds = restrictedWhs
-  .split(",")
-  .map((id) => parseInt(id.trim()))
-  .filter((id) => !isNaN(id));
-
-// 3. 변환: 전체 - 제한 = 접근 가능
-const allWarehouseIds = warehouses.map((w) => w.id);
-const accessibleIds = allWarehouseIds.filter(
-  (id) => !restrictedIds.includes(id)
-);
-
-// 4. 폼 상태 설정
-setSelectedWarehouses(accessibleIds);
-```
-
-**일관성 유지**
-- UserManagementModal: 신규 사용자 생성 시
-- UserEditModal: 기존 사용자 정보 수정 시
-- 두 모달 모두 동일한 로직 사용 (접근 가능 ↔ 제한)
+모달 위에 다른 모달이 열릴 경우 z-index를 10 단위로 증가. 모달 닫기 시 하위 모달들도 함께 닫기.
 
 ---
 
-## 🎭 서브에이전트 워크플로우
-
-### 역할 기반 슬래시 커맨드
-
-| 커맨드 | 역할 | 코드 수정 | 용도 |
-|--------|------|----------|------|
-| `/architect` | 설계자 | ❌ | 요구사항 분석, 설계 문서 작성 |
-| `/implement` | 구현자 | ✅ | 설계 문서 기반 코드 작성 |
-| `/critic` | 비평가 | ❌ | 4철학자 심층 구조 분석 |
-| `/review` | 검증자 | ❌ | 코드 리뷰, 안티패턴 검출 |
-
-### 오케스트레이션 규칙 (에이전트 조합 승인)
-
-**사용자가 슬래시 커맨드 없이 일반 요청을 하면**, 코드를 바로 작성하지 않고 먼저 에이전트 조합을 제안한다:
-
-1. **요청 분석** → 유형 판단 (Feature / Bug / Improvement / Analysis)
-2. **에이전트 조합 제안** → 아래 형식으로 사용자에게 확인
-3. **승인 후 실행** → 승인된 순서대로 에이전트 스폰
-
-**제안 형식:**
-```
-이 요청은 [유형]으로 판단했어. 아래 순서로 진행할게:
-
-1. /architect → 설계 문서 작성
-2. /implement → 단계별 구현
-3. /review → 최종 검증
-
-이대로 진행할까?
-```
-
-**유형별 기본 조합:**
-
-| 유형 | 기본 에이전트 조합 | 비고 |
-|------|-------------------|------|
-| 큰 기능 (Epic) | `/architect` → `/implement` → `/review` | 필요시 `/critic` 추가 |
-| 작은 기능 (Feature) | `/architect` → `/implement` → `/review` | architect 간소화 |
-| 버그 수정 (Bug) | `/implement` → `/review` | 설계 불필요 |
-| 개선 (Improvement) | `/implement` → `/review` | 설계 불필요 |
-| 코드 분석 (Analysis) | `/critic` 또는 `/review` | 코드 수정 없음 |
-| 디자인 작업 | `/design-apply` → `/design-review` | 디자인 전용 |
-
-**예외:** 사용자가 직접 슬래시 커맨드를 사용하면 제안 없이 바로 해당 에이전트를 스폰한다.
-
-### 권장 워크플로우 참고
-
-**큰 기능 (Epic)**:
-`/architect` → `/implement` → `/critic` (선택) → `/review` → `/update-changelog`
-
-**작은 수정 (Bug/Improvement)**:
-`/implement` → `/review`
-
-**기존 코드 심층 분석**:
-`/critic src/components/order/`
-
-**디자인 관련**:
-`/design-apply` → `/design-review`
-
-### `/critic` vs `/review` 차이
-- `/review`: 체크리스트 기반, "이 줄 고쳐" (빠름, pass/fail)
-- `/critic`: 관점 기반, "이 접근방식을 재고해" (느림, 구조적 질문)
-
-### 서브에이전트 실행 규칙 (필수)
-
-**⚠️ 아래 4개 커맨드는 반드시 Agent 도구로 독립 서브에이전트를 스폰하여 실행한다.**
-**절대로 메인 컨텍스트에서 직접 수행하지 않는다. 이것은 선택이 아니라 필수 규칙이다.**
-
-| 커맨드 | Agent 스폰 방식 | 이유 |
-|--------|---------------|------|
-| `/architect` | Agent 1개 스폰 | 설계 관점의 독립성 보장 |
-| `/implement` | Agent 1개 스폰 | 구현 컨텍스트 격리 |
-| `/critic` | **Agent 4개 병렬 스폰** | 4철학자 관점 독립성 (상호 오염 방지) |
-| `/review` | Agent 1개 스폰 | 검증 관점의 독립성 보장 |
-
-**실행 절차:**
-1. 커맨드의 `.md` 파일을 읽는다
-2. 파일에 정의된 **에이전트 프롬프트**를 Agent 도구의 `prompt` 파라미터에 전달한다
-3. `$ARGUMENTS`를 에이전트 프롬프트에 삽입한다
-4. 에이전트 결과를 사용자에게 전달한다
-
-**실패 제한 (모든 에이전트 공통):**
-- 에이전트 스폰 실패 시 **최대 3회까지만 재시도**. 3회 초과 시 즉시 중단 + 사용자 보고. (예외: `/critic`은 4개 병렬이므로 개별 **2회**까지)
-- 에이전트 내부 빌드/수정 루프는 **최대 3회**. 초과 시 에러 목록 정리 후 중단.
-- 3회 스폰 실패 시 "반드시 에이전트로 실행" 규칙을 **일시 해제** — 메인 Claude가 직접 처리 가능.
-- 각 커맨드별 상세 제한은 해당 `.md` 파일 참조.
-
-**역할 규칙:**
-- `/architect`는 코드를 작성하지 않는다. 질문하고 설계만 한다.
-- `/implement`는 설계 문서가 있으면 반드시 따른다. 계획에 없는 코드 추가 금지.
-- `/critic`은 코드를 수정하지 않는다. 4철학자 관점으로 비평만 한다.
-- `/review`는 코드를 수정하지 않는다. 리포트만 작성한다.
-
----
-
-## 📐 응답 형식 규칙
-
-> 상세: `.claude/rules/agent-io-format.md`
-
-- **변경 요약**: 파일당 한 줄 (`변경: path — 요약`)
-- **빌드 결과**: `빌드: ✅` 한 줄
-- **테이블**: 최대 5행, 넘으면 bullet
-- **구분선/박스/반복 요약**: 금지
-- 에이전트 간 산출물은 최소 구조화 (사람이 읽을 필요 없음)
-
----
-
-## ⚙️ 주요 명령어
+## 주요 명령어
 
 ```bash
 npm run dev          # 개발 서버 실행
-npm run build        # 프로덕션 빌드
+npm run build        # 프로덕션 빌드 (메인 Claude에서만, 서브에이전트 금지)
 npm run type-check   # TypeScript 타입 체크
+tsc --noEmit         # 타입 체크만 (서브에이전트용, 빌드 대체)
 npm run lint         # ESLint 검사
 ```
 
 ---
 
-## 🔄 업데이트 관리
+## 업데이트 관리
 
-### 자동 업데이트 (권장) 🤖
-`/update-changelog` 슬래시 커맨드 사용:
+`/update-changelog` 슬래시 커맨드로 자동 처리 (버전 bump + CHANGELOG + /update 페이지 생성).
 
-```bash
-/update-changelog         # 대화형 모드
-/update-changelog patch   # 버그 수정 (1.16.1 → 1.16.2)
-/update-changelog minor   # 새 기능 (1.16.1 → 1.17.0)
-/update-changelog major   # 대규모 변경 (1.16.1 → 2.0.0)
-```
+변경 시 반드시 업데이트: `CHANGELOG.md`, `src/constants/version.ts`, 관련 `/docs` 문서.
 
-**자동 처리 항목**:
-1. ✅ 최근 커밋 분석 & 변경사항 분류
-2. ✅ `CHANGELOG.md`에 새 버전 섹션 추가
-3. ✅ `src/constants/version.ts` 버전 업데이트
-4. ✅ `/update` 페이지 자동 생성
+---
 
-### 수동 업데이트 체크리스트 ✋
+## 상세 규칙 (`.claude/rules/`)
 
-변경 시 **반드시** 업데이트:
-
-- [ ] `CHANGELOG.md` - [Keep a Changelog](https://keepachangelog.com) 형식
-- [ ] `src/constants/version.ts` - `APP_VERSION` 업데이트
-- [ ] `/docs` 폴더 문서 (비즈니스 로직 변경 시)
-- [ ] 커밋 전 **빌드 테스트 필수** (`npm run build`)
-
-> ⚠️ `/update` 페이지는 자동 생성되므로 직접 수정 금지!
+| 파일 | 내용 |
+|------|------|
+| `agent-io-format.md` | 응답 형식 규칙 |
+| `subagent-workflow.md` | 서브에이전트 오케스트레이션, 빌드 규칙, 실패 제한 |
+| `permissions.md` | 권한 시스템, 창고 접근 권한 패턴 |
+| `pricing.md` | 가격 입력 (총액→자동계산), 영세율 |
+| `form-patterns.md` | 3-레이어 검증, 자동 채우기 패턴 |
+| `docs-index.md` | 기능별 참조 문서 인덱스 |

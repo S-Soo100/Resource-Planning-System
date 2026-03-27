@@ -87,17 +87,26 @@ test.describe("2. 팀품목 관리 — 확장 필드", () => {
     await editBtn.click();
     await expect(page.getByText("가격 정보")).toBeVisible({ timeout: 5000 });
 
-    // 고시가격 체크박스 찾기
-    const checkbox = page.getByLabel(/고시가격/);
-    if (await checkbox.isVisible()) {
-      // 체크 → 고시가격 입력 필드 표시
-      await checkbox.check();
+    // 고시가격 토글 찾기 (Toggle 컴포넌트: label이 sr-only input을 감쌈)
+    const toggle = page.getByRole("switch", { name: /고시가격/ });
+    if ((await toggle.count()) > 0) {
+      const toggleLabel = page.locator("label").filter({ has: toggle });
+      const isAlreadyOn = await toggle.isChecked();
+
+      if (isAlreadyOn) {
+        // 이미 ON → 입력 필드가 보여야 함 → OFF로 토글 → 사라져야 함
+        await toggleLabel.click();
+        await page.waitForTimeout(300);
+        // 다시 ON → 입력 필드 보여야 함
+        await toggleLabel.click();
+      } else {
+        // OFF → ON으로 토글
+        await toggleLabel.click();
+      }
+
       await expect(
         page.getByPlaceholder(/고시가격/).or(page.getByLabel(/고시가격.*원/))
       ).toBeVisible();
-
-      // 체크 해제 → 필드 숨김
-      await checkbox.uncheck();
     }
   });
 
@@ -107,9 +116,9 @@ test.describe("2. 팀품목 관리 — 확장 필드", () => {
     await editBtn.click();
     await expect(page.getByText("추가 정보")).toBeVisible({ timeout: 5000 });
 
-    // 서비스 품목 체크박스 확인
+    // 서비스 품목 토글 확인 (Toggle 컴포넌트: role="switch")
     await expect(
-      page.getByLabel(/서비스/).or(page.getByText("서비스 품목"))
+      page.getByRole("switch", { name: /서비스 품목/ })
     ).toBeVisible();
   });
 });

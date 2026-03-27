@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { AlertCircle, Upload, X, Image as ImageIcon } from "lucide-react";
-import { Button, Input, Modal } from "@/components/ui";
+import { Button, Input, Modal, Toggle } from "@/components/ui";
 import { CategoryTreeSelect } from "@/components/ui/CategoryTreeSelect";
 import { useTeamItems } from "@/hooks/useTeamItems";
 import { useToast } from "@/hooks/useToast";
+import { usePermission } from "@/hooks/usePermission";
 import { CreateTeamItemDto } from "@/types/(item)/team-item";
 
 interface Category {
@@ -94,6 +95,7 @@ export default function TeamItemModal({
   const { uploadImageAsync, isPending: uploadLoading } = useUploadImage();
   const { deleteImageAsync, isPending: deleteLoading } = useDeleteImage();
   const toast = useToast();
+  const { canEditPrice, canViewCostPrice } = usePermission();
 
   const isEditMode = !!editItem;
   const submitLoading =
@@ -256,30 +258,47 @@ export default function TeamItemModal({
       return;
     }
 
+    if (!formData.categoryId) {
+      setSubmitError("카테고리를 선택해주세요.");
+      return;
+    }
+
     setSubmitError(null);
 
     try {
+      const isService = formData.isService;
+
       const teamItemDto: CreateTeamItemDto = {
         itemCode: formData.itemCode,
         itemName: formData.itemName,
         memo: formData.memo || undefined,
         teamId: teamId,
         categoryId: formData.categoryId,
-        costPrice: formData.costPrice
-          ? parseInt(formData.costPrice, 10)
-          : undefined,
-        // 가격 정보 확장
-        isNotifiedPrice: formData.isNotifiedPrice,
-        notifiedPrice: formData.notifiedPrice
-          ? parseInt(formData.notifiedPrice, 10)
-          : undefined,
-        consumerPrice: formData.consumerPrice
-          ? parseInt(formData.consumerPrice, 10)
-          : undefined,
+        // 서비스 품목이면 가격 데이터 전부 클리어
+        costPrice: isService
+          ? undefined
+          : formData.costPrice !== "" && formData.costPrice !== undefined
+            ? parseInt(formData.costPrice, 10)
+            : undefined,
+        isNotifiedPrice: isService ? false : formData.isNotifiedPrice,
+        notifiedPrice: isService
+          ? undefined
+          : formData.notifiedPrice !== "" &&
+              formData.notifiedPrice !== undefined
+            ? parseInt(formData.notifiedPrice, 10)
+            : undefined,
+        consumerPrice: isService
+          ? undefined
+          : formData.consumerPrice !== "" &&
+              formData.consumerPrice !== undefined
+            ? parseInt(formData.consumerPrice, 10)
+            : undefined,
         // 추가 정보
         brand: formData.brand || undefined,
-        isHealthInsuranceRegistered: formData.isHealthInsuranceRegistered,
-        isService: formData.isService,
+        isHealthInsuranceRegistered: isService
+          ? false
+          : formData.isHealthInsuranceRegistered,
+        isService,
       };
 
       let itemId: number;
@@ -341,21 +360,18 @@ export default function TeamItemModal({
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ── 서비스 품목 체크박스 (맨 위) ── */}
+        {/* ── 서비스 품목 토글 (맨 위) ── */}
         <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.isService}
-              onChange={() => handleCheckboxChange("isService")}
-              className="sr-only peer"
-            />
-            <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-green-500 peer-focus:ring-2 peer-focus:ring-green-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
-          </label>
+          <Toggle
+            checked={formData.isService}
+            onChange={() => handleCheckboxChange("isService")}
+            label="서비스 품목 토글"
+            color="green"
+          />
           <span className="text-sm font-medium text-gray-700">서비스 품목</span>
           {formData.isService && (
             <span className="text-xs text-green-600">
-              가격 정보, 고시가격, 건보 등록 필드가 숨겨집니다.
+              서비스 품목은 가격·고시가격·건보 필드를 사용하지 않습니다
             </span>
           )}
         </div>
@@ -500,32 +516,31 @@ export default function TeamItemModal({
               가격 정보
             </h3>
             <div className="space-y-4">
-              <div>
-                <Input
-                  label="원가 (원)"
-                  name="costPrice"
-                  type="number"
-                  value={formData.costPrice}
-                  onChange={handleInputChange}
-                  placeholder="예: 50000"
-                  min="0"
-                  step="1"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  선택 사항입니다. 입력하지 않으면 저장되지 않습니다.
-                </p>
-              </div>
+              {canViewCostPrice && (
+                <div>
+                  <Input
+                    label="원가 (원)"
+                    name="costPrice"
+                    type="number"
+                    value={formData.costPrice}
+                    onChange={handleInputChange}
+                    placeholder="예: 50000"
+                    min="0"
+                    step="1"
+                    disabled={!canEditPrice}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    선택 사항입니다. 입력하지 않으면 저장되지 않습니다.
+                  </p>
+                </div>
+              )}
 
               <div className="flex items-center gap-3">
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.isNotifiedPrice}
-                    onChange={() => handleCheckboxChange("isNotifiedPrice")}
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
-                </label>
+                <Toggle
+                  checked={formData.isNotifiedPrice}
+                  onChange={() => handleCheckboxChange("isNotifiedPrice")}
+                  label="고시가격 여부 토글"
+                />
                 <span className="text-sm font-medium text-gray-700">
                   고시가격 여부
                 </span>
@@ -588,17 +603,13 @@ export default function TeamItemModal({
             {/* 건강보험 등록 품목 (서비스 품목이 아닐 때만 표시) */}
             {!formData.isService && (
               <div className="flex items-center gap-3">
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.isHealthInsuranceRegistered}
-                    onChange={() =>
-                      handleCheckboxChange("isHealthInsuranceRegistered")
-                    }
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-500 peer-focus:ring-2 peer-focus:ring-blue-300 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
-                </label>
+                <Toggle
+                  checked={formData.isHealthInsuranceRegistered}
+                  onChange={() =>
+                    handleCheckboxChange("isHealthInsuranceRegistered")
+                  }
+                  label="건강보험 등록 품목 토글"
+                />
                 <span className="text-sm font-medium text-gray-700">
                   건강보험 등록 품목
                 </span>

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
+import toast from "react-hot-toast";
 import {
   CheckCircle,
   AlertTriangle,
@@ -8,9 +9,11 @@ import {
   SkipForward,
   Trash2,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui";
 import { CategoryTreeSelect } from "@/components/ui/CategoryTreeSelect";
 import { BulkUploadRow, RowStatus } from "@/types/(item)/bulk-upload";
+import { categoryApi } from "@/api/category-api";
 
 interface PreviewStepProps {
   rows: BulkUploadRow[];
@@ -70,6 +73,34 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
   onBack,
   onStartRegistration,
 }) => {
+  const queryClient = useQueryClient();
+
+  const handleCreateCategory = useCallback(
+    async (name: string, parentId?: number): Promise<number | undefined> => {
+      try {
+        const response = await categoryApi.createCategory({
+          name,
+          parentId,
+          priority: 0,
+          teamId,
+        });
+        if (!response.success || !response.data) {
+          return undefined;
+        }
+        await queryClient.invalidateQueries({
+          queryKey: ["categoryTree", teamId],
+        });
+        return response.data.id;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "카테고리 생성에 실패했습니다";
+        toast.error(message);
+        return undefined;
+      }
+    },
+    [teamId, queryClient]
+  );
+
   const summary = useMemo(() => {
     const total = rows.length;
     const ready = rows.filter((r) => r.status === "ready").length;
@@ -297,6 +328,7 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
                             teamId={teamId}
                             placeholder="카테고리 선택"
                             className="w-full"
+                            onCreateCategory={handleCreateCategory}
                           />
                         </div>
                       ) : (

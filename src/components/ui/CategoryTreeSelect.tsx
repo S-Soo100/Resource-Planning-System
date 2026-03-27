@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { ChevronDown, Check, X } from "lucide-react";
+import { ChevronDown, Check, X, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useCategoryTree } from "@/hooks/useCategoryTree";
 import { Category } from "@/types/(item)/category";
@@ -31,6 +31,10 @@ interface CategoryTreeSelectAssignProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  onCreateCategory?: (
+    name: string,
+    parentId?: number
+  ) => Promise<number | undefined>;
 }
 
 export type CategoryTreeSelectProps =
@@ -88,6 +92,12 @@ const flattenTree = (tree: Category[]): Category[] => {
  */
 const CategoryTreeSelect: React.FC<CategoryTreeSelectProps> = (props) => {
   const { mode, teamId, placeholder, className, disabled = false } = props;
+  const onCreateCategory =
+    mode === "assign" ? props.onCreateCategory : undefined;
+  const assignOnChange =
+    mode === "assign"
+      ? (props.onChange as (v: number | undefined) => void)
+      : undefined;
 
   const { data: tree = [], isLoading } = useCategoryTree(teamId);
 
@@ -96,8 +106,65 @@ const CategoryTreeSelect: React.FC<CategoryTreeSelectProps> = (props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
+  // 인라인 생성 폼 상태
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryParentId, setNewCategoryParentId] = useState<
+    number | undefined
+  >(undefined);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const createInputRef = useRef<HTMLInputElement>(null);
+
   // 플랫 목록 (키보드 탐색용)
   const flatItems = useMemo(() => flattenTree(tree), [tree]);
+
+  // 최상위 카테고리만 추출 (부모 선택 드롭다운용)
+  const topLevelCategories = useMemo(
+    () => tree.filter((cat) => !cat.parentId),
+    [tree]
+  );
+
+  const resetCreateForm = useCallback(() => {
+    setShowCreateForm(false);
+    setNewCategoryName("");
+    setNewCategoryParentId(undefined);
+    setCreateError(null);
+  }, []);
+
+  const handleCreateSubmit = useCallback(async () => {
+    if (!onCreateCategory) return;
+    const trimmedName = newCategoryName.trim();
+    if (!trimmedName) return;
+
+    setIsCreating(true);
+    setCreateError(null);
+
+    try {
+      const newId = await onCreateCategory(trimmedName, newCategoryParentId);
+      if (newId !== undefined) {
+        // 성공: 폼 닫기 + 자동 선택 + 드롭다운 닫기
+        resetCreateForm();
+        if (mode === "assign" && assignOnChange) {
+          assignOnChange(newId);
+        }
+        setIsOpen(false);
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "카테고리 생성에 실패했습니다";
+      setCreateError(message);
+    } finally {
+      setIsCreating(false);
+    }
+  }, [
+    onCreateCategory,
+    newCategoryName,
+    newCategoryParentId,
+    resetCreateForm,
+    mode,
+    assignOnChange,
+  ]);
 
   // ── 외부 클릭으로 닫기 ──
   useEffect(() => {
@@ -107,11 +174,19 @@ const CategoryTreeSelect: React.FC<CategoryTreeSelectProps> = (props) => {
         !containerRef.current.contains(e.target as Node)
       ) {
         setIsOpen(false);
+        resetCreateForm();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [resetCreateForm]);
+
+  // ── 생성 폼 input 자동 포커스 ──
+  useEffect(() => {
+    if (showCreateForm && createInputRef.current) {
+      createInputRef.current.focus();
+    }
+  }, [showCreateForm]);
 
   // ── 포커스 스크롤 ──
   useEffect(() => {
@@ -180,17 +255,16 @@ const CategoryTreeSelect: React.FC<CategoryTreeSelectProps> = (props) => {
 
   const handleAssignSelect = useCallback(
     (category: Category) => {
-      if (mode !== "assign") return;
-      const onChange = props.onChange as (v: number | undefined) => void;
+      if (mode !== "assign" || !assignOnChange) return;
 
       if (selectedAssignId === category.id) {
-        onChange(undefined);
+        assignOnChange(undefined);
       } else {
-        onChange(category.id);
+        assignOnChange(category.id);
       }
       setIsOpen(false);
     },
-    [mode, props, selectedAssignId]
+    [mode, assignOnChange, selectedAssignId]
   );
 
   // ── 키보드 핸들링 ──
@@ -409,56 +483,139 @@ const CategoryTreeSelect: React.FC<CategoryTreeSelectProps> = (props) => {
 
       {/* 드롭다운 */}
       {isOpen && (
-        <ul
-          ref={listRef}
-          role="listbox"
-          aria-multiselectable={mode === "filter"}
-          className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md border border-Outline-Variant bg-white shadow-lg"
-        >
-          {isLoading && (
-            <li className="px-3 py-2 text-sm text-Text-Lowest-60">
-              불러오는 중...
-            </li>
-          )}
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-Outline-Variant bg-white shadow-lg flex flex-col">
+          <ul
+            ref={listRef}
+            role="listbox"
+            aria-multiselectable={mode === "filter"}
+            className="max-h-60 overflow-auto"
+          >
+            {isLoading && (
+              <li className="px-3 py-2 text-sm text-Text-Lowest-60">
+                불러오는 중...
+              </li>
+            )}
 
-          {!isLoading && flatItems.length === 0 && (
-            <li className="px-3 py-2 text-sm text-Text-Lowest-60">
-              카테고리가 없습니다
-            </li>
-          )}
+            {!isLoading && flatItems.length === 0 && (
+              <li className="px-3 py-2 text-sm text-Text-Lowest-60">
+                카테고리가 없습니다
+              </li>
+            )}
 
-          {!isLoading && flatItems.length > 0 && (
-            <>
-              {/* filter 모드: "전체" 옵션 */}
-              {mode === "filter" && (
-                <li
-                  role="option"
-                  aria-selected={isAllSelected}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm font-semibold border-b border-Outline-Variant transition-colors hover:bg-Back-Low-10"
-                  )}
-                  onClick={handleSelectAll}
-                >
-                  <span
+            {!isLoading && flatItems.length > 0 && (
+              <>
+                {/* filter 모드: "전체" 옵션 */}
+                {mode === "filter" && (
+                  <li
+                    role="option"
+                    aria-selected={isAllSelected}
                     className={cn(
-                      "flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors",
-                      isAllSelected
-                        ? "bg-Primary-Main border-Primary-Main"
-                        : "border-Outline-Variant bg-white"
+                      "flex items-center gap-2 px-3 py-1.5 cursor-pointer text-sm font-semibold border-b border-Outline-Variant transition-colors hover:bg-Back-Low-10"
                     )}
+                    onClick={handleSelectAll}
                   >
-                    {isAllSelected && (
-                      <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                    )}
-                  </span>
-                  <span>전체</span>
-                </li>
-              )}
+                    <span
+                      className={cn(
+                        "flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors",
+                        isAllSelected
+                          ? "bg-Primary-Main border-Primary-Main"
+                          : "border-Outline-Variant bg-white"
+                      )}
+                    >
+                      {isAllSelected && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </span>
+                    <span>전체</span>
+                  </li>
+                )}
 
-              {tree.map((category) => renderCategory(category, 0))}
-            </>
+                {tree.map((category) => renderCategory(category, 0))}
+              </>
+            )}
+          </ul>
+
+          {/* 인라인 카테고리 생성 폼 (assign 모드 + onCreateCategory prop 있을 때만) */}
+          {onCreateCategory && (
+            <div className="border-t border-Outline-Variant bg-white rounded-b-md">
+              {!showCreateForm ? (
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 w-full px-3 py-2 text-sm text-Primary-Main hover:bg-Back-Low-10 transition-colors"
+                  onClick={() => setShowCreateForm(true)}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>새 카테고리</span>
+                </button>
+              ) : (
+                <div className="px-3 py-2 flex flex-col gap-2">
+                  <input
+                    ref={createInputRef}
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleCreateSubmit();
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        resetCreateForm();
+                      }
+                    }}
+                    placeholder="카테고리명"
+                    className="w-full px-2 py-1.5 text-sm border border-Outline-Variant rounded focus:border-Primary-Main focus:ring-1 focus:ring-Primary-Main/20 focus:outline-none"
+                    disabled={isCreating}
+                  />
+                  <select
+                    value={newCategoryParentId ?? ""}
+                    onChange={(e) =>
+                      setNewCategoryParentId(
+                        e.target.value ? Number(e.target.value) : undefined
+                      )
+                    }
+                    className="w-full px-2 py-1.5 text-sm border border-Outline-Variant rounded focus:border-Primary-Main focus:ring-1 focus:ring-Primary-Main/20 focus:outline-none bg-white"
+                    disabled={isCreating}
+                  >
+                    <option value="">없음 (최상위)</option>
+                    {topLevelCategories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                  {createError && (
+                    <p className="text-xs text-red-500">{createError}</p>
+                  )}
+                  <div className="flex gap-1.5 justify-end">
+                    <button
+                      type="button"
+                      onClick={resetCreateForm}
+                      disabled={isCreating}
+                      className="px-2.5 py-1 text-xs rounded border border-Outline-Variant text-Text-Low-70 hover:bg-Back-Low-10 transition-colors disabled:opacity-50"
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCreateSubmit}
+                      disabled={isCreating || !newCategoryName.trim()}
+                      className="px-2.5 py-1 text-xs rounded bg-Primary-Main text-white hover:bg-Primary-Main/90 transition-colors disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {isCreating && (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      )}
+                      확인
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
-        </ul>
+        </div>
       )}
     </div>
   );

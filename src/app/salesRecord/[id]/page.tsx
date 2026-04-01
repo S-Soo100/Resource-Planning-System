@@ -555,23 +555,28 @@ const OrderRecordDetail = () => {
     }
     setIsUpdatingDeposit(true);
     try {
-      // 입금상태 자동 판단
-      let autoDepositStatus: string | undefined = undefined;
+      // 입금상태 자동 판단: "clear" = 초기화, string = 설정, null = 변경 없음
+      let autoStatus: string | "clear" | null = null;
       const totalPrice = order.totalPrice ?? 0;
 
       if (!newAmount || newAmount <= 0) {
-        // 입금액 0 또는 빈 값 → 미입금 (상태 초기화)
-        autoDepositStatus = undefined;
+        autoStatus = "clear";
       } else if (totalPrice > 0 && newAmount >= totalPrice) {
-        // 입금액 >= 거래금액 → 전액
-        autoDepositStatus = "전액";
+        autoStatus = "전액";
+      } else if (
+        totalPrice > 0 &&
+        newAmount < totalPrice &&
+        order.depositStatus === "전액"
+      ) {
+        // 전액이었는데 금액 줄임 → 상태 초기화
+        autoStatus = "clear";
       }
 
       const updateData: Record<string, unknown> = { depositAmount: newAmount };
-      if (autoDepositStatus !== undefined) {
-        updateData.depositStatus = autoDepositStatus;
-      } else if (!newAmount || newAmount <= 0) {
+      if (autoStatus === "clear") {
         updateData.depositStatus = undefined;
+      } else if (autoStatus) {
+        updateData.depositStatus = autoStatus;
       }
 
       await updateDetailsMutate({
@@ -580,12 +585,18 @@ const OrderRecordDetail = () => {
       });
 
       const newOrder = { ...order, depositAmount: newAmount ?? null };
-      if (autoDepositStatus !== undefined) {
-        newOrder.depositStatus = autoDepositStatus;
-        toast.success("전액 입금으로 상태가 변경되었습니다");
-      } else if (!newAmount || newAmount <= 0) {
+      if (autoStatus === "clear") {
         newOrder.depositStatus = null;
-        toast.success("입금금액이 초기화되었습니다");
+        if (!newAmount || newAmount <= 0) {
+          toast.success("입금금액이 초기화되었습니다");
+        } else {
+          toast.success(
+            "입금금액이 변경되었습니다. 입금상태를 다시 선택해주세요"
+          );
+        }
+      } else if (autoStatus === "전액") {
+        newOrder.depositStatus = "전액";
+        toast.success("전액 입금으로 상태가 변경되었습니다");
       } else {
         toast.success("입금금액이 변경되었습니다");
       }

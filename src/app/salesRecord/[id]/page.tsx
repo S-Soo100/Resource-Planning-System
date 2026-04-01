@@ -542,7 +542,7 @@ const OrderRecordDetail = () => {
     }
   };
 
-  // 입금금액 인라인 저장
+  // 입금금액 인라인 저장 (입금상태 자동 반영 포함)
   const handleDepositAmountSave = async () => {
     if (!order) return;
     const newAmount = editDepositAmount
@@ -555,12 +555,41 @@ const OrderRecordDetail = () => {
     }
     setIsUpdatingDeposit(true);
     try {
+      // 입금상태 자동 판단
+      let autoDepositStatus: string | undefined = undefined;
+      const totalPrice = order.totalPrice ?? 0;
+
+      if (!newAmount || newAmount <= 0) {
+        // 입금액 0 또는 빈 값 → 미입금 (상태 초기화)
+        autoDepositStatus = undefined;
+      } else if (totalPrice > 0 && newAmount >= totalPrice) {
+        // 입금액 >= 거래금액 → 전액
+        autoDepositStatus = "전액";
+      }
+
+      const updateData: Record<string, unknown> = { depositAmount: newAmount };
+      if (autoDepositStatus !== undefined) {
+        updateData.depositStatus = autoDepositStatus;
+      } else if (!newAmount || newAmount <= 0) {
+        updateData.depositStatus = undefined;
+      }
+
       await updateDetailsMutate({
         id: String(order.id),
-        data: { depositAmount: newAmount },
+        data: updateData,
       });
-      setOrder({ ...order, depositAmount: newAmount ?? null });
-      toast.success("입금금액이 변경되었습니다");
+
+      const newOrder = { ...order, depositAmount: newAmount ?? null };
+      if (autoDepositStatus !== undefined) {
+        newOrder.depositStatus = autoDepositStatus;
+        toast.success("전액 입금으로 상태가 변경되었습니다");
+      } else if (!newAmount || newAmount <= 0) {
+        newOrder.depositStatus = null;
+        toast.success("입금금액이 초기화되었습니다");
+      } else {
+        toast.success("입금금액이 변경되었습니다");
+      }
+      setOrder(newOrder);
     } catch (error) {
       console.error("입금금액 변경 실패:", error);
       toast.error("입금금액 변경에 실패했습니다");

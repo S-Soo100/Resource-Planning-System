@@ -45,6 +45,10 @@ docs/project-portfolio.md
 # node compile cache
 node-compile-cache/
 
+# Claude Code
+.claude/
+CLAUDE.md
+
 # Playwright
 /test-results/
 /playwright-report/

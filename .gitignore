@@ -39,8 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-docs/llm-modification-guidelines.md
-docs/project-portfolio.md
 
 # node compile cache
 node-compile-cache/
@@ -48,6 +46,11 @@ node-compile-cache/
 # Claude Code
 .claude/
 CLAUDE.md
+
+# Internal docs & plans
+docs/
+plan/
+planning/
 
 # Playwright
 /test-results/
